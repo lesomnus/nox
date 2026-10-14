@@ -21,17 +21,8 @@
   width: 100%;
   max-height: inherit;
   transform-origin: center;
-  /* Move the surface without an opacity layer so descendant backdrop blur
-     samples the page throughout the motion. */
   animation: enter var(--ui-dialog-enter-duration) var(--ui-dialog-enter-easing)
-    backwards;
-}
-/* Cards own their header/body/footer surfaces. A filled, filtered ancestor
-   would dim the body again and restrict its backdrop to that ancestor. */
-.surface:has([data-dialog-card]) {
-  background: transparent;
-  -webkit-backdrop-filter: none;
-  backdrop-filter: none;
+    both;
 }
 .surface :global(.floating-card) {
   background: transparent;
@@ -48,13 +39,18 @@
 .surface[data-motion="from-right"][data-closing="true"] {
   animation: none;
   transform: translateX(calc(100% + 2 * var(--ui-space)));
-  transition: transform var(--ui-dialog-enter-duration) ease-in;
+  opacity: 0;
+  transition:
+    transform var(--ui-dialog-enter-duration) ease-in,
+    opacity var(--ui-dialog-enter-duration) ease-in;
 }
 @keyframes enter-from-right {
   from {
+    opacity: 0;
     transform: translateX(calc(100% + 2 * var(--ui-space)));
   }
   to {
+    opacity: 1;
     transform: none;
   }
 }
@@ -63,9 +59,11 @@
 }
 @keyframes enter {
   from {
+    opacity: 0;
     transform: translateY(var(--ui-dialog-enter-offset)) scale(0.985);
   }
   to {
+    opacity: 1;
     transform: none;
   }
 }

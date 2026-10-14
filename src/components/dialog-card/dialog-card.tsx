@@ -5,15 +5,12 @@ import styles from "./dialog-card.module.css";
 // The same header, distinct inset body and compact footer for forms and confirmations.
 export function DialogCard({
   className = "",
-  bodyWrapperClassName = "",
   ...props
 }: ComponentProps<typeof FloatingCard>) {
   return (
     <FloatingCard
       data-entered="true"
-      data-dialog-card=""
       {...props}
-      bodyWrapperClassName={`card-body-frame ${styles.body_frame} ${bodyWrapperClassName}`}
       className={`${styles.card} ${className}`}
     />
   );

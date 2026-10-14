@@ -23,18 +23,8 @@ const meta = {
     ),
   },
   decorators: [
-    (Story, context) => (
-      <div
-        style={{
-          width: "min(30rem, 90vw)",
-          ...(context.parameters.glassBackground && {
-            padding: "var(--ui-dialog-padding)",
-            borderRadius: "var(--ui-dialog-radius)",
-            background:
-              "repeating-linear-gradient(135deg, var(--ui-shade-16) 0 32px, var(--ui-shade-160) 32px 64px)",
-          }),
-        }}
-      >
+    (Story) => (
+      <div style={{ width: "min(30rem, 90vw)" }}>
         <DialogSurface>
           <Story />
         </DialogSurface>
@@ -45,7 +35,7 @@ const meta = {
     docs: {
       description: {
         component:
-          "Shared dialog header, translucent blurred body inset from the card edges using the control inset token, and compact footer. A clipped body frame fills the gaps outside the rounded body with the same dark background as the header and footer, without filling behind the body or applying blur to the gaps. Body text stays aligned with the heading; its radius accounts for the border and inset. DialogActions aligns actions together on the right. DialogSurface supplies transform-only motion. Native modal wrappers supply focus and dismissal behavior. Forms and confirmations use the same structure and styling.",
+          "Shared dialog header, rounded body inset from the card edges using the control inset token, and compact footer. Body text stays aligned with the heading; its radius accounts for the border and inset. DialogActions aligns actions together on the right. DialogSurface supplies translucency, blur and entrance motion; native modal wrappers supply focus and dismissal behavior. Forms and confirmations use the same structure and styling.",
       },
     },
   },
@@ -54,9 +44,6 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 export const Confirmation: Story = {};
-export const GlassBody: Story = {
-  parameters: { glassBackground: true },
-};
 export const Form: Story = {
   args: {
     title: "Add account",

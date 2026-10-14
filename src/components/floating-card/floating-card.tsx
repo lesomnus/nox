@@ -8,7 +8,6 @@ export function FloatingCard({
   close,
   closeLabel,
   bodyTabIndex,
-  bodyWrapperClassName,
   footer,
   children,
   className = "",
@@ -20,15 +19,9 @@ export function FloatingCard({
   close?: () => void;
   closeLabel?: string;
   bodyTabIndex?: number;
-  bodyWrapperClassName?: string;
   footer?: ReactNode;
   ref?: Ref<HTMLElement>;
 }) {
-  const body = (
-    <div className="card-body" tabIndex={bodyTabIndex}>
-      {children}
-    </div>
-  );
   return (
     <section
       ref={ref}
@@ -50,11 +43,9 @@ export function FloatingCard({
           )}
         </header>
       )}
-      {bodyWrapperClassName ? (
-        <div className={bodyWrapperClassName}>{body}</div>
-      ) : (
-        body
-      )}
+      <div className="card-body" tabIndex={bodyTabIndex}>
+        {children}
+      </div>
       {footer && <footer className="card-footer">{footer}</footer>}
     </section>
   );
