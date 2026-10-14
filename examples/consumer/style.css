@@ -1,0 +1,15 @@
+body {
+  margin: 0;
+  background: var(--ui-shade-20);
+  color: var(--ui-shade-237);
+  font:
+    14px/1.5 system-ui,
+    sans-serif;
+}
+main {
+  display: grid;
+  gap: 24px;
+  max-width: 480px;
+  padding: 40px;
+  margin: auto;
+}
