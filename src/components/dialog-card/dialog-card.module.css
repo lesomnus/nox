@@ -41,7 +41,9 @@
       var(--card-radius) - var(--card-border-width) - var(--ui-control-inset)
     )
   );
-  background: var(--ui-dialog-body-background);
+  background: var(--ui-dialog-body-glass-background);
+  -webkit-backdrop-filter: blur(var(--ui-dialog-blur));
+  backdrop-filter: blur(var(--ui-dialog-blur));
 }
 .card.card :global(.card-body) > :first-child,
 .card.card :global(.card-body) > :first-child > :first-child {
