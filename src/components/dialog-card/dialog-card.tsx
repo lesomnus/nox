@@ -10,6 +10,7 @@ export function DialogCard({
   return (
     <FloatingCard
       data-entered="true"
+      data-dialog-card=""
       {...props}
       className={`${styles.card} ${className}`}
     />

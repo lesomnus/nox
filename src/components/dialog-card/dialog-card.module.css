@@ -3,6 +3,9 @@
   inset: auto;
   width: 100%;
   max-height: inherit;
+  background: transparent;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
 }
 .actions {
   display: flex;
@@ -19,6 +22,9 @@
 .card.card :is(:global(.card-heading), :global(.card-footer)) {
   flex-shrink: 0;
   padding: var(--ui-dialog-padding);
+  background: var(--ui-dialog-background);
+  -webkit-backdrop-filter: blur(var(--ui-dialog-blur));
+  backdrop-filter: blur(var(--ui-dialog-blur));
 }
 .card.card :global(.card-footer) {
   padding: var(--ui-space);

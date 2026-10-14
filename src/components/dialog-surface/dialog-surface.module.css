@@ -24,6 +24,13 @@
   animation: enter var(--ui-dialog-enter-duration) var(--ui-dialog-enter-easing)
     both;
 }
+/* Cards own their header/body/footer surfaces. A filled, filtered ancestor
+   would dim the body again and restrict its backdrop to that ancestor. */
+.surface:has([data-dialog-card]) {
+  background: transparent;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
 .surface :global(.floating-card) {
   background: transparent;
   -webkit-backdrop-filter: none;
