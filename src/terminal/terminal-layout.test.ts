@@ -7,8 +7,8 @@ import {
   paneOrder,
   selectTerminal,
   type TerminalLayout,
-} from "@lesomnus/nox/terminal";
-import { setSplitRatio } from "@lesomnus/nox";
+} from "./terminal-layout";
+import { setSplitRatio } from "../components/split-layout/split-layout";
 
 function invariant(layout: TerminalLayout) {
   const panes = paneOrder(layout.tree);
