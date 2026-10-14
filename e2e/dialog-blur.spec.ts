@@ -20,37 +20,61 @@ test("dialog body blurs the page during and after its entrance motion", async ({
   });
   await expect(surface).toHaveCSS("opacity", "1");
   const body = dialog.locator(".card-body");
-  const variation = async () => {
-    const png = (await body.screenshot()).toString("base64");
-    return page.evaluate(async (base64) => {
-      const image = new Image();
-      image.src = `data:image/png;base64,${base64}`;
-      await image.decode();
-      const canvas = document.createElement("canvas");
-      canvas.width = image.width;
-      canvas.height = image.height;
-      const context = canvas.getContext("2d")!;
-      context.drawImage(image, 0, 0);
-      const row = context.getImageData(24, 10, image.width - 48, 1).data;
-      const values = Array.from(row).filter((_, index) => index % 4 === 0);
-      const mean =
-        values.reduce((sum, value) => sum + value, 0) / values.length;
-      return Math.sqrt(
-        values.reduce((sum, value) => sum + (value - mean) ** 2, 0) /
-          values.length,
-      );
-    }, png);
+  const card = dialog.locator("[data-dialog-card]");
+  const variation = async (gutter = false) => {
+    const region = gutter
+      ? await card.evaluate((node) => {
+          const body = node.querySelector<HTMLElement>(".card-body")!;
+          const bounds = node.getBoundingClientRect();
+          const content = body.getBoundingClientRect();
+          return {
+            x: Math.floor(
+              parseFloat(getComputedStyle(node).borderLeftWidth) +
+                parseFloat(getComputedStyle(body).marginLeft) / 2,
+            ),
+            y: Math.ceil(content.top - bounds.top + 12),
+            width: 1,
+            height: Math.floor(content.height - 24),
+          };
+        })
+      : null;
+    const png = (await (gutter ? card : body).screenshot()).toString("base64");
+    return page.evaluate(
+      async ({ base64, region }) => {
+        const image = new Image();
+        image.src = `data:image/png;base64,${base64}`;
+        await image.decode();
+        const canvas = document.createElement("canvas");
+        canvas.width = image.width;
+        canvas.height = image.height;
+        const context = canvas.getContext("2d")!;
+        context.drawImage(image, 0, 0);
+        const { x, y, width, height } = region ?? {
+          x: 24,
+          y: 10,
+          width: image.width - 48,
+          height: 1,
+        };
+        const row = context.getImageData(x, y, width, height).data;
+        const values = Array.from(row).filter((_, index) => index % 4 === 0);
+        const mean =
+          values.reduce((sum, value) => sum + value, 0) / values.length;
+        return Math.sqrt(
+          values.reduce((sum, value) => sum + (value - mean) ** 2, 0) /
+            values.length,
+        );
+      },
+      { base64: png, region },
+    );
   };
-  const checkBlur = async () => {
-    const blurred = await variation();
-    await body.evaluate((node) => {
-      node.style.backdropFilter = "none";
-      node.style.setProperty("-webkit-backdrop-filter", "none");
+  const checkBlur = async (gutter = false) => {
+    const blurred = await variation(gutter);
+    await card.evaluate((node) => {
+      node.style.setProperty("--ui-dialog-blur", "0px");
     });
-    const sharp = await variation();
-    await body.evaluate((node) => {
-      node.style.removeProperty("backdrop-filter");
-      node.style.removeProperty("-webkit-backdrop-filter");
+    const sharp = await variation(gutter);
+    await card.evaluate((node) => {
+      node.style.removeProperty("--ui-dialog-blur");
     });
     expect(sharp).toBeGreaterThan(5);
     expect(blurred).toBeLessThan(sharp / 4);
@@ -60,4 +84,13 @@ test("dialog body blurs the page during and after its entrance motion", async ({
     node.getAnimations().forEach((animation) => animation.finish());
   });
   await checkBlur();
+  // Horizontal stripes reveal unblurred pixels in the narrow vertical gap
+  // between the body and the card border, away from text and curved corners.
+  await page
+    .locator('[aria-hidden="true"][style*="repeating-linear-gradient"]')
+    .evaluate((node) => {
+      (node as HTMLElement).style.background =
+        "repeating-linear-gradient(0deg, #141414 0 8px, #888 8px 16px)";
+    });
+  await checkBlur(true);
 });
