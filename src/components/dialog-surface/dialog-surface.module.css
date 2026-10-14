@@ -21,8 +21,10 @@
   width: 100%;
   max-height: inherit;
   transform-origin: center;
+  /* Release the opacity animation after entry. Forward filling keeps a
+     backdrop boundary around descendants even when opacity has reached 1. */
   animation: enter var(--ui-dialog-enter-duration) var(--ui-dialog-enter-easing)
-    both;
+    backwards;
 }
 /* Cards own their header/body/footer surfaces. A filled, filtered ancestor
    would dim the body again and restrict its backdrop to that ancestor. */
