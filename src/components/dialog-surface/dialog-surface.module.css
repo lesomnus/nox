@@ -21,8 +21,8 @@
   width: 100%;
   max-height: inherit;
   transform-origin: center;
-  /* Release the opacity animation after entry. Forward filling keeps a
-     backdrop boundary around descendants even when opacity has reached 1. */
+  /* Move the surface without an opacity layer so descendant backdrop blur
+     samples the page throughout the motion. */
   animation: enter var(--ui-dialog-enter-duration) var(--ui-dialog-enter-easing)
     backwards;
 }
@@ -48,18 +48,13 @@
 .surface[data-motion="from-right"][data-closing="true"] {
   animation: none;
   transform: translateX(calc(100% + 2 * var(--ui-space)));
-  opacity: 0;
-  transition:
-    transform var(--ui-dialog-enter-duration) ease-in,
-    opacity var(--ui-dialog-enter-duration) ease-in;
+  transition: transform var(--ui-dialog-enter-duration) ease-in;
 }
 @keyframes enter-from-right {
   from {
-    opacity: 0;
     transform: translateX(calc(100% + 2 * var(--ui-space)));
   }
   to {
-    opacity: 1;
     transform: none;
   }
 }
@@ -68,11 +63,9 @@
 }
 @keyframes enter {
   from {
-    opacity: 0;
     transform: translateY(var(--ui-dialog-enter-offset)) scale(0.985);
   }
   to {
-    opacity: 1;
     transform: none;
   }
 }
