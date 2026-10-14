@@ -16,3 +16,7 @@ this repository. The original cxz workspace was left in place.
   `794ac755337d4703e9b1181a473bf3a0607de719`. Dialog bodies now use the control
   inset on both sides while preserving heading/text alignment and nested radii.
   Application-specific resource panels remain in cxz.
+
+- 2026-10-14: imported the post-extraction value-menu fixes, matched-query
+  highlighting and shared brand token/export from cxz main. These preserve the
+  consuming application's existing behavior when switching to Nox.
