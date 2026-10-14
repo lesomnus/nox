@@ -84,13 +84,73 @@ test("dialog body blurs the page during and after its entrance motion", async ({
     node.getAnimations().forEach((animation) => animation.finish());
   });
   await checkBlur();
-  // Horizontal stripes reveal unblurred pixels in the narrow vertical gap
-  // between the body and the card border, away from text and curved corners.
+  // The surrounding frame uses the header/footer tint, without body blur.
   await page
     .locator('[aria-hidden="true"][style*="repeating-linear-gradient"]')
     .evaluate((node) => {
       (node as HTMLElement).style.background =
         "repeating-linear-gradient(0deg, #141414 0 8px, #888 8px 16px)";
     });
-  await checkBlur(true);
+  const gapVariation = await variation(true);
+  await card.evaluate((node) =>
+    node.style.setProperty("--ui-dialog-blur", "0px"),
+  );
+  expect(await variation(true)).toBeCloseTo(gapVariation, 1);
+  await card.evaluate((node) => node.style.removeProperty("--ui-dialog-blur"));
+  await page
+    .locator('[aria-hidden="true"][style*="repeating-linear-gradient"]')
+    .evaluate((node) => {
+      (node as HTMLElement).style.background = "rgb(80, 80, 80)";
+    });
+  // Compare the tints over an identical backdrop, away from the launch text.
+  await page
+    .getByText("Open confirmation", { exact: true })
+    .evaluate((node) => {
+      (node as HTMLElement).style.visibility = "hidden";
+    });
+  const samples = await card.evaluate((node) => {
+    const bounds = node.getBoundingClientRect();
+    const body = node.querySelector<HTMLElement>(".card-body")!;
+    const content = body.getBoundingClientRect();
+    const heading = node
+      .querySelector(".card-heading")!
+      .getBoundingClientRect();
+    const footer = node.querySelector(".card-footer")!.getBoundingClientRect();
+    return {
+      gap: [
+        Math.floor(
+          parseFloat(getComputedStyle(node).borderLeftWidth) +
+            parseFloat(getComputedStyle(body).marginLeft) / 2,
+        ),
+        Math.floor(content.top - bounds.top + content.height / 2),
+      ],
+      header: [
+        Math.floor(bounds.width / 2),
+        Math.floor(heading.top - bounds.top + heading.height / 2),
+      ],
+      footer: [16, Math.floor(footer.top - bounds.top + footer.height / 2)],
+    };
+  });
+  const png = (await card.screenshot()).toString("base64");
+  const colors = await page.evaluate(
+    async ({ png, samples }) => {
+      const image = new Image();
+      image.src = `data:image/png;base64,${png}`;
+      await image.decode();
+      const canvas = document.createElement("canvas");
+      canvas.width = image.width;
+      canvas.height = image.height;
+      const context = canvas.getContext("2d")!;
+      context.drawImage(image, 0, 0);
+      return Object.fromEntries(
+        Object.entries(samples).map(([key, [x, y]]) => [
+          key,
+          [...context.getImageData(x, y, 1, 1).data],
+        ]),
+      );
+    },
+    { png, samples },
+  );
+  expect(colors.gap).toEqual(colors.header);
+  expect(colors.gap).toEqual(colors.footer);
 });

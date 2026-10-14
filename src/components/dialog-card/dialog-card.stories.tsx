@@ -45,7 +45,7 @@ const meta = {
     docs: {
       description: {
         component:
-          "Shared dialog header, translucent body inset from the card edges using the control inset token, and compact footer. A continuous background layer supplies translucency and blur beneath all regions and their gaps. Header and footer add darker tints. Body text stays aligned with the heading; its radius accounts for the border and inset. DialogActions aligns actions together on the right. DialogSurface supplies transform-only motion without filling or filtering behind the card. Native modal wrappers supply focus and dismissal behavior. Forms and confirmations use the same structure and styling.",
+          "Shared dialog header, translucent blurred body inset from the card edges using the control inset token, and compact footer. A clipped body frame fills the gaps outside the rounded body with the same dark background as the header and footer, without filling behind the body or applying blur to the gaps. Body text stays aligned with the heading; its radius accounts for the border and inset. DialogActions aligns actions together on the right. DialogSurface supplies transform-only motion. Native modal wrappers supply focus and dismissal behavior. Forms and confirmations use the same structure and styling.",
       },
     },
   },

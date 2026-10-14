@@ -7,21 +7,27 @@
   -webkit-backdrop-filter: none;
   backdrop-filter: none;
 }
-.card.card::before {
+.body_frame {
+  position: relative;
+  display: flex;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+.body_frame::before {
   content: "";
   position: absolute;
-  inset: 0;
-  z-index: 0;
+  inset: 0 var(--ui-control-inset);
   pointer-events: none;
-  border-radius: max(0px, calc(var(--card-radius) - var(--card-border-width)));
-  background: var(--ui-dialog-body-glass-background);
-  -webkit-backdrop-filter: blur(var(--ui-dialog-blur));
-  backdrop-filter: blur(var(--ui-dialog-blur));
-}
-.card.card
-  > :is(:global(.card-heading), :global(.card-body), :global(.card-footer)) {
-  position: relative;
-  z-index: 1;
+  border-radius: max(
+    0px,
+    calc(
+      var(--card-radius) - var(--card-border-width) - var(--ui-control-inset)
+    )
+  );
+  /* Paint the chrome outside the rounded body, independently of its filter.
+     The frame clips the spread before it reaches the header or footer. */
+  box-shadow: 0 0 0 var(--ui-dialog-radius) var(--ui-dialog-background);
 }
 .actions {
   display: flex;
@@ -51,6 +57,7 @@
   background: var(--ui-hover);
 }
 .card.card :global(.card-body) {
+  flex: 1;
   margin: 0 var(--ui-control-inset);
   /* Keep the body text aligned with the heading when the surface is inset. */
   padding: calc(2 * var(--ui-dialog-padding))
@@ -61,7 +68,9 @@
       var(--card-radius) - var(--card-border-width) - var(--ui-control-inset)
     )
   );
-  background: transparent;
+  background: var(--ui-dialog-body-glass-background);
+  -webkit-backdrop-filter: blur(var(--ui-dialog-blur));
+  backdrop-filter: blur(var(--ui-dialog-blur));
 }
 .card.card :global(.card-body) > :first-child,
 .card.card :global(.card-body) > :first-child > :first-child {
