@@ -100,7 +100,21 @@ export function ValueMenu({
       const upwards = rect.top + height > window.innerHeight;
       setUp(upwards);
       const popup = menu.current;
-      popup.style.fontSize = getComputedStyle(root.current).fontSize;
+      // The portal leaves the trigger's typography context, including numeric
+      // variants that can also change the width of punctuation such as '-'.
+      const typography = getComputedStyle(trigger() ?? root.current);
+      for (const property of [
+        "fontFamily",
+        "fontSize",
+        "fontWeight",
+        "fontStyle",
+        "fontVariant",
+        "fontFeatureSettings",
+        "fontVariationSettings",
+        "letterSpacing",
+      ] as const) {
+        popup.style[property] = typography[property];
+      }
       popup.style.setProperty("--value-width", `${rect.width}px`);
       popup.style.setProperty(
         "--menu-width",
