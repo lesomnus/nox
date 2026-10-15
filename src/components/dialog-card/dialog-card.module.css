@@ -43,6 +43,15 @@
   );
   background: var(--ui-dialog-body-background);
 }
+.card.card
+  :global(.card-body)
+  :where(
+    input:not([type="checkbox"], [type="radio"], [type="range"]),
+    textarea,
+    select
+  ) {
+  background: var(--ui-dialog-input-background);
+}
 .card.card :global(.card-body) > :first-child,
 .card.card :global(.card-body) > :first-child > :first-child {
   margin-top: 0;

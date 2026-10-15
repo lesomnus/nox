@@ -121,6 +121,11 @@
   --ui-dialog-radius: calc(3 * var(--ui-space));
   --ui-dialog-padding: calc(3 * var(--ui-space));
   --ui-dialog-body-background: var(--ui-shade-28);
+  --ui-dialog-input-background: color-mix(
+    in srgb,
+    var(--ui-shade-16),
+    var(--ui-dialog-body-background)
+  );
   --ui-dialog-action-min-width: 72px;
   --ui-dialog-trigger-opacity: 0.6;
   --ui-control-inset: 2px;
