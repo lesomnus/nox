@@ -26,6 +26,7 @@ export function ActionMenu({
   groups,
   disabled = false,
   placement = "below",
+  position: customPosition,
   status,
   triggerContent,
   disabledReason,
@@ -36,6 +37,8 @@ export function ActionMenu({
   groups?: { label: string; items: ActionMenuItem[] }[];
   disabled?: boolean;
   placement?: "above" | "below" | "right";
+  /** Override popup origin; viewport bounds are still enforced. */
+  position?: (trigger: DOMRect) => { left: number; top: number };
   status?: string;
   /** Custom trigger content; defaults to the More (ellipsis) icon. */
   triggerContent?: ReactNode;
@@ -61,6 +64,13 @@ export function ActionMenu({
       const bounds = trigger.current!.getBoundingClientRect();
       const gap = 4,
         inset = 8;
+      if (customPosition) {
+        const origin = customPosition(bounds);
+        popup.style.maxHeight = `${window.innerHeight - 8}px`;
+        popup.style.left = `${Math.max(4, Math.min(origin.left, window.innerWidth - popup.offsetWidth - 4))}px`;
+        popup.style.top = `${Math.max(4, Math.min(origin.top, window.innerHeight - popup.offsetHeight - 4))}px`;
+        return;
+      }
       if (placement === "right") {
         popup.style.maxHeight = `${window.innerHeight - 2 * inset}px`;
         popup.style.left = `${Math.max(inset, Math.min(bounds.right + gap, window.innerWidth - popup.offsetWidth - inset))}px`;
@@ -94,7 +104,7 @@ export function ActionMenu({
       resize.disconnect();
       window.removeEventListener("scroll", position, true);
     };
-  }, [open, placement]);
+  }, [open, placement, customPosition]);
   useEffect(() => {
     if (!open) return;
     const outside = (event: PointerEvent) => {
