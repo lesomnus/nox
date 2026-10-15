@@ -109,6 +109,10 @@
   mask-size: 300% 300%;
   mask-repeat: no-repeat;
 }
+.entrance[data-enter-effect="reveal-frame"] {
+  /* Keep thin borders on their final pixel grid, outside blur and masking. */
+  animation-name: backdrop-enter;
+}
 @keyframes reveal {
   from {
     opacity: 0;
@@ -182,6 +186,7 @@
   .dialog::backdrop {
     animation: none;
   }
+  .entrance[data-enter-effect="reveal-frame"],
   .entrance[data-enter-effect="reveal"] {
     animation: none;
     mask-image: none;

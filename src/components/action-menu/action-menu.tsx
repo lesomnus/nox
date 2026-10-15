@@ -66,6 +66,13 @@ export function ActionMenu({
   disabledReason?: string;
   triggerClassName?: string;
 }) {
+  const reveal = typeof motion === "object" && motion.effect === "reveal";
+  const direction =
+    typeof motion === "object"
+      ? `from-${motion.from}`
+      : typeof motion === "string"
+        ? motion
+        : undefined;
   const [open, setOpen] = useState(false);
   const trigger = useRef<HTMLDivElement>(null);
   const menu = useRef<HTMLDivElement>(null);
@@ -181,16 +188,8 @@ export function ActionMenu({
           <div
             className={`${styles.action_menu_popup} ${motion ? dialogStyles.entrance : ""} action-menu-popup`}
             data-placement={placement}
-            data-enter-from={
-              typeof motion === "object"
-                ? `from-${motion.from}`
-                : typeof motion === "string"
-                  ? motion
-                  : undefined
-            }
-            data-enter-effect={
-              typeof motion === "object" ? motion.effect : undefined
-            }
+            data-enter-from={direction}
+            data-enter-effect={reveal ? "reveal-frame" : undefined}
             ref={menu}
             id={id}
             role="menu"
@@ -232,46 +231,55 @@ export function ActionMenu({
               }
             }}
           >
-            {(groups ?? [{ label: "", items }]).map((group) => (
-              <div
-                className="action-menu-group"
-                key={group.label}
-                role="group"
-                aria-label={group.label || undefined}
-              >
-                {group.label && (
-                  <span className="action-menu-group-title" aria-hidden="true">
-                    {group.label}
-                  </span>
-                )}
-                {group.items.map((item) => (
-                  <Button
-                    key={item.label}
-                    type="button"
-                    role={
-                      item.checked === undefined
-                        ? "menuitem"
-                        : "menuitemcheckbox"
-                    }
-                    aria-checked={item.checked}
-                    aria-label={item.label}
-                    disabled={item.disabled}
-                    data-danger={item.danger}
-                    onClick={(event) => {
-                      close(true);
-                      item.run(event.currentTarget);
-                    }}
-                  >
-                    <span className="action-menu-item-label">
-                      {item.icon}
-                      <span>{item.label}</span>
+            <div
+              className={reveal ? dialogStyles.entrance : undefined}
+              data-enter-from={direction}
+              data-enter-effect={reveal ? "reveal" : undefined}
+            >
+              {(groups ?? [{ label: "", items }]).map((group) => (
+                <div
+                  className="action-menu-group"
+                  key={group.label}
+                  role="group"
+                  aria-label={group.label || undefined}
+                >
+                  {group.label && (
+                    <span
+                      className="action-menu-group-title"
+                      aria-hidden="true"
+                    >
+                      {group.label}
                     </span>
-                    {item.shortcut && <kbd>{item.shortcut}</kbd>}
-                  </Button>
-                ))}
-              </div>
-            ))}
-            {status && <small role="status">{status}</small>}
+                  )}
+                  {group.items.map((item) => (
+                    <Button
+                      key={item.label}
+                      type="button"
+                      role={
+                        item.checked === undefined
+                          ? "menuitem"
+                          : "menuitemcheckbox"
+                      }
+                      aria-checked={item.checked}
+                      aria-label={item.label}
+                      disabled={item.disabled}
+                      data-danger={item.danger}
+                      onClick={(event) => {
+                        close(true);
+                        item.run(event.currentTarget);
+                      }}
+                    >
+                      <span className="action-menu-item-label">
+                        {item.icon}
+                        <span>{item.label}</span>
+                      </span>
+                      {item.shortcut && <kbd>{item.shortcut}</kbd>}
+                    </Button>
+                  ))}
+                </div>
+              ))}
+              {status && <small role="status">{status}</small>}
+            </div>
           </div>,
           document.body,
         )}
