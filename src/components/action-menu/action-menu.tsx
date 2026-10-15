@@ -41,8 +41,8 @@ export function ActionMenu({
   placement?: "above" | "below" | "right";
   /** Override popup origin; viewport bounds are still enforced. */
   position?: (trigger: DOMRect) => { left: number; top: number };
-  /** Use the shared dialog entrance animation. */
-  motion?: boolean;
+  /** Entrance direction is independent of popup placement. True uses the default. */
+  motion?: boolean | "from-left" | "from-right" | "from-top" | "from-bottom";
   status?: string;
   /** Custom trigger content; defaults to the More (ellipsis) icon. */
   triggerContent?: ReactNode;
@@ -164,6 +164,7 @@ export function ActionMenu({
           <div
             className={`${styles.action_menu_popup} ${motion ? dialogStyles.entrance : ""} action-menu-popup`}
             data-placement={placement}
+            data-enter-from={typeof motion === "string" ? motion : undefined}
             ref={menu}
             id={id}
             role="menu"

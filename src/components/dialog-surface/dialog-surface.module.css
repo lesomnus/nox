@@ -26,6 +26,22 @@
   animation: enter var(--ui-dialog-enter-duration) var(--ui-dialog-enter-easing)
     both;
 }
+.entrance[data-enter-from="from-left"] {
+  --enter-x: calc(-1 * var(--ui-dialog-enter-offset));
+  --enter-y: 0px;
+}
+.entrance[data-enter-from="from-right"] {
+  --enter-x: var(--ui-dialog-enter-offset);
+  --enter-y: 0px;
+}
+.entrance[data-enter-from="from-top"] {
+  --enter-x: 0px;
+  --enter-y: calc(-1 * var(--ui-dialog-enter-offset));
+}
+.entrance[data-enter-from="from-bottom"] {
+  --enter-x: 0px;
+  --enter-y: var(--ui-dialog-enter-offset);
+}
 .surface :global(.floating-card) {
   background: transparent;
   -webkit-backdrop-filter: none;
@@ -62,7 +78,11 @@
 @keyframes enter {
   from {
     opacity: 0;
-    transform: translateY(var(--ui-dialog-enter-offset)) scale(0.985);
+    transform: translate(
+        var(--enter-x, 0px),
+        var(--enter-y, var(--ui-dialog-enter-offset))
+      )
+      scale(0.985);
   }
   to {
     opacity: 1;
