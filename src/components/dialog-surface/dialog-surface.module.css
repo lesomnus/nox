@@ -113,6 +113,11 @@
   /* Keep thin borders on their final pixel grid, outside blur and masking. */
   animation-name: backdrop-enter;
 }
+.entrance[data-enter-effect="reveal"],
+.entrance[data-enter-effect="reveal-frame"] {
+  animation-duration: var(--ui-menu-reveal-duration);
+  animation-timing-function: var(--ui-menu-reveal-easing);
+}
 @keyframes reveal {
   from {
     opacity: 0;
