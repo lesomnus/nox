@@ -91,6 +91,7 @@
   flex-shrink: 0;
 }
 :is(.value_menu, .setting_menu) :global(.setting-current) :global(.meta-value) {
+  width: var(--value-text-width, auto);
   max-width: calc(var(--value-width) - 2 * var(--value-padding-inline));
 }
 :is(.value_menu, .setting_menu) :global(.setting-divider) {

@@ -115,6 +115,13 @@ export function ValueMenu({
       ] as const) {
         popup.style[property] = typography[property];
       }
+      const valueText = trigger()?.querySelector(".meta-value");
+      if (valueText) {
+        popup.style.setProperty(
+          "--value-text-width",
+          getComputedStyle(valueText).width,
+        );
+      }
       popup.style.setProperty("--value-width", `${rect.width}px`);
       popup.style.setProperty(
         "--menu-width",
