@@ -94,6 +94,7 @@ export function ActionMenu({
     const position = () => {
       const bounds = trigger.current!.getBoundingClientRect();
       const inset = 8;
+      popup.style.bottom = "auto";
       if (customPosition) {
         const origin = customPosition(bounds);
         popup.style.maxHeight = `${window.innerHeight - 8}px`;
@@ -117,7 +118,11 @@ export function ActionMenu({
           ? above >= popup.scrollHeight || above > below
           : below < popup.scrollHeight && above > below;
       popup.style.maxHeight = `${Math.min(window.innerHeight / 2, upward ? above : below)}px`;
-      popup.style.top = `${upward ? Math.max(inset, bounds.top - gap - popup.offsetHeight) : bounds.bottom + gap}px`;
+      // Anchor the near edge directly: content/font changes must not alter the gap.
+      popup.style.top = upward ? "auto" : `${bounds.bottom + gap}px`;
+      popup.style.bottom = upward
+        ? `${window.innerHeight - bounds.top + gap}px`
+        : "auto";
       // A trigger near the left edge cannot keep a wide menu right-aligned.
       // Bound both edges after measuring the popup's actual width.
       const right = Math.max(inset, window.innerWidth - bounds.right);
