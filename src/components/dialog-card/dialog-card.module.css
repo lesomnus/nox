@@ -52,6 +52,9 @@
   ) {
   background: var(--ui-dialog-input-background);
 }
+.card.card :global(.card-body) :global(.value-menu) {
+  --value-background: var(--ui-dialog-input-background);
+}
 .card.card :global(.card-body) > :first-child,
 .card.card :global(.card-body) > :first-child > :first-child {
   margin-top: 0;
