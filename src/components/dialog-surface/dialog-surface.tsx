@@ -19,7 +19,7 @@ export function DialogSurface({
 }) {
   return (
     <div
-      className={`${styles.surface} ${styles.appearance}`}
+      className={`${styles.surface} ${styles.appearance} ${styles.entrance}`}
       data-anchored={anchored}
       data-motion={motion}
       data-closing={closing}

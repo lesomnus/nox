@@ -1,4 +1,5 @@
 import styles from "./action-menu.module.css";
+import dialogStyles from "../dialog-surface/dialog-surface.module.css";
 import {
   useEffect,
   useId,
@@ -26,6 +27,7 @@ export function ActionMenu({
   groups,
   disabled = false,
   placement = "below",
+  motion = false,
   position: customPosition,
   status,
   triggerContent,
@@ -39,6 +41,8 @@ export function ActionMenu({
   placement?: "above" | "below" | "right";
   /** Override popup origin; viewport bounds are still enforced. */
   position?: (trigger: DOMRect) => { left: number; top: number };
+  /** Use the shared dialog entrance animation. */
+  motion?: boolean;
   status?: string;
   /** Custom trigger content; defaults to the More (ellipsis) icon. */
   triggerContent?: ReactNode;
@@ -158,7 +162,8 @@ export function ActionMenu({
       {open &&
         createPortal(
           <div
-            className={`${styles.action_menu_popup} action-menu-popup`}
+            className={`${styles.action_menu_popup} ${motion ? dialogStyles.entrance : ""} action-menu-popup`}
+            data-placement={placement}
             ref={menu}
             id={id}
             role="menu"

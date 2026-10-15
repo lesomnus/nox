@@ -21,6 +21,8 @@
   width: 100%;
   max-height: inherit;
   transform-origin: center;
+}
+.entrance {
   animation: enter var(--ui-dialog-enter-duration) var(--ui-dialog-enter-easing)
     both;
 }
@@ -68,7 +70,7 @@
   }
 }
 @media (prefers-reduced-motion: reduce) {
-  .surface,
+  .entrance,
   .dialog::backdrop {
     animation: none;
   }

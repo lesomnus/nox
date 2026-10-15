@@ -67,3 +67,7 @@
 .action_menu_popup [data-danger="true"] {
   font-weight: 600;
 }
+
+.action_menu_popup[data-placement="right"] {
+  transform-origin: top left;
+}
