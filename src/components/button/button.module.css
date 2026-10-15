@@ -14,7 +14,7 @@
   cursor: pointer;
   touch-action: manipulation;
 }
-.button:not(:disabled):hover {
+.button:not(:disabled):is(:hover, [aria-expanded="true"]) {
   background: var(--ui-hover);
 }
 .button:disabled {
