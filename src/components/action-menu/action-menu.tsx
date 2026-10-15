@@ -44,7 +44,7 @@ export function ActionMenu({
   groups,
   disabled = false,
   placement = "below",
-  gap = 4,
+  gap: requestedGap = 4,
   motion = false,
   position: customPosition,
   status,
@@ -58,7 +58,7 @@ export function ActionMenu({
   disabled?: boolean;
   placement?: "above" | "below" | "right";
   /** Space in pixels between the trigger and automatically positioned popup. */
-  gap?: number;
+  gap?: number | ((trigger: HTMLButtonElement) => number);
   /** Override popup origin; viewport bounds are still enforced. */
   position?: (trigger: DOMRect) => { left: number; top: number };
   /** Entrance direction is independent of popup placement. True uses the default. */
@@ -92,7 +92,12 @@ export function ActionMenu({
     if (!open || !menu.current) return;
     const popup = menu.current;
     const position = () => {
-      const bounds = trigger.current!.getBoundingClientRect();
+      const button = trigger.current!.querySelector("button")!;
+      const bounds = button.getBoundingClientRect();
+      const gap =
+        typeof requestedGap === "function"
+          ? requestedGap(button)
+          : requestedGap;
       const inset = 8;
       popup.style.bottom = "auto";
       if (customPosition) {
@@ -139,7 +144,7 @@ export function ActionMenu({
       resize.disconnect();
       window.removeEventListener("scroll", position, true);
     };
-  }, [open, placement, gap, customPosition]);
+  }, [open, placement, requestedGap, customPosition]);
   useEffect(() => {
     if (!open) return;
     const outside = (event: PointerEvent) => {

@@ -229,3 +229,6 @@ Integration stories live in `src/stories/integration`.
 Use public package entries rather than internal component paths. Core imports do
 not load the optional Monaco editor. React and React DOM are peer dependencies.
 See [ORIGIN.md](ORIGIN.md) for extraction provenance.
+
+See [design guidelines](docs/design-guidelines.md) for recommended popup spacing
+symmetry and concentric nested corners.
