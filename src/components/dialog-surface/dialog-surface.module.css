@@ -116,6 +116,13 @@
     filter: blur(4px);
     mask-position: var(--reveal-start, 100% 100%);
   }
+  /* Expose and sharpen every edge before the final opacity settling. */
+  70% {
+    opacity: 0.96;
+    transform: none;
+    filter: blur(0);
+    mask-position: var(--reveal-end, 0% 0%);
+  }
   to {
     opacity: 1;
     transform: none;
