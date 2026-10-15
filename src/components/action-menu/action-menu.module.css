@@ -20,7 +20,8 @@
   overflow: auto;
   padding: var(--ui-control-inset);
   border: 1px solid var(--ui-shade-54);
-  border-radius: 6px;
+  /* Keep the outer curve concentric with the 6px button curve. */
+  border-radius: calc(6px + var(--ui-control-inset) + 1px);
 }
 .action_menu_popup button {
   display: block;
