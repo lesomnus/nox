@@ -29,18 +29,99 @@
 .entrance[data-enter-from="from-left"] {
   --enter-x: calc(-1 * var(--ui-dialog-enter-offset));
   --enter-y: 0px;
+  --reveal-x: -4px;
+  --reveal-y: 0px;
+  --reveal-angle: 90deg;
+  --reveal-start: 100% 50%;
+  --reveal-end: 0% 50%;
 }
 .entrance[data-enter-from="from-right"] {
   --enter-x: var(--ui-dialog-enter-offset);
   --enter-y: 0px;
+  --reveal-x: 4px;
+  --reveal-y: 0px;
+  --reveal-angle: 270deg;
+  --reveal-start: 0% 50%;
+  --reveal-end: 100% 50%;
 }
 .entrance[data-enter-from="from-top"] {
   --enter-x: 0px;
   --enter-y: calc(-1 * var(--ui-dialog-enter-offset));
+  --reveal-x: 0px;
+  --reveal-y: -4px;
+  --reveal-angle: 180deg;
+  --reveal-start: 50% 100%;
+  --reveal-end: 50% 0%;
 }
 .entrance[data-enter-from="from-bottom"] {
   --enter-x: 0px;
   --enter-y: var(--ui-dialog-enter-offset);
+  --reveal-x: 0px;
+  --reveal-y: 4px;
+  --reveal-angle: 0deg;
+  --reveal-start: 50% 0%;
+  --reveal-end: 50% 100%;
+}
+.entrance[data-enter-from="from-top-left"] {
+  --enter-x: calc(-1 * var(--ui-dialog-enter-offset));
+  --enter-y: calc(-1 * var(--ui-dialog-enter-offset));
+  --reveal-x: -4px;
+  --reveal-y: -4px;
+  --reveal-angle: 135deg;
+  --reveal-start: 100% 100%;
+  --reveal-end: 0% 0%;
+}
+.entrance[data-enter-from="from-top-right"] {
+  --enter-x: var(--ui-dialog-enter-offset);
+  --enter-y: calc(-1 * var(--ui-dialog-enter-offset));
+  --reveal-x: 4px;
+  --reveal-y: -4px;
+  --reveal-angle: 225deg;
+  --reveal-start: 0% 100%;
+  --reveal-end: 100% 0%;
+}
+.entrance[data-enter-from="from-bottom-left"] {
+  --enter-x: calc(-1 * var(--ui-dialog-enter-offset));
+  --enter-y: var(--ui-dialog-enter-offset);
+  --reveal-x: -4px;
+  --reveal-y: 4px;
+  --reveal-angle: 45deg;
+  --reveal-start: 100% 0%;
+  --reveal-end: 0% 100%;
+}
+.entrance[data-enter-from="from-bottom-right"] {
+  --enter-x: var(--ui-dialog-enter-offset);
+  --enter-y: var(--ui-dialog-enter-offset);
+  --reveal-x: 4px;
+  --reveal-y: 4px;
+  --reveal-angle: 315deg;
+  --reveal-start: 0% 0%;
+  --reveal-end: 100% 100%;
+}
+.entrance[data-enter-effect="reveal"] {
+  animation-name: reveal;
+  /* A soft mask sweeps across the surface, rather than sliding the whole card. */
+  mask-image: linear-gradient(
+    var(--reveal-angle, 135deg),
+    #000 35%,
+    transparent 65%
+  );
+  mask-size: 300% 300%;
+  mask-repeat: no-repeat;
+}
+@keyframes reveal {
+  from {
+    opacity: 0;
+    transform: translate(var(--reveal-x, -4px), var(--reveal-y, -4px));
+    filter: blur(4px);
+    mask-position: var(--reveal-start, 100% 100%);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+    filter: blur(0);
+    mask-position: var(--reveal-end, 0% 0%);
+  }
 }
 .surface :global(.floating-card) {
   background: transparent;
@@ -93,6 +174,11 @@
   .entrance,
   .dialog::backdrop {
     animation: none;
+  }
+  .entrance[data-enter-effect="reveal"] {
+    animation: none;
+    mask-image: none;
+    filter: none;
   }
   .surface[data-motion="from-right"][data-closing="true"] {
     transition: none;

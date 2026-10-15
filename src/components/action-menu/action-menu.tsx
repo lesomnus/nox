@@ -11,6 +11,23 @@ import {
 import { createPortal } from "react-dom";
 import { Button } from "../button/button";
 
+export type MenuMotionDirection =
+  | "left"
+  | "right"
+  | "top"
+  | "bottom"
+  | "top-left"
+  | "top-right"
+  | "bottom-left"
+  | "bottom-right";
+export type ActionMenuMotion =
+  | boolean
+  | `from-${MenuMotionDirection}`
+  | {
+      from: MenuMotionDirection;
+      effect: "slide" | "reveal";
+    };
+
 export type ActionMenuItem = {
   label: string;
   icon?: ReactNode;
@@ -42,7 +59,7 @@ export function ActionMenu({
   /** Override popup origin; viewport bounds are still enforced. */
   position?: (trigger: DOMRect) => { left: number; top: number };
   /** Entrance direction is independent of popup placement. True uses the default. */
-  motion?: boolean | "from-left" | "from-right" | "from-top" | "from-bottom";
+  motion?: ActionMenuMotion;
   status?: string;
   /** Custom trigger content; defaults to the More (ellipsis) icon. */
   triggerContent?: ReactNode;
@@ -164,7 +181,16 @@ export function ActionMenu({
           <div
             className={`${styles.action_menu_popup} ${motion ? dialogStyles.entrance : ""} action-menu-popup`}
             data-placement={placement}
-            data-enter-from={typeof motion === "string" ? motion : undefined}
+            data-enter-from={
+              typeof motion === "object"
+                ? `from-${motion.from}`
+                : typeof motion === "string"
+                  ? motion
+                  : undefined
+            }
+            data-enter-effect={
+              typeof motion === "object" ? motion.effect : undefined
+            }
             ref={menu}
             id={id}
             role="menu"

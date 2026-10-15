@@ -54,3 +54,7 @@ export const Language: Story = {
 export const Disabled: Story = {
   args: { disabled: true, disabledReason: "Unavailable while working" },
 };
+
+export const RevealFromTopLeft: Story = {
+  args: { placement: "right", motion: { from: "top-left", effect: "reveal" } },
+};
