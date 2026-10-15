@@ -44,6 +44,7 @@ export function ActionMenu({
   groups,
   disabled = false,
   placement = "below",
+  gap = 4,
   motion = false,
   position: customPosition,
   status,
@@ -56,6 +57,8 @@ export function ActionMenu({
   groups?: { label: string; items: ActionMenuItem[] }[];
   disabled?: boolean;
   placement?: "above" | "below" | "right";
+  /** Space in pixels between the trigger and automatically positioned popup. */
+  gap?: number;
   /** Override popup origin; viewport bounds are still enforced. */
   position?: (trigger: DOMRect) => { left: number; top: number };
   /** Entrance direction is independent of popup placement. True uses the default. */
@@ -90,8 +93,7 @@ export function ActionMenu({
     const popup = menu.current;
     const position = () => {
       const bounds = trigger.current!.getBoundingClientRect();
-      const gap = 4,
-        inset = 8;
+      const inset = 8;
       if (customPosition) {
         const origin = customPosition(bounds);
         popup.style.maxHeight = `${window.innerHeight - 8}px`;
@@ -132,7 +134,7 @@ export function ActionMenu({
       resize.disconnect();
       window.removeEventListener("scroll", position, true);
     };
-  }, [open, placement, customPosition]);
+  }, [open, placement, gap, customPosition]);
   useEffect(() => {
     if (!open) return;
     const outside = (event: PointerEvent) => {
