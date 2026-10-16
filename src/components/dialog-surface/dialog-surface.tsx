@@ -28,3 +28,32 @@ export function DialogSurface({
     </div>
   );
 }
+
+/** The same stable-frame, directional blur reveal used by ActionMenu. */
+export function DialogReveal({
+  children,
+  from = "right",
+  className,
+  contentClassName,
+  ...props
+}: import("react").HTMLAttributes<HTMLSpanElement> & {
+  from?: import("../action-menu/action-menu").MenuMotionDirection;
+  contentClassName?: string;
+}) {
+  return (
+    <span
+      {...props}
+      className={`${styles.entrance} ${className ?? ""}`}
+      data-enter-from={`from-${from}`}
+      data-enter-effect="reveal-frame"
+    >
+      <span
+        className={`${styles.entrance} ${contentClassName ?? ""}`}
+        data-enter-from={`from-${from}`}
+        data-enter-effect="reveal"
+      >
+        {children}
+      </span>
+    </span>
+  );
+}

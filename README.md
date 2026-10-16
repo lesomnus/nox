@@ -105,7 +105,7 @@ The component has no application dependencies or idle animation loop. See
 [SVG effects on HTML](https://developer.mozilla.org/en-US/docs/Web/SVG/Guides/Applying_SVG_effects_to_HTML_content)
 describes the underlying mask mechanism.
 
-The public core entry exports Button/ButtonContent, BadgedIcon, ConfirmButton, ActionMenu, ValueMenu, SegmentedControl, Switch, ConfirmationDialog, EditableValue, FloatingCard, SettingField, SettingSlider, ElapsedTime, SplitLayout, ResizeHandle, ScrollArea and UIProvider. Button's `toolbar` variant provides the compact rectangular shape. Callbacks and selected values belong to the consuming application; Application adapters handle persistence and session operations separately.
+The public core entry exports Button/ButtonContent, BadgedIcon, ConfirmButton, ActionMenu, ValueMenu, SegmentedControl, Switch, ConfirmationDialog, EditableValue, FloatingCard, SettingField, SettingSlider, ElapsedTime, CompactNumber, DurationDisplay, DialogReveal, SplitLayout, ResizeHandle, ScrollArea and UIProvider. Button's `toolbar` variant provides the compact rectangular shape. Callbacks and selected values belong to the consuming application; Application adapters handle persistence and session operations separately.
 
 `SplitLayout` takes a controlled `SplitNode` tree, a `renderPane` callback, and `onResize`. `setSplitRatio` applies a bounded ratio update to that tree. Separators support pointer dragging, arrow keys, Home/End and double click to equalize; the host supplies the accessible separator label. It owns no workspace connections or tabs, so it can lay out arbitrary content in other applications. When moving expensive stateful content between panes, keep its instance outside the changing tree and attach a stable portal host to pane slots, as the terminal integration does.
 
@@ -232,3 +232,15 @@ See [ORIGIN.md](ORIGIN.md) for extraction provenance.
 
 See [design guidelines](docs/design-guidelines.md) for recommended popup spacing
 symmetry and concentric nested corners.
+
+### Duration and popup reveal
+
+`DurationDisplay` accepts `durationMs`, optional `rounding="ceil"` for countdowns,
+and an optional accessible `label`. It renders `00d00h00m` in nine fixed cells,
+sharing CompactNumber's dim padding and intermediate unit colors. The consumer
+owns clock updates; the component also works for static durations.
+
+`DialogReveal` wraps custom popup content using the same stable frame and
+masked blur entrance as ActionMenu. Set `from="right"` (or another menu direction),
+`className` for the frame and `contentClassName` for the content layout. Mount it
+when the popup opens to replay the entrance. See [design guidelines](docs/design-guidelines.md).

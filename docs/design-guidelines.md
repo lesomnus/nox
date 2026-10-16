@@ -30,13 +30,21 @@ function mirroredToolbarGap(trigger: HTMLButtonElement) {
   const toolbar = trigger.closest(".toolbar");
   if (!toolbar) return 4;
   const border = parseFloat(getComputedStyle(toolbar).borderTopWidth) || 0;
-  const inset = Math.max(0,
-    trigger.getBoundingClientRect().top - toolbar.getBoundingClientRect().top - border,
+  const inset = Math.max(
+    0,
+    trigger.getBoundingClientRect().top -
+      toolbar.getBoundingClientRect().top -
+      border,
   );
   return 2 * inset + border;
 }
 
-<ActionMenu placement="above" gap={mirroredToolbarGap} label="More" items={items} />
+<ActionMenu
+  placement="above"
+  gap={mirroredToolbarGap}
+  label="More"
+  items={items}
+/>;
 ```
 
 Use `position` for custom origins such as panel-relative right-side alignment.
@@ -49,3 +57,24 @@ priority over exact symmetry when space is limited.
 For uniformly inset rounded controls, prefer an outer corner radius equal to
 the inner radius plus padding and border thickness. Keep actual measurements
 in the CSS tokens rather than duplicating them as independent constants.
+
+## Fixed-width numeric displays
+
+Use shared numeric components rather than formatting metrics independently.
+Keep significant digits at the normal foreground brightness, padding zeroes
+at `--ui-shade-65`, and units at the intermediate brightness used by
+`CompactNumber` (78% foreground mixed with the background). Use tabular
+monospace digits and stable slots so changing values do not shift nearby UI.
+`DurationDisplay` renders nine cells as `00d00h00m`, with the padding zero in
+each field dimmed and each unit at intermediate brightness. Actual zero values
+remain readable. Use `rounding="ceil"` for remaining time; callers own the clock.
+Unknown values render `--d--h--m`; values of 100 days or more render
+`++d--h--m` without widening the display. Accessible labels retain the value.
+
+## Popup reveal motion
+
+Use `DialogReveal` for custom popup surfaces that need the same effect as
+`ActionMenu`'s `effect: "reveal"`. The outer frame stays on its final pixel grid
+and fades in; only its contents receive the directional mask, subtle motion
+and blur. Do not introduce a separate clip-path wipe or animate thin borders.
+Both use the shared reveal duration/easing and respect reduced motion.
