@@ -136,6 +136,21 @@ export function ValueMenu({
         "--options-height",
         `${Math.max(rect.height, Math.min(240, (upwards ? rect.bottom : window.innerHeight - rect.top) - chrome))}px`,
       );
+      const anchor = trigger()?.querySelector(".button-content");
+      const current = popup.querySelector(
+        ".setting-current .button-content, input.setting-current",
+      );
+      if (anchor && current) {
+        const before = anchor.getBoundingClientRect();
+        const after = current.getBoundingClientRect();
+        // Content centers stay fixed during the button's press scale. Align
+        // the actual row instead of assuming the trigger fills its wrapper.
+        const shift =
+          before.top + before.height / 2 - after.top - after.height / 2;
+        if (upwards)
+          popup.style.bottom = `${parseFloat(popup.style.bottom) - shift}px`;
+        else popup.style.top = `${parseFloat(popup.style.top) + shift}px`;
+      }
     };
     position();
     const scrolled = (e: Event) => {
@@ -147,7 +162,7 @@ export function ValueMenu({
         .querySelector<HTMLButtonElement>("[role=option]")
         ?.focus({ preventScroll: true });
     return () => document.removeEventListener("scroll", scrolled, true);
-  }, [open, options.length, minMenuWidth, searchable]);
+  }, [open, options.length, minMenuWidth, searchable, up]);
   useLayoutEffect(() => {
     if (open && searchable) {
       search.current?.focus({ preventScroll: true });
