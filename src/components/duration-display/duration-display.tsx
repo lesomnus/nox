@@ -40,7 +40,11 @@ export function DurationDisplay({
       }
     >
       {parts.map((digits, index) => (
-        <span key={units[index]} aria-hidden="true">
+        <span
+          key={units[index]}
+          className={index === 0 && digits === "0" ? styles.zeroDay : undefined}
+          aria-hidden="true"
+        >
           <span className={numeric.leading}>
             {"0".repeat(2 - digits.length)}
           </span>

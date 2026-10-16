@@ -67,7 +67,7 @@ at `--ui-shade-65`, and units at the intermediate brightness used by
 monospace digits and stable slots so changing values do not shift nearby UI.
 `DurationDisplay` renders nine cells as `00d00h00m`, with the padding zero in
 each field dimmed and each unit at intermediate brightness. Actual zero values
-remain readable. Use `rounding="ceil"` for remaining time; callers own the clock.
+remain readable, except a zero day field: dim the entire `00d`, including its unit. Use `rounding="ceil"` for remaining time; callers own the clock.
 Unknown values render `--d--h--m`; values of 100 days or more render
 `++d--h--m` without widening the display. Accessible labels retain the value.
 
