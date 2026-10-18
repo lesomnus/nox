@@ -31,7 +31,7 @@ export type ActionMenuMotion =
 export type ActionMenuItem = {
   label: string;
   icon?: ReactNode;
-  shortcut?: string;
+  shortcut?: string | readonly string[];
   checked?: boolean;
   disabled?: boolean;
   danger?: boolean;
@@ -285,7 +285,16 @@ export function ActionMenu({
                         {item.icon}
                         <span>{item.label}</span>
                       </span>
-                      {item.shortcut && <kbd>{item.shortcut}</kbd>}
+                      {item.shortcut && (
+                        <span className={styles.shortcut}>
+                          {(typeof item.shortcut === "string"
+                            ? [item.shortcut]
+                            : item.shortcut
+                          ).map((key, index) => (
+                            <kbd key={index}>{key}</kbd>
+                          ))}
+                        </span>
+                      )}
                     </Button>
                   ))}
                 </div>
