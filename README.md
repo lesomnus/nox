@@ -77,6 +77,10 @@ default palette. Set `data-ui-theme="light"` on the document root for the light
 palette. Root-level `--ui-*` overrides also reach portaled menus and dialogs. Keep
 token values in CSS rather than duplicating design measurements in documentation.
 
+`PageToolbar` provides a persistent page header with leading content and optional
+trailing `actions`. Put a selector, breadcrumbs or title in its children and keep
+scrolling content in a sibling below it. It has no routing or resource dependency.
+
 `DialogTrigger` requires `adjacent` to show a disabled visual copy above a modal
 backdrop. Use it only when the dialog actually sits beside its source. Centered
 confirmations and dialogs docked to a screen edge leave the source under the
