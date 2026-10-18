@@ -81,6 +81,10 @@ token values in CSS rather than duplicating design measurements in documentation
 trailing `actions`. Put a selector, breadcrumbs or title in its children and keep
 scrolling content in a sibling below it. It has no routing or resource dependency.
 
+`IconValueMenu` combines a decorative icon and compact `ValueMenu` with a shared
+hover, focus and open background. The icon stays outside the trigger and popup;
+the selected value retains its text position when the menu opens.
+
 `DialogTrigger` requires `adjacent` to show a disabled visual copy above a modal
 backdrop. Use it only when the dialog actually sits beside its source. Centered
 confirmations and dialogs docked to a screen edge leave the source under the

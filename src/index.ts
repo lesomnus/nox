@@ -12,6 +12,7 @@ export * from "./components/dialog-trigger/dialog-trigger";
 export * from "./components/confirm-button/confirm-button";
 export * from "./components/action-menu/action-menu";
 export * from "./components/value-menu/value-menu";
+export * from "./components/icon-value-menu/icon-value-menu";
 export * from "./components/segmented-control/segmented-control";
 export * from "./components/confirmation-dialog/confirmation-dialog";
 export * from "./components/editable-value/editable-value";
