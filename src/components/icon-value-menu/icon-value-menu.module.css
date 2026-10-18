@@ -27,10 +27,15 @@
   opacity: 1;
 }
 .icon {
+  --ui-icon-size: var(--ui-icon-size-small);
   display: inline-flex;
   flex-shrink: 0;
   align-items: center;
   justify-content: center;
   height: 20px;
   color: var(--ui-shade-144);
+}
+.icon > svg {
+  width: var(--ui-icon-size);
+  height: var(--ui-icon-size);
 }

@@ -87,6 +87,17 @@
   bottom: calc(-1 * var(--ui-control-inset));
   flex-direction: column-reverse;
 }
+.choices {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  transform-origin: top left;
+}
+.setting_menu:global(.opens-up) .choices {
+  --enter-y: calc(-1 * var(--ui-dialog-enter-offset));
+  flex-direction: column-reverse;
+  transform-origin: bottom left;
+}
 :is(.value_menu, .setting_menu) :global(.setting-current) {
   flex-shrink: 0;
 }

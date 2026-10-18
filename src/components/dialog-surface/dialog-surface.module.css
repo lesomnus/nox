@@ -26,6 +26,9 @@
   animation: enter var(--ui-dialog-enter-duration) var(--ui-dialog-enter-easing)
     both;
 }
+.entrance[data-enter-effect="fade"] {
+  animation-name: backdrop-enter;
+}
 .entrance[data-enter-from="from-left"] {
   --enter-x: calc(-1 * var(--ui-dialog-enter-offset));
   --enter-y: 0px;
@@ -191,6 +194,7 @@
   .dialog::backdrop {
     animation: none;
   }
+  .entrance[data-enter-effect="fade"],
   .entrance[data-enter-effect="reveal-frame"],
   .entrance[data-enter-effect="reveal"] {
     animation: none;

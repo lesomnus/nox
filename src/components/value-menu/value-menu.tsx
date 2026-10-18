@@ -1,5 +1,6 @@
 import { matchValueQuery, matchesValueQuery } from "./value-search";
 import styles from "./value-menu.module.css";
+import dialogStyles from "../dialog-surface/dialog-surface.module.css";
 import {
   useEffect,
   useId,
@@ -273,7 +274,8 @@ export function ValueMenu({
             id={id}
             data-variant={variant}
             data-searchable={searchable}
-            className={`${styles.setting_menu} setting-menu ${up ? "opens-up" : ""}`}
+            className={`${styles.setting_menu} ${dialogStyles.entrance} setting-menu ${up ? "opens-up" : ""}`}
+            data-enter-effect="fade"
             onKeyDown={(e) => {
               e.stopPropagation();
               key(e);
@@ -317,39 +319,41 @@ export function ValueMenu({
                 <span className="meta-value">{text}</span>
               </Button>
             )}
-            <div className="setting-divider" role="separator" />
-            <div
-              className="setting-options"
-              id={`${id}-results`}
-              role={searchable ? "listbox" : undefined}
-              aria-label={
-                searchable ? t("{label} choices", { label }) : undefined
-              }
-            >
-              {searchable && options.length === 0 && (
-                <p role="status">{t("No matches")}</p>
-              )}
-              {options.map((choice) => (
-                <Button
-                  key={choice.value}
-                  data-option-value={choice.value}
-                  type="button"
-                  role="option"
-                  tabIndex={-1}
-                  aria-selected={choice.value === value}
-                  title={choice.label}
-                  data-muted={!!choice.muted}
-                  onClick={() => {
-                    close(true);
-                    choose(choice.value);
-                  }}
-                >
-                  <ValueLabel
-                    option={choice}
-                    query={searchable && queryEdited ? query : ""}
-                  />
-                </Button>
-              ))}
+            <div className={`${styles.choices} ${dialogStyles.entrance}`}>
+              <div className="setting-divider" role="separator" />
+              <div
+                className="setting-options"
+                id={`${id}-results`}
+                role={searchable ? "listbox" : undefined}
+                aria-label={
+                  searchable ? t("{label} choices", { label }) : undefined
+                }
+              >
+                {searchable && options.length === 0 && (
+                  <p role="status">{t("No matches")}</p>
+                )}
+                {options.map((choice) => (
+                  <Button
+                    key={choice.value}
+                    data-option-value={choice.value}
+                    type="button"
+                    role="option"
+                    tabIndex={-1}
+                    aria-selected={choice.value === value}
+                    title={choice.label}
+                    data-muted={!!choice.muted}
+                    onClick={() => {
+                      close(true);
+                      choose(choice.value);
+                    }}
+                  >
+                    <ValueLabel
+                      option={choice}
+                      query={searchable && queryEdited ? query : ""}
+                    />
+                  </Button>
+                ))}
+              </div>
             </div>
           </div>,
           root.current?.closest("dialog[open]") ?? document.body,

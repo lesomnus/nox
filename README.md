@@ -84,6 +84,10 @@ scrolling content in a sibling below it. It has no routing or resource dependenc
 `IconValueMenu` combines a decorative icon and compact `ValueMenu` with a shared
 hover, focus and open background. The icon stays outside the trigger and popup;
 the selected value retains its text position when the menu opens.
+`--ui-icon-size` and `--ui-icon-size-small` define regular and compact glyph
+sizes; the icon field scopes its glyphs to the compact token. Value menus share
+the dialog entrance motion while their selected row stays in place. Reduced
+motion disables the entrance animations.
 
 `DialogTrigger` requires `adjacent` to show a disabled visual copy above a modal
 backdrop. Use it only when the dialog actually sits beside its source. Centered
