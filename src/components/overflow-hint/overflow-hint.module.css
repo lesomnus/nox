@@ -23,9 +23,6 @@
   pointer-events: none;
 }
 
-.anchor[data-prefix-preserved] {
-  border-radius: 0;
-  background: var(--ui-overflow-hint-background);
-  outline: var(--ui-control-inset) solid var(--ui-overflow-hint-background);
-  outline-offset: 0;
+.anchor[data-in-place-open] {
+  opacity: 0;
 }
