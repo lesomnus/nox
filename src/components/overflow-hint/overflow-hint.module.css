@@ -8,11 +8,12 @@
   outline-offset: var(--ui-control-inset);
 }
 .hint {
+  --hint-max-width: 620px;
   --hint-inset: calc(2 * var(--ui-space));
   position: fixed;
   z-index: 1000;
   width: max-content;
-  max-width: min(620px, calc(100vw - 2 * var(--hint-inset)));
+  max-width: min(var(--hint-max-width), calc(100vw - 2 * var(--hint-inset)));
   padding: var(--ui-control-inline-inset) var(--hint-inset);
   border-radius: calc(1.25 * var(--ui-space));
   background: var(--ui-shade-51);

@@ -29,7 +29,7 @@ const meta = {
     docs: {
       description: {
         component:
-          "Hover or focus the abbreviated text. The full value is a fixed portal outside this clipped container, constrained to the viewport. Escape, scrolling and resizing dismiss the hint.",
+          "Hover or focus the abbreviated text. The full value is a fixed portal outside this clipped container, constrained to the viewport. Use placement='in-place' for an in-place overlay: the full text shares the original text origin, baseline and typography. Escape, scrolling and resizing dismiss the hint.",
       },
     },
   },
@@ -37,3 +37,21 @@ const meta = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 export const Default: Story = {};
+
+export const InPlace: Story = {
+  args: { placement: "in-place" },
+  render: (args) => (
+    <OverflowHint {...args}>
+      <span
+        style={{
+          fontSize: 18,
+          lineHeight: 2,
+          fontWeight: 500,
+          letterSpacing: "0.2px",
+        }}
+      >
+        {args.children}
+      </span>
+    </OverflowHint>
+  ),
+};

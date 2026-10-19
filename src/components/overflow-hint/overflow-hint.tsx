@@ -5,6 +5,7 @@ import {
   useRef,
   useState,
   type ReactNode,
+  type CSSProperties,
 } from "react";
 import { createPortal } from "react-dom";
 import styles from "./overflow-hint.module.css";
@@ -13,17 +14,54 @@ import styles from "./overflow-hint.module.css";
 export function OverflowHint({
   content,
   children,
+  placement = "adjacent",
 }: {
   content: string;
   children: ReactNode;
+  placement?: "adjacent" | "in-place";
 }) {
   const id = useId();
   const anchor = useRef<HTMLSpanElement>(null);
   const hint = useRef<HTMLSpanElement>(null);
   const [open, setOpen] = useState(false);
-  const [position, setPosition] = useState<{ top: number; left: number }>();
+  const [position, setPosition] = useState<CSSProperties>();
   useLayoutEffect(() => {
     if (!open || !anchor.current || !hint.current) return;
+    const element = hint.current;
+    element.style.maxWidth = "";
+    for (const property of [
+      "font",
+      "letter-spacing",
+      "font-feature-settings",
+      "font-variant-numeric",
+    ])
+      element.style.removeProperty(property);
+    if (placement === "in-place") {
+      const original = textLine(anchor.current);
+      if (original) {
+        const source = getComputedStyle(original.parent);
+        const typography: CSSProperties = {
+          font: source.font,
+          letterSpacing: source.letterSpacing,
+          fontFeatureSettings: source.fontFeatureSettings,
+          fontVariantNumeric: source.fontVariantNumeric,
+        };
+        Object.assign(element.style, typography);
+        const expanded = textLine(element);
+        if (expanded) {
+          const frame = element.getBoundingClientRect();
+          const left = frame.left + original.rect.left - expanded.rect.left;
+          const top = frame.top + original.rect.top - expanded.rect.top;
+          const inset =
+            parseFloat(getComputedStyle(element).paddingInlineEnd) || 0;
+          // Wrap at the viewport edge without moving the text's original origin.
+          const maxWidth = `min(var(--hint-max-width), ${Math.max(0, innerWidth - left - inset)}px)`;
+          element.style.maxWidth = maxWidth;
+          setPosition({ left, top, maxWidth, ...typography });
+          return;
+        }
+      }
+    }
     const rect = anchor.current.getBoundingClientRect();
     const box = hint.current.getBoundingClientRect();
     const gap =
@@ -38,7 +76,7 @@ export function OverflowHint({
         ? below
         : Math.max(gap, rect.top - box.height - gap);
     setPosition({ top, left });
-  }, [open, content]);
+  }, [open, content, placement]);
   useEffect(() => {
     if (!open) return;
     const close = () => setOpen(false);
@@ -87,4 +125,17 @@ export function OverflowHint({
         )}
     </>
   );
+}
+
+// Measure the text line rather than an element's padding or line-height box.
+function textLine(element: HTMLElement) {
+  const walker = document.createTreeWalker(element, NodeFilter.SHOW_TEXT);
+  let node: Node | null;
+  while ((node = walker.nextNode())) {
+    if (!node.textContent?.trim()) continue;
+    const range = document.createRange();
+    range.selectNodeContents(node);
+    const rect = range.getClientRects()[0];
+    if (rect && node.parentElement) return { rect, parent: node.parentElement };
+  }
 }
