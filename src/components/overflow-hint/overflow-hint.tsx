@@ -116,6 +116,7 @@ export function OverflowHint({
             ref={hint}
             id={id}
             role="tooltip"
+            data-placement={placement}
             className={styles.hint}
             style={{ ...position, visibility: position ? "visible" : "hidden" }}
           >

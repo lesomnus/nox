@@ -22,3 +22,8 @@
   overflow-wrap: anywhere;
   pointer-events: none;
 }
+
+/* Optical correction after aligning the measured text origin. */
+.hint[data-placement="in-place"] {
+  translate: 0 var(--ui-in-place-overlay-optical-offset);
+}

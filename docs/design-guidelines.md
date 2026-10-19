@@ -87,4 +87,5 @@ keeping its typography. Use this term for selected ValueMenu rows and expanded
 identifier hints; align the actual text rather than the surrounding box.
 `OverflowHint` supports `placement="in-place"`. It uses a portal to escape container
 clipping and wraps long values at the viewport edge while keeping the text origin
-fixed. Adjacent hints remain available through the default placement.
+fixed. Use the shared optical-correction token for any remaining perceived offset
+after geometry alignment. Adjacent hints remain available through the default placement.
