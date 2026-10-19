@@ -68,8 +68,11 @@ export function OverflowHint({
             parseFloat(getComputedStyle(anchor.current).outlineWidth) || 0;
           // Keep the original prefix visible. Repainting it in a fixed portal can
           // snap to a different physical pixel than the scrolled original.
+          // Stop at the text advance: right-side clearance clips the next glyph.
+          const cutoutWidth =
+            original.rect.right - originalBox.left + clearance;
           const clipPath = preservePrefix
-            ? `path(evenodd, "M0 0 H${expandedBox.width} V${expandedBox.height} H0 Z M${originalBox.left - left - clearance} ${originalBox.top - top - clearance} h${originalBox.width + 2 * clearance} v${originalBox.height + 2 * clearance} h${-(originalBox.width + 2 * clearance)} Z")`
+            ? `path(evenodd, "M0 0 H${expandedBox.width} V${expandedBox.height} H0 Z M${originalBox.left - left - clearance} ${originalBox.top - top - clearance} h${cutoutWidth} v${originalBox.height + 2 * clearance} h${-cutoutWidth} Z")`
             : undefined;
           setPosition({ left, top, maxWidth, clipPath, ...typography });
           return;
