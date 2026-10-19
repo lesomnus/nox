@@ -25,12 +25,16 @@ export function OverflowHint({
   const hint = useRef<HTMLSpanElement>(null);
   const [open, setOpen] = useState(false);
   const [position, setPosition] = useState<CSSProperties>();
+  const prefix = anchor.current?.textContent;
+  const preservePrefix =
+    open && placement === "in-place" && !!prefix && content.startsWith(prefix);
   useLayoutEffect(() => {
     if (!open || !anchor.current || !hint.current) return;
     const element = hint.current;
     element.style.maxWidth = "";
     for (const property of [
       "font",
+      "color",
       "letter-spacing",
       "font-feature-settings",
       "font-variant-numeric",
@@ -42,6 +46,7 @@ export function OverflowHint({
         const source = getComputedStyle(original.parent);
         const typography: CSSProperties = {
           font: source.font,
+          color: source.color,
           letterSpacing: source.letterSpacing,
           fontFeatureSettings: source.fontFeatureSettings,
           fontVariantNumeric: source.fontVariantNumeric,
@@ -57,7 +62,16 @@ export function OverflowHint({
           // Wrap at the viewport edge without moving the text's original origin.
           const maxWidth = `min(var(--hint-max-width), ${Math.max(0, innerWidth - left - inset)}px)`;
           element.style.maxWidth = maxWidth;
-          setPosition({ left, top, maxWidth, ...typography });
+          const expandedBox = element.getBoundingClientRect();
+          const originalBox = anchor.current.getBoundingClientRect();
+          const clearance =
+            parseFloat(getComputedStyle(anchor.current).outlineWidth) || 0;
+          // Keep the original prefix visible. Repainting it in a fixed portal can
+          // snap to a different physical pixel than the scrolled original.
+          const clipPath = preservePrefix
+            ? `path(evenodd, "M0 0 H${expandedBox.width} V${expandedBox.height} H0 Z M${originalBox.left - left - clearance} ${originalBox.top - top - clearance} h${originalBox.width + 2 * clearance} v${originalBox.height + 2 * clearance} h${-(originalBox.width + 2 * clearance)} Z")`
+            : undefined;
+          setPosition({ left, top, maxWidth, clipPath, ...typography });
           return;
         }
       }
@@ -76,7 +90,7 @@ export function OverflowHint({
         ? below
         : Math.max(gap, rect.top - box.height - gap);
     setPosition({ top, left });
-  }, [open, content, placement]);
+  }, [open, content, placement, preservePrefix]);
   useEffect(() => {
     if (!open) return;
     const close = () => setOpen(false);
@@ -99,6 +113,7 @@ export function OverflowHint({
         className={styles.anchor}
         tabIndex={0}
         aria-describedby={open ? id : undefined}
+        data-prefix-preserved={preservePrefix || undefined}
         onPointerEnter={(event) => {
           if (event.pointerType !== "touch") setOpen(true);
         }}

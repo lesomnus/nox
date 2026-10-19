@@ -16,9 +16,16 @@
   max-width: min(var(--hint-max-width), calc(100vw - 2 * var(--hint-inset)));
   padding: var(--ui-control-inline-inset) var(--hint-inset);
   border-radius: calc(1.25 * var(--ui-space));
-  background: var(--ui-shade-51);
+  background: var(--ui-overflow-hint-background);
   color: var(--ui-shade-237);
   font: 12px/1.5 var(--ui-font-mono);
   overflow-wrap: anywhere;
   pointer-events: none;
+}
+
+.anchor[data-prefix-preserved] {
+  border-radius: 0;
+  background: var(--ui-overflow-hint-background);
+  outline: var(--ui-control-inset) solid var(--ui-overflow-hint-background);
+  outline-offset: 0;
 }

@@ -89,3 +89,9 @@ identifier hints; align the actual text rather than the surrounding box.
 clipping and wraps long values at the viewport edge while keeping the text origin
 fixed. Verify discrepancies with geometry and raster comparisons rather than adding
 arbitrary pixel offsets. Adjacent hints remain available through the default placement.
+
+When the expanded value begins with the original text, preserve that prefix in
+its existing paint context and exclude the duplicate from the portal. Identical
+CSS text rectangles can still rasterize differently at fractional device scales,
+especially across a scrolling container and a fixed overlay. Keep the two
+surfaces on the shared hint background token so the retained text blends in.
