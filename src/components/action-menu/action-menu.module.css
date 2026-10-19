@@ -43,10 +43,22 @@
 .action_menu_popup [aria-checked="true"] {
   background: var(--ui-selected);
 }
-.action_menu_popup kbd {
-  font: inherit;
-  color: var(--ui-muted);
+.shortcut {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--ui-space);
+  flex-shrink: 0;
   margin-left: calc(2 * var(--ui-space));
+}
+.action_menu_popup kbd {
+  padding: var(--ui-space) var(--ui-control-inset);
+  border: 1px solid var(--ui-shade-65);
+  border-bottom-width: 2px;
+  border-radius: 4px;
+  background: var(--ui-shade-24);
+  font: 400 11px/1.2 var(--ui-font-mono);
+  color: var(--ui-muted);
+  white-space: nowrap;
 }
 .action_menu_popup small {
   margin: var(--ui-space);

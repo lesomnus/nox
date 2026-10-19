@@ -1,0 +1,28 @@
+.anchor {
+  display: inline-block;
+  border-radius: var(--ui-control-inset);
+  cursor: default;
+}
+.anchor:focus-visible {
+  outline: 1px solid var(--ui-muted);
+  outline-offset: var(--ui-control-inset);
+}
+.hint {
+  --hint-max-width: 620px;
+  --hint-inset: calc(2 * var(--ui-space));
+  position: fixed;
+  z-index: 1000;
+  width: max-content;
+  max-width: min(var(--hint-max-width), calc(100vw - 2 * var(--hint-inset)));
+  padding: var(--ui-control-inline-inset) var(--hint-inset);
+  border-radius: calc(1.25 * var(--ui-space));
+  background: var(--ui-overflow-hint-background);
+  color: var(--ui-shade-237);
+  font: 12px/1.5 var(--ui-font-mono);
+  overflow-wrap: anywhere;
+  pointer-events: none;
+}
+
+.anchor[data-in-place-open] {
+  opacity: 0;
+}

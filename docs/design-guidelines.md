@@ -78,3 +78,20 @@ Use `DialogReveal` for custom popup surfaces that need the same effect as
 and fades in; only its contents receive the directional mask, subtle motion
 and blur. Do not introduce a separate clip-path wipe or animate thin borders.
 Both use the shared reveal duration/easing and respect reduced motion.
+
+## In-place overlays
+
+An **in-place overlay** expands a value at its existing text origin and baseline,
+keeping its typography. Use this term for selected ValueMenu rows and expanded
+identifier hints; align the actual text rather than the surrounding box.
+`OverflowHint` supports `placement="in-place"`. It uses a portal to escape container
+clipping and wraps long values at the viewport edge while keeping the text origin
+fixed. Verify discrepancies with geometry and raster comparisons rather than adding
+arbitrary pixel offsets. Adjacent hints remain available through the default placement.
+
+Render the complete expanded value and its background as one overlay surface.
+Keep the anchor in layout and available for pointer and keyboard interaction,
+but hide its paint while the in-place overlay is visible. Do not stitch a retained
+prefix to a cutout in the overlay: separate backgrounds and outlines can expose
+a seam or clip the continuation. Check alignment at fractional device scales as
+well as in scrolling containers.
