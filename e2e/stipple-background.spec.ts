@@ -15,6 +15,7 @@ declare global {
   interface Window {
     stippleMetrics: Metrics;
     restoreStipple?: () => void;
+    stippleProbeRow?: { width: number; height: number; pixels: number[] };
   }
 }
 
@@ -206,6 +207,63 @@ test("cluster centers remain stippled without solid debug fills", async ({
   const metrics = await stats(page);
   expect(metrics.colored).toBeGreaterThan(100);
   expect(metrics.maxRun).toBeLessThanOrEqual(6);
+});
+
+test("edge fade softens peripheral dots while retaining centers and dot placement for every blend mode", async ({
+  page,
+}) => {
+  await page.addInitScript(() => {
+    const draw = WebGL2RenderingContext.prototype.drawArrays;
+    WebGL2RenderingContext.prototype.drawArrays = function (...args) {
+      draw.apply(this, args);
+      const pixels = new Uint8Array(this.drawingBufferWidth * 4);
+      this.readPixels(
+        0,
+        Math.floor(this.drawingBufferHeight / 2),
+        this.drawingBufferWidth,
+        1,
+        this.RGBA,
+        this.UNSIGNED_BYTE,
+        pixels,
+      );
+      window.stippleProbeRow = {
+        width: this.drawingBufferWidth,
+        height: this.drawingBufferHeight,
+        pixels: [...pixels],
+      };
+    };
+  });
+  for (const mode of ["gradient", "dither", "none"]) {
+    const args = `paused:true;maxWidth:360;pattern:checker;scatterPx:100;colorBlend:${mode}`;
+    await page.goto(story("edge-fade", `${args};edgeFade:0`));
+    await expect(page.locator('[data-renderer="webgl2"]')).toBeVisible();
+    const flat = await page.evaluate(() => window.stippleProbeRow!);
+    await page.goto(story("edge-fade", `${args};edgeFade:0.8`));
+    await expect(page.locator('[data-renderer="webgl2"]')).toBeVisible();
+    const faded = await page.evaluate(() => window.stippleProbeRow!);
+    expect(faded.width).toBe(flat.width);
+    const center: number[] = [],
+      edge: number[] = [];
+    for (let x = 0; x < faded.width; x++) {
+      const before = flat.pixels[x * 4],
+        after = faded.pixels[x * 4];
+      expect(after > 0).toBe(before > 0);
+      expect(after).toBeLessThanOrEqual(before);
+      if (!before) continue;
+      const distance = Math.abs(x + 0.5 - faded.width / 2) / faded.height;
+      if (distance < 0.08) center.push(after);
+      if (distance > 0.3 && distance < 0.45) edge.push(after);
+      expect(faded.pixels[x * 4 + 3]).toBe(255);
+    }
+    expect(center.length).toBeGreaterThan(0);
+    expect(edge.length).toBeGreaterThan(0);
+    const average = (values: number[]) =>
+      values.reduce((a, b) => a + b, 0) / values.length;
+    expect(average(center)).toBeGreaterThan(240);
+    expect(average(edge)).toBeLessThan(200);
+    expect(average(center)).toBeGreaterThan(average(edge));
+    await settledDraws(page);
+  }
 });
 
 test("the exported cluster preset matches the default and supports shape composition", async ({

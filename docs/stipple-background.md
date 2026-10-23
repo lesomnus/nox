@@ -54,6 +54,10 @@ above the decorative canvas, which is hidden from assistive technology.
 - `colorBlendWidth`: the color transition width in height-normalized
   coordinates. Larger values make overlaps blend more broadly; zero disables
   mixing. This changes color mixing independently of `merge` and dot density.
+- `edgeFade`: peripheral dot colors fade toward `backgroundColor` as the field
+  weakens. Zero keeps the original flat colors; one applies the full falloff.
+  Intermediate values adjust the strength. It works with every color blend
+  mode and motion, without changing the dot placement or occupancy rule.
 - `motion`: an optional `(t, context) => metaballs` callback that replaces the
   built-in movement. See the contract and example below.
 - `palette`: a list of cluster colors, using short or full RGB hex strings.
@@ -95,6 +99,20 @@ dot crossing a boundary is not split into differently colored pieces.
 The built-in pairs share their cluster's color, so these transitions appear
 between differently colored clusters. A custom motion can also assign different
 palette indices to the metaballs in a pair.
+
+To soften the outer edge as well as the dot density, enable color falloff:
+
+```tsx
+<StippleBackground edgeFade={1} />;
+<StippleBackground colorBlend="dither" edgeFade={0.6} />;
+```
+
+Strong parts of the field keep their color; peripheral dots gradually approach
+the background color. This uses the field density at each dot center, so an
+individual dot remains a uniform color. With `dither`, the palette color is
+selected first, then faded; exact palette RGB values are preserved when
+`edgeFade` is zero. The canvas remains opaque, and its fallback background is
+unchanged.
 
 ## Custom motion
 

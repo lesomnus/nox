@@ -74,6 +74,7 @@ function createGpu(canvas: HTMLCanvasElement) {
         "uMerge",
         "uColorBlend",
         "uColorBlendWidth",
+        "uEdgeFade",
         "uPattern",
         "uCount",
         "uColorCount",
@@ -106,6 +107,7 @@ function createGpu(canvas: HTMLCanvasElement) {
         gl.uniform1f(uniforms.uMerge, settings.merge);
         gl.uniform1i(uniforms.uColorBlend, settings.colorBlend);
         gl.uniform1f(uniforms.uColorBlendWidth, settings.colorBlendWidth);
+        gl.uniform1f(uniforms.uEdgeFade, settings.edgeFade);
         gl.uniform1i(uniforms.uPattern, settings.pattern);
         gl.uniform1i(uniforms.uCount, frame.count);
         gl.uniform1i(uniforms.uColorCount, frame.colorCount);

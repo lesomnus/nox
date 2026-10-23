@@ -26,6 +26,13 @@ describe("raster budget", () => {
 });
 
 describe("settings", () => {
+  it("keeps edge fading opt-in and bounds its strength", () => {
+    expect(resolveStippleSettings({}).edgeFade).toBe(0);
+    expect(resolveStippleSettings({ edgeFade: 0.6 }).edgeFade).toBe(0.6);
+    expect(resolveStippleSettings({ edgeFade: -1 }).edgeFade).toBe(0);
+    expect(resolveStippleSettings({ edgeFade: 2 }).edgeFade).toBe(1);
+    expect(resolveStippleSettings({ edgeFade: NaN }).edgeFade).toBe(0);
+  });
   it("resolves hex palettes and protects uniforms from invalid numeric values", () => {
     expect(hexColor("#aBc")).toEqual([170 / 255, 187 / 255, 204 / 255]);
     expect(hexColor("#aabbcc")).toEqual(hexColor("#abc"));

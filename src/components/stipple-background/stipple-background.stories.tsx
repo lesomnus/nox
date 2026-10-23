@@ -42,6 +42,7 @@ const meta = {
     merge: 0.01,
     colorBlend: "gradient",
     colorBlendWidth: 0.12,
+    edgeFade: 0,
     maxWidth: 1200,
     maxFps: 30,
     paused: false,
@@ -62,6 +63,7 @@ const meta = {
     colorBlendWidth: {
       control: { type: "range", min: 0, max: 0.5, step: 0.01 },
     },
+    edgeFade: { control: { type: "range", min: 0, max: 1, step: 0.05 } },
     motion: { control: false },
     backgroundColor: { control: "text" },
     onError: { action: "renderer error" },
@@ -129,6 +131,22 @@ export const GradientBlend: Story = {
 };
 export const DitherBlend: Story = {
   args: { ...GradientBlend.args, colorBlend: "dither" },
+};
+export const EdgeFade: Story = {
+  args: {
+    motion: () => [{ x: 0.5, y: 0.5, radius: 0.22 }],
+    palette: ["#fff"],
+    backgroundColor: "#000",
+    edgeFade: 1,
+  },
+  parameters: {
+    docs: {
+      description: {
+        story:
+          "Peripheral dots fade toward the background while dot positions and density stay the same. Set edgeFade to zero for flat colors, or choose an intermediate strength. Works with gradient, dither and none color blending, custom motion and clusterMotion.",
+      },
+    },
+  },
 };
 export const CustomMotion: Story = {
   args: { speed: 1 },
