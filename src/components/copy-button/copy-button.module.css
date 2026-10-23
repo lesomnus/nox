@@ -1,0 +1,47 @@
+.control {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  vertical-align: middle;
+}
+.hint {
+  position: absolute;
+  z-index: 4;
+  bottom: calc(100% + 2 * var(--ui-space));
+  right: 0;
+  width: max-content;
+  max-width: min(280px, 80vw);
+  background: var(--ui-overflow-hint-background);
+  color: var(--ui-shade-237);
+  padding: var(--ui-control-inline-inset) calc(2 * var(--ui-space));
+  border-radius: var(--ui-space);
+  font-size: 11px;
+  line-height: 1.4;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(var(--ui-control-inset));
+  transition:
+    opacity 120ms,
+    transform 120ms,
+    visibility 120ms;
+  pointer-events: none;
+}
+.control:is(:hover, :focus-within) .hint {
+  opacity: 1;
+  visibility: visible;
+  transform: none;
+}
+.status {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+@media (prefers-reduced-motion: reduce) {
+  .hint {
+    transition: none;
+  }
+}

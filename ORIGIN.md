@@ -20,3 +20,11 @@ this repository. The original cxz workspace was left in place.
 - 2026-10-14: imported the post-extraction value-menu fixes, matched-query
   highlighting and shared brand token/export from cxz main. These preserve the
   consuming application's existing behavior when switching to Nox.
+
+- 2026-10-23: adapted cxz-only Checkbox, CopyButton, IdentifierValue, DateTime,
+  FieldLabel, ResourceFields and ResourcePanel from cxz commit
+  `f4183676659983ea8157fb75adcf7cc90237fc17`. The latter two become
+  DescriptionList and NavigationPanel. API timestamp types, application i18n,
+  unread-session tracking and global CSS hooks remain in cxz. Added standalone
+  styles, native-label/ref support, clipboard feedback, composition stories and
+  browser regressions. No cxz files or dependency pointers were changed.
