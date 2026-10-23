@@ -12,6 +12,10 @@
   display: inline-block;
   vertical-align: baseline;
 }
+.glyph {
+  position: relative;
+  z-index: 1;
+}
 .cell[data-motion="slide"] {
   overflow: clip;
 }
@@ -74,7 +78,7 @@
 .cell[data-motion="flip"]::after {
   content: "";
   position: absolute;
-  z-index: 5;
+  z-index: 0;
   inset: 50% 0 auto;
   height: 1px;
   background: var(--ui-text-flip-divider);
