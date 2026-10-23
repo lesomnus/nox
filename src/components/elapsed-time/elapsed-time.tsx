@@ -1,5 +1,5 @@
 import styles from "./elapsed-time.module.css";
-import { useEffect, useState } from "react";
+import { Fragment, useEffect, useState } from "react";
 
 export function ElapsedTime({
   startedAt,
@@ -31,7 +31,7 @@ export function ElapsedTime({
   ]
     .map((part) => String(part).padStart(2, "0"))
     .join(":");
-  // Keep every digit in place; dim only the unused leading zeroes/separators.
+  // Keep every digit in place while separating unused leading zeroes/separators.
   const significant = text.search(/[1-9]/);
   const split = significant < 0 ? text.length - 1 : significant;
   return (
@@ -42,7 +42,17 @@ export function ElapsedTime({
       aria-live="off"
     >
       <span className="elapsed-time-leading">{text.slice(0, split)}</span>
-      <span>{text.slice(split)}</span>
+      <span>
+        {text
+          .slice(split)
+          .split(":")
+          .map((part, index) => (
+            <Fragment key={index}>
+              {index > 0 && <span className={styles.separator}>:</span>}
+              {part}
+            </Fragment>
+          ))}
+      </span>
     </span>
   );
 }

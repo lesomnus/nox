@@ -13,6 +13,9 @@ export const Idle: Story = {};
 export const Completed: Story = {
   args: { durationMs: 42_000, label: "Completed response duration" },
 };
+export const WithMinutes: Story = {
+  args: { durationMs: 102_000, label: "Completed response duration" },
+};
 export const Running: Story = { args: { startedAt: Date.now() - 42_000 } };
 export const LongRunning: Story = {
   args: { startedAt: Date.now() - 3_900_000 },

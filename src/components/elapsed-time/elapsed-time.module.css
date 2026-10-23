@@ -12,3 +12,6 @@
 .elapsed_time :global(.elapsed-time-leading) {
   color: var(--ui-shade-65);
 }
+.separator {
+  color: var(--ui-shade-115);
+}
