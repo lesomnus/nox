@@ -174,7 +174,10 @@ test("work motion blooms, keeps drifting through finish, sleeps when empty and r
       page.locator("canvas").evaluate((el: HTMLCanvasElement) => {
         const gl = el.getContext("webgl2")!;
         const program = gl.getParameter(gl.CURRENT_PROGRAM) as WebGLProgram;
-        return gl.getUniform(program, gl.getUniformLocation(program, "uCount")!);
+        return gl.getUniform(
+          program,
+          gl.getUniformLocation(program, "uCount")!,
+        );
       }),
     )
     .toBe(0);
@@ -200,6 +203,56 @@ test("work motion respects reduced motion without leaving an invisible active ba
   await page.getByRole("button", { name: "Finish work" }).click();
   await expect.poll(async () => (await stats(page)).colored).toBe(0);
   await settledDraws(page);
+});
+
+test("active work lets individual GPU fields disappear and regrow without restarting the background", async ({
+  page,
+}) => {
+  test.setTimeout(40000);
+  await page.goto(story("work-motion", "speed:2"));
+  await expect(page.locator('[data-renderer="webgl2"]')).toBeVisible();
+  await page.getByRole("button", { name: "Start work" }).click();
+  const programs = (await stats(page)).programs;
+  const envelopes = () =>
+    page.locator("canvas").evaluate((el: HTMLCanvasElement) => {
+      const gl = el.getContext("webgl2")!;
+      const program = gl.getParameter(gl.CURRENT_PROGRAM) as WebGLProgram;
+      const count = gl.getUniform(
+        program,
+        gl.getUniformLocation(program, "uCount")!,
+      ) as number;
+      return Array.from(
+        { length: count },
+        (_, i) =>
+          gl.getUniform(
+            program,
+            gl.getUniformLocation(program, `uEnvelopes[${i}]`)!,
+          ) as number,
+      );
+    });
+  const grown = new Set<number>();
+  let vanished = -1;
+  await expect
+    .poll(
+      async () => {
+        const values = await envelopes();
+        values.forEach((value, i) => {
+          if (value > 0.9) grown.add(i);
+        });
+        vanished = values.findIndex((value, i) => value === 0 && grown.has(i));
+        return vanished;
+      },
+      { timeout: 18000, intervals: [200] },
+    )
+    .toBeGreaterThanOrEqual(0);
+  await expect(page.getByRole("button", { name: "Finish work" })).toBeVisible();
+  await expect
+    .poll(async () => (await envelopes())[vanished], {
+      timeout: 8000,
+      intervals: [200],
+    })
+    .toBeGreaterThan(0.1);
+  expect((await stats(page)).programs).toBe(programs);
 });
 
 test("all five patterns produce actual colored pixels within the raster budget", async ({

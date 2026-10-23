@@ -126,7 +126,7 @@ export const WorkMotion: Story = {
     docs: {
       description: {
         story:
-          "Start work to slowly bloom different-sized metaballs at staggered times and bring others in from beyond the viewport. Independent breathing rhythms, weak local attraction and size-aware repulsion keep their drifting paths varied and spread out. Finish work keeps them moving as they shrink at different rates. Start again during the exit to regrow without jumping. active is a lifecycle signal; paused freezes both movement and transitions.",
+          "Start work to slowly bloom different-sized metaballs at staggered times and bring others in from beyond the viewport. Independent breathing rhythms, weak local attraction and size-aware repulsion keep their drifting paths varied and spread out. While work continues, individual fields shrink away while moving, rest invisibly and bloom again at new positions. Finish work stops new births and keeps existing fields moving as they shrink. Start again during the exit to regrow without jumping. active is a lifecycle signal; paused freezes both movement and transitions.",
       },
     },
   },

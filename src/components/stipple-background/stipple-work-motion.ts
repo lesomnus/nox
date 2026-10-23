@@ -14,21 +14,26 @@ const smooth = (t: number) => {
   return x * x * (3 - 2 * x);
 };
 
+function randomSource(seed: number) {
+  let rng = seed;
+  return () => {
+    rng += 0x6d2b79f5;
+    let v = Math.imul(rng ^ (rng >>> 15), 1 | rng);
+    v ^= v + Math.imul(v ^ (v >>> 7), 61 | v);
+    return ((v ^ (v >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
 function createWork(
   seed: number,
   aspect: number,
   time: number,
   active: boolean,
 ) {
-  let rng = seed;
-  const random = () => {
-    rng += 0x6d2b79f5;
-    let v = Math.imul(rng ^ (rng >>> 15), 1 | rng);
-    v ^= v + Math.imul(v ^ (v >>> 7), 61 | v);
-    return ((v ^ (v >>> 14)) >>> 0) / 4294967296;
-  };
+  const random = randomSource(seed);
   const between = (min: number, max: number) => min + random() * (max - min);
-  const bodies = Array.from({ length: COUNT }, (_, i) => {
+  function appearance(i: number, random: () => number) {
+    const between = (min: number, max: number) => min + random() * (max - min);
     let x = between(-0.38, 0.38) * aspect,
       y = between(0.15, 0.85);
     if (i % 2) {
@@ -59,11 +64,25 @@ function createWork(
       pulsePhase: between(0, Math.PI * 2),
       pulseRate: between(0.25, 0.7),
       slowPulseRate: between(0.07, 0.2),
+    };
+  }
+  const bodies = Array.from({ length: COUNT }, (_, i) => {
+    const initial = appearance(i, random);
+    const lifetimeRandom = randomSource(seed ^ Math.imul(i + 1, 0x27d4eb2d));
+    const fadeAt = 8 + lifetimeRandom() * 12;
+    const dissolve = 3 + lifetimeRandom() * 3;
+    return {
+      ...initial,
       delay: i === 0 ? 0 : between(0.1, 1.6),
       grow: between(1.8, 4.2),
       fade: between(0.55, 1.35),
       from: 0,
       influence: 0,
+      life: 1,
+      cycle: 0,
+      fadeAt,
+      dissolve,
+      period: fadeAt + dissolve + 0.5 + lifetimeRandom(),
     };
   });
   const samples: StippleMetaball[] = bodies.map((body, color) => ({
@@ -82,6 +101,24 @@ function createWork(
   let working = active,
     reduced = false,
     started = active;
+  let lifeBase = 0,
+    lifeStartedAt = time;
+  const lifeTime = (t: number) =>
+    lifeBase + (working && !reduced ? Math.max(0, t - lifeStartedAt) : 0);
+
+  function renew(t: number) {
+    const age = lifeTime(t);
+    for (let i = 0; i < bodies.length; i++) {
+      const b = bodies[i];
+      const cycle = Math.floor(age / b.period);
+      if (cycle === b.cycle) continue;
+      const random = randomSource(
+        seed ^ Math.imul(i + 1, 0x9e3779b9) ^ Math.imul(cycle, 0x85ebca6b),
+      );
+      Object.assign(b, appearance(i, random));
+      b.cycle = cycle;
+    }
+  }
 
   function envelope(t: number) {
     for (const b of bodies) {
@@ -92,6 +129,14 @@ function createWork(
       b.influence = reduced
         ? Number(working)
         : b.from + (Number(working) - b.from) * progress;
+      const ageInCycle = lifeTime(t) - b.cycle * b.period;
+      const growing =
+        b.cycle === 0
+          ? 1
+          : smooth((ageInCycle - Math.max(0.25, b.delay)) / b.grow);
+      b.life = reduced
+        ? 1
+        : growing * (1 - smooth((ageInCycle - b.fadeAt) / b.dissolve));
     }
   }
 
@@ -126,7 +171,7 @@ function createWork(
         const force =
           ((0.0007 * Math.exp(-squared / 0.8)) / (squared + 0.15) -
             0.12 * overlap * overlap) *
-          Math.sqrt(a.influence * b.influence);
+          Math.sqrt(a.influence * a.life * b.influence * b.life);
         const fx = (dx / distance) * force,
           fy = (dy / distance) * force;
         a.ax += fx;
@@ -169,6 +214,7 @@ function createWork(
         Math.floor((t - integrated + 1e-9) / STEP),
       );
       for (let step = 0; step < steps; step++) {
+        if (working && !reduced) renew(integrated);
         envelope(integrated);
         if (started && !reduced) integrate(integrated);
         integrated += STEP;
@@ -176,6 +222,8 @@ function createWork(
       envelope(t);
       if (working !== nextActive || reduced !== nextReduced) {
         for (const b of bodies) b.from = b.influence;
+        lifeBase = lifeTime(t);
+        lifeStartedAt = t;
         phaseTime = t;
         working = nextActive;
         reduced = nextReduced;
@@ -198,7 +246,7 @@ function createWork(
           (0.64 +
             0.24 * Math.sin(t * b.pulseRate + b.phase) +
             0.12 * Math.sin(t * b.slowPulseRate + b.pulsePhase));
-        ball.influence = b.influence;
+        ball.influence = b.influence * b.life;
         const shape = ball.scale as [number, number];
         shape[0] = 1 + 0.22 * Math.sin(t * 0.23 + b.phase);
         shape[1] = 1 + 0.17 * Math.cos(t * 0.29 + b.phase);

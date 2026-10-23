@@ -272,8 +272,15 @@ a soft boundary and gentle wandering keep the movement contained without
 bouncing at the edge. Incoming fields can approach gradually before the boundary
 keeps their subsequent wandering near the viewport.
 
+While work stays active, each metaball also has its own lifetime. It keeps
+drifting as it slowly shrinks to nothing, rests invisibly, then blooms again at
+a new interior or offscreen position. Lifetimes are staggered so the background
+keeps changing without the whole population disappearing together. New positions
+are chosen only while a field is fully invisible.
+
 Finishing work preserves positions and velocities while the metaballs shrink
-at different rates. Starting again during this fade regrows the current fields
+at different rates. Individual lifetimes pause, so no new fields are born during
+the exit. Starting again during this fade regrows the current fields
 instead of replacing them. Once every field disappears, the direct
 `motion={workMotion}` preset stops requesting animation frames; starting work
 wakes it again. The canvas then shows only `backgroundColor`, not transparency.
