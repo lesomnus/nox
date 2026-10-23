@@ -48,6 +48,14 @@ above the decorative canvas, which is hidden from assistive technology.
   square-root compression so large values produce gradual falloff.
 - `merge`: blending distance for same-color metaballs, in height-normalized
   coordinates. Zero keeps their distance fields separate.
+- `colorBlend`: `gradient` interpolates dot colors across overlapping fields;
+  `dither` interleaves dots of the original palette colors. `none` uses the
+  nearest field's color without a transition.
+- `colorBlendWidth`: the color transition width in height-normalized
+  coordinates. Larger values make overlaps blend more broadly; zero disables
+  mixing. This changes color mixing independently of `merge` and dot density.
+- `motion`: an optional `(t, context) => metaballs` callback that replaces the
+  built-in movement. See the contract and example below.
 - `palette`: a list of cluster colors, using short or full RGB hex strings.
   Empty or entirely invalid palettes use the defaults; invalid entries are
   ignored. Palette changes preserve the current motion.
@@ -68,6 +76,91 @@ Defaults live in `stipple-model.ts`. The drawing budget also respects device
 pixel ratio and the GPU's render-buffer size limit. The shader and uniform buffers
 are reused as props change; rendering does not update React state every frame.
 
+## Color at intersections
+
+**Gradient blending** gives each dot an interpolated color based on the nearby
+fields' relative influence. The colors change gradually as fields meet and
+separate. **Dither blending** uses the same influence weights to decide which
+original color each dot receives. The proportion of each color changes through
+the overlap, while individual dots keep their palette colors. A stable spatial
+hash makes these choices; a still image does not reshuffle its dots every frame.
+Dots remain solid in both modes. Colors are sampled at the dot's center, so a
+dot crossing a boundary is not split into differently colored pieces.
+
+```tsx
+<StippleBackground colorBlend="gradient" colorBlendWidth={0.16} />;
+<StippleBackground colorBlend="dither" colorBlendWidth={0.16} />;
+```
+
+The built-in pairs share their cluster's color, so these transitions appear
+between differently colored clusters. A custom motion can also assign different
+palette indices to the metaballs in a pair.
+
+## Custom motion
+
+`motion(t, context)` returns a readonly array of `StippleMetaball` samples. It is
+called synchronously when the renderer draws, without triggering a React render.
+The result replaces the built-in clusters; return an empty array to draw only
+the background. The renderer packs the samples into reusable GPU buffers. Up to
+`MAX_STIPPLE_METABALLS` entries are accepted; later entries are ignored to bound
+the fragment shader's work. Invalid positions and invisible samples are skipped.
+
+- `t` is elapsed simulation time in seconds, after `speed` is applied. It starts
+  at zero, freezes during pause/reduced motion/hidden/offscreen states, and resets
+  when `seed` changes. Changing the callback preserves the clock.
+- `context` provides readonly `width` and `height` in CSS pixels, `aspect`, and
+  the resolved `seed`. The renderer reuses this context object; read its current
+  values during the callback rather than retaining it as a snapshot.
+- `x` and `y` are viewport fractions. The origin is top-left and the opposite
+  corner is `(1, 1)`. Values outside that range allow entry and exit motion.
+- `radius` is a fraction of container height. `scale: [x, y]` makes an ellipse;
+  `rotation` turns it clockwise in radians. `wobble` controls organic boundary
+  deformation; omit it for a smooth circle or ellipse. Ellipse distances use an
+  approximation, so strongly stretched shapes can have a different falloff.
+- `color` indexes the current palette and wraps when outside its range. When
+  omitted, the sample's array index selects the color.
+- `influence` is a growth/fade envelope from zero to one. It scales both radius
+  and field influence; zero makes the metaball disappear completely. It defaults
+  to one. You can also animate `radius` and `scale` directly.
+
+```tsx
+import { StippleBackground, type StippleMotion } from "@lesomnus/nox";
+
+const orbit: StippleMotion = (t, { aspect }) => [
+  {
+    x: 0.5 + (0.15 / aspect) * Math.cos(t * 0.3),
+    y: 0.5 + 0.15 * Math.sin(t * 0.3),
+    radius: 0.16,
+    scale: [1.5, 0.7],
+    rotation: t * 0.2,
+    color: 0,
+  },
+  {
+    x: 0.5,
+    y: 0.5,
+    radius: 0.2,
+    influence: 0.5 - 0.5 * Math.cos(t * 0.2),
+    color: 1,
+    wobble: 1,
+  },
+];
+
+<StippleBackground
+  className="welcome-background"
+  palette={["#ff6b9d", "#70e1d0"]}
+  motion={orbit}
+  colorBlend="dither"
+/>;
+```
+
+Keep the callback quick and synchronous. Derive samples from time and seed
+instead of choosing fresh random values every frame. A stable array order keeps
+metaball identities and their deformation phases consistent. Samples may reuse
+your own objects and array; the renderer does not modify them. React state
+updates are unnecessary inside the sampler. A thrown callback reports through
+`onError` and suspends animation over the fallback background; a corrected
+callback or setting update can resume rendering.
+
 ## Motion and lifecycle
 
 Some clusters travel into and out of the viewport; others emerge inside it,
@@ -87,5 +180,5 @@ frame. React StrictMode replay can initialize the same canvas again.
 
 See **Effects/StippleBackground** in Storybook for every pattern, a still image,
 a full-viewport wallpaper, monochrome and custom palettes, a reproducible seed,
-interactive overlaid content and
-an unmount/remount example. Its controls update the live renderer.
+gradient/dither comparisons, custom motion, interactive overlaid content and an
+unmount/remount example. Its controls update the live renderer.

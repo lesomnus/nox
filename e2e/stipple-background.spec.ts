@@ -5,6 +5,7 @@ type Metrics = {
   hash: number;
   colored: number;
   maxRun: number;
+  pixelColors: number[];
   programs: number;
   buffers: number;
   shaders: number;
@@ -34,6 +35,7 @@ test.beforeEach(async ({ page }) => {
       hash: 0,
       colored: 0,
       maxRun: 0,
+      pixelColors: [] as number[],
       programs: 0,
       buffers: 0,
       shaders: 0,
@@ -81,7 +83,9 @@ test.beforeEach(async ({ page }) => {
         colored = 0,
         maxRun = 0,
         run = 0;
+      const pixelColors = new Set<number>();
       for (let i = 0; i < bytes.length; i += 4) {
+        pixelColors.add((bytes[i] << 16) | (bytes[i + 1] << 8) | bytes[i + 2]);
         hash = Math.imul(hash ^ bytes[i], 16777619);
         hash = Math.imul(hash ^ bytes[i + 1], 16777619);
         if ((i / 4) % this.drawingBufferWidth === 0) run = 0;
@@ -94,6 +98,7 @@ test.beforeEach(async ({ page }) => {
       metrics.hash = hash >>> 0;
       metrics.colored = colored;
       metrics.maxRun = maxRun;
+      metrics.pixelColors = [...pixelColors];
     };
   });
 });
@@ -203,6 +208,76 @@ test("cluster centers remain stippled without solid debug fills", async ({
   expect(metrics.maxRun).toBeLessThanOrEqual(6);
 });
 
+test("gradient mixes dot colors while dither retains only the original palette", async ({
+  page,
+}) => {
+  const palette = [0xff6b9d, 0x70e1d0];
+  const allowed = new Set([0x0e1116, ...palette]);
+  const hashes: number[] = [];
+  for (const mode of ["gradient", "dither", "none"]) {
+    await page.goto(
+      story("gradient-blend", `paused:true;maxWidth:360;colorBlend:${mode}`),
+    );
+    await expect(page.locator('[data-renderer="webgl2"]')).toBeVisible();
+    const metrics = await stats(page);
+    hashes.push(metrics.hash);
+    if (mode === "gradient") {
+      expect(metrics.pixelColors.length).toBeGreaterThan(8);
+      expect(metrics.pixelColors.some((color) => !allowed.has(color))).toBe(
+        true,
+      );
+    } else {
+      expect(metrics.pixelColors.every((color) => allowed.has(color))).toBe(
+        true,
+      );
+      for (const color of palette) expect(metrics.pixelColors).toContain(color);
+    }
+    await settledDraws(page);
+  }
+  expect(new Set(hashes).size).toBe(3);
+});
+
+test("custom motion controls ellipses and responds to trajectory, viewport and empty sample changes", async ({
+  page,
+}) => {
+  await page.goto(story("custom-motion", "paused:true"));
+  await expect(page.locator('[data-renderer="webgl2"]')).toBeVisible();
+  const uniforms = () =>
+    page.locator("canvas").evaluate((el: HTMLCanvasElement) => {
+      const gl = el.getContext("webgl2")!;
+      const program = gl.getParameter(gl.CURRENT_PROGRAM) as WebGLProgram;
+      const get = (name: string) =>
+        gl.getUniform(program, gl.getUniformLocation(program, name)!);
+      return {
+        count: get("uCount") as number,
+        shape: [...get("uShapes[0]")],
+        blob: [...get("uBlobs[0]")],
+      };
+    });
+  const initial = await uniforms();
+  expect(initial.count).toBe(2);
+  expect(initial.shape[0]).toBeCloseTo(1.7);
+  expect(initial.shape[1]).toBeCloseTo(0.6);
+  expect(initial.shape[2]).toBeCloseTo(-0.4);
+  const programs = (await stats(page)).programs;
+  await page
+    .locator("[data-renderer]")
+    .evaluate((el) => (el.style.width = "360px"));
+  await expect
+    .poll(async () => (await uniforms()).blob[0])
+    .toBeCloseTo((0.18 * 360) / 380, 4);
+  const hash = (await stats(page)).hash;
+  await page.getByRole("button", { name: "Change trajectory" }).click();
+  await expect.poll(async () => (await stats(page)).hash).not.toBe(hash);
+  await page.getByRole("button", { name: "Clear", exact: true }).click();
+  await expect.poll(async () => (await uniforms()).count).toBe(0);
+  expect((await stats(page)).pixelColors).toEqual([0x0a1438]);
+  await page.getByRole("button", { name: "Restore", exact: true }).click();
+  await expect.poll(async () => (await uniforms()).count).toBe(2);
+  expect((await stats(page)).programs).toBe(programs);
+  await settledDraws(page);
+});
+
 test("omitting seed randomizes each mount while explicit seeds reproduce the arrangement", async ({
   page,
 }) => {
@@ -224,6 +299,20 @@ test("omitting seed randomizes each mount while explicit seeds reproduce the arr
     if (seeded) expect(await positions()).toEqual(before);
     else expect(await positions()).not.toEqual(before);
   }
+});
+
+test("a throwing motion callback falls back without an uncaught error and a corrected callback recovers", async ({
+  page,
+}) => {
+  const errors: string[] = [];
+  page.on("pageerror", (error) => errors.push(error.message));
+  await page.goto(story("motion-recovery"));
+  await expect(page.locator('[data-renderer="fallback"]')).toBeVisible();
+  await settledDraws(page);
+  await page.getByRole("button", { name: "Use valid motion" }).click();
+  await expect(page.locator('[data-renderer="webgl2"]')).toBeVisible();
+  await expect.poll(async () => (await stats(page)).draws).toBeGreaterThan(2);
+  expect(errors).toEqual([]);
 });
 
 test("reduced motion and zero speed render a still image", async ({ page }) => {

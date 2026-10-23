@@ -1,7 +1,29 @@
 import { StrictMode, useState } from "react";
 import type { Meta, StoryObj } from "@storybook/react-vite";
-import { Button, StippleBackground } from "@lesomnus/nox";
+import { Button, StippleBackground, type StippleMotion } from "@lesomnus/nox";
 import styles from "./stipple-background.stories.module.css";
+
+const orbitingPair: StippleMotion = (t) => [
+  { x: 0.4 + 0.04 * Math.sin(t * 0.4), y: 0.5, radius: 0.22, color: 0 },
+  { x: 0.6 - 0.04 * Math.sin(t * 0.4), y: 0.5, radius: 0.22, color: 1 },
+];
+const ellipticalOrbit: StippleMotion = (t, { seed }) => [
+  {
+    x: 0.5 + 0.18 * Math.cos(t * 0.3),
+    y: 0.5 + 0.12 * Math.sin(t * 0.3),
+    radius: 0.16,
+    scale: [1.7, 0.6],
+    rotation: t * 0.15 + 0.4,
+    color: 0,
+  },
+  {
+    x: 0.5 - 0.16 * Math.cos(t * 0.25),
+    y: 0.5 - 0.18 * Math.sin(t * 0.25),
+    radius: 0.13 + 0.04 * Math.sin(t * 0.2 + (seed % 10)),
+    color: 1,
+    wobble: 1,
+  },
+];
 
 const meta = {
   title: "Effects/StippleBackground",
@@ -13,6 +35,8 @@ const meta = {
     grainPx: 1,
     scatterPx: 800,
     merge: 0.01,
+    colorBlend: "gradient",
+    colorBlendWidth: 0.12,
     maxWidth: 1200,
     maxFps: 30,
     paused: false,
@@ -29,6 +53,11 @@ const meta = {
     grainPx: { control: { type: "range", min: 0.25, max: 4, step: 0.25 } },
     scatterPx: { control: { type: "range", min: 0, max: 1200, step: 20 } },
     merge: { control: { type: "range", min: 0, max: 0.1, step: 0.005 } },
+    colorBlend: { control: "select", options: ["gradient", "dither", "none"] },
+    colorBlendWidth: {
+      control: { type: "range", min: 0, max: 0.5, step: 0.01 },
+    },
+    motion: { control: false },
     backgroundColor: { control: "text" },
     onError: { action: "renderer error" },
     children: { control: false },
@@ -37,7 +66,7 @@ const meta = {
     docs: {
       description: {
         component:
-          "A dot-only WebGL2 background. A metaball is an invisible rounded density field; a cluster pairs two metaballs with shared motion and color. Stipple dots reveal those fields without solid debug fills. Clusters drift, grow and fade inside the viewport. Pass a palette of RGB hex colors. Each mount chooses a random seed unless one is provided. Give the container a size; children remain interactive above the canvas. Hidden/offscreen backgrounds pause and reduced motion renders a still. See docs/stipple-background.md for terminology and lifecycle details.",
+          "A dot-only WebGL2 background. A metaball is an invisible rounded density field; a cluster pairs two metaballs with shared motion and color. Gradient blending interpolates dot colors at overlaps; dither blending interleaves dots while retaining exact palette colors. Supply motion(t, context) to control positions, radii, ellipses, rotation, deformation and growth. Built-in clusters drift, grow and fade inside the viewport. Each mount chooses a random seed unless one is provided. Children remain interactive above the canvas. Hidden/offscreen backgrounds pause and reduced motion renders a still. See docs/stipple-background.md for the callback contract and terminology.",
       },
     },
   },
@@ -53,6 +82,68 @@ export const Still: Story = { args: { paused: true } };
 export const Seeded: Story = { args: { seed: 1, paused: true } };
 export const Palette: Story = {
   args: { palette: ["#f6bd60", "#f28482", "#84a59d", "#b8b8ff"] },
+};
+export const GradientBlend: Story = {
+  args: {
+    motion: orbitingPair,
+    palette: ["#ff6b9d", "#70e1d0"],
+    backgroundColor: "#0e1116",
+    colorBlend: "gradient",
+    colorBlendWidth: 0.16,
+    speed: 1,
+  },
+};
+export const DitherBlend: Story = {
+  args: { ...GradientBlend.args, colorBlend: "dither" },
+};
+export const CustomMotion: Story = {
+  args: { speed: 1 },
+  render: function Example(args) {
+    const [offset, setOffset] = useState(0);
+    const [empty, setEmpty] = useState(false);
+    return (
+      <StippleBackground
+        {...args}
+        motion={(t, context) =>
+          empty ? [] : ellipticalOrbit(t + offset, context)
+        }
+      >
+        <div className={styles.content}>
+          <h2>Your own motion</h2>
+          <p>A rotating ellipse and an organic metaball, sampled from time.</p>
+          <div className={styles.toolbar}>
+            <Button onClick={() => setOffset(offset + 10)}>
+              Change trajectory
+            </Button>
+            <Button onClick={() => setEmpty(!empty)}>
+              {empty ? "Restore" : "Clear"}
+            </Button>
+          </div>
+        </div>
+      </StippleBackground>
+    );
+  },
+};
+export const MotionRecovery: Story = {
+  render: function Example(args) {
+    const [broken, setBroken] = useState(true);
+    return (
+      <StippleBackground
+        {...args}
+        motion={(t, context) => {
+          if (broken)
+            throw new Error("The custom motion could not be sampled.");
+          return ellipticalOrbit(t, context);
+        }}
+      >
+        <div className={styles.content}>
+          <h2>Recover from a sampler error</h2>
+          <p>The content stays interactive over the fallback background.</p>
+          <Button onClick={() => setBroken(false)}>Use valid motion</Button>
+        </div>
+      </StippleBackground>
+    );
+  },
 };
 export const Wallpaper: Story = {
   args: { className: styles.wallpaper },

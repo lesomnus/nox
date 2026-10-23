@@ -15,7 +15,12 @@ export type {
   StippleColor,
   StippleColors,
   StipplePalette,
+  StippleColorBlend,
+  StippleMetaball,
+  StippleMotion,
+  StippleMotionContext,
 } from "./stipple-model";
+export { MAX_STIPPLE_METABALLS } from "./stipple-model";
 export type StippleBackgroundProps = Omit<ComponentProps<"div">, "onError"> &
   StippleSettings & {
     onError?: (error: Error) => void;
@@ -26,6 +31,9 @@ export function StippleBackground({
   grainPx,
   scatterPx,
   merge,
+  colorBlend,
+  colorBlendWidth,
+  motion,
   maxWidth,
   maxFps,
   pattern,
@@ -56,6 +64,9 @@ export function StippleBackground({
         grainPx,
         scatterPx,
         merge,
+        colorBlend,
+        colorBlendWidth,
+        motion,
         maxWidth,
         maxFps,
         pattern,
@@ -69,6 +80,9 @@ export function StippleBackground({
       grainPx,
       scatterPx,
       merge,
+      colorBlend,
+      colorBlendWidth,
+      motion,
       maxWidth,
       maxFps,
       pattern,

@@ -7,6 +7,38 @@ export type StipplePattern =
 export type StippleColor = `#${string}`;
 export type StippleColors = readonly [StippleColor, StippleColor, StippleColor];
 export type StipplePalette = readonly StippleColor[];
+export type StippleColorBlend = "gradient" | "dither" | "none";
+export const MAX_STIPPLE_METABALLS = 32;
+
+export type StippleMetaball = {
+  /** Position in viewport fractions: (0, 0) is top-left, (1, 1) bottom-right. */
+  x: number;
+  y: number;
+  /** Radius as a fraction of the container height. */
+  radius: number;
+  /** Palette index; defaults to the metaball's array index. */
+  color?: number;
+  /** Ellipse axis multipliers; defaults to [1, 1]. */
+  scale?: readonly [number, number];
+  /** Clockwise rotation in radians. */
+  rotation?: number;
+  /** Organic boundary deformation, from zero (smooth ellipse) to one. */
+  wobble?: number;
+  /** Growth/fade envelope from zero to one; defaults to one. */
+  influence?: number;
+};
+export type StippleMotionContext = Readonly<{
+  /** Container dimensions in CSS pixels. */
+  width: number;
+  height: number;
+  aspect: number;
+  seed: number;
+}>;
+export type StippleMotion = (
+  /** Simulation seconds, after speed and pause are applied. */
+  t: number,
+  context: StippleMotionContext,
+) => readonly StippleMetaball[];
 
 export type StippleSettings = {
   /** Simulation time multiplier; zero keeps a still image. */
@@ -17,6 +49,12 @@ export type StippleSettings = {
   scatterPx?: number;
   /** Same-color blending distance in height-normalized coordinates. */
   merge?: number;
+  /** How overlapping colors combine; dither retains the exact palette colors. */
+  colorBlend?: StippleColorBlend;
+  /** Transition width in height-normalized coordinates; zero disables mixing. */
+  colorBlendWidth?: number;
+  /** Replace the built-in movement with a synchronous time-based sampler. */
+  motion?: StippleMotion;
   /** Maximum drawing-buffer width, independent of the container's CSS size. */
   maxWidth?: number;
   /** Drawing rate limit. */
@@ -70,6 +108,14 @@ export function resolveStippleSettings(settings: StippleSettings) {
     grainPx: Math.max(0, finite(settings.grainPx, 1)),
     scatterPx: Math.max(0, finite(settings.scatterPx, 800)),
     merge: Math.max(0, finite(settings.merge, 0.01)),
+    colorBlend:
+      settings.colorBlend === "none"
+        ? 0
+        : settings.colorBlend === "dither"
+          ? 2
+          : 1,
+    colorBlendWidth: Math.max(0, finite(settings.colorBlendWidth, 0.12)),
+    motion: settings.motion,
     maxWidth: Math.max(1, finite(settings.maxWidth, 1200)),
     maxFps: clamp(finite(settings.maxFps, 30), 1, 60),
     pattern: patterns.includes(settings.pattern ?? "diamond")
@@ -173,10 +219,16 @@ export function createStippleMotion(seed: number) {
     makePair(i, rand(-30, 0)),
   );
   const blobs = new Float32Array(BLOB_COUNT * 4);
+  const shapes = new Float32Array(BLOB_COUNT * 4);
+  for (let i = 0; i < BLOB_COUNT; i++) shapes.set([1, 1, 0, 1], i * 4);
   const colors = new Float32Array(CLUSTER_COUNT * 3);
   const envelopes = new Float32Array(BLOB_COUNT);
   const colorSlots = new Int32Array(CLUSTER_COUNT);
   return {
+    blobs,
+    shapes,
+    count: BLOB_COUNT,
+    colorCount: CLUSTER_COUNT,
     colors,
     envelopes,
     sample(time: number, aspect: number, palette = DEFAULT_PALETTE) {

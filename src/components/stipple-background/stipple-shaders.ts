@@ -1,4 +1,4 @@
-import { BLOB_COUNT, CLUSTER_COUNT } from "./stipple-model";
+import { MAX_STIPPLE_METABALLS } from "./stipple-model";
 
 export const vertexShaderSource = `#version 300 es
 layout(location = 0) in vec2 aPosition;
@@ -15,15 +15,21 @@ out vec4 fragColor;
 
 uniform vec2 uResolution;
 uniform float uTime;
+uniform float uFlow;
 uniform float uGrainPx;
 uniform float uScatterPx;
 uniform float uMerge;
+uniform int uColorBlend;
+uniform float uColorBlendWidth;
 uniform int uPattern;
-uniform vec4 uBlobs[${BLOB_COUNT}];
-uniform float uEnvelopes[${BLOB_COUNT}];
+uniform int uCount;
+uniform int uColorCount;
+uniform vec4 uBlobs[${MAX_STIPPLE_METABALLS}];
+uniform vec4 uShapes[${MAX_STIPPLE_METABALLS}];
+uniform float uEnvelopes[${MAX_STIPPLE_METABALLS}];
 
 uniform vec3 uBackground;
-uniform vec3 uColors[${CLUSTER_COUNT}];
+uniform vec3 uColors[${MAX_STIPPLE_METABALLS}];
 
 float hash12(vec2 p) {
   return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453123);
@@ -35,16 +41,19 @@ float smoothMin(float a, float b, float k) {
   return min(a, b) - h * h * k * 0.25;
 }
 
-float metaballSDF(vec2 p, vec4 blob, float id, float t) {
+float metaballSDF(vec2 p, vec4 blob, vec4 shape, float id, float t) {
   vec2 q = p - blob.xy;
+  float c = cos(shape.z), s = sin(shape.z);
+  q = mat2(c, -s, s, c) * q;
+  q /= shape.xy;
   float a = atan(q.y, q.x);
 
   float wobble =
       0.028 * sin(a * 3.0 + t * 0.45 + id * 1.83)
     + 0.012 * sin(a * 5.0 - t * 0.31 + id * 2.41);
 
-  float r = blob.z * (1.0 + wobble);
-  return length(q) - r;
+  float r = blob.z * (1.0 + wobble * shape.w);
+  return (length(q) - r) * min(shape.x, shape.y);
 }
 
 
@@ -189,47 +198,10 @@ float circleDot(vec2 fragPx, vec2 centerPx, float rPx) {
 
 void main() {
   vec2 fragPx = gl_FragCoord.xy;
-  vec2 p = (fragPx - 0.5 * uResolution) / uResolution.y;
-  p += 0.0055 * vec2(
-    sin(p.y * 5.0 + uTime * 0.23),
-    cos(p.x * 4.4 - uTime * 0.19)
-  );
-  float scatter = sqrt(max(1.0, uScatterPx)) * 9.0 / uResolution.y;
-  float densityCoreBand = 16.0 / uResolution.y;
-  float fields[${CLUSTER_COUNT}];
-  for (int i = 0; i < ${CLUSTER_COUNT}; i++) fields[i] = 1e6;
-
-  for (int i = 0; i < ${BLOB_COUNT}; i++) {
-    vec4 b = uBlobs[i];
-    if (uEnvelopes[i] <= 0.0 || b.z <= 0.0) continue;
-    float d = metaballSDF(p, b, float(i), uTime);
-    d += (1.0 - uEnvelopes[i]) * (scatter + densityCoreBand);
-    int group = int(b.w);
-    fields[group] = smoothMin(fields[group], d, uMerge);
-  }
-
-  float d = fields[0];
-  int colorIndex = 0;
-  for (int i = 1; i < ${CLUSTER_COUNT}; i++) {
-    if (fields[i] < d) {
-      d = fields[i];
-      colorIndex = i;
-    }
-  }
-
-  vec3 color = uColors[colorIndex];
-  float density = 1.0 - smoothstep(
-    -densityCoreBand,
-     scatter,
-     d
-  );
-  density = pow(density, 1.35);
-
-  // Smaller square cells can place every dot between fragment sample centers.
+  // One color decision per cell keeps every dot solid in dither mode.
   float cellSize = max(3.0, uGrainPx * 6.0);
   vec2 cell;
   vec2 center;
-
   if (uPattern == 2) {
     cell = diamondCell(fragPx, cellSize);
     center = diamondCellCenter(cell, cellSize);
@@ -240,18 +212,79 @@ void main() {
     cell = squareCell(fragPx, cellSize);
     center = squareCellCenter(cell, cellSize);
   }
+  float h = hash12(cell);
+  vec2 jitter = vec2(fract(h * 19.31), fract(h * 41.77)) - 0.5;
+  center += jitter * (cellSize * 0.12);
+  vec2 p = (center - 0.5 * uResolution) / uResolution.y;
+  p += uFlow * 0.0055 * vec2(
+    sin(p.y * 5.0 + uTime * 0.23),
+    cos(p.x * 4.4 - uTime * 0.19)
+  );
+  float scatter = sqrt(max(1.0, uScatterPx)) * 9.0 / uResolution.y;
+  float densityCoreBand = 16.0 / uResolution.y;
+  float fields[${MAX_STIPPLE_METABALLS}];
+  for (int i = 0; i < ${MAX_STIPPLE_METABALLS}; i++) fields[i] = 1e6;
+
+  for (int i = 0; i < ${MAX_STIPPLE_METABALLS}; i++) {
+    if (i >= uCount) break;
+    vec4 b = uBlobs[i];
+    if (uEnvelopes[i] <= 0.0 || b.z <= 0.0) continue;
+    float d = metaballSDF(p, b, uShapes[i], float(i), uTime);
+    d += (1.0 - uEnvelopes[i]) * (scatter + densityCoreBand);
+    int group = int(b.w);
+    fields[group] = smoothMin(fields[group], d, uMerge);
+  }
+
+  float d = fields[0];
+  int colorIndex = 0;
+  for (int i = 1; i < ${MAX_STIPPLE_METABALLS}; i++) {
+    if (i >= uColorCount) break;
+    if (fields[i] < d) {
+      d = fields[i];
+      colorIndex = i;
+    }
+  }
+
+  vec3 color = uColors[colorIndex];
+  if (uColorBlend != 0 && uColorBlendWidth > 0.0) {
+    float weights[${MAX_STIPPLE_METABALLS}];
+    float total = 0.0;
+    vec3 mixed = vec3(0.0);
+    for (int i = 0; i < ${MAX_STIPPLE_METABALLS}; i++) {
+      if (i >= uColorCount) break;
+      float support = 1.0 - smoothstep(-densityCoreBand, scatter, fields[i]);
+      float weight = exp(-max(0.0, fields[i] - d) / uColorBlendWidth) * support;
+      weights[i] = weight;
+      total += weight;
+      mixed += uColors[i] * weight;
+    }
+    if (total > 0.0) {
+      if (uColorBlend == 1) color = mixed / total;
+      else {
+        float choice = hash12(cell + vec2(71.37, 19.19)) * total;
+        float cumulative = 0.0;
+        for (int i = 0; i < ${MAX_STIPPLE_METABALLS}; i++) {
+          if (i >= uColorCount) break;
+          cumulative += weights[i];
+          if (choice < cumulative) {
+            color = uColors[i];
+            break;
+          }
+        }
+      }
+    }
+  }
+  float density = 1.0 - smoothstep(
+    -densityCoreBand,
+     scatter,
+     d
+  );
+  density = pow(density, 1.35);
 
   ivec2 icell = ivec2(cell);
 
   float pat = structuredPattern(icell, uPattern);
-  float h = hash12(cell + vec2(float(colorIndex) * 17.0, float(colorIndex) * 43.0));
   float threshold = clamp(pat * 0.82 + h * 0.18, 0.0, 1.0);
-  vec2 jitter = vec2(
-    fract(h * 19.31),
-    fract(h * 41.77)
-  ) - 0.5;
-
-  center += jitter * (cellSize * 0.12);
   float dotRadius = cellSize * 0.23;
 
   float occupied = density > 0.0 ? step(threshold, density) : 0.0;

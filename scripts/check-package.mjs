@@ -77,7 +77,7 @@ try {
       <UIProvider>
         <Button>Save</Button>
         <Checkbox aria-label="Select record" />
-        <StippleBackground paused pattern="diamond" palette={["#abc", "#123456", "#fedcba", "#84a59d"]} style={{height: 100}} />
+        <StippleBackground paused pattern="diamond" colorBlend="dither" palette={["#abc", "#123456", "#fedcba", "#84a59d"]} motion={(t, {aspect}) => [{x: 0.5, y: 0.5, radius: 0.2 + Math.sin(t) * 0.02, scale: [aspect, 1], rotation: t}]} style={{height: 100}} />
         <NavigationPanel title="Records">
           <DescriptionList rows={[
             { label: "ID", value: <IdentifierValue value="1a2b3c4d-5e6f-7788-9900-aabbccddeeff" /> },

@@ -4,6 +4,7 @@ import {
   type ResolvedStippleSettings,
 } from "./stipple-model";
 import { fragmentShaderSource, vertexShaderSource } from "./stipple-shaders";
+import { createCustomStippleFrame, type StippleFrame } from "./stipple-frame";
 
 function createGpu(canvas: HTMLCanvasElement) {
   const gl = canvas.getContext("webgl2", {
@@ -70,11 +71,17 @@ function createGpu(canvas: HTMLCanvasElement) {
       [
         "uResolution",
         "uTime",
+        "uFlow",
         "uGrainPx",
         "uScatterPx",
         "uMerge",
+        "uColorBlend",
+        "uColorBlendWidth",
         "uPattern",
+        "uCount",
+        "uColorCount",
         "uBlobs[0]",
+        "uShapes[0]",
         "uColors[0]",
         "uEnvelopes[0]",
         "uBackground",
@@ -86,22 +93,26 @@ function createGpu(canvas: HTMLCanvasElement) {
         settings: ResolvedStippleSettings,
         time: number,
         scale: number,
-        blobs: Float32Array,
-        colors: Float32Array,
-        envelopes: Float32Array,
+        frame: StippleFrame,
       ) {
         gl.viewport(0, 0, canvas.width, canvas.height);
         gl.useProgram(program);
         gl.bindVertexArray(vao);
         gl.uniform2f(uniforms.uResolution, canvas.width, canvas.height);
         gl.uniform1f(uniforms.uTime, time);
+        gl.uniform1f(uniforms.uFlow, settings.motion ? 0 : 1);
         gl.uniform1f(uniforms.uGrainPx, settings.grainPx * scale);
         gl.uniform1f(uniforms.uScatterPx, settings.scatterPx * scale);
         gl.uniform1f(uniforms.uMerge, settings.merge);
+        gl.uniform1i(uniforms.uColorBlend, settings.colorBlend);
+        gl.uniform1f(uniforms.uColorBlendWidth, settings.colorBlendWidth);
         gl.uniform1i(uniforms.uPattern, settings.pattern);
-        gl.uniform4fv(uniforms["uBlobs[0]"], blobs);
-        gl.uniform3fv(uniforms["uColors[0]"], colors);
-        gl.uniform1fv(uniforms["uEnvelopes[0]"], envelopes);
+        gl.uniform1i(uniforms.uCount, frame.count);
+        gl.uniform1i(uniforms.uColorCount, frame.colorCount);
+        gl.uniform4fv(uniforms["uBlobs[0]"], frame.blobs);
+        gl.uniform4fv(uniforms["uShapes[0]"], frame.shapes);
+        gl.uniform3fv(uniforms["uColors[0]"], frame.colors);
+        gl.uniform1fv(uniforms["uEnvelopes[0]"], frame.envelopes);
         gl.uniform3fv(uniforms.uBackground, settings.background);
         gl.drawArrays(gl.TRIANGLES, 0, 3);
       },
@@ -121,6 +132,9 @@ export function createStippleRenderer(
 ) {
   let settings = initialSettings;
   let motion = createStippleMotion(settings.seed);
+  const customFrame = createCustomStippleFrame();
+  const context = { width: 0, height: 0, aspect: 1, seed: settings.seed };
+  let motionFailed = false;
   let gpu: ReturnType<typeof createGpu> | undefined;
   let disposed = false;
   let frame = 0;
@@ -137,20 +151,41 @@ export function createStippleRenderer(
   const animating = () =>
     !disposed &&
     !!gpu &&
+    !motionFailed &&
     visible() &&
     !settings.paused &&
     settings.speed > 0 &&
     !reduced.matches;
   function paint() {
     if (disposed || !gpu || !visible()) return;
-    gpu.draw(
-      settings,
-      time,
-      scale,
-      motion.sample(time, canvas.width / canvas.height, settings.palette),
-      motion.colors,
-      motion.envelopes,
-    );
+    try {
+      context.width = width;
+      context.height = height;
+      context.aspect = width / height;
+      context.seed = settings.seed;
+      let frame: StippleFrame;
+      if (settings.motion) {
+        frame = customFrame.sample(
+          settings.motion(time, context),
+          context.aspect,
+          settings.palette,
+        );
+      } else {
+        motion.sample(time, context.aspect, settings.palette);
+        frame = motion;
+      }
+      gpu.draw(settings, time, scale, frame);
+      if (motionFailed) {
+        motionFailed = false;
+        status("webgl2");
+      }
+    } catch (error) {
+      if (!motionFailed) {
+        motionFailed = true;
+        status("fallback");
+        reportError(error instanceof Error ? error : new Error(String(error)));
+      }
+    }
   }
   function render(now: number) {
     frame = 0;
@@ -165,7 +200,7 @@ export function createStippleRenderer(
       previous = now;
       paint();
     }
-    frame = requestAnimationFrame(render);
+    if (animating()) frame = requestAnimationFrame(render);
   }
   function reconcile() {
     cancelAnimationFrame(frame);
@@ -198,7 +233,7 @@ export function createStippleRenderer(
     try {
       gpu = createGpu(canvas);
       resize();
-      status("webgl2");
+      if (!motionFailed) status("webgl2");
     } catch (error) {
       gpu?.dispose();
       gpu = undefined;
