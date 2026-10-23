@@ -182,7 +182,8 @@ patterns, a configurable cluster palette and controlled motion. Only dots are
 drawn, including where clusters grow and disappear inside the viewport. Each
 mount uses a random arrangement unless a reproducible seed is supplied. Overlaps
 can interpolate colors or interleave dots of the original palette colors.
-Optional `edgeFade` also softens dot colors toward the background at the edges. A
+Optional `edgeFade` softens dot colors at the edges; `edgeFadeSteps` caps the
+additional shades, defaulting to one halfway-to-background shade. A
 time-based motion callback can control metaball positions, size and shape. The
 original movement is also exported as the reusable `clusterMotion` preset. It fills its container,
 keeps children interactive, pauses when hidden or offscreen, and respects reduced

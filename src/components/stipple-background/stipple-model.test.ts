@@ -33,6 +33,20 @@ describe("settings", () => {
     expect(resolveStippleSettings({ edgeFade: 2 }).edgeFade).toBe(1);
     expect(resolveStippleSettings({ edgeFade: NaN }).edgeFade).toBe(0);
   });
+  it("defaults to one additional fade shade and normalizes the count", () => {
+    expect(resolveStippleSettings({}).edgeFadeSteps).toBe(1);
+    expect(resolveStippleSettings({ edgeFadeSteps: 0 }).edgeFadeSteps).toBe(0);
+    expect(resolveStippleSettings({ edgeFadeSteps: 3.9 }).edgeFadeSteps).toBe(
+      3,
+    );
+    expect(resolveStippleSettings({ edgeFadeSteps: -5 }).edgeFadeSteps).toBe(0);
+    expect(resolveStippleSettings({ edgeFadeSteps: NaN }).edgeFadeSteps).toBe(
+      1,
+    );
+    expect(
+      resolveStippleSettings({ edgeFadeSteps: Infinity }).edgeFadeSteps,
+    ).toBe(1);
+  });
   it("resolves hex palettes and protects uniforms from invalid numeric values", () => {
     expect(hexColor("#aBc")).toEqual([170 / 255, 187 / 255, 204 / 255]);
     expect(hexColor("#aabbcc")).toEqual(hexColor("#abc"));

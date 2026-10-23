@@ -22,6 +22,7 @@ uniform float uMerge;
 uniform int uColorBlend;
 uniform float uColorBlendWidth;
 uniform float uEdgeFade;
+uniform float uEdgeFadeSteps;
 uniform int uPattern;
 uniform int uCount;
 uniform int uColorCount;
@@ -292,7 +293,10 @@ void main() {
   float dot = circleDot(fragPx, center, dotRadius);
   float fill = occupied * dot;
 
-  float visibility = mix(1.0, density, uEdgeFade);
+  float levels = uEdgeFadeSteps + 1.0;
+  float shade = min(uEdgeFadeSteps, floor((1.0 - density) * levels));
+  float brightness = 1.0 - shade / levels;
+  float visibility = mix(1.0, brightness, uEdgeFade);
   fragColor = vec4(mix(uBackground, color, fill * visibility), 1.0);
 }
 `;

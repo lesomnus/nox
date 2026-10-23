@@ -55,6 +55,8 @@ export type StippleSettings = {
   colorBlendWidth?: number;
   /** Fade peripheral dot colors toward the background: zero is flat, one is full falloff. */
   edgeFade?: number;
+  /** Maximum additional fade shades per base dot color; one gives a halfway shade. */
+  edgeFadeSteps?: number;
   /** Replace the built-in movement with a synchronous time-based sampler. */
   motion?: StippleMotion;
   /** Maximum drawing-buffer width, independent of the container's CSS size. */
@@ -118,6 +120,7 @@ export function resolveStippleSettings(settings: StippleSettings) {
           : 1,
     colorBlendWidth: Math.max(0, finite(settings.colorBlendWidth, 0.12)),
     edgeFade: clamp(finite(settings.edgeFade, 0), 0, 1),
+    edgeFadeSteps: Math.max(0, Math.floor(finite(settings.edgeFadeSteps, 1))),
     motion: settings.motion,
     maxWidth: Math.max(1, finite(settings.maxWidth, 1200)),
     maxFps: clamp(finite(settings.maxFps, 30), 1, 60),

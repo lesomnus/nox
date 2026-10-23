@@ -15,6 +15,8 @@ function createGpu(canvas: HTMLCanvasElement) {
     throw new Error(
       "StippleBackground requires WebGL2. Showing the static background.",
     );
+  // Only the shader chooses dot colors; hardware dithering can add extra shades.
+  gl.disable(gl.DITHER);
   const shaders: WebGLShader[] = [];
   let program: WebGLProgram | null = null;
   let buffer: WebGLBuffer | null = null;
@@ -75,6 +77,7 @@ function createGpu(canvas: HTMLCanvasElement) {
         "uColorBlend",
         "uColorBlendWidth",
         "uEdgeFade",
+        "uEdgeFadeSteps",
         "uPattern",
         "uCount",
         "uColorCount",
@@ -108,6 +111,7 @@ function createGpu(canvas: HTMLCanvasElement) {
         gl.uniform1i(uniforms.uColorBlend, settings.colorBlend);
         gl.uniform1f(uniforms.uColorBlendWidth, settings.colorBlendWidth);
         gl.uniform1f(uniforms.uEdgeFade, settings.edgeFade);
+        gl.uniform1f(uniforms.uEdgeFadeSteps, settings.edgeFadeSteps);
         gl.uniform1i(uniforms.uPattern, settings.pattern);
         gl.uniform1i(uniforms.uCount, frame.count);
         gl.uniform1i(uniforms.uColorCount, frame.colorCount);

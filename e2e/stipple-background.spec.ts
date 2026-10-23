@@ -16,6 +16,8 @@ declare global {
     stippleMetrics: Metrics;
     restoreStipple?: () => void;
     stippleProbeRow?: { width: number; height: number; pixels: number[] };
+    checkStippleDotColors?: boolean;
+    stippleDotProbe?: { dots: number; splitDots: number };
   }
 }
 
@@ -100,6 +102,43 @@ test.beforeEach(async ({ page }) => {
       metrics.colored = colored;
       metrics.maxRun = maxRun;
       metrics.pixelColors = [...pixelColors];
+      if (window.checkStippleDotColors) {
+        const width = this.drawingBufferWidth;
+        const total = width * this.drawingBufferHeight;
+        const visited = new Uint8Array(total);
+        const colorAt = (index: number) =>
+          (bytes[index * 4] << 16) |
+          (bytes[index * 4 + 1] << 8) |
+          bytes[index * 4 + 2];
+        let dots = 0,
+          splitDots = 0;
+        for (let index = 0; index < total; index++) {
+          const color = colorAt(index);
+          if (visited[index] || !color) continue;
+          dots++;
+          let split = false;
+          const stack = [index];
+          visited[index] = 1;
+          while (stack.length) {
+            const current = stack.pop()!;
+            if (colorAt(current) !== color) split = true;
+            const x = current % width;
+            const neighbors = [
+              ...(x > 0 ? [current - 1] : []),
+              ...(x + 1 < width ? [current + 1] : []),
+              ...(current >= width ? [current - width] : []),
+              ...(current + width < total ? [current + width] : []),
+            ];
+            for (const next of neighbors)
+              if (!visited[next] && colorAt(next)) {
+                visited[next] = 1;
+                stack.push(next);
+              }
+          }
+          if (split) splitDots++;
+        }
+        window.stippleDotProbe = { dots, splitDots };
+      }
     };
   });
 });
@@ -207,6 +246,43 @@ test("cluster centers remain stippled without solid debug fills", async ({
   const metrics = await stats(page);
   expect(metrics.colored).toBeGreaterThan(100);
   expect(metrics.maxRun).toBeLessThanOrEqual(6);
+});
+
+test("fade shades are bounded and each connected dot stays a single solid color", async ({
+  page,
+}) => {
+  await page.addInitScript(() => {
+    window.checkStippleDotColors = true;
+  });
+  for (const count of [0, 1, 3]) {
+    await page.goto(
+      story(
+        "edge-fade",
+        `paused:true;maxWidth:360;grainPx:2;edgeFadeSteps:${count}`,
+      ),
+    );
+    await expect(page.locator('[data-renderer="webgl2"]')).toBeVisible();
+    const values = await stats(page);
+    const allowed = new Set([0]);
+    for (let shade = 0; shade <= count; shade++) {
+      const value = Math.round(255 * (1 - shade / (count + 1)));
+      allowed.add((value << 16) | (value << 8) | value);
+    }
+    expect(values.pixelColors.every((color) => allowed.has(color))).toBe(true);
+    expect(values.pixelColors.length).toBeLessThanOrEqual(count + 2);
+    expect(values.pixelColors).toContain(0xffffff);
+    if (count <= 1) expect(new Set(values.pixelColors)).toEqual(allowed);
+    else expect(values.pixelColors.length).toBeGreaterThan(2);
+    const probe = await page.evaluate(() => window.stippleDotProbe!);
+    expect(probe.dots).toBeGreaterThan(100);
+    expect(probe.splitDots).toBe(0);
+    await settledDraws(page);
+  }
+  await page.goto(story("edge-fade", "paused:true;maxWidth:360;grainPx:2"));
+  await expect(page.locator('[data-renderer="webgl2"]')).toBeVisible();
+  expect(new Set((await stats(page)).pixelColors)).toEqual(
+    new Set([0, 0xffffff, 0x808080]),
+  );
 });
 
 test("edge fade softens peripheral dots while retaining centers and dot placement for every blend mode", async ({

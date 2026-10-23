@@ -43,6 +43,7 @@ const meta = {
     colorBlend: "gradient",
     colorBlendWidth: 0.12,
     edgeFade: 0,
+    edgeFadeSteps: 1,
     maxWidth: 1200,
     maxFps: 30,
     paused: false,
@@ -64,6 +65,7 @@ const meta = {
       control: { type: "range", min: 0, max: 0.5, step: 0.01 },
     },
     edgeFade: { control: { type: "range", min: 0, max: 1, step: 0.05 } },
+    edgeFadeSteps: { control: { type: "range", min: 0, max: 8, step: 1 } },
     motion: { control: false },
     backgroundColor: { control: "text" },
     onError: { action: "renderer error" },
@@ -143,7 +145,7 @@ export const EdgeFade: Story = {
     docs: {
       description: {
         story:
-          "Peripheral dots fade toward the background while dot positions and density stay the same. Set edgeFade to zero for flat colors, or choose an intermediate strength. Works with gradient, dither and none color blending, custom motion and clusterMotion.",
+          "Every dot is a uniform color. edgeFadeSteps caps additional shades per selected dot color: the default one adds a halfway-to-background shade; larger counts add evenly spaced shades and zero retains the original color. edgeFade controls strength without changing dot placement or density. Works with all blend modes and motions.",
       },
     },
   },

@@ -55,9 +55,14 @@ above the decorative canvas, which is hidden from assistive technology.
   coordinates. Larger values make overlaps blend more broadly; zero disables
   mixing. This changes color mixing independently of `merge` and dot density.
 - `edgeFade`: peripheral dot colors fade toward `backgroundColor` as the field
-  weakens. Zero keeps the original flat colors; one applies the full falloff.
+  weakens. Zero keeps the original flat colors; one applies the configured shade
+  ramp at full strength.
   Intermediate values adjust the strength. It works with every color blend
   mode and motion, without changing the dot placement or occupancy rule.
+- `edgeFadeSteps`: maximum additional fade shades per selected base dot color,
+  excluding the original color. Defaults to one, adding a shade halfway toward
+  the background. Larger counts divide that range into evenly spaced shades;
+  zero disables color attenuation. Fractional counts are rounded down.
 - `motion`: an optional `(t, context) => metaballs` callback that replaces the
   built-in movement. See the contract and example below.
 - `palette`: a list of cluster colors, using short or full RGB hex strings.
@@ -103,16 +108,24 @@ palette indices to the metaballs in a pair.
 To soften the outer edge as well as the dot density, enable color falloff:
 
 ```tsx
-<StippleBackground edgeFade={1} />;
-<StippleBackground colorBlend="dither" edgeFade={0.6} />;
+// Original color plus one halfway-to-background shade (the default).
+<StippleBackground edgeFade={1} edgeFadeSteps={1} />;
+// Original color plus up to three additional shades.
+<StippleBackground colorBlend="dither" edgeFade={1} edgeFadeSteps={3} />;
 ```
 
-Strong parts of the field keep their color; peripheral dots gradually approach
-the background color. This uses the field density at each dot center, so an
-individual dot remains a uniform color. With `dither`, the palette color is
-selected first, then faded; exact palette RGB values are preserved when
-`edgeFade` is zero. The canvas remains opaque, and its fallback background is
-unchanged.
+Strong parts of the field keep their color; peripheral dots choose a weaker
+shade based on the density at the dot center. Every pixel in a dot uses the same
+color. The default shade is halfway between the original and background RGB;
+against black, this halves each color channel. More steps add evenly spaced
+shades, with the background itself reserved for the gaps between dots.
+
+`edgeFade` adjusts the strength of the shade ramp without adding more shades.
+With `dither`, the palette color is selected first, then shaded; exact palette
+RGB values are preserved when `edgeFade` or `edgeFadeSteps` is zero. The shade
+budget applies per selected base color: `gradient` blending can still create
+interpolated base colors at intersections. `none` and `dither` retain the finite
+base palette. The canvas remains opaque and its fallback background is unchanged.
 
 ## Custom motion
 
