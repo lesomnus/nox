@@ -11,7 +11,7 @@ export type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
   /** Hold the pressed state and sweep a soft highlight over the label. */
   loading?: boolean;
   pressTarget?: string;
-  variant?: "default" | "toolbar";
+  variant?: "default" | "solid" | "outline" | "toolbar";
   ref?: Ref<HTMLButtonElement>;
 };
 

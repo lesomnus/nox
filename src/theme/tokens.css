@@ -148,6 +148,13 @@
   --ui-badged-icon-gap: 1.5px;
   --ui-control-inline-inset: 6px;
   --ui-hover: var(--ui-shade-40);
+  --ui-button-solid-background: var(--ui-shade-43);
+  --ui-button-solid-hover-background: var(--ui-shade-54);
+  --ui-button-solid-active-background: var(--ui-shade-65);
+  --ui-button-outline-border: var(--ui-shade-72);
+  --ui-button-outline-hover-border: var(--ui-shade-115);
+  --ui-button-outline-hover-background: var(--ui-shade-28);
+  --ui-button-outline-active-background: var(--ui-shade-38);
   --ui-muted: var(--ui-shade-160);
   --ui-selected: var(--ui-shade-48);
   --ui-dropdown-background: color-mix(

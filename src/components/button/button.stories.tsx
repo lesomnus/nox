@@ -18,6 +18,40 @@ type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {};
 export const Disabled: Story = { args: { disabled: true } };
+export const Solid: Story = {
+  args: { variant: "solid", children: "Save changes" },
+};
+export const Outline: Story = {
+  args: { variant: "outline", children: "Cancel" },
+};
+export const Variants: Story = {
+  render: (args) => (
+    <div style={{ display: "grid", gap: 16 }}>
+      {(["default", "solid", "outline"] as const).map((variant) => (
+        <div
+          key={variant}
+          style={{
+            display: "grid",
+            gridTemplateColumns: "72px repeat(3, max-content)",
+            gap: 16,
+            alignItems: "center",
+          }}
+        >
+          <span style={{ color: "var(--ui-muted)" }}>{variant}</span>
+          <Button {...args} variant={variant}>
+            Save changes
+          </Button>
+          <Button {...args} variant={variant} loading>
+            Save changes
+          </Button>
+          <Button {...args} variant={variant} disabled loading={false}>
+            Save changes
+          </Button>
+        </div>
+      ))}
+    </div>
+  ),
+};
 export const LongLabel: Story = {
   args: { children: "Save project settings" },
 };
