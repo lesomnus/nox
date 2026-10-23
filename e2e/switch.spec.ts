@@ -102,3 +102,34 @@ for (const checked of [false, true]) {
     expect(Number(scales.tailOpacity)).toBeLessThan(0.2);
   });
 }
+
+test("turbulence textures both rails without affecting their handles or sharing filter IDs", async ({
+  page,
+}) => {
+  await page.goto(
+    "/iframe.html?id=components-switch--pending-transitions&viewMode=story",
+  );
+  const controls = page.getByRole("switch");
+  await expect(controls).toHaveCount(2);
+  const ids = await controls
+    .locator("filter")
+    .evaluateAll((filters) => filters.map((filter) => filter.id));
+  expect(new Set(ids).size).toBe(2);
+  for (const control of await controls.all()) {
+    await control.evaluate((node) => {
+      for (const animation of node.getAnimations({ subtree: true })) {
+        animation.pause();
+        animation.currentTime = 600;
+      }
+    });
+    const bounds = (await control.locator("span").boundingBox())!;
+    const clip = { x: bounds.x + 4, y: bounds.y + 4, width: 8, height: 8 };
+    const texturedRail = await control.screenshot();
+    const handle = await page.screenshot({ clip });
+    await control.evaluate((node) =>
+      (node as HTMLElement).style.setProperty("--switch-ripple-filter", "none"),
+    );
+    expect(await control.screenshot()).not.toEqual(texturedRail);
+    expect(await page.screenshot({ clip })).toEqual(handle);
+  }
+});

@@ -26,12 +26,20 @@ export const Off: Story = { args: { checked: false } };
 export const Disabled: Story = { args: { disabled: true } };
 export const TurningOn: Story = { args: { checked: false, pending: true } };
 export const TurningOff: Story = { args: { checked: true, pending: true } };
+export const PendingTransitions: Story = {
+  render: (args) => (
+    <div style={{ display: "flex", gap: 24 }}>
+      <Switch {...args} label="Turning on" checked={false} pending />
+      <Switch {...args} label="Turning off" checked pending />
+    </div>
+  ),
+};
 export const AsyncTransition: Story = {
   parameters: {
     docs: {
       description: {
         story:
-          "Keep checked at the confirmed value and set pending while applying its opposite. A soft ripple stays centered at the departure edge, grows in place with a gentle deceleration, then dissipates beneath the opaque centered thumb: light when turning on and darkness when turning off. Pending blocks repeat requests. Update checked on success, then clear pending; on failure, just clear pending to return to the original state.",
+          "Keep checked at the confirmed value and set pending while applying its opposite. A ripple expands in place from the departure edge, with broad turbulence and fine noise varying the wave's density beneath the opaque thumb: light when turning on and darkness when turning off. Pending blocks repeat requests. Update checked on success, then clear pending; on failure, just clear pending to return to the original state.",
       },
     },
   },
