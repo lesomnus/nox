@@ -20,3 +20,9 @@ export const Running: Story = { args: { startedAt: Date.now() - 42_000 } };
 export const LongRunning: Story = {
   args: { startedAt: Date.now() - 3_900_000 },
 };
+export const Sliding: Story = {
+  args: { startedAt: Date.now() - 58_000, motion: "slide", direction: "up" },
+};
+export const Flipping: Story = {
+  args: { startedAt: Date.now() - 58_000, motion: "flip" },
+};

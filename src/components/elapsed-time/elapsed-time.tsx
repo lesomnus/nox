@@ -1,15 +1,24 @@
 import styles from "./elapsed-time.module.css";
-import { Fragment, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
+import {
+  AnimatedText,
+  type TextMotionOptions,
+} from "../animated-text/animated-text";
+
+export type ElapsedTimeProps = TextMotionOptions & {
+  startedAt?: number;
+  durationMs?: number;
+  label: string;
+};
 
 export function ElapsedTime({
   startedAt,
   durationMs,
   label,
-}: {
-  startedAt?: number;
-  durationMs?: number;
-  label: string;
-}) {
+  motion = "none",
+  direction,
+  duration,
+}: ElapsedTimeProps) {
   const [now, setNow] = useState(Date.now);
   useEffect(() => {
     // Completed snapshots use the same display without a running interval.
@@ -41,18 +50,20 @@ export function ElapsedTime({
       aria-label={label}
       aria-live="off"
     >
-      <span className="elapsed-time-leading">{text.slice(0, split)}</span>
-      <span>
-        {text
-          .slice(split)
-          .split(":")
-          .map((part, index) => (
-            <Fragment key={index}>
-              {index > 0 && <span className={styles.separator}>:</span>}
-              {part}
-            </Fragment>
-          ))}
-      </span>
+      <AnimatedText
+        value={text}
+        comparisonValue={seconds}
+        motion={motion}
+        direction={direction}
+        duration={duration}
+        characterClassName={(character, index) =>
+          index < split
+            ? "elapsed-time-leading"
+            : character === ":"
+              ? styles.separator
+              : undefined
+        }
+      />
     </span>
   );
 }

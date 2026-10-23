@@ -1,5 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { DateTime } from "@lesomnus/nox";
+import { useEffect, useState } from "react";
 const meta = {
   title: "Components/DateTime",
   component: DateTime,
@@ -31,4 +32,20 @@ export const Invalid: Story = {
       },
     },
   },
+};
+function LiveDate(args: React.ComponentProps<typeof DateTime>) {
+  const [now, setNow] = useState(Date.now);
+  useEffect(() => {
+    const timer = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(timer);
+  }, []);
+  return <DateTime {...args} value={now} />;
+}
+export const Sliding: Story = {
+  args: { motion: "slide", direction: "down" },
+  render: (args) => <LiveDate {...args} />,
+};
+export const Flipping: Story = {
+  args: { motion: "flip" },
+  render: (args) => <LiveDate {...args} />,
 };

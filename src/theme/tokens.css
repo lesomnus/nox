@@ -87,6 +87,9 @@
   --ui-text-value: var(--ui-shade-204);
   --ui-text-separator: var(--ui-shade-136);
   --ui-text-leading: var(--ui-shade-65);
+  --ui-text-motion-easing: cubic-bezier(0.22, 0.61, 0.36, 1);
+  --ui-text-flip-background: var(--ui-shade-28);
+  --ui-text-flip-divider: var(--ui-shade-60);
   --ui-space: 4px;
   --ui-icon-size: 20px;
   --ui-icon-size-small: 14px;

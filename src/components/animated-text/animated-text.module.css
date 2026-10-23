@@ -1,0 +1,162 @@
+.text,
+.text * {
+  box-sizing: border-box;
+}
+.text {
+  display: inline-block;
+  white-space: pre;
+  font-variant-numeric: tabular-nums;
+}
+.cell {
+  position: relative;
+  display: inline-block;
+  vertical-align: baseline;
+}
+.cell[data-motion="slide"] {
+  overflow: clip;
+}
+.layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.cell[data-motion="slide"][data-changing] > .glyph {
+  visibility: hidden;
+}
+.outgoing,
+.incoming {
+  animation-duration: var(--animated-text-duration);
+  animation-timing-function: var(--ui-text-motion-easing);
+  animation-fill-mode: both;
+}
+.outgoing {
+  animation-name: slide-out-down;
+}
+.incoming {
+  animation-name: slide-in-down;
+}
+.cell[data-direction="up"] > .outgoing {
+  animation-name: slide-out-up;
+}
+.cell[data-direction="up"] > .incoming {
+  animation-name: slide-in-up;
+}
+@keyframes slide-out-down {
+  to {
+    transform: translateY(100%);
+  }
+}
+@keyframes slide-in-down {
+  from {
+    transform: translateY(-100%);
+  }
+}
+@keyframes slide-out-up {
+  to {
+    transform: translateY(-100%);
+  }
+}
+@keyframes slide-in-up {
+  from {
+    transform: translateY(100%);
+  }
+}
+
+.cell[data-motion="flip"] {
+  min-width: 1ch;
+  padding-inline: 0.12em;
+  margin-inline: 0.025em;
+  text-align: center;
+  border-radius: 0.12em;
+  background: var(--ui-text-flip-background);
+  perspective: 6em;
+}
+.cell[data-motion="flip"]::after {
+  content: "";
+  position: absolute;
+  z-index: 5;
+  inset: 50% 0 auto;
+  height: 1px;
+  background: var(--ui-text-flip-divider);
+  pointer-events: none;
+}
+.half {
+  z-index: 2;
+  top: auto;
+  height: 50%;
+  overflow: hidden;
+  background: var(--ui-text-flip-background);
+  backface-visibility: hidden;
+}
+.half > span {
+  position: absolute;
+  inset: -100% 0 auto;
+  height: 200%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.fold_out,
+.cell[data-direction="up"] > .resting,
+.cell[data-direction="up"] > .fold_in {
+  top: 0;
+  bottom: auto;
+  transform-origin: center bottom;
+}
+.fold_out > span,
+.cell[data-direction="up"] > .resting > span,
+.cell[data-direction="up"] > .fold_in > span {
+  top: 0;
+}
+.fold_out {
+  z-index: 3;
+  animation: fold-out-down calc(var(--animated-text-duration) / 2) ease-in both;
+}
+.fold_in {
+  z-index: 4;
+  transform-origin: center top;
+  animation: fold-in-down calc(var(--animated-text-duration) / 2) ease-out both;
+  animation-delay: calc(var(--animated-text-duration) / 2);
+}
+.cell[data-direction="up"] > .fold_out {
+  top: auto;
+  bottom: 0;
+  transform-origin: center top;
+  animation-name: fold-out-up;
+}
+.cell[data-direction="up"] > .fold_out > span {
+  top: -100%;
+}
+.cell[data-direction="up"] > .fold_in {
+  animation-name: fold-in-up;
+}
+@keyframes fold-out-down {
+  to {
+    transform: rotateX(-90deg);
+  }
+}
+@keyframes fold-in-down {
+  from {
+    transform: rotateX(90deg);
+  }
+}
+@keyframes fold-out-up {
+  to {
+    transform: rotateX(90deg);
+  }
+}
+@keyframes fold-in-up {
+  from {
+    transform: rotateX(-90deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cell[data-changing] > .glyph {
+    visibility: visible;
+  }
+  .layer {
+    display: none;
+    animation: none;
+  }
+}

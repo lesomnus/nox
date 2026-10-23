@@ -1,20 +1,25 @@
 import type { HTMLAttributes, ReactNode } from "react";
 import { formatOffsetDateTime } from "./date-time-format";
 import styles from "./date-time.module.css";
+import {
+  AnimatedText,
+  type TextMotionOptions,
+} from "../animated-text/animated-text";
 
-export type DateTimeProps = Omit<
-  HTMLAttributes<HTMLTimeElement>,
-  "children"
-> & {
-  value?: Date | number | string | null;
-  /** Custom fallback for missing or invalid values. */
-  empty?: ReactNode;
-};
+export type DateTimeProps = Omit<HTMLAttributes<HTMLTimeElement>, "children"> &
+  TextMotionOptions & {
+    value?: Date | number | string | null;
+    /** Custom fallback for missing or invalid values. */
+    empty?: ReactNode;
+  };
 
 export function DateTime({
   value,
   empty,
   className = "",
+  motion = "none",
+  direction,
+  duration,
   ...props
 }: DateTimeProps) {
   const date =
@@ -24,22 +29,33 @@ export function DateTime({
   const text = validDate
     ? formatOffsetDateTime(validDate)
     : "0000-00-00T00:00:00+00:00";
-  const content = text.split(/(\D+)/).map((part, index) =>
-    /\D/.test(part) ? (
-      <span key={index} className={styles.separator}>
-        {part}
-      </span>
-    ) : validDate ? (
-      part
-    ) : (
-      <span key={index}>
-        {Array.from(part, (_, digit) => (
-          <span key={digit} className={styles.placeholder}>
-            {value == null ? "·" : "x"}
-          </span>
-        ))}
-      </span>
-    ),
+  const content = validDate ? (
+    <AnimatedText
+      value={text}
+      comparisonValue={validDate.getTime()}
+      motion={motion}
+      direction={direction}
+      duration={duration}
+      characterClassName={(character) =>
+        /\D/.test(character) ? styles.separator : undefined
+      }
+    />
+  ) : (
+    text.split(/(\D+)/).map((part, index) =>
+      /\D/.test(part) ? (
+        <span key={index} className={styles.separator}>
+          {part}
+        </span>
+      ) : (
+        <span key={index}>
+          {Array.from(part, (_, digit) => (
+            <span key={digit} className={styles.placeholder}>
+              {value == null ? "·" : "x"}
+            </span>
+          ))}
+        </span>
+      ),
+    )
   );
   if (!validDate)
     return (

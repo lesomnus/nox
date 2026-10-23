@@ -102,7 +102,7 @@ test.describe("absolute timestamps in the viewer's timezone", () => {
     const time = page.locator("time");
     await expect(time).toHaveText("2026-10-19T22:38:19-04:00");
     await expect(time).toHaveAttribute("datetime", "2026-10-20T02:38:19.000Z");
-    const separator = time.locator("span").first();
+    const separator = time.getByText("-", { exact: true }).first();
     expect(
       await separator.evaluate((el) => getComputedStyle(el).color),
     ).not.toEqual(await time.evaluate((el) => getComputedStyle(el).color));
@@ -114,9 +114,15 @@ test.describe("absolute timestamps in the viewer's timezone", () => {
       "/iframe.html?id=components-datetime--invalid&viewMode=story",
     );
     await expect(time).toHaveCount(0);
-    await expect(page.getByRole("img", { name: "Invalid date" })).toHaveText(
-      "xxxx-xx-xxTxx:xx:xx+xx:xx",
+    await expect(
+      page.getByRole("img", { name: "Invalid date", exact: true }),
+    ).toHaveText("xxxx-xx-xxTxx:xx:xx+xx:xx");
+    await page.goto(
+      "/iframe.html?id=components-datetime--missing&viewMode=story",
     );
+    await expect(
+      page.getByRole("img", { name: "Date unavailable", exact: true }),
+    ).toHaveText("····-··-··T··:··:··+··:··");
   });
 });
 
