@@ -116,44 +116,91 @@ export const SingleBurst: Story = {
 };
 export const ButtonClick: Story = {
   args: { loop: false, duration: 1200 },
-  argTypes: { origin: { control: false }, loop: { control: false } },
+  argTypes: {
+    origin: { control: false },
+    loop: { control: false },
+    pressed: { control: false },
+  },
   parameters: {
     docs: {
       description: {
         story:
-          "Compose the public Button and InkSparkle components without changing Button. A click starts a single burst at its local position; keyboard activation starts at the center. The overlay follows the button's bounds, leaves the label's press animation intact and never intercepts input. Rapid clicks overlap up to four bursts; completed canvases are removed.",
+          "Press to spread ink from the contact point, hold to keep it expanded, then release to fade back to the original button color. Enter/Space use the center. Pointer cancellation and blur release the ink too. Expanded ink sleeps instead of continuously rendering; release preserves the current frame during the fade. Rapid presses overlap up to four overlays without changing Button's API.",
       },
     },
   },
   render: function ButtonClick(args) {
     const revision = useRef(0);
+    const held = useRef<
+      { id: number; pointer?: number; key?: string } | undefined
+    >(undefined);
     const [bursts, setBursts] = useState<
-      { id: number; origin: readonly [number, number] }[]
+      { id: number; origin: readonly [number, number]; pressed: boolean }[]
     >([]);
+    const begin = (
+      origin: readonly [number, number],
+      source: { pointer?: number; key?: string },
+    ) => {
+      if (held.current) return;
+      const id = ++revision.current;
+      held.current = { id, ...source };
+      setBursts((current) => [
+        ...current.slice(-3),
+        { id, origin, pressed: true },
+      ]);
+    };
+    const release = () => {
+      const id = held.current?.id;
+      if (id === undefined) return;
+      held.current = undefined;
+      setBursts((current) =>
+        current.map((burst) =>
+          burst.id === id ? { ...burst, pressed: false } : burst,
+        ),
+      );
+    };
     return (
       <div className={styles.clickExample}>
         <div className={styles.buttonSurface}>
           <Button
             variant="solid"
             className={styles.clickButton}
-            onClick={(event) => {
+            onPointerDown={(event) => {
+              if (event.button !== 0 || !event.isPrimary) return;
               const rect = event.currentTarget.getBoundingClientRect();
-              const origin: readonly [number, number] =
-                event.detail === 0
-                  ? [rect.width / 2, rect.height / 2]
-                  : [event.clientX - rect.left, event.clientY - rect.top];
-              const id = ++revision.current;
-              setBursts((current) => [...current.slice(-3), { id, origin }]);
+              begin([event.clientX - rect.left, event.clientY - rect.top], {
+                pointer: event.pointerId,
+              });
+              event.currentTarget.setPointerCapture(event.pointerId);
             }}
+            onPointerUp={(event) => {
+              if (held.current?.pointer === event.pointerId) release();
+            }}
+            onPointerCancel={(event) => {
+              if (held.current?.pointer === event.pointerId) release();
+            }}
+            onLostPointerCapture={(event) => {
+              if (held.current?.pointer === event.pointerId) release();
+            }}
+            onKeyDown={(event) => {
+              if (event.repeat || !["Enter", " "].includes(event.key)) return;
+              const rect = event.currentTarget.getBoundingClientRect();
+              begin([rect.width / 2, rect.height / 2], { key: event.key });
+            }}
+            onKeyUp={(event) => {
+              if (held.current?.key === event.key) release();
+            }}
+            onBlur={release}
           >
-            Click to sparkle
+            Press to sparkle
           </Button>
-          {bursts.map(({ id, origin }) => (
+          {bursts.map(({ id, origin, pressed }) => (
             <InkSparkle
               {...args}
               key={id}
               origin={origin}
               loop={false}
+              pressed={pressed}
               className={styles.buttonInk}
               onComplete={() =>
                 setBursts((current) =>
@@ -163,9 +210,7 @@ export const ButtonClick: Story = {
             />
           ))}
         </div>
-        <p>
-          Click anywhere on the button, or focus it and press Enter or Space.
-        </p>
+        <p>Press and hold, then release. Enter and Space work too.</p>
       </div>
     );
   },

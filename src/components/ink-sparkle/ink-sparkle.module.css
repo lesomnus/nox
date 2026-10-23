@@ -4,3 +4,14 @@
   height: 100%;
   pointer-events: none;
 }
+.canvas[data-pressed] {
+  transition: opacity var(--ink-sparkle-release-duration) ease-out;
+}
+.canvas[data-pressed="false"] {
+  opacity: 0;
+}
+@media (prefers-reduced-motion: reduce) {
+  .canvas[data-pressed] {
+    transition: none;
+  }
+}
