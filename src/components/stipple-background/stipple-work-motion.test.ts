@@ -36,8 +36,11 @@ describe("work motion preset", () => {
       true,
     );
     const initial = copy(0, ctx);
-    const grown = advance(ctx, 0, 3);
-    expect(workMotion(3, ctx)).toBe(first);
+    const growing = advance(ctx, 0, 1);
+    expect(growing.every((b) => b.influence! < 0.6)).toBe(true);
+    expect(growing.some((b) => b.influence === 0)).toBe(true);
+    const grown = advance(ctx, 1, 8);
+    expect(workMotion(8, ctx)).toBe(first);
     expect(grown.every((b) => b.influence === 1)).toBe(true);
     const entrants = initial
       .map((b, i) => ({ b, i }))
@@ -52,10 +55,10 @@ describe("work motion preset", () => {
   });
   it("keeps position and size on finish, drifts during staggered shrink, then disappears", () => {
     const ctx = context();
-    const before = advance(ctx, 0, 3);
+    const before = advance(ctx, 0, 8);
     ctx.active = false;
-    expect(copy(3, ctx)).toEqual(before);
-    const fading = advance(ctx, 3, 3.25);
+    expect(copy(8, ctx)).toEqual(before);
+    const fading = advance(ctx, 8, 8.25);
     expect(fading.every((b, i) => b.influence! < before[i].influence!)).toBe(
       true,
     );
@@ -63,11 +66,11 @@ describe("work motion preset", () => {
     expect(
       fading.some((b, i) => b.x !== before[i].x && b.y !== before[i].y),
     ).toBe(true);
-    expect(advance(ctx, 3.25, 5)).toEqual([]);
-    expect(workMotion(10, ctx)).toEqual([]);
+    expect(advance(ctx, 8.25, 10)).toEqual([]);
+    expect(workMotion(12, ctx)).toEqual([]);
     ctx.active = true;
-    expect(workMotion(10, ctx).every((b) => b.influence === 0)).toBe(true);
-    expect(advance(ctx, 10, 12).every((b) => b.influence === 1)).toBe(true);
+    expect(workMotion(12, ctx).every((b) => b.influence === 0)).toBe(true);
+    expect(advance(ctx, 12, 20).every((b) => b.influence === 1)).toBe(true);
   });
   it("reverses a partial bloom or fade without popping or resetting velocity", () => {
     const ctx = context();
@@ -85,7 +88,7 @@ describe("work motion preset", () => {
           0.025,
       ),
     ).toBe(true);
-    expect(advance(ctx, 0.7, 3).every((b) => b.influence === 1)).toBe(true);
+    expect(advance(ctx, 0.7, 8).every((b) => b.influence === 1)).toBe(true);
   });
   it("reproduces seeded interacting paths independently of rendering cadence or other instances", () => {
     const a = context(),
@@ -98,6 +101,46 @@ describe("work motion preset", () => {
     });
     expect(advance(context(true, 43), 0, 8)).not.toEqual(fast);
     expect(copy(8, b)).toEqual(fast);
+  });
+  it("keeps clearly different sizes and independent breathing rather than synchronized pulses", () => {
+    for (const seed of [1, 42, 140]) {
+      const ctx = context(true, seed);
+      const first = advance(ctx, 0, 8);
+      const sizes = first.map((b) => b.radius);
+      expect(Math.max(...sizes) / Math.min(...sizes)).toBeGreaterThan(3);
+      const later = advance(ctx, 8, 20);
+      const changes = later.map((b, i) => b.radius / first[i].radius);
+      expect(Math.max(...changes) - Math.min(...changes)).toBeGreaterThan(0.4);
+    }
+  });
+  it("roams across the viewport instead of converging into one central group", () => {
+    for (const seed of [1, 42, 140]) {
+      const ctx = context(true, seed);
+      advance(ctx, 0, 40, 10);
+      let spread = 0,
+        crowded = 0,
+        pairs = 0,
+        frames = 0;
+      for (let t = 40; t <= 100; t += 2) {
+        const balls = advance(ctx, Math.max(40, t - 2), t, 10);
+        const cx = balls.reduce((sum, b) => sum + b.x, 0) / balls.length;
+        const cy = balls.reduce((sum, b) => sum + b.y, 0) / balls.length;
+        for (let i = 0; i < balls.length; i++) {
+          const b = balls[i];
+          spread += ((b.x - cx) * ctx.aspect) ** 2 + (b.y - cy) ** 2;
+          for (let j = i + 1; j < balls.length; j++) {
+            const other = balls[j];
+            crowded += Number(
+              Math.hypot((b.x - other.x) * ctx.aspect, b.y - other.y) < 0.22,
+            );
+            pairs++;
+          }
+        }
+        frames++;
+      }
+      expect(Math.sqrt(spread / frames / 10)).toBeGreaterThan(0.4);
+      expect(crowded / pairs).toBeLessThan(0.075);
+    }
   });
   it("keeps long-running forces finite and contained, including narrow viewports and large time skips", () => {
     for (const aspect of [0.3, 1, 4]) {

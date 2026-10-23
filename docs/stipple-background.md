@@ -259,10 +259,18 @@ import { StippleBackground, workMotion } from "@lesomnus/nox";
 
 Keep the component mounted when work finishes so its exit can play. Initially
 inactive backgrounds have no dots. Starting work grows some metaballs within
-the viewport and brings others in from outside. They drift with inertia, soft
-mutual attraction and close-range repulsion. Each pair receives equal and
-opposite forces; a soft inward boundary and gentle wandering keep the movement
-contained without bouncing at the edge. Their shapes also slowly change.
+the viewport and brings others in from outside. Entrances are staggered, with
+slow growth rather than a simultaneous bloom. Small and large metaballs breathe
+at independent rhythms, with slowly changing shapes. Interior paths start in
+independent directions instead of converging toward a shared center.
+The Work Motion example uses a narrower `scatterPx` than the wallpaper examples;
+a broad, shared stipple falloff can make differently sized fields look alike.
+
+They drift with inertia and weak, local attraction. Size-aware repulsion leaves
+more room between large fields. Each pair receives equal and opposite forces;
+a soft boundary and gentle wandering keep the movement contained without
+bouncing at the edge. Incoming fields can approach gradually before the boundary
+keeps their subsequent wandering near the viewport.
 
 Finishing work preserves positions and velocities while the metaballs shrink
 at different rates. Starting again during this fade regrows the current fields

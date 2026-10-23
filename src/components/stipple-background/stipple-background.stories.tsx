@@ -121,12 +121,12 @@ export const ModifiedClusterMotion: Story = {
   },
 };
 export const WorkMotion: Story = {
-  args: { motion: workMotion },
+  args: { motion: workMotion, scatterPx: 120 },
   parameters: {
     docs: {
       description: {
         story:
-          "Start work to bloom metaballs in place and bring others in from beyond the viewport. Soft mutual attraction and close-range repulsion curve their paths. Finish work keeps them moving as they shrink at different rates. Start again during the exit to regrow without jumping. active is a lifecycle signal; paused freezes both movement and transitions.",
+          "Start work to slowly bloom different-sized metaballs at staggered times and bring others in from beyond the viewport. Independent breathing rhythms, weak local attraction and size-aware repulsion keep their drifting paths varied and spread out. Finish work keeps them moving as they shrink at different rates. Start again during the exit to regrow without jumping. active is a lifecycle signal; paused freezes both movement and transitions.",
       },
     },
   },

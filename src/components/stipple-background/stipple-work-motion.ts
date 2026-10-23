@@ -36,19 +36,31 @@ function createWork(
       if (edge < 2) x = (edge ? 1 : -1) * (aspect * 0.5 + 0.18);
       else y = edge === 2 ? -0.18 : 1.18;
     }
-    const heading = Math.atan2(0.5 - y, -x) + between(-0.6, 0.6);
-    const speed = between(0.08, 0.15);
+    const heading =
+      i % 2
+        ? Math.atan2(
+            between(0.15, 0.85) - y,
+            between(-0.35, 0.35) * aspect - x,
+          ) + between(-0.5, 0.5)
+        : between(0, Math.PI * 2);
+    const speed = between(0.05, 0.12);
+    // Spread size classes across the array so even a small population has distinct sizes.
+    const size = (((i * 7) % COUNT) + random()) / COUNT;
     return {
       x,
       y,
+      entered: i % 2 === 0,
       vx: Math.cos(heading) * speed,
       vy: Math.sin(heading) * speed,
       ax: 0,
       ay: 0,
-      radius: between(0.12, 0.21),
+      radius: 0.055 + 0.25 * size ** 1.5,
       phase: between(0, Math.PI * 2),
-      delay: i === 0 ? 0 : between(0, 0.35),
-      grow: between(0.5, 1.1),
+      pulsePhase: between(0, Math.PI * 2),
+      pulseRate: between(0.25, 0.7),
+      slowPulseRate: between(0.07, 0.2),
+      delay: i === 0 ? 0 : between(0.1, 1.6),
+      grow: between(1.8, 4.2),
       fade: between(0.55, 1.35),
       from: 0,
       influence: 0,
@@ -86,12 +98,19 @@ function createWork(
   function integrate(t: number) {
     for (const b of bodies) {
       // Gentle wandering and a soft boundary, rather than reflections at a wall.
+      b.entered ||= Math.abs(b.x) <= aspect * 0.5 && b.y >= 0 && b.y <= 1;
+      const confinement = b.entered ? 2 : 0.25;
       b.ax =
         0.018 * Math.sin(t * 0.47 + b.phase) -
-        Math.sign(b.x) * Math.max(0, Math.abs(b.x) - aspect * 0.4) * 0.7;
+        (Math.sign(b.x) *
+          Math.max(0, Math.abs(b.x) - aspect * 0.46) *
+          confinement) /
+          Math.min(1, aspect);
       b.ay =
         0.018 * Math.cos(t * 0.39 + b.phase * 1.7) -
-        Math.sign(b.y - 0.5) * Math.max(0, Math.abs(b.y - 0.5) - 0.36) * 0.7;
+        Math.sign(b.y - 0.5) *
+          Math.max(0, Math.abs(b.y - 0.5) - 0.45) *
+          confinement;
     }
     for (let i = 0; i < COUNT; i++)
       for (let j = i + 1; j < COUNT; j++) {
@@ -101,9 +120,12 @@ function createWork(
           dy = b.y - a.y;
         const squared = dx * dx + dy * dy;
         const distance = Math.sqrt(squared + 0.0001);
-        // Softened attraction, with close-range repulsion; each pair gets equal and opposite forces.
+        // Nearby fields interact without pulling the entire population into one cluster.
+        const clearance = 0.12 + 1.1 * (a.radius + b.radius);
+        const overlap = Math.max(0, 1 - distance / clearance);
         const force =
-          (0.004 / (squared + 0.08) - 0.25 * Math.exp(-squared / 0.04)) *
+          ((0.0007 * Math.exp(-squared / 0.8)) / (squared + 0.15) -
+            0.12 * overlap * overlap) *
           Math.sqrt(a.influence * b.influence);
         const fx = (dx / distance) * force,
           fy = (dy / distance) * force;
@@ -113,8 +135,8 @@ function createWork(
         b.ay -= fy;
       }
     for (const b of bodies) {
-      b.vx = (b.vx + b.ax * STEP) * Math.exp(-0.12 * STEP);
-      b.vy = (b.vy + b.ay * STEP) * Math.exp(-0.12 * STEP);
+      b.vx = (b.vx + b.ax * STEP) * Math.exp(-0.06 * STEP);
+      b.vy = (b.vy + b.ay * STEP) * Math.exp(-0.06 * STEP);
       const limit = Math.min(
         1,
         0.24 / Math.max(0.0001, Math.hypot(b.vx, b.vy)),
@@ -171,7 +193,11 @@ function createWork(
           ball.x = clamp(ball.x, 0.12, 0.88);
           ball.y = clamp(ball.y, 0.12, 0.88);
         }
-        ball.radius = b.radius * (0.88 + 0.12 * Math.sin(t * 0.31 + b.phase));
+        ball.radius =
+          b.radius *
+          (0.64 +
+            0.24 * Math.sin(t * b.pulseRate + b.phase) +
+            0.12 * Math.sin(t * b.slowPulseRate + b.pulsePhase));
         ball.influence = b.influence;
         const shape = ball.scale as [number, number];
         shape[0] = 1 + 0.22 * Math.sin(t * 0.23 + b.phase);
