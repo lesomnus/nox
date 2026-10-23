@@ -57,6 +57,5 @@
 }
 .input:disabled + .circle {
   border-width: 2px;
-  border-color: var(--ui-shade-160);
   opacity: 0.35;
 }
