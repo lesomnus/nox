@@ -1,0 +1,60 @@
+.control {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--ui-radio-size, var(--ui-checkbox-size));
+  height: var(--ui-radio-size, var(--ui-checkbox-size));
+  vertical-align: middle;
+}
+.input.input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+.circle {
+  position: relative;
+  flex: none;
+  width: 100%;
+  height: 100%;
+  box-sizing: border-box;
+  border: 1px solid var(--ui-shade-72);
+  border-radius: 50%;
+  background: transparent;
+  color: var(--ui-shade-16);
+  pointer-events: none;
+}
+.circle::after {
+  content: "";
+  position: absolute;
+  inset: 30%;
+  border-radius: 50%;
+  background: currentColor;
+  visibility: hidden;
+}
+.input:checked + .circle {
+  background: var(--ui-shade-237);
+  border-color: var(--ui-shade-237);
+}
+.input:checked + .circle::after {
+  visibility: visible;
+}
+.control:hover .input:not(:disabled) + .circle {
+  border-color: var(--ui-shade-160);
+}
+.input:focus-visible + .circle {
+  outline: 1px solid var(--ui-shade-160);
+  outline-offset: var(--ui-control-inset);
+}
+.input:disabled {
+  cursor: default;
+}
+.input:disabled + .circle {
+  opacity: 0.35;
+}

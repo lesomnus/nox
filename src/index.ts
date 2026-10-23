@@ -30,6 +30,7 @@ export * from "./components/scroll-area/scroll-area";
 export * from "./components/duration-display/duration-display";
 export * from "./components/overflow-hint/overflow-hint";
 export * from "./components/checkbox/checkbox";
+export * from "./components/radio/radio";
 export * from "./components/copy-button/copy-button";
 export * from "./components/identifier-value/identifier-value";
 export * from "./components/date-time/date-time";

@@ -121,7 +121,7 @@ describes the underlying mask mechanism.
 
 The public core entry exports Button/ButtonContent, BadgedIcon, ConfirmButton, ActionMenu, ValueMenu, SegmentedControl, Switch, ConfirmationDialog, EditableValue, FloatingCard, SettingField, SettingSlider, ElapsedTime, CompactNumber, DurationDisplay, DialogReveal, SplitLayout, ResizeHandle, ScrollArea and UIProvider. Button's `toolbar` variant provides the compact rectangular shape. Callbacks and selected values belong to the consuming application; Application adapters handle persistence and session operations separately.
 
-`Checkbox`, `CopyButton`, `IdentifierValue`, `DateTime`, `FieldLabel`,
+`Checkbox`, `Radio`, `CopyButton`, `IdentifierValue`, `DateTime`, `FieldLabel`,
 `DescriptionList` and `NavigationPanel` provide native selection, clipboard
 feedback, stable identifier previews, local timestamps and compact record views.
 They share the existing tokens, work without application CSS or services, and
