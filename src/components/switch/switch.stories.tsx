@@ -31,7 +31,7 @@ export const AsyncTransition: Story = {
     docs: {
       description: {
         story:
-          "Keep checked at the confirmed value and set pending while applying its opposite. The centered thumb points toward the destination and blocks repeat requests. Update checked on success, then clear pending; on failure, just clear pending to return to the original state.",
+          "Keep checked at the confirmed value and set pending while applying its opposite. A light sweeps across the centered thumb toward the destination and blocks repeat requests. Update checked on success, then clear pending; on failure, just clear pending to return to the original state.",
       },
     },
   },

@@ -29,11 +29,7 @@ export function Switch({
         if (!pending) onChange(!checked);
       }}
     >
-      <span aria-hidden="true">
-        <svg viewBox="0 0 16 16" fill="none">
-          <path d="m6 4 4 4-4 4" />
-        </svg>
-      </span>
+      <span aria-hidden="true" />
     </button>
   );
 }

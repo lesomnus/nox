@@ -36,10 +36,39 @@ for (const checked of [false, true]) {
       "transform",
       "matrix(1, 0, 0, 1, 9, 0)",
     );
-    await expect(control.locator("svg")).toHaveCSS("animation-name", "none");
-    await expect(control.locator("svg")).toHaveCSS(
-      "transform",
-      checked ? "matrix(-1, 0, 0, -1, 0, 0)" : "none",
-    );
+    const reduced = await control.evaluate((node) => {
+      const style = getComputedStyle(node, "::after");
+      return {
+        animation: style.animationName,
+        x: new DOMMatrix(style.transform).m41,
+      };
+    });
+    expect(reduced).toEqual({ animation: "none", x: checked ? 0 : 20 });
+    await page.emulateMedia({ reducedMotion: "no-preference" });
+    await expect
+      .poll(() =>
+        control.evaluate(
+          (node) => getComputedStyle(node, "::after").animationName,
+        ),
+      )
+      .not.toBe("none");
+    const positions = await control.evaluate(async (node) => {
+      await new Promise(requestAnimationFrame);
+      const animation = node
+        .getAnimations({ subtree: true })
+        .find((item) =>
+          (item as CSSAnimation).animationName.includes("light_sweep"),
+        )!;
+      animation.pause();
+      animation.currentTime = 200;
+      const start = new DOMMatrix(getComputedStyle(node, "::after").transform)
+        .m41;
+      animation.currentTime = 600;
+      const end = new DOMMatrix(getComputedStyle(node, "::after").transform)
+        .m41;
+      return { start, end };
+    });
+    if (checked) expect(positions.end).toBeLessThan(positions.start);
+    else expect(positions.end).toBeGreaterThan(positions.start);
   });
 }
