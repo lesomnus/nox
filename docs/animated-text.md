@@ -42,6 +42,8 @@ import "@lesomnus/nox/styles.css";
 AnimatedText defaults to slide motion. Time components default to none so existing
 layouts opt into animation explicitly. Use the same shared text color tokens for
 custom displays via `characterClassName`. Duration zero also updates instantly.
+For the same value and font, flip uses the static text's dimensions without extra
+padding, margins or minimum character widths.
 
 ## Examples and validation
 

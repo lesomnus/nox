@@ -67,9 +67,6 @@
 }
 
 .cell[data-motion="flip"] {
-  min-width: 1ch;
-  padding-inline: 0.12em;
-  margin-inline: 0.025em;
   text-align: center;
   border-radius: 0.12em;
   background: var(--ui-text-flip-background);
