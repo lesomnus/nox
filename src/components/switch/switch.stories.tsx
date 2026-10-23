@@ -39,7 +39,7 @@ export const AsyncTransition: Story = {
     docs: {
       description: {
         story:
-          "Keep checked at the confirmed value and set pending while applying its opposite. A ripple expands in place from the departure edge, with broad turbulence and fine noise varying the wave's density beneath the opaque thumb: light when turning on and darkness when turning off. Pending blocks repeat requests. Update checked on success, then clear pending; on failure, just clear pending to return to the original state.",
+          "Keep checked at the confirmed value and set pending while applying its opposite. The original Flutter InkSparkle shader plays beneath the opaque thumb, including white sparkles, center migration and its 617ms animation. Ink is white when turning on and black when turning off; sparkles stay white in both directions. Pending blocks repeat requests. Update checked on success, then clear pending; on failure, just clear pending to return to the original state.",
       },
     },
   },

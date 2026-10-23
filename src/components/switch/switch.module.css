@@ -50,45 +50,18 @@
   cursor: default;
 }
 .switch_control[data-pending] {
-  --switch-wave-rgb: 255 255 255;
-  --switch-wave-strength: 1;
   cursor: progress;
 }
 .switch_control[data-pending] > span {
   transform: translateX(9px);
 }
-.switch_control[data-pending]::after {
-  filter: var(--switch-ripple-filter);
-  content: "";
+.ink_sparkle {
   position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
   z-index: 0;
-  top: -5px;
-  left: -16px;
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
   pointer-events: none;
-  background: radial-gradient(
-    circle,
-    rgb(var(--switch-wave-rgb) / calc(0.08 * var(--switch-wave-strength))) 0%,
-    rgb(var(--switch-wave-rgb) / calc(0.24 * var(--switch-wave-strength))) 38%,
-    rgb(var(--switch-wave-rgb) / calc(0.5 * var(--switch-wave-strength))) 58%,
-    rgb(var(--switch-wave-rgb) / calc(0.18 * var(--switch-wave-strength))) 78%,
-    transparent 100%
-  );
-  animation: rail_ripple 1600ms cubic-bezier(0.2, 0.65, 0.35, 1) infinite;
-}
-.filter_definitions {
-  position: absolute;
-  pointer-events: none;
-}
-.switch_control[data-pending][aria-checked="true"] {
-  --switch-wave-rgb: 0 0 0;
-  --switch-wave-strength: 1.6;
-}
-.switch_control[data-pending][aria-checked="true"]::after {
-  left: auto;
-  right: -16px;
 }
 .switch_control[data-pending]:not(:disabled):hover {
   background: var(--ui-shade-54);
@@ -96,29 +69,9 @@
 .switch_control[data-pending][aria-checked="true"]:not(:disabled):hover {
   background: var(--ui-shade-204);
 }
-@keyframes rail_ripple {
-  0% {
-    transform: scale(0.15);
-    opacity: 0;
-  }
-  15% {
-    opacity: 1;
-  }
-  70% {
-    opacity: 0.85;
-  }
-  100% {
-    transform: scale(3.2);
-    opacity: 0;
-  }
-}
 @media (prefers-reduced-motion: reduce) {
   .switch_control,
   .switch_control > span {
     transition: none;
-  }
-  .switch_control[data-pending]::after {
-    animation: none;
-    transform: scale(1);
   }
 }
