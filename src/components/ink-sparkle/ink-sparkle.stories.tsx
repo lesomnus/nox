@@ -215,6 +215,18 @@ export const ButtonClick: Story = {
     );
   },
 };
+export const ButtonTone: Story = {
+  ...ButtonClick,
+  args: { ...ButtonClick.args, color: [1, 1, 1, 0.06] },
+  parameters: {
+    docs: {
+      description: {
+        story:
+          "The same press, hold and release interaction with a subtle neutral highlight. It stays close to the solid Button's native pressed background instead of adding a blue tint. Compare with ButtonClick; color and timing remain adjustable in Controls.",
+      },
+    },
+  },
+};
 export const DarkInk: Story = {
   args: { color: [0, 0, 0, 0.5], origin: [280, 90] },
   render: (args) => (

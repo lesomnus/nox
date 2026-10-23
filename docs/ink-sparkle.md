@@ -53,7 +53,7 @@ recreates resources, and unmount releases them. If WebGL2 is unavailable, the
 effect remains transparent and a non-looping effect completes immediately.
 
 See **Effects/InkSparkle/Original**, **Slow**, **OutsideCenter**,
-**SpeedComparison**, **SingleBurst**, and **ButtonClick** for public-import examples.
+**SpeedComparison**, **SingleBurst**, **ButtonClick**, and **ButtonTone** for public-import examples.
 ButtonClick composes the shared Button with a clipped, non-interactive overlay:
 pointer down uses local coordinates; Enter/Space down uses the center. The ink
 expands and holds until release, cancellation or blur, then fades back to the
@@ -61,6 +61,8 @@ original button color. Expanded ink stops requesting frames, and release does
 not recreate the renderer. Reduced motion uses a static held sample and removes
 it immediately on release. Completed overlays unmount; rapid presses can overlap
 within a bounded limit. Omit `pressed` to retain the original one-shot/loop behavior.
+ButtonTone reuses that interaction with a subtle neutral highlight close to the
+button's native pressed background; ButtonClick keeps the customizable blue ink.
 
 ## Flutter InkSparkle port
 
