@@ -232,12 +232,12 @@ test("pointer bursts follow local movement, expire on the unscaled clock, toggle
   await expect
     .poll(async () => (await stats(page)).colored)
     .toBeGreaterThan(50);
-  await expect.poll(count, { timeout: 2500, intervals: [100] }).toBe(10);
+  await expect.poll(count, { timeout: 5000, intervals: [100] }).toBe(10);
   await page.getByRole("switch", { name: "Pointer bursts" }).click();
   await expect(
     page.getByRole("switch", { name: "Pointer bursts" }),
   ).toHaveAttribute("aria-checked", "false");
-  await expect.poll(count, { timeout: 2500, intervals: [100] }).toBe(10);
+  await expect.poll(count, { timeout: 5000, intervals: [100] }).toBe(10);
   await page.mouse.move(box.x + box.width * 0.9, box.y + box.height * 0.7, {
     steps: 6,
   });
@@ -249,7 +249,7 @@ test("pointer bursts follow local movement, expire on the unscaled clock, toggle
   });
   await expect.poll(count).toBeGreaterThan(10);
   await page.mouse.move(box.x - 20, box.y - 20);
-  await expect.poll(count, { timeout: 2500, intervals: [100] }).toBe(10);
+  await expect.poll(count, { timeout: 5000, intervals: [100] }).toBe(10);
   expect((await stats(page)).programs).toBe(programs);
 });
 

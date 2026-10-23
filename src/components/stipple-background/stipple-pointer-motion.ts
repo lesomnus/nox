@@ -11,6 +11,7 @@ export type StipplePointerBurstOptions = {
   maxParticles?: number;
 };
 const sources = new WeakMap<StippleMotion, StippleMotion>();
+const motionRate = 0.25;
 const invisible: StippleMetaball = Object.freeze({
   x: 0,
   y: 0,
@@ -66,6 +67,7 @@ function createTrail(seed: number, count: number) {
       now: number,
       context: StippleMotionContext,
     ) {
+      now *= motionRate;
       const baseCount = Math.min(base.length, MAX_STIPPLE_METABALLS);
       const hasLiveParticles = particles.some((p) => now - p.born < p.life);
       baseSlots = Math.max(baseCount, hasLiveParticles ? baseSlots : 0);
@@ -96,7 +98,7 @@ function createTrail(seed: number, count: number) {
           p.y = y;
           p.vx = Math.cos(angle) * speed;
           p.vy = Math.sin(angle) * speed;
-          p.radius = 0.02 + random() * 0.06;
+          p.radius = 0.012 + random() * 0.036;
           p.sample.color = serial++;
         }
       }

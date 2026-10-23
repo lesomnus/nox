@@ -41,7 +41,7 @@ describe("pointer burst composition", () => {
     base = [];
     expect(copy(motion, ctx).slice(1)).toEqual(before.slice(1));
     expect(motion(0.1, ctx)[0].influence).toBe(0);
-    ctx.elapsed = 1;
+    ctx.elapsed = 4;
     expect(copy(motion, ctx)).toEqual([]);
   });
   it("preserves caller-owned base samples and never changes their array or fields", () => {
@@ -63,9 +63,9 @@ describe("pointer burst composition", () => {
     expect(initial.filter((b) => b.influence === 0)).toHaveLength(
       initial.length,
     );
-    ctx.elapsed = 0.08;
+    ctx.elapsed = 0.32;
     const emerging = copy(motion, ctx).filter((b) => b.influence! > 0);
-    ctx.elapsed = 0.28;
+    ctx.elapsed = 1.12;
     const grown = copy(motion, ctx).filter((b) => b.influence! > 0);
     expect(grown).toHaveLength(3);
     grown.forEach((b, i) => {
@@ -79,7 +79,7 @@ describe("pointer burst composition", () => {
     const distances = grown.map((b) =>
       Math.hypot((b.x - 0.5) * ctx.aspect, b.y - 0.5),
     );
-    ctx.elapsed = 0.45;
+    ctx.elapsed = 1.8;
     const shrinking = copy(motion, ctx).filter((b) => b.influence! > 0);
     shrinking.forEach((b, i) => {
       expect(Math.hypot((b.x - 0.5) * ctx.aspect, b.y - 0.5)).toBeGreaterThan(
@@ -89,9 +89,9 @@ describe("pointer burst composition", () => {
         grown[i].radius * grown[i].influence!,
       );
     });
-    ctx.elapsed = 1;
+    ctx.elapsed = 4;
     expect(copy(motion, ctx)).toEqual([]);
-    ctx.elapsed = 2;
+    ctx.elapsed = 5;
     expect(copy(motion, ctx)).toEqual([]);
   });
   it("samples movement along the path without drawing a bridge after pointer departure", () => {
@@ -101,12 +101,12 @@ describe("pointer burst composition", () => {
     copy(motion, ctx);
     ctx.pointer.x = 0.9;
     ctx.pointer.sequence++;
-    ctx.elapsed = 0.24;
+    ctx.elapsed = 0.96;
     const across = copy(motion, ctx).filter((b) => b.radius > 0);
     expect(across.some((b) => b.x > 0.2 && b.x < 0.8)).toBe(true);
     ctx.pointer.inside = false;
     ctx.pointer.sequence++;
-    ctx.elapsed = 1.5;
+    ctx.elapsed = 5.5;
     expect(copy(motion, ctx)).toEqual([]);
     ctx.pointer = {
       x: 0.1,
@@ -115,9 +115,9 @@ describe("pointer burst composition", () => {
       sequence: ctx.pointer.sequence + 1,
       path: ctx.pointer.path + 1,
     };
-    ctx.elapsed = 1.6;
+    ctx.elapsed = 5.6;
     copy(motion, ctx);
-    ctx.elapsed = 1.68;
+    ctx.elapsed = 5.68;
     expect(
       copy(motion, ctx)
         .filter((b) => b.influence! > 0)
@@ -157,7 +157,7 @@ describe("pointer burst composition", () => {
     b.elapsed = 0.2;
     copy(motion, b);
     expect(copy(motion, a)).not.toEqual(copy(motion, b));
-    a.elapsed = 1;
+    a.elapsed = 4;
     expect(motion(0.02, a)).toEqual([]);
     a.seed = 2;
     a.elapsed = 0;
@@ -177,7 +177,7 @@ describe("pointer burst composition", () => {
     ctx.pointer.sequence++;
     ctx.elapsed = 0.3;
     expect(copy(motion, ctx).filter((b) => b.influence! > 0)).toHaveLength(3);
-    ctx.elapsed = 1;
+    ctx.elapsed = 4;
     expect(copy(motion, ctx)).toEqual([]);
     ctx.active = true;
     ctx.reducedMotion = true;
