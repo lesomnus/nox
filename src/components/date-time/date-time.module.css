@@ -1,6 +1,13 @@
 .time {
   font-variant-numeric: tabular-nums;
+  color: var(--ui-text-value);
 }
 .separator {
-  color: var(--ui-muted);
+  color: var(--ui-text-separator);
+}
+.placeholder {
+  display: inline-block;
+  width: 1ch;
+  text-align: center;
+  color: var(--ui-text-leading);
 }

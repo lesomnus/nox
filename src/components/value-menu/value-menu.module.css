@@ -3,6 +3,7 @@
   box-sizing: border-box;
 }
 .setting_menu {
+  color: var(--ui-shade-237);
   background: var(--ui-dropdown-background);
   -webkit-backdrop-filter: blur(var(--ui-dropdown-blur));
   backdrop-filter: blur(var(--ui-dropdown-blur));
@@ -111,9 +112,14 @@
   margin: 6px 0;
   background: var(--ui-shade-60);
 }
-:is(.value_menu, .setting_menu) :global(.setting-options) {
+.optionsArea.optionsArea {
+  --ui-scroll-area-background: var(--ui-dropdown-background);
+  flex: 0 1 auto;
+  background: transparent;
+}
+.setting_menu :global(.setting-options) {
+  height: auto;
   max-height: var(--options-height, 240px);
-  overflow: auto;
 }
 .setting_menu button {
   display: block;
@@ -142,13 +148,21 @@
   color: var(--ui-muted);
 }
 
+.setting_menu :global(.setting-search-row) {
+  display: flex;
+  align-items: center;
+  gap: var(--ui-space);
+  height: var(--value-row-height);
+  padding: var(--value-padding-block) var(--value-padding-inline);
+}
+
 .setting_menu :global(.setting-search) {
+  flex: 1;
   width: 100%;
   min-width: 0;
-  flex-shrink: 0;
-  padding: var(--value-padding-block) var(--value-padding-inline);
+  padding: 0;
   border: 0;
-  height: var(--value-row-height);
+  height: 20px;
   border-radius: 6px;
   background: transparent;
   color: var(--ui-shade-237);
@@ -169,4 +183,46 @@
   background: transparent;
   color: var(--ui-brand-color);
   font-weight: inherit;
+}
+
+.emptyState {
+  display: flex;
+  align-items: center;
+  min-height: var(--value-row-height);
+  margin: 0;
+  padding: var(--value-padding-block) var(--value-padding-inline);
+  color: var(--ui-muted);
+  font-size: min(1em, 12px);
+  line-height: 20px;
+}
+
+.groupTitle {
+  display: flex;
+  align-items: center;
+  gap: var(--ui-space);
+  padding: var(--ui-control-inset) var(--value-padding-inline);
+  color: var(--ui-muted);
+  font-size: 10px;
+  line-height: 18px;
+}
+
+.groupTitleText {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: var(--ui-icon-size-small);
+  height: var(--ui-icon-size-small);
+}
+
+.icon > :is(svg, img) {
+  width: 100%;
+  height: 100%;
 }

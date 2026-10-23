@@ -69,14 +69,23 @@ try {
     join(temporary, "main.tsx"),
     `
     import { createRoot } from "react-dom/client";
-    import { Button, Checkbox, DateTime, DescriptionList, IdentifierValue, NavigationPanel, UIProvider } from "@lesomnus/nox";
+    import { InkSparkle, type InkSparkleProps, Button, Checkbox, DateTime, DescriptionList, IdentifierValue, NavigationPanel, StippleBackground, clusterMotion, workMotion, withPointerBurst, UIProvider } from "@lesomnus/nox";
     import { TerminalWorkbench } from "@lesomnus/nox/terminal";
     import "@lesomnus/nox/styles.css";
     void TerminalWorkbench;
+    const sparkle: InkSparkleProps = { duration: 2000, origin: [-8, 40], centerMotion: "fixed", loop: true };
     createRoot(document.getElementById("root")!).render(
       <UIProvider>
         <Button>Save</Button>
+        <Button effect="none">No ink</Button>
+        <Button effect="sparkle" effectOptions={{color:[1,1,1,0.06],duration:1200,centerMotion:"fixed",seed:1}}>Custom ink</Button>
+        <div style={{height:80}}><InkSparkle {...sparkle} /></div>
         <Checkbox aria-label="Select record" />
+        <StippleBackground paused pattern="diamond" colorBlend="dither" palette={["#abc", "#123456", "#fedcba", "#84a59d"]} motion={(t, {aspect}) => [{x: 0.5, y: 0.5, radius: 0.2 + Math.sin(t) * 0.02, scale: [aspect, 1], rotation: t}]} style={{height: 100}} />
+        <StippleBackground motion={clusterMotion} edgeFade={0.75} edgeFadeSteps={3} seed={7} paused style={{height: 100}} />
+        <StippleBackground motion={workMotion} active={false} style={{height: 100}} />
+        <StippleBackground pointerEffects={false} motion={withPointerBurst((t, {pointer}) => [{x:pointer?.x ?? 0.5,y:0.5,radius:0.1 + Math.sin(t)*0.01}], {maxParticles:8})} style={{height:100}} />
+        <StippleBackground paused motion={() => [{x:0.5, y:0.5, radius:0.2, deformation:0.8}]} style={{height:100}} />
         <NavigationPanel title="Records">
           <DescriptionList rows={[
             { label: "ID", value: <IdentifierValue value="1a2b3c4d-5e6f-7788-9900-aabbccddeeff" /> },

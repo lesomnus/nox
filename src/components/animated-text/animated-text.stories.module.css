@@ -1,0 +1,29 @@
+.preview {
+  display: grid;
+  gap: 24px;
+}
+.value {
+  justify-self: start;
+  font: 48px/1.4 var(--ui-font-mono);
+  color: var(--ui-text-value);
+}
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--ui-space);
+}
+.clocks {
+  display: grid;
+  gap: 20px;
+  font: 18px/1.6 var(--ui-font-mono);
+}
+.clocks > div {
+  display: grid;
+  gap: 4px;
+}
+.clocks :global(.elapsed-time) {
+  font-size: inherit;
+}
+.clocks small {
+  color: var(--ui-muted);
+}

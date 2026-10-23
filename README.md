@@ -79,6 +79,17 @@ default palette. Set `data-ui-theme="light"` on the document root for the light
 palette. Root-level `--ui-*` overrides also reach portaled menus and dialogs. Keep
 token values in CSS rather than duplicating design measurements in documentation.
 
+Formatted text shares three color roles across `ElapsedTime`, `CompactNumber`,
+`DurationDisplay` and `DateTime`:
+
+- `--ui-text-value`: significant digits and values.
+- `--ui-text-separator`: punctuation, decimal points and unit labels.
+- `--ui-text-leading`: padding zeroes and insignificant leading fields.
+
+The roles reference the theme palette, so they follow dark/light changes. Override
+them on the document root or a component container to customize these displays
+together. General labels and descriptions continue to use `--ui-muted`.
+
 `PageToolbar` provides a persistent page header with leading content and optional
 trailing `actions`. Put a selector, breadcrumbs or title in its children and keep
 scrolling content in a sibling below it. It has no routing or resource dependency.
@@ -119,9 +130,9 @@ The component has no application dependencies or idle animation loop. See
 [SVG effects on HTML](https://developer.mozilla.org/en-US/docs/Web/SVG/Guides/Applying_SVG_effects_to_HTML_content)
 describes the underlying mask mechanism.
 
-The public core entry exports Button/ButtonContent, BadgedIcon, ConfirmButton, ActionMenu, ValueMenu, SegmentedControl, Switch, ConfirmationDialog, EditableValue, FloatingCard, SettingField, SettingSlider, ElapsedTime, CompactNumber, DurationDisplay, DialogReveal, SplitLayout, ResizeHandle, ScrollArea and UIProvider. Button's `toolbar` variant provides the compact rectangular shape. Callbacks and selected values belong to the consuming application; Application adapters handle persistence and session operations separately.
+The public core entry exports Button/ButtonContent, BadgedIcon, ConfirmButton, ActionMenu, ValueMenu, SegmentedControl, Switch, ConfirmationDialog, EditableValue, FloatingCard, SettingField, SettingSlider, ElapsedTime, CompactNumber, DurationDisplay, DialogReveal, SplitLayout, ResizeHandle, ScrollArea and UIProvider. Button's `toolbar` variant provides the compact rectangular shape. Button defaults to `effect="sparkle"`; use `effect="none"` to opt out or `effectOptions` to customize ink color/timing. Callbacks and selected values belong to the consuming application; Application adapters handle persistence and session operations separately.
 
-`Checkbox`, `CopyButton`, `IdentifierValue`, `DateTime`, `FieldLabel`,
+`Checkbox`, `Radio`, `CopyButton`, `IdentifierValue`, `DateTime`, `FieldLabel`,
 `DescriptionList` and `NavigationPanel` provide native selection, clipboard
 feedback, stable identifier previews, local timestamps and compact record views.
 They share the existing tokens, work without application CSS or services, and
@@ -163,6 +174,24 @@ fade limits use the other `--ui-scroll-area-*` CSS tokens. Defaults live in
 lists, growing content and no-overflow examples. Content fetching and
 virtualization belong to the caller. An application's elastic transcript
 scrollbar remains specialized; it is not part of this primitive.
+
+## Animated backgrounds
+
+`StippleBackground` provides a WebGL2 metaball background with five stipple
+patterns, a configurable cluster palette and controlled motion. Only dots are
+drawn, including where clusters grow and disappear inside the viewport. Each
+mount uses a random arrangement unless a reproducible seed is supplied. Overlaps
+can interpolate colors or interleave dots of the original palette colors.
+Optional `edgeFade` softens dot colors at the edges; `edgeFadeSteps` caps the
+additional shades, defaulting to one halfway-to-background shade. A
+time-based motion callback can control metaball positions, size and shape. The
+original movement is also exported as the reusable `clusterMotion` preset.
+`workMotion` uses `active` to bloom interacting metaballs when work starts and
+shrink them away while still drifting when it finishes. It fills its container,
+keeps children interactive, pauses when hidden or offscreen, and respects reduced
+motion. Unsupported or lost WebGL contexts show the background color; restored
+contexts resume rendering. See [stipple background](docs/stipple-background.md)
+and **Effects/StippleBackground** in Storybook.
 
 ## Terminal workbench
 
@@ -271,3 +300,11 @@ owns clock updates; the component also works for static durations.
 masked blur entrance as ActionMenu. Set `from="right"` (or another menu direction),
 `className` for the frame and `contentClassName` for the content layout. Mount it
 when the popup opens to replay the entrance. See [design guidelines](docs/design-guidelines.md).
+
+`InkSparkle` is a reusable Material 3 ink effect with Flutter's original shader.
+Choose `duration` to control speed, `origin` and `centerMotion` to place the
+center (including outside the surface), and `loop` for repeated bursts. It plays
+once by default and supports `onComplete` for overlay cleanup. See
+[InkSparkle](docs/ink-sparkle.md) and **Effects/InkSparkle** in Storybook. Switch
+uses the same public effect with a slower 2000ms burst and a fixed center outside
+the rail.

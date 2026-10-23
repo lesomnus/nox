@@ -1,0 +1,13 @@
+.clickExample {
+  display: grid;
+  justify-items: start;
+  gap: calc(3 * var(--ui-space));
+}
+.clickExample p {
+  margin: 0;
+  color: var(--ui-muted);
+}
+.clickButton {
+  min-width: 200px;
+  min-height: 40px;
+}

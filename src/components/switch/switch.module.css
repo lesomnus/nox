@@ -1,4 +1,7 @@
 .switch_control {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
   box-sizing: border-box;
   display: inline-flex;
   align-items: center;
@@ -13,6 +16,8 @@
   transition: background 160ms ease-out;
 }
 .switch_control > span {
+  position: relative;
+  z-index: 1;
   width: 16px;
   height: 16px;
   flex-shrink: 0;
@@ -43,6 +48,26 @@
 .switch_control:disabled {
   opacity: 0.4;
   cursor: default;
+}
+.switch_control[data-pending] {
+  cursor: progress;
+}
+.switch_control[data-pending] > span {
+  transform: translateX(9px);
+}
+.ink_sparkle {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+  pointer-events: none;
+}
+.switch_control[data-pending]:not(:disabled):hover {
+  background: var(--ui-shade-54);
+}
+.switch_control[data-pending][aria-checked="true"]:not(:disabled):hover {
+  background: var(--ui-shade-204);
 }
 @media (prefers-reduced-motion: reduce) {
   .switch_control,

@@ -28,3 +28,17 @@ this repository. The original cxz workspace was left in place.
   unread-session tracking and global CSS hooks remain in cxz. Added standalone
   styles, native-label/ref support, clipboard feedback, composition stories and
   browser regressions. No cxz files or dependency pointers were changed.
+
+- 2026-10-23: adapted the user-supplied Diamond Stipple Aurora Metaballs HTML
+  wallpaper into StippleBackground. Preserved its paired metaballs, same-color
+  smooth union, grain patterns and compressed edge falloff. Added React props,
+  container sizing, palette uniforms, deterministic motion, bounded drawing,
+  lifecycle cleanup, automatic pausing and context fallback/restoration.
+
+- 2026-10-23: ported Flutter InkSparkle from flutter/flutter commit
+  `457d49bc600142ecb927f382cf20a728af186ea7`. The original fragment shader is
+  vendored unchanged in `src/components/ink-sparkle/ink-sparkle.frag`; its Dart
+  animation and uniforms are ported to TypeScript. WebGL2 adapts the backend
+  bindings. Flutter's copyright and BSD license are retained in
+  `docs/flutter-LICENSE.txt`, included in package distributions. See
+  `docs/ink-sparkle.md` for integration details and the original source links.

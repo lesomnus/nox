@@ -5,12 +5,14 @@
   white-space: nowrap;
   font-family: var(--ui-font-mono);
   font-variant-numeric: tabular-nums;
+  color: var(--ui-text-value);
 }
 .leading {
-  color: var(--ui-shade-65);
+  color: var(--ui-text-leading);
 }
+.separator,
 .unit {
-  color: color-mix(in srgb, currentColor 78%, var(--ui-shade-0));
+  color: var(--ui-text-separator);
 }
 .number[data-mode="integer"] {
   width: 4ch;

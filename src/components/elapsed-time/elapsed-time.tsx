@@ -1,15 +1,28 @@
 import styles from "./elapsed-time.module.css";
 import { useEffect, useState } from "react";
+import {
+  AnimatedText,
+  type TextMotionOptions,
+} from "../animated-text/animated-text";
+
+export type ElapsedTimeProps = TextMotionOptions & {
+  startedAt?: number;
+  durationMs?: number;
+  label: string;
+};
 
 export function ElapsedTime({
   startedAt,
   durationMs,
   label,
-}: {
-  startedAt?: number;
-  durationMs?: number;
-  label: string;
-}) {
+  motion = "none",
+  direction,
+  duration,
+  characterDelay,
+  maxFlipSteps,
+  flipEasing,
+  flipCharacters,
+}: ElapsedTimeProps) {
   const [now, setNow] = useState(Date.now);
   useEffect(() => {
     // Completed snapshots use the same display without a running interval.
@@ -31,7 +44,7 @@ export function ElapsedTime({
   ]
     .map((part) => String(part).padStart(2, "0"))
     .join(":");
-  // Keep every digit in place; dim only the unused leading zeroes/separators.
+  // Keep every digit in place while separating unused leading zeroes/separators.
   const significant = text.search(/[1-9]/);
   const split = significant < 0 ? text.length - 1 : significant;
   return (
@@ -41,8 +54,24 @@ export function ElapsedTime({
       aria-label={label}
       aria-live="off"
     >
-      <span className="elapsed-time-leading">{text.slice(0, split)}</span>
-      <span>{text.slice(split)}</span>
+      <AnimatedText
+        value={text}
+        comparisonValue={seconds}
+        motion={motion}
+        direction={direction}
+        duration={duration}
+        characterDelay={characterDelay}
+        maxFlipSteps={maxFlipSteps}
+        flipEasing={flipEasing}
+        flipCharacters={flipCharacters}
+        characterClassName={(character, index) =>
+          index < split
+            ? "elapsed-time-leading"
+            : character === ":"
+              ? styles.separator
+              : undefined
+        }
+      />
     </span>
   );
 }
