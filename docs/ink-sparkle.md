@@ -63,6 +63,8 @@ it immediately on release. Completed overlays unmount; rapid presses can overlap
 within a bounded limit. Omit `pressed` to retain the original one-shot/loop behavior.
 ButtonTone reuses that interaction with a subtle neutral highlight close to the
 button's native pressed background; ButtonClick keeps the customizable blue ink.
+Both button examples suppress the native pressed background change so only the
+ink spreads on press. Hover styling and the label's press animation stay active.
 
 ## Flutter InkSparkle port
 
