@@ -37,7 +37,7 @@ const uniforms = (canvas: Locator) =>
     };
   });
 
-test("button ink starts on press, holds without drawing and fades on release outside the button", async ({
+test("button ink starts on press, holds without drawing and completes after release outside the button", async ({
   page,
 }) => {
   await page.addInitScript(() => {
@@ -88,10 +88,11 @@ test("button ink starts on press, holds without drawing and fades on release out
   await expect(canvas).toHaveAttribute("data-pressed", "false");
   expect(await uniforms(canvas)).toEqual(held);
   expect((await metrics()).programs).toBe(settled.programs);
-  expect(
-    await canvas.evaluate((el) => getComputedStyle(el).transitionProperty),
-  ).toBe("opacity");
   await page.clock.runFor(200);
+  expect((await uniforms(canvas)).composite[3]).toBeGreaterThan(
+    held.composite[3],
+  );
+  await page.clock.runFor(1100);
   await expect(canvas).toHaveCount(0);
 });
 
@@ -118,19 +119,23 @@ test("button ink releases early with keys, blur and cancellation, and respects r
   await expect(canvas).toHaveAttribute("data-pressed", "false");
   expect(await uniforms(canvas)).toEqual(early);
   await page.clock.runFor(200);
+  expect((await uniforms(canvas)).composite[3]).toBeGreaterThan(
+    early.composite[3],
+  );
+  await page.clock.runFor(1100);
   await expect(canvas).toHaveCount(0);
   await page.keyboard.down("Space");
   await page.keyboard.down("Space");
   await expect(canvas).toHaveCount(1);
   await button.evaluate((el) => el.blur());
-  await page.clock.runFor(200);
+  await page.clock.runFor(1300);
   await expect(canvas).toHaveCount(0);
   await page.keyboard.up("Space");
   await page.mouse.move(box.x + 20, box.y + 20);
   await page.mouse.down();
   await expect(canvas).toHaveCount(1);
   await button.dispatchEvent("pointercancel", { pointerId: 1 });
-  await page.clock.runFor(200);
+  await page.clock.runFor(1300);
   await expect(canvas).toHaveCount(0);
   await page.mouse.up();
   await page.emulateMedia({ reducedMotion: "reduce" });

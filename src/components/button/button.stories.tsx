@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { Button } from "@lesomnus/nox";
-import { useState } from "react";
+import { useRef, useState } from "react";
 
 const meta = {
   title: "Components/Button",
@@ -11,12 +11,80 @@ const meta = {
     disabled: false,
     loading: false,
     type: "button",
+    effect: "sparkle",
+  },
+  argTypes: {
+    effect: { control: "select", options: ["sparkle", "none"] },
   },
 } satisfies Meta<typeof Button>;
 export default meta;
 type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {};
+export const NoEffect: Story = { args: { effect: "none", variant: "solid" } };
+export const CustomInk: Story = {
+  args: {
+    variant: "solid",
+    effectOptions: { color: [0.4, 0.65, 1, 0.15], duration: 1200 },
+  },
+};
+export const PreventedPress: Story = {
+  args: {
+    children: "Handled externally",
+    onPointerDown: (event) => event.preventDefault(),
+    onKeyDown: (event) => event.preventDefault(),
+  },
+};
+export const EffectInteraction: Story = {
+  render: function EffectInteraction(args) {
+    const ref = useRef<HTMLButtonElement>(null);
+    const [clicks, setClicks] = useState(0);
+    const [submits, setSubmits] = useState(0);
+    const [downs, setDowns] = useState(0);
+    const [keys, setKeys] = useState(0);
+    const [disabled, setDisabled] = useState(false);
+    return (
+      <form
+        style={{ display: "grid", gap: 12, justifyItems: "start" }}
+        onSubmit={(event) => {
+          event.preventDefault();
+          setSubmits((n) => n + 1);
+        }}
+      >
+        <Button
+          {...args}
+          ref={ref}
+          type="submit"
+          variant="solid"
+          disabled={disabled}
+          onClick={() => setClicks((n) => n + 1)}
+          onPointerDown={() => setDowns((n) => n + 1)}
+          onKeyDown={() => setKeys((n) => n + 1)}
+        >
+          Save with ink
+        </Button>
+        <output>
+          Clicks: {clicks}; submits: {submits}; pointer downs: {downs}; keys:{" "}
+          {keys}
+        </output>
+        <Button
+          type="button"
+          effect="none"
+          onClick={() => ref.current?.focus()}
+        >
+          Focus save
+        </Button>
+        <Button
+          type="button"
+          effect="none"
+          onClick={() => setDisabled(!disabled)}
+        >
+          {disabled ? "Enable save" : "Disable save"}
+        </Button>
+      </form>
+    );
+  },
+};
 export const Disabled: Story = { args: { disabled: true } };
 export const Solid: Story = {
   args: { variant: "solid", children: "Save changes" },

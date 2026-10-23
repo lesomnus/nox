@@ -1,5 +1,10 @@
 import styles from "./button.module.css";
 import {
+  useButtonSparkle,
+  type ButtonEffectOptions,
+} from "./use-button-sparkle";
+export type { ButtonEffectOptions } from "./use-button-sparkle";
+import {
   useLayoutEffect,
   useRef,
   type ButtonHTMLAttributes,
@@ -12,6 +17,9 @@ export type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
   loading?: boolean;
   pressTarget?: string;
   variant?: "default" | "solid" | "outline" | "toolbar";
+  /** Press feedback. Defaults to sparkle; none uses the native variant background. */
+  effect?: "sparkle" | "none";
+  effectOptions?: ButtonEffectOptions;
   ref?: Ref<HTMLButtonElement>;
 };
 
@@ -20,10 +28,22 @@ export function Button({
   pressTarget,
   loading = false,
   variant = "default",
+  effect = "sparkle",
+  effectOptions,
   className = "",
   onClick,
   ...props
 }: ButtonProps) {
+  const sparkle = useButtonSparkle(
+    effect === "sparkle",
+    !!(
+      loading ||
+      props.disabled ||
+      props["aria-disabled"] === true ||
+      props["aria-disabled"] === "true"
+    ),
+    effectOptions,
+  );
   return (
     <button
       {...props}
@@ -31,7 +51,36 @@ export function Button({
       aria-disabled={loading || props["aria-disabled"]}
       data-loading={loading || undefined}
       data-variant={variant}
+      data-effect={effect}
       className={`${styles.button} ${className}`}
+      onPointerDown={(event) => {
+        props.onPointerDown?.(event);
+        if (!event.defaultPrevented) sparkle.pointerDown(event);
+      }}
+      onPointerUp={(event) => {
+        sparkle.pointerEnd(event);
+        props.onPointerUp?.(event);
+      }}
+      onPointerCancel={(event) => {
+        sparkle.pointerEnd(event);
+        props.onPointerCancel?.(event);
+      }}
+      onLostPointerCapture={(event) => {
+        sparkle.pointerEnd(event);
+        props.onLostPointerCapture?.(event);
+      }}
+      onKeyDown={(event) => {
+        props.onKeyDown?.(event);
+        if (!event.defaultPrevented) sparkle.keyDown(event);
+      }}
+      onKeyUp={(event) => {
+        sparkle.keyUp(event);
+        props.onKeyUp?.(event);
+      }}
+      onBlur={(event) => {
+        sparkle.release();
+        props.onBlur?.(event);
+      }}
       onClick={(event) => {
         if (loading) {
           event.preventDefault();
@@ -41,6 +90,7 @@ export function Button({
         onClick?.(event);
       }}
     >
+      {sparkle.ink}
       <ButtonContent pressTarget={pressTarget}>{children}</ButtonContent>
     </button>
   );

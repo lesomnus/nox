@@ -29,17 +29,17 @@ import { InkSparkle, type InkSparkleProps } from "@lesomnus/nox";
 </div>;
 ```
 
-| Prop                 | Default           | Meaning                                                                                                                                |
-| -------------------- | ----------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
-| `duration`           | `617`             | Milliseconds per burst; a larger value slows the entire animation. Non-finite/non-positive values use 617ms.                           |
-| `origin`             | Canvas center     | `[x, y]` in local CSS pixels. Negative or off-surface coordinates are supported.                                                       |
-| `centerMotion`       | `"to-center"`     | Flutter's original center migration, or `"fixed"` to expand around `origin`.                                                           |
-| `color`              | `[1, 1, 1, 0.24]` | Normalized RGBA ink color. Sparkles remain white, including with black ink.                                                            |
-| `loop`               | `false`           | Repeat until unmounted; omitted for a single burst.                                                                                    |
-| `pressed`            | —                 | Controlled press lifecycle: true expands and holds the ink; false freezes the current frame and fades it out. Overrides loop playback. |
-| `onComplete`         | —                 | Called once after a non-looping burst. Useful for removing an overlay.                                                                 |
-| `seed`               | Random            | Stable turbulence/noise seed; 1337 matches Flutter's test factory.                                                                     |
-| `className`, `style` | —                 | Canvas sizing and placement. The canvas fills its parent by default.                                                                   |
+| Prop                 | Default           | Meaning                                                                                                                                          |
+| -------------------- | ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `duration`           | `617`             | Milliseconds per burst; a larger value slows the entire animation. Non-finite/non-positive values use 617ms.                                     |
+| `origin`             | Canvas center     | `[x, y]` in local CSS pixels. Negative or off-surface coordinates are supported.                                                                 |
+| `centerMotion`       | `"to-center"`     | Flutter's original center migration, or `"fixed"` to expand around `origin`.                                                                     |
+| `color`              | `[1, 1, 1, 0.24]` | Normalized RGBA ink color. Sparkles remain white, including with black ink.                                                                      |
+| `loop`               | `false`           | Repeat until unmounted; omitted for a single burst.                                                                                              |
+| `pressed`            | —                 | Controlled press lifecycle: true expands and holds the ink; false plays the remaining expansion and fade to completion. Overrides loop playback. |
+| `onComplete`         | —                 | Called once after a non-looping burst. Useful for removing an overlay.                                                                           |
+| `seed`               | Random            | Stable turbulence/noise seed; 1337 matches Flutter's test factory.                                                                               |
+| `className`, `style` | —                 | Canvas sizing and placement. The canvas fills its parent by default.                                                                             |
 
 All animation channels share the chosen duration; radius, turbulence, center,
 ink opacity and sparkle opacity keep their original relative timing. The shader
@@ -54,17 +54,21 @@ effect remains transparent and a non-looping effect completes immediately.
 
 See **Effects/InkSparkle/Original**, **Slow**, **OutsideCenter**,
 **SpeedComparison**, **SingleBurst**, **ButtonClick**, and **ButtonTone** for public-import examples.
-ButtonClick composes the shared Button with a clipped, non-interactive overlay:
+ButtonClick uses the shared Button's default `effect="sparkle"` and passes
+`effectOptions` for its custom ink:
 pointer down uses local coordinates; Enter/Space down uses the center. The ink
-expands and holds until release, cancellation or blur, then fades back to the
-original button color. Expanded ink stops requesting frames, and release does
-not recreate the renderer. Reduced motion uses a static held sample and removes
+expands and holds until release, cancellation or blur, then resumes its remaining
+expansion and fade. Even a quick tap finishes the whole effect before returning
+to the original button color. Expanded ink stops requesting frames, and release
+does not recreate the renderer. Reduced motion uses a static held sample and removes
 it immediately on release. Completed overlays unmount; rapid presses can overlap
 within a bounded limit. Omit `pressed` to retain the original one-shot/loop behavior.
 ButtonTone reuses that interaction with a subtle neutral highlight close to the
 button's native pressed background; ButtonClick keeps the customizable blue ink.
-Both button examples suppress the native pressed background change so only the
-ink spreads on press. Hover styling and the label's press animation stay active.
+Button handles the lifecycle and suppresses its native pressed background change
+while sparkle is enabled, so only ink spreads on press. Hover styling and the
+label's press animation stay active. Use `effect="none"` to disable the effect.
+See [Button variants](button-variants.md) for the Button API.
 
 ## Flutter InkSparkle port
 

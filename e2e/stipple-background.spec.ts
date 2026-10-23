@@ -45,6 +45,9 @@ test.beforeEach(async ({ page }) => {
       shaders: 0,
       arrays: 0,
     });
+    const isButtonInk = (gl: WebGL2RenderingContext) =>
+      gl.canvas instanceof HTMLCanvasElement &&
+      gl.canvas.hasAttribute("data-ink-sparkle");
     const proto = WebGL2RenderingContext.prototype;
     for (const [create, remove, key] of [
       ["createProgram", "deleteProgram", "programs"],
@@ -57,13 +60,13 @@ test.beforeEach(async ({ page }) => {
       Object.defineProperty(proto, create, {
         value: function (this: WebGL2RenderingContext, ...args: unknown[]) {
           const result = originalCreate.apply(this, args);
-          if (result) metrics[key]++;
+          if (result && !isButtonInk(this)) metrics[key]++;
           return result;
         },
       });
       Object.defineProperty(proto, remove, {
         value: function (this: WebGL2RenderingContext, ...args: unknown[]) {
-          if (args[0]) metrics[key]--;
+          if (args[0] && !isButtonInk(this)) metrics[key]--;
           return originalRemove.apply(this, args);
         },
       });
@@ -71,6 +74,7 @@ test.beforeEach(async ({ page }) => {
     const draw = proto.drawArrays;
     proto.drawArrays = function (...args) {
       draw.apply(this, args);
+      if (isButtonInk(this)) return;
       const bytes = new Uint8Array(
         this.drawingBufferWidth * this.drawingBufferHeight * 4,
       );
@@ -158,10 +162,14 @@ test("liquid fields have a genuinely concave silhouette, animate in place and ca
   page,
 }) => {
   await page.addInitScript(() => {
+    const isButtonInk = (gl: WebGL2RenderingContext) =>
+      gl.canvas instanceof HTMLCanvasElement &&
+      gl.canvas.hasAttribute("data-ink-sparkle");
     const proto = WebGL2RenderingContext.prototype;
     const draw = proto.drawArrays;
     proto.drawArrays = function (...args) {
       draw.apply(this, args);
+      if (isButtonInk(this)) return;
       const radius = this.drawingBufferHeight * 0.28;
       window.stippleShapeProbe = [-0.45, 0, 0.45].map((y) => {
         const pixels = new Uint8Array(12 * 12 * 4);
@@ -183,7 +191,7 @@ test("liquid fields have a genuinely concave silhouette, animate in place and ca
   await page.goto(
     story("liquid-metaball", "paused:true;maxWidth:600;scatterPx:0"),
   );
-  await expect(page.locator('[data-renderer="webgl2"]')).toBeVisible();
+  await expect(page.locator('div[data-renderer="webgl2"]')).toBeVisible();
   const probe = () => page.evaluate(() => window.stippleShapeProbe!);
   const [lower, dent, upper] = await probe();
   expect(lower).toBeGreaterThan(3);
@@ -212,7 +220,7 @@ test("pointer bursts follow local movement, expire on the unscaled clock, toggle
     ),
   );
   await page.getByRole("button", { name: "Start work" }).click();
-  const canvas = page.locator("canvas");
+  const canvas = page.locator("[data-renderer] > canvas");
   const box = (await canvas.boundingBox())!;
   const count = () =>
     canvas.evaluate((el: HTMLCanvasElement) => {
@@ -259,13 +267,13 @@ test("reduced motion ignores pointer bursts and keeps the active image still", a
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.goto(story("work-motion"));
   await page.getByRole("button", { name: "Start work" }).click();
-  const box = (await page.locator("canvas").boundingBox())!;
+  const box = (await page.locator("[data-renderer] > canvas").boundingBox())!;
   await page.mouse.move(box.x + box.width * 0.8, box.y + box.height * 0.3, {
     steps: 6,
   });
   await settledDraws(page);
   const count = await page
-    .locator("canvas")
+    .locator("[data-renderer] > canvas")
     .evaluate((el: HTMLCanvasElement) => {
       const gl = el.getContext("webgl2")!;
       const program = gl.getParameter(gl.CURRENT_PROGRAM) as WebGLProgram;
@@ -278,11 +286,11 @@ test("work motion blooms, keeps drifting through finish, sleeps when empty and r
   page,
 }) => {
   await page.goto(story("work-motion", "speed:1"));
-  await expect(page.locator('[data-renderer="webgl2"]')).toBeVisible();
+  await expect(page.locator('div[data-renderer="webgl2"]')).toBeVisible();
   expect((await stats(page)).colored).toBe(0);
   await settledDraws(page);
   const programs = (await stats(page)).programs;
-  const canvas = await page.locator("canvas").elementHandle();
+  const canvas = await page.locator("[data-renderer] > canvas").elementHandle();
   await page.getByRole("button", { name: "Start work" }).click();
   await expect.poll(async () => (await stats(page)).colored).toBeGreaterThan(0);
   const initial = (await stats(page)).hash;
@@ -292,14 +300,16 @@ test("work motion blooms, keeps drifting through finish, sleeps when empty and r
   await expect.poll(async () => (await stats(page)).colored).toBe(0);
   await expect
     .poll(() =>
-      page.locator("canvas").evaluate((el: HTMLCanvasElement) => {
-        const gl = el.getContext("webgl2")!;
-        const program = gl.getParameter(gl.CURRENT_PROGRAM) as WebGLProgram;
-        return gl.getUniform(
-          program,
-          gl.getUniformLocation(program, "uCount")!,
-        );
-      }),
+      page
+        .locator("[data-renderer] > canvas")
+        .evaluate((el: HTMLCanvasElement) => {
+          const gl = el.getContext("webgl2")!;
+          const program = gl.getParameter(gl.CURRENT_PROGRAM) as WebGLProgram;
+          return gl.getUniform(
+            program,
+            gl.getUniformLocation(program, "uCount")!,
+          );
+        }),
     )
     .toBe(0);
   await settledDraws(page);
@@ -307,7 +317,9 @@ test("work motion blooms, keeps drifting through finish, sleeps when empty and r
   await expect.poll(async () => (await stats(page)).colored).toBeGreaterThan(0);
   expect((await stats(page)).programs).toBe(programs);
   expect(
-    await canvas!.evaluate((el) => el === document.querySelector("canvas")),
+    await canvas!.evaluate(
+      (el) => el === document.querySelector("[data-renderer] > canvas"),
+    ),
   ).toBe(true);
 });
 
@@ -316,7 +328,7 @@ test("work motion respects reduced motion without leaving an invisible active ba
 }) => {
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.goto(story("work-motion"));
-  await expect(page.locator('[data-renderer="webgl2"]')).toBeVisible();
+  await expect(page.locator('div[data-renderer="webgl2"]')).toBeVisible();
   expect((await stats(page)).colored).toBe(0);
   await page.getByRole("button", { name: "Start work" }).click();
   await expect.poll(async () => (await stats(page)).colored).toBeGreaterThan(0);
@@ -331,26 +343,28 @@ test("active work lets individual GPU fields disappear and regrow without restar
 }) => {
   test.setTimeout(40000);
   await page.goto(story("work-motion", "speed:2"));
-  await expect(page.locator('[data-renderer="webgl2"]')).toBeVisible();
+  await expect(page.locator('div[data-renderer="webgl2"]')).toBeVisible();
   await page.getByRole("button", { name: "Start work" }).click();
   const programs = (await stats(page)).programs;
   const envelopes = () =>
-    page.locator("canvas").evaluate((el: HTMLCanvasElement) => {
-      const gl = el.getContext("webgl2")!;
-      const program = gl.getParameter(gl.CURRENT_PROGRAM) as WebGLProgram;
-      const count = gl.getUniform(
-        program,
-        gl.getUniformLocation(program, "uCount")!,
-      ) as number;
-      return Array.from(
-        { length: count },
-        (_, i) =>
-          gl.getUniform(
-            program,
-            gl.getUniformLocation(program, `uEnvelopes[${i}]`)!,
-          ) as number,
-      );
-    });
+    page
+      .locator("[data-renderer] > canvas")
+      .evaluate((el: HTMLCanvasElement) => {
+        const gl = el.getContext("webgl2")!;
+        const program = gl.getParameter(gl.CURRENT_PROGRAM) as WebGLProgram;
+        const count = gl.getUniform(
+          program,
+          gl.getUniformLocation(program, "uCount")!,
+        ) as number;
+        return Array.from(
+          { length: count },
+          (_, i) =>
+            gl.getUniform(
+              program,
+              gl.getUniformLocation(program, `uEnvelopes[${i}]`)!,
+            ) as number,
+        );
+      });
   const grown = new Set<number>();
   let vanished = -1;
   await expect
@@ -384,11 +398,11 @@ test("all five patterns produce actual colored pixels within the raster budget",
   page.on("pageerror", (error) => errors.push(error.message));
   for (const name of ["diamond", "bayer", "checker", "hex", "fractal"]) {
     await page.goto(story(name, "paused:true"));
-    await expect(page.locator('[data-renderer="webgl2"]')).toBeVisible();
+    await expect(page.locator('div[data-renderer="webgl2"]')).toBeVisible();
     await expect
       .poll(async () => (await stats(page)).colored)
       .toBeGreaterThan(0);
-    const canvas = page.locator("canvas");
+    const canvas = page.locator("[data-renderer] > canvas");
     expect(
       await canvas.evaluate((el: HTMLCanvasElement) => el.width),
     ).toBeLessThanOrEqual(96);
@@ -406,7 +420,7 @@ test("content works above the canvas and live pattern/pause changes reuse GPU re
 }) => {
   await page.goto(story("with-content"));
   await expect.poll(async () => (await stats(page)).draws).toBeGreaterThan(3);
-  const canvas = await page.locator("canvas").elementHandle();
+  const canvas = await page.locator("[data-renderer] > canvas").elementHandle();
   const programs = (await stats(page)).programs;
   await page.getByRole("button", { name: "Pause", exact: true }).click();
   await settledDraws(page);
@@ -418,7 +432,7 @@ test("content works above the canvas and live pattern/pause changes reuse GPU re
   await page.getByRole("button", { name: "Change palette" }).click();
   await expect.poll(async () => (await stats(page)).hash).not.toBe(hash);
   const palette = await page
-    .locator("canvas")
+    .locator("[data-renderer] > canvas")
     .evaluate((el: HTMLCanvasElement) => {
       const gl = el.getContext("webgl2")!;
       const program = gl.getParameter(gl.CURRENT_PROGRAM) as WebGLProgram;
@@ -440,17 +454,21 @@ test("content works above the canvas and live pattern/pause changes reuse GPU re
       expect(value).toBeCloseTo(expected[i][j] / 255, 5),
     ),
   );
-  await expect(page.locator("canvas")).toHaveCount(1);
+  await expect(page.locator("[data-renderer] > canvas")).toHaveCount(1);
   expect(
-    await canvas!.evaluate((el) => el === document.querySelector("canvas")),
+    await canvas!.evaluate(
+      (el) => el === document.querySelector("[data-renderer] > canvas"),
+    ),
   ).toBe(true);
   expect((await stats(page)).programs).toBe(programs);
   await page
-    .locator("[data-renderer]")
+    .locator("div[data-renderer]")
     .evaluate((el) => (el.style.width = "360px"));
   await expect
     .poll(() =>
-      page.locator("canvas").evaluate((el: HTMLCanvasElement) => el.height),
+      page
+        .locator("[data-renderer] > canvas")
+        .evaluate((el: HTMLCanvasElement) => el.height),
     )
     .toBeGreaterThan(90);
   await settledDraws(page);
@@ -465,7 +483,7 @@ test("cluster centers remain stippled without solid debug fills", async ({
   page,
 }) => {
   await page.goto(story("checker", "paused:true;maxWidth:540;grainPx:2"));
-  await expect(page.locator('[data-renderer="webgl2"]')).toBeVisible();
+  await expect(page.locator('div[data-renderer="webgl2"]')).toBeVisible();
   const metrics = await stats(page);
   expect(metrics.colored).toBeGreaterThan(100);
   expect(metrics.maxRun).toBeLessThanOrEqual(6);
@@ -484,7 +502,7 @@ test("fade shades are bounded and each connected dot stays a single solid color"
         `paused:true;maxWidth:360;grainPx:2;edgeFadeSteps:${count}`,
       ),
     );
-    await expect(page.locator('[data-renderer="webgl2"]')).toBeVisible();
+    await expect(page.locator('div[data-renderer="webgl2"]')).toBeVisible();
     const values = await stats(page);
     const allowed = new Set([0]);
     for (let shade = 0; shade <= count; shade++) {
@@ -502,7 +520,7 @@ test("fade shades are bounded and each connected dot stays a single solid color"
     await settledDraws(page);
   }
   await page.goto(story("edge-fade", "paused:true;maxWidth:360;grainPx:2"));
-  await expect(page.locator('[data-renderer="webgl2"]')).toBeVisible();
+  await expect(page.locator('div[data-renderer="webgl2"]')).toBeVisible();
   expect(new Set((await stats(page)).pixelColors)).toEqual(
     new Set([0, 0xffffff, 0x808080]),
   );
@@ -535,10 +553,10 @@ test("edge fade softens peripheral dots while retaining centers and dot placemen
   for (const mode of ["gradient", "dither", "none"]) {
     const args = `paused:true;maxWidth:360;pattern:checker;scatterPx:100;colorBlend:${mode}`;
     await page.goto(story("edge-fade", `${args};edgeFade:0`));
-    await expect(page.locator('[data-renderer="webgl2"]')).toBeVisible();
+    await expect(page.locator('div[data-renderer="webgl2"]')).toBeVisible();
     const flat = await page.evaluate(() => window.stippleProbeRow!);
     await page.goto(story("edge-fade", `${args};edgeFade:0.8`));
-    await expect(page.locator('[data-renderer="webgl2"]')).toBeVisible();
+    await expect(page.locator('div[data-renderer="webgl2"]')).toBeVisible();
     const faded = await page.evaluate(() => window.stippleProbeRow!);
     expect(faded.width).toBe(flat.width);
     const center: number[] = [],
@@ -569,17 +587,17 @@ test("the exported cluster preset matches the default and supports shape composi
   page,
 }) => {
   await page.goto(story("diamond", "paused:true"));
-  await expect(page.locator('[data-renderer="webgl2"]')).toBeVisible();
+  await expect(page.locator('div[data-renderer="webgl2"]')).toBeVisible();
   const defaultHash = (await stats(page)).hash;
   await page.goto(story("cluster-motion", "paused:true"));
-  await expect(page.locator('[data-renderer="webgl2"]')).toBeVisible();
+  await expect(page.locator('div[data-renderer="webgl2"]')).toBeVisible();
   expect((await stats(page)).hash).toBe(defaultHash);
   await settledDraws(page);
   await page.goto(story("modified-cluster-motion", "paused:true"));
-  await expect(page.locator('[data-renderer="webgl2"]')).toBeVisible();
+  await expect(page.locator('div[data-renderer="webgl2"]')).toBeVisible();
   expect((await stats(page)).hash).not.toBe(defaultHash);
   const shape = await page
-    .locator("canvas")
+    .locator("[data-renderer] > canvas")
     .evaluate((el: HTMLCanvasElement) => {
       const gl = el.getContext("webgl2")!;
       const program = gl.getParameter(gl.CURRENT_PROGRAM) as WebGLProgram;
@@ -605,7 +623,7 @@ test("gradient mixes dot colors while dither retains only the original palette",
     await page.goto(
       story("gradient-blend", `paused:true;maxWidth:360;colorBlend:${mode}`),
     );
-    await expect(page.locator('[data-renderer="webgl2"]')).toBeVisible();
+    await expect(page.locator('div[data-renderer="webgl2"]')).toBeVisible();
     const metrics = await stats(page);
     hashes.push(metrics.hash);
     if (mode === "gradient") {
@@ -628,19 +646,21 @@ test("custom motion controls ellipses and responds to trajectory, viewport and e
   page,
 }) => {
   await page.goto(story("custom-motion", "paused:true"));
-  await expect(page.locator('[data-renderer="webgl2"]')).toBeVisible();
+  await expect(page.locator('div[data-renderer="webgl2"]')).toBeVisible();
   const uniforms = () =>
-    page.locator("canvas").evaluate((el: HTMLCanvasElement) => {
-      const gl = el.getContext("webgl2")!;
-      const program = gl.getParameter(gl.CURRENT_PROGRAM) as WebGLProgram;
-      const get = (name: string) =>
-        gl.getUniform(program, gl.getUniformLocation(program, name)!);
-      return {
-        count: get("uCount") as number,
-        shape: [...get("uShapes[0]")],
-        blob: [...get("uBlobs[0]")],
-      };
-    });
+    page
+      .locator("[data-renderer] > canvas")
+      .evaluate((el: HTMLCanvasElement) => {
+        const gl = el.getContext("webgl2")!;
+        const program = gl.getParameter(gl.CURRENT_PROGRAM) as WebGLProgram;
+        const get = (name: string) =>
+          gl.getUniform(program, gl.getUniformLocation(program, name)!);
+        return {
+          count: get("uCount") as number,
+          shape: [...get("uShapes[0]")],
+          blob: [...get("uBlobs[0]")],
+        };
+      });
   const initial = await uniforms();
   expect(initial.count).toBe(2);
   expect(initial.shape[0]).toBeCloseTo(1.7);
@@ -648,7 +668,7 @@ test("custom motion controls ellipses and responds to trajectory, viewport and e
   expect(initial.shape[2]).toBeCloseTo(-0.4);
   const programs = (await stats(page)).programs;
   await page
-    .locator("[data-renderer]")
+    .locator("div[data-renderer]")
     .evaluate((el) => (el.style.width = "360px"));
   await expect
     .poll(async () => (await uniforms()).blob[0])
@@ -669,20 +689,25 @@ test("omitting seed randomizes each mount while explicit seeds reproduce the arr
   page,
 }) => {
   const positions = () =>
-    page.locator("canvas").evaluate((el: HTMLCanvasElement) => {
-      const gl = el.getContext("webgl2")!;
-      const program = gl.getParameter(gl.CURRENT_PROGRAM) as WebGLProgram;
-      return [
-        ...gl.getUniform(program, gl.getUniformLocation(program, "uBlobs[0]")!),
-      ];
-    });
+    page
+      .locator("[data-renderer] > canvas")
+      .evaluate((el: HTMLCanvasElement) => {
+        const gl = el.getContext("webgl2")!;
+        const program = gl.getParameter(gl.CURRENT_PROGRAM) as WebGLProgram;
+        return [
+          ...gl.getUniform(
+            program,
+            gl.getUniformLocation(program, "uBlobs[0]")!,
+          ),
+        ];
+      });
   for (const seeded of [false, true]) {
     await page.goto(story("strict-lifecycle", "paused:true", seeded));
-    await expect(page.locator('[data-renderer="webgl2"]')).toBeVisible();
+    await expect(page.locator('div[data-renderer="webgl2"]')).toBeVisible();
     const before = await positions();
     await page.getByRole("button", { name: "Unmount", exact: true }).click();
     await page.getByRole("button", { name: "Mount", exact: true }).click();
-    await expect(page.locator('[data-renderer="webgl2"]')).toBeVisible();
+    await expect(page.locator('div[data-renderer="webgl2"]')).toBeVisible();
     if (seeded) expect(await positions()).toEqual(before);
     else expect(await positions()).not.toEqual(before);
   }
@@ -694,10 +719,10 @@ test("a throwing motion callback falls back without an uncaught error and a corr
   const errors: string[] = [];
   page.on("pageerror", (error) => errors.push(error.message));
   await page.goto(story("motion-recovery"));
-  await expect(page.locator('[data-renderer="fallback"]')).toBeVisible();
+  await expect(page.locator('div[data-renderer="fallback"]')).toBeVisible();
   await settledDraws(page);
   await page.getByRole("button", { name: "Use valid motion" }).click();
-  await expect(page.locator('[data-renderer="webgl2"]')).toBeVisible();
+  await expect(page.locator('div[data-renderer="webgl2"]')).toBeVisible();
   await expect.poll(async () => (await stats(page)).draws).toBeGreaterThan(2);
   expect(errors).toEqual([]);
 });
@@ -705,12 +730,12 @@ test("a throwing motion callback falls back without an uncaught error and a corr
 test("reduced motion and zero speed render a still image", async ({ page }) => {
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.goto(story("diamond"));
-  await expect(page.locator('[data-renderer="webgl2"]')).toBeVisible();
+  await expect(page.locator('div[data-renderer="webgl2"]')).toBeVisible();
   await expect.poll(async () => (await stats(page)).colored).toBeGreaterThan(0);
   await settledDraws(page);
   await page.emulateMedia({ reducedMotion: "no-preference" });
   await page.goto(story("diamond", "speed:0"));
-  await expect(page.locator('[data-renderer="webgl2"]')).toBeVisible();
+  await expect(page.locator('div[data-renderer="webgl2"]')).toBeVisible();
   await settledDraws(page);
 });
 
@@ -736,10 +761,10 @@ test("unavailable WebGL keeps the fallback and child controls usable", async ({
   const errors: string[] = [];
   page.on("pageerror", (error) => errors.push(error.message));
   await page.goto(story("with-content"));
-  const fallback = page.locator('[data-renderer="fallback"]');
+  const fallback = page.locator('div[data-renderer="fallback"]');
   await expect(fallback).toBeVisible();
   await expect(fallback).toHaveCSS("background-color", "rgb(10, 20, 56)");
-  await expect(page.locator("canvas")).toBeHidden();
+  await expect(page.locator("[data-renderer] > canvas")).toBeHidden();
   await page.getByRole("button", { name: "Pause", exact: true }).click();
   await expect(
     page.getByRole("button", { name: "Resume", exact: true }),
@@ -751,9 +776,9 @@ test("context loss falls back and restoration resumes drawing", async ({
   page,
 }) => {
   await page.goto(story("diamond"));
-  await expect(page.locator('[data-renderer="webgl2"]')).toBeVisible();
+  await expect(page.locator('div[data-renderer="webgl2"]')).toBeVisible();
   const supported = await page
-    .locator("canvas")
+    .locator("[data-renderer] > canvas")
     .evaluate((canvas: HTMLCanvasElement) => {
       const extension = canvas
         .getContext("webgl2")!
@@ -764,10 +789,10 @@ test("context loss falls back and restoration resumes drawing", async ({
       return true;
     });
   expect(supported).toBe(true);
-  await expect(page.locator('[data-renderer="fallback"]')).toBeVisible();
+  await expect(page.locator('div[data-renderer="fallback"]')).toBeVisible();
   await page.waitForTimeout(100);
   await page.evaluate(() => window.restoreStipple!());
-  await expect(page.locator('[data-renderer="webgl2"]')).toBeVisible();
+  await expect(page.locator('div[data-renderer="webgl2"]')).toBeVisible();
   await expect.poll(async () => (await stats(page)).colored).toBeGreaterThan(0);
 });
 
@@ -775,9 +800,9 @@ test("unmount releases every GPU object and stops drawing before remount", async
   page,
 }) => {
   await page.goto(story("strict-lifecycle"));
-  await expect(page.locator('[data-renderer="webgl2"]')).toBeVisible();
+  await expect(page.locator('div[data-renderer="webgl2"]')).toBeVisible();
   await page.getByRole("button", { name: "Unmount", exact: true }).click();
-  await expect(page.locator("canvas")).toHaveCount(0);
+  await expect(page.locator("[data-renderer] > canvas")).toHaveCount(0);
   await expect
     .poll(async () => {
       const value = await stats(page);
@@ -786,14 +811,14 @@ test("unmount releases every GPU object and stops drawing before remount", async
     .toEqual([0, 0, 0, 0]);
   await settledDraws(page);
   await page.getByRole("button", { name: "Mount", exact: true }).click();
-  await expect(page.locator('[data-renderer="webgl2"]')).toBeVisible();
+  await expect(page.locator('div[data-renderer="webgl2"]')).toBeVisible();
   await expect.poll(async () => (await stats(page)).programs).toBe(1);
 });
 
 test("offscreen and hidden backgrounds suspend drawing", async ({ page }) => {
   await page.goto(story("diamond"));
   await expect.poll(async () => (await stats(page)).draws).toBeGreaterThan(3);
-  const surface = page.locator("[data-renderer]");
+  const surface = page.locator("div[data-renderer]");
   await surface.evaluate((el) => (el.style.transform = "translateY(300vh)"));
   await settledDraws(page);
   await surface.evaluate((el) => (el.style.transform = "none"));

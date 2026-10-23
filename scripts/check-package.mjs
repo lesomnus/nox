@@ -77,6 +77,8 @@ try {
     createRoot(document.getElementById("root")!).render(
       <UIProvider>
         <Button>Save</Button>
+        <Button effect="none">No ink</Button>
+        <Button effect="sparkle" effectOptions={{color:[1,1,1,0.06],duration:1200,centerMotion:"fixed",seed:1}}>Custom ink</Button>
         <div style={{height:80}}><InkSparkle {...sparkle} /></div>
         <Checkbox aria-label="Select record" />
         <StippleBackground paused pattern="diamond" colorBlend="dither" palette={["#abc", "#123456", "#fedcba", "#84a59d"]} motion={(t, {aspect}) => [{x: 0.5, y: 0.5, radius: 0.2 + Math.sin(t) * 0.02, scale: [aspect, 1], rotation: t}]} style={{height: 100}} />

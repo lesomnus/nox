@@ -7,24 +7,7 @@
   margin: 0;
   color: var(--ui-muted);
 }
-.buttonSurface {
-  position: relative;
-  isolation: isolate;
-  border-radius: 6px;
-}
 .clickButton {
   min-width: 200px;
   min-height: 40px;
-}
-.clickButton[data-variant="solid"]:not(:disabled) {
-  --button-active-background: var(--button-background);
-}
-.clickButton[data-variant="solid"]:not(:disabled):hover {
-  --button-active-background: var(--button-hover-background);
-}
-.buttonInk {
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  pointer-events: none;
 }

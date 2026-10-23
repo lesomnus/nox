@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
-import { useRef, useState } from "react";
+import { useState } from "react";
 import { Button, InkSparkle } from "@lesomnus/nox";
 import styles from "./ink-sparkle.stories.module.css";
 
@@ -125,96 +125,31 @@ export const ButtonClick: Story = {
     docs: {
       description: {
         story:
-          "Press to spread ink from the contact point, hold to keep it expanded, then release to fade back to the original button color. Enter/Space use the center. Pointer cancellation and blur release the ink too. Expanded ink sleeps instead of continuously rendering; release preserves the current frame during the fade. Rapid presses overlap up to four overlays without changing Button's API.",
+          "Press to spread ink from the contact point, hold to keep it expanded, then release to fade back to the original button color. Enter/Space use the center. Pointer cancellation and blur release the ink too. Expanded ink sleeps instead of continuously rendering; release resumes the remaining expansion and fade, even after a quick tap. The shared Button handles the lifecycle through its default sparkle effect; effectOptions customizes the ink.",
       },
     },
   },
   render: function ButtonClick(args) {
-    const revision = useRef(0);
-    const held = useRef<
-      { id: number; pointer?: number; key?: string } | undefined
-    >(undefined);
-    const [bursts, setBursts] = useState<
-      { id: number; origin: readonly [number, number]; pressed: boolean }[]
-    >([]);
-    const begin = (
-      origin: readonly [number, number],
-      source: { pointer?: number; key?: string },
-    ) => {
-      if (held.current) return;
-      const id = ++revision.current;
-      held.current = { id, ...source };
-      setBursts((current) => [
-        ...current.slice(-3),
-        { id, origin, pressed: true },
-      ]);
-    };
-    const release = () => {
-      const id = held.current?.id;
-      if (id === undefined) return;
-      held.current = undefined;
-      setBursts((current) =>
-        current.map((burst) =>
-          burst.id === id ? { ...burst, pressed: false } : burst,
-        ),
-      );
-    };
     return (
       <div className={styles.clickExample}>
-        <div className={styles.buttonSurface}>
-          <Button
-            variant="solid"
-            className={styles.clickButton}
-            onPointerDown={(event) => {
-              if (event.button !== 0 || !event.isPrimary) return;
-              const rect = event.currentTarget.getBoundingClientRect();
-              begin([event.clientX - rect.left, event.clientY - rect.top], {
-                pointer: event.pointerId,
-              });
-              event.currentTarget.setPointerCapture(event.pointerId);
-            }}
-            onPointerUp={(event) => {
-              if (held.current?.pointer === event.pointerId) release();
-            }}
-            onPointerCancel={(event) => {
-              if (held.current?.pointer === event.pointerId) release();
-            }}
-            onLostPointerCapture={(event) => {
-              if (held.current?.pointer === event.pointerId) release();
-            }}
-            onKeyDown={(event) => {
-              if (event.repeat || !["Enter", " "].includes(event.key)) return;
-              const rect = event.currentTarget.getBoundingClientRect();
-              begin([rect.width / 2, rect.height / 2], { key: event.key });
-            }}
-            onKeyUp={(event) => {
-              if (held.current?.key === event.key) release();
-            }}
-            onBlur={release}
-          >
-            Press to sparkle
-          </Button>
-          {bursts.map(({ id, origin, pressed }) => (
-            <InkSparkle
-              {...args}
-              key={id}
-              origin={origin}
-              loop={false}
-              pressed={pressed}
-              className={styles.buttonInk}
-              onComplete={() =>
-                setBursts((current) =>
-                  current.filter((burst) => burst.id !== id),
-                )
-              }
-            />
-          ))}
-        </div>
+        <Button
+          variant="solid"
+          className={styles.clickButton}
+          effectOptions={{
+            color: args.color,
+            duration: args.duration,
+            centerMotion: args.centerMotion,
+            seed: args.seed,
+          }}
+        >
+          Press to sparkle
+        </Button>
         <p>Press and hold, then release. Enter and Space work too.</p>
       </div>
     );
   },
 };
+
 export const ButtonTone: Story = {
   ...ButtonClick,
   args: { ...ButtonClick.args, color: [1, 1, 1, 0.06] },
@@ -228,7 +163,11 @@ export const ButtonTone: Story = {
   },
 };
 export const DarkInk: Story = {
-  args: { color: [0, 0, 0, 0.5], origin: [280, 90] },
+  args: {
+    color: [0, 0, 0, 0.5],
+    origin: [280, 90],
+    duration: 1200,
+  },
   render: (args) => (
     <div
       style={{

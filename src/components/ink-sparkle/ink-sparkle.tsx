@@ -8,7 +8,6 @@ import { createInkSparkleRenderer } from "./ink-sparkle-renderer";
 import styles from "./ink-sparkle.module.css";
 
 export type { InkSparkleCenterMotion } from "./ink-sparkle-model";
-const releaseDuration = 180;
 
 export interface InkSparkleProps {
   className?: string;
@@ -22,7 +21,7 @@ export interface InkSparkleProps {
   centerMotion?: InkSparkleCenterMotion;
   /** Repeat until unmounted. Defaults to a single burst. */
   loop?: boolean;
-  /** Hold expanded ink while true; false fades it out. Omit for one-shot/loop playback. */
+  /** Hold expanded ink while true; false plays the remaining animation to completion. */
   pressed?: boolean;
   /** Called once after a single burst or release. Reduced motion completes immediately. */
   onComplete?: () => void;
@@ -62,27 +61,37 @@ export function InkSparkle({
     let cycle = -1;
     let completed = false;
     let resting = false;
-    let releaseTimer: ReturnType<typeof setTimeout> | undefined;
+    let started = pressedRef.current !== false;
+    let playhead = 0;
+    let offset = 0;
+    const lifetime =
+      Number.isFinite(duration) && duration > 0 ? duration : inkSparkleDuration;
     let cycleSeed = seed ?? Math.random() * 1000;
     const stop = () => cancelAnimationFrame(request);
-    const draw = (now: number) => {
-      if (!renderer || pressedRef.current === false) return;
+    const draw = (now: number, finish = false) => {
+      if (!renderer || !started) return;
       const width = canvas.clientWidth;
       const height = canvas.clientHeight;
       if (width <= 0 || height <= 0) return;
-      const elapsed = Math.max(0, now - start);
+      const elapsed = Math.max(0, now - start) + offset;
       const holding = pressedRef.current === true;
-      const playback = inkSparklePlayback(elapsed, duration, !holding && loop);
-      const progress = holding
-        ? Math.min(0.4, playback.progress)
-        : playback.progress;
+      const looping = pressedRef.current === undefined && loop;
+      const playback = inkSparklePlayback(elapsed, duration, looping);
+      const progress = finish
+        ? 1
+        : media.matches
+          ? 0.3
+          : holding
+            ? Math.min(0.4, playback.progress)
+            : playback.progress;
+      playhead = progress;
       resting = holding && progress >= 0.4;
       if (playback.cycle !== cycle) {
         cycle = playback.cycle;
         cycleSeed = seed ?? Math.random() * 1000;
       }
       renderer.draw(
-        media.matches ? 0.3 : progress,
+        progress,
         cycleSeed,
         width,
         height,
@@ -94,7 +103,7 @@ export function InkSparkle({
       if (
         !holding &&
         !completed &&
-        (playback.complete || (media.matches && !loop))
+        (playback.complete || (media.matches && !looping))
       ) {
         completed = true;
         completeRef.current?.();
@@ -102,30 +111,28 @@ export function InkSparkle({
     };
     const tick = (now: number) => {
       draw(now);
-      if (!completed && !resting && pressedRef.current !== false)
-        request = requestAnimationFrame(tick);
+      if (!completed && !resting) request = requestAnimationFrame(tick);
     };
     const resume = () => {
       stop();
-      if (!renderer || document.hidden || pressedRef.current === false) return;
+      if (!renderer || document.hidden || !started) return;
       if (completed) return;
+      if (pressedRef.current !== undefined) offset = playhead * lifetime;
       start = performance.now();
-      draw(start);
+      draw(start, media.matches && pressedRef.current === false);
       if (!media.matches && !completed && !resting)
         request = requestAnimationFrame(tick);
     };
     pressChange.current = () => {
-      clearTimeout(releaseTimer);
       if (pressedRef.current === false) {
-        stop();
-        const finish = () => {
+        if (!started) {
           if (completed) return;
           completed = true;
           completeRef.current?.();
-        };
-        if (media.matches || !renderer) finish();
-        else releaseTimer = setTimeout(finish, releaseDuration);
+        } else resume();
       } else {
+        started = true;
+        playhead = offset = 0;
         completed = false;
         resume();
       }
@@ -139,7 +146,7 @@ export function InkSparkle({
       } catch (error) {
         canvas.dataset.renderer = "unavailable";
         canvas.dataset.error = String(error);
-        if (!loop && !completed) {
+        if ((!loop || pressedRef.current !== undefined) && !completed) {
           completed = true;
           completeRef.current?.();
         }
@@ -161,7 +168,6 @@ export function InkSparkle({
     if (pressedRef.current === false) pressChange.current?.();
     return () => {
       stop();
-      clearTimeout(releaseTimer);
       pressChange.current = undefined;
       observer.disconnect();
       media.removeEventListener("change", resume);
@@ -195,14 +201,7 @@ export function InkSparkle({
     <canvas
       ref={ref}
       className={`${styles.canvas} ${className ?? ""}`}
-      style={
-        pressed === undefined
-          ? style
-          : ({
-              ...style,
-              "--ink-sparkle-release-duration": `${releaseDuration}ms`,
-            } as CSSProperties)
-      }
+      style={style}
       aria-hidden="true"
       data-ink-sparkle=""
       data-pressed={pressed}

@@ -3,6 +3,8 @@
   box-sizing: border-box;
 }
 .button {
+  position: relative;
+  isolation: isolate;
   box-sizing: border-box;
   font: inherit;
   border-radius: 6px;
@@ -13,10 +15,11 @@
   padding: 6px 10px;
   cursor: pointer;
   touch-action: manipulation;
+  transition: background-color var(--ui-button-background-duration) ease-out;
 }
 .button:not(:disabled):hover,
 .button:not(:disabled):where([aria-haspopup="menu"][aria-expanded="true"]) {
-  background: var(--button-hover-background, var(--ui-hover));
+  background: var(--button-hover-background, var(--ui-button-hover-background));
 }
 .button[data-variant="solid"] {
   --button-background: var(--ui-button-solid-background);
@@ -32,9 +35,10 @@
 .button[data-variant="outline"]:not(:disabled):hover {
   box-shadow: inset 0 0 0 1px var(--ui-button-outline-hover-border);
 }
-.button:is([data-variant="solid"], [data-variant="outline"]):not(
-    :disabled
-  ):active {
+.button[data-effect="none"]:is(
+    [data-variant="solid"],
+    [data-variant="outline"]
+  ):not(:disabled):active {
   background: var(--button-active-background);
 }
 .button:disabled {
@@ -79,6 +83,8 @@
 }
 
 .button_content {
+  position: relative;
+  z-index: 1;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -87,7 +93,17 @@
   transform: scale(1);
   transition: transform 120ms ease-out;
 }
+.button_ink {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  border-radius: inherit;
+  pointer-events: none;
+}
 @media (prefers-reduced-motion: reduce) {
+  .button {
+    transition: none;
+  }
   .button_content,
   .button:not(:disabled):active > .button_content,
   .button[data-loading] > .button_content {
