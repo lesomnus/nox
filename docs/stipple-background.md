@@ -68,6 +68,8 @@ above the decorative canvas, which is hidden from assistive technology.
 - `active`: a work/activity signal for lifecycle-aware motions such as
   `workMotion`, defaulting to true. Unlike `paused`, false lets an exit animation
   finish. The original `clusterMotion` does not use this signal.
+- `pointerEffects`: enable local pointer input for composed effects. Defaults
+  to true; it adds no visible effect unless the motion uses that input.
 - `palette`: a list of cluster colors, using short or full RGB hex strings.
   Empty or entirely invalid palettes use the defaults; invalid entries are
   ignored. Palette changes preserve the current motion.
@@ -145,6 +147,13 @@ the fragment shader's work. Invalid positions and invisible samples are skipped.
 - `context` provides readonly `width` and `height` in CSS pixels, `aspect`, and
   the resolved `seed`, `active` and `reducedMotion` flags. The renderer reuses this context object; read its current
   values during the callback rather than retaining it as a snapshot.
+- `context.elapsed` is the unscaled animation clock. Like `t`, it freezes while
+  paused, hidden/offscreen, at zero speed or under reduced motion. Pointer bursts
+  use it so their short lifetime stays responsive when the base motion is slow.
+- `context.pointer` contains the latest local mouse/pen position in viewport
+  fractions, an `inside` flag, a movement `sequence` and a `path` identifier
+  that changes when the path resets. It is absent when `pointerEffects` is
+  false. A stationary pointer does not change the sequence.
 - `x` and `y` are viewport fractions. The origin is top-left and the opposite
   corner is `(1, 1)`. Values outside that range allow entry and exit motion.
 - `radius` is a fraction of container height. `scale: [x, y]` makes an ellipse;
@@ -300,8 +309,50 @@ samples produce the same seeded paths regardless of normal frame cadence.
 Large time jumps cap catch-up work; backwards seeking or changing the seed
 restarts the simulation. Unlike `clusterMotion`, it is a stateful simulation,
 not an arbitrary-time path sampler. Custom wrappers can read `context.active`
-and compose the returned samples, but automatic idle sleeping applies to the
-direct preset only. Both presets reuse their arrays and samples.
+and compose the returned samples. Automatic idle sleeping recognizes the direct
+preset and `withPointerBurst` compositions; arbitrary wrappers manage their own
+idle behavior. Both presets reuse their arrays and samples.
+
+## Pointer bursts and composition
+
+`withPointerBurst` decorates any `StippleMotion` with transient metaballs along
+the pointer's path. They bloom briefly, travel radially away from their birth
+point and immediately shrink until completely gone. A stationary pointer stops
+emitting. Leaving the container resets the anchor, so returning does not draw a
+bridge across the gap. Finishing work stops new emissions while existing bursts
+disappear; reduced motion clears the transient effect.
+
+```tsx
+import { StippleBackground, workMotion, withPointerBurst } from "@lesomnus/nox";
+
+// Keep the composed function stable, at module scope or with useMemo.
+const interactiveWork = withPointerBurst(workMotion);
+
+<StippleBackground
+  className="work-background"
+  motion={interactiveWork}
+  active={isWorking}
+  pointerEffects={pointerEnabled}
+/>;
+
+// The same decorator works with your own callback or another preset.
+const interactiveCustomMotion = withPointerBurst(myMotion, {
+  maxParticles: 12,
+});
+```
+
+The component collects local pointer input; creation, outward travel and
+disappearance happen in the composed motion. Custom callbacks can also read
+`context.pointer` directly. Switching `pointerEffects` off stops emission and
+lets existing bursts finish without resetting the base simulation. The Work
+Motion story includes a **Pointer bursts** switch; other stories keep their
+existing motions.
+
+The decorator keeps original samples first and reuses a bounded particle pool
+and output array. Base fields take priority within `MAX_STIPPLE_METABALLS`; a
+full base population leaves no room for bursts. `maxParticles` caps the added
+fields, and emissions per frame are bounded across large pointer jumps.
+Composed Work Motion still sleeps when inactive after every field disappears.
 
 ## Motion and lifecycle
 

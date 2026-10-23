@@ -24,6 +24,12 @@
   background: var(--ui-dropdown-background);
   backdrop-filter: blur(var(--ui-dropdown-blur));
 }
+.effectToggle {
+  display: flex;
+  align-items: center;
+  gap: var(--ui-space);
+  padding-inline: var(--ui-space);
+}
 .wallpaper.wallpaper {
   position: fixed;
   inset: 0;

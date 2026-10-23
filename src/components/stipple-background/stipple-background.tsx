@@ -19,10 +19,15 @@ export type {
   StippleMetaball,
   StippleMotion,
   StippleMotionContext,
+  StipplePointer,
 } from "./stipple-model";
 export { MAX_STIPPLE_METABALLS } from "./stipple-model";
 export { clusterMotion } from "./stipple-motions";
 export { workMotion } from "./stipple-work-motion";
+export {
+  withPointerBurst,
+  type StipplePointerBurstOptions,
+} from "./stipple-pointer-motion";
 export type StippleBackgroundProps = Omit<ComponentProps<"div">, "onError"> &
   StippleSettings & {
     onError?: (error: Error) => void;
@@ -39,6 +44,7 @@ export function StippleBackground({
   edgeFadeSteps,
   motion,
   active,
+  pointerEffects,
   maxWidth,
   maxFps,
   pattern,
@@ -75,6 +81,7 @@ export function StippleBackground({
         edgeFadeSteps,
         motion,
         active,
+        pointerEffects,
         maxWidth,
         maxFps,
         pattern,
@@ -94,6 +101,7 @@ export function StippleBackground({
       edgeFadeSteps,
       motion,
       active,
+      pointerEffects,
       maxWidth,
       maxFps,
       pattern,

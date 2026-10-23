@@ -69,7 +69,7 @@ try {
     join(temporary, "main.tsx"),
     `
     import { createRoot } from "react-dom/client";
-    import { InkSparkle, type InkSparkleProps, Button, Checkbox, DateTime, DescriptionList, IdentifierValue, NavigationPanel, StippleBackground, clusterMotion, workMotion, UIProvider } from "@lesomnus/nox";
+    import { InkSparkle, type InkSparkleProps, Button, Checkbox, DateTime, DescriptionList, IdentifierValue, NavigationPanel, StippleBackground, clusterMotion, workMotion, withPointerBurst, UIProvider } from "@lesomnus/nox";
     import { TerminalWorkbench } from "@lesomnus/nox/terminal";
     import "@lesomnus/nox/styles.css";
     void TerminalWorkbench;
@@ -82,6 +82,7 @@ try {
         <StippleBackground paused pattern="diamond" colorBlend="dither" palette={["#abc", "#123456", "#fedcba", "#84a59d"]} motion={(t, {aspect}) => [{x: 0.5, y: 0.5, radius: 0.2 + Math.sin(t) * 0.02, scale: [aspect, 1], rotation: t}]} style={{height: 100}} />
         <StippleBackground motion={clusterMotion} edgeFade={0.75} edgeFadeSteps={3} seed={7} paused style={{height: 100}} />
         <StippleBackground motion={workMotion} active={false} style={{height: 100}} />
+        <StippleBackground pointerEffects={false} motion={withPointerBurst((t, {pointer}) => [{x:pointer?.x ?? 0.5,y:0.5,radius:0.1 + Math.sin(t)*0.01}], {maxParticles:8})} style={{height:100}} />
         <StippleBackground paused motion={() => [{x:0.5, y:0.5, radius:0.2, deformation:0.8}]} style={{height:100}} />
         <NavigationPanel title="Records">
           <DescriptionList rows={[

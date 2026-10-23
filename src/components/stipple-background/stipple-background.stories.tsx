@@ -2,9 +2,11 @@ import { StrictMode, useState } from "react";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import {
   Button,
+  Switch,
   StippleBackground,
   clusterMotion,
   workMotion,
+  withPointerBurst,
   type StippleMotion,
 } from "@lesomnus/nox";
 import styles from "./stipple-background.stories.module.css";
@@ -13,6 +15,7 @@ const orbitingPair: StippleMotion = (t) => [
   { x: 0.4 + 0.04 * Math.sin(t * 0.4), y: 0.5, radius: 0.22, color: 0 },
   { x: 0.6 - 0.04 * Math.sin(t * 0.4), y: 0.5, radius: 0.22, color: 1 },
 ];
+const interactiveWorkMotion = withPointerBurst(workMotion);
 const ellipticalOrbit: StippleMotion = (t, { seed }) => [
   {
     x: 0.5 + 0.18 * Math.cos(t * 0.3),
@@ -69,6 +72,7 @@ const meta = {
     edgeFade: { control: { type: "range", min: 0, max: 1, step: 0.05 } },
     edgeFadeSteps: { control: { type: "range", min: 0, max: 8, step: 1 } },
     motion: { control: false },
+    pointerEffects: { control: false },
     backgroundColor: { control: "text" },
     onError: { action: "renderer error" },
     children: { control: false },
@@ -121,7 +125,7 @@ export const ModifiedClusterMotion: Story = {
   },
 };
 export const WorkMotion: Story = {
-  args: { motion: workMotion, scatterPx: 120 },
+  args: { motion: interactiveWorkMotion, scatterPx: 120 },
   parameters: {
     docs: {
       description: {
@@ -132,8 +136,13 @@ export const WorkMotion: Story = {
   },
   render: function Example(args) {
     const [working, setWorking] = useState(false);
+    const [pointerEffects, setPointerEffects] = useState(true);
     return (
-      <StippleBackground {...args} active={working}>
+      <StippleBackground
+        {...args}
+        active={working}
+        pointerEffects={pointerEffects}
+      >
         <div className={styles.content}>
           <h2>Work in motion</h2>
           <p>Bloom, drift, interact, then quietly disappear.</p>
@@ -141,6 +150,14 @@ export const WorkMotion: Story = {
             <Button onClick={() => setWorking(!working)}>
               {working ? "Finish work" : "Start work"}
             </Button>
+            <label className={styles.effectToggle}>
+              <span>Pointer bursts</span>
+              <Switch
+                label="Pointer bursts"
+                checked={pointerEffects}
+                onChange={setPointerEffects}
+              />
+            </label>
           </div>
         </div>
       </StippleBackground>

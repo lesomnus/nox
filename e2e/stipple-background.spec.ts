@@ -202,6 +202,78 @@ test("liquid fields have a genuinely concave silhouette, animate in place and ca
   await expect.poll(async () => (await stats(page)).hash).not.toBe(hash);
 });
 
+test("pointer bursts follow local movement, expire on the unscaled clock, toggle independently and preserve the base GPU", async ({
+  page,
+}) => {
+  await page.goto(
+    story("work-motion", "speed:0.2").replace(
+      "maxWidth:96;maxFps:10",
+      "maxWidth:192;maxFps:20",
+    ),
+  );
+  await page.getByRole("button", { name: "Start work" }).click();
+  const canvas = page.locator("canvas");
+  const box = (await canvas.boundingBox())!;
+  const count = () =>
+    canvas.evaluate((el: HTMLCanvasElement) => {
+      const gl = el.getContext("webgl2")!;
+      const program = gl.getParameter(gl.CURRENT_PROGRAM) as WebGLProgram;
+      return gl.getUniform(
+        program,
+        gl.getUniformLocation(program, "uCount")!,
+      ) as number;
+    });
+  const programs = (await stats(page)).programs;
+  await expect.poll(count).toBe(10);
+  await page.mouse.move(box.x + box.width * 0.72, box.y + box.height * 0.25, {
+    steps: 4,
+  });
+  await expect.poll(count).toBeGreaterThan(10);
+  await expect
+    .poll(async () => (await stats(page)).colored)
+    .toBeGreaterThan(50);
+  await expect.poll(count, { timeout: 2500, intervals: [100] }).toBe(10);
+  await page.getByRole("switch", { name: "Pointer bursts" }).click();
+  await expect(
+    page.getByRole("switch", { name: "Pointer bursts" }),
+  ).toHaveAttribute("aria-checked", "false");
+  await expect.poll(count, { timeout: 2500, intervals: [100] }).toBe(10);
+  await page.mouse.move(box.x + box.width * 0.9, box.y + box.height * 0.7, {
+    steps: 6,
+  });
+  await page.waitForTimeout(180);
+  expect(await count()).toBe(10);
+  await page.getByRole("switch", { name: "Pointer bursts" }).click();
+  await page.mouse.move(box.x + box.width * 0.65, box.y + box.height * 0.2, {
+    steps: 4,
+  });
+  await expect.poll(count).toBeGreaterThan(10);
+  await page.mouse.move(box.x - 20, box.y - 20);
+  await expect.poll(count, { timeout: 2500, intervals: [100] }).toBe(10);
+  expect((await stats(page)).programs).toBe(programs);
+});
+
+test("reduced motion ignores pointer bursts and keeps the active image still", async ({
+  page,
+}) => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.goto(story("work-motion"));
+  await page.getByRole("button", { name: "Start work" }).click();
+  const box = (await page.locator("canvas").boundingBox())!;
+  await page.mouse.move(box.x + box.width * 0.8, box.y + box.height * 0.3, {
+    steps: 6,
+  });
+  await settledDraws(page);
+  const count = await page
+    .locator("canvas")
+    .evaluate((el: HTMLCanvasElement) => {
+      const gl = el.getContext("webgl2")!;
+      const program = gl.getParameter(gl.CURRENT_PROGRAM) as WebGLProgram;
+      return gl.getUniform(program, gl.getUniformLocation(program, "uCount")!);
+    });
+  expect(count).toBe(10);
+});
+
 test("work motion blooms, keeps drifting through finish, sleeps when empty and restarts on the same GPU", async ({
   page,
 }) => {

@@ -1,8 +1,13 @@
-import { rasterSize, type ResolvedStippleSettings } from "./stipple-model";
+import {
+  rasterSize,
+  type ResolvedStippleSettings,
+  type StippleMotionContext,
+} from "./stipple-model";
 import { fragmentShaderSource, vertexShaderSource } from "./stipple-shaders";
 import { createCustomStippleFrame, type StippleFrame } from "./stipple-frame";
 import { clusterMotion } from "./stipple-motions";
 import { workMotion } from "./stipple-work-motion";
+import { pointerBaseMotion } from "./stipple-pointer-motion";
 
 function createGpu(canvas: HTMLCanvasElement) {
   const gl = canvas.getContext("webgl2", {
@@ -105,7 +110,9 @@ function createGpu(canvas: HTMLCanvasElement) {
         gl.uniform1f(uniforms.uTime, time);
         gl.uniform1f(
           uniforms.uFlow,
-          !settings.motion || settings.motion === clusterMotion ? 1 : 0,
+          pointerBaseMotion(settings.motion ?? clusterMotion) === clusterMotion
+            ? 1
+            : 0,
         );
         gl.uniform1f(uniforms.uGrainPx, settings.grainPx * scale);
         gl.uniform1f(uniforms.uScatterPx, settings.scatterPx * scale);
@@ -141,6 +148,8 @@ export function createStippleRenderer(
 ) {
   let settings = initialSettings;
   const customFrame = createCustomStippleFrame();
+  const pointer = { x: 0, y: 0, inside: false, sequence: 0, path: 0 };
+  const surface = canvas.parentElement;
   const context = {
     width: 0,
     height: 0,
@@ -148,6 +157,8 @@ export function createStippleRenderer(
     seed: settings.seed,
     active: settings.active,
     reducedMotion: false,
+    elapsed: 0,
+    pointer: undefined as StippleMotionContext["pointer"],
   };
   let resting = false;
   let motionFailed = false;
@@ -156,6 +167,7 @@ export function createStippleRenderer(
   let frame = 0;
   let previous: number | undefined;
   let time = 0;
+  let elapsedTime = 0;
   let width = 0,
     height = 0,
     scale = 1;
@@ -182,9 +194,11 @@ export function createStippleRenderer(
       context.seed = settings.seed;
       context.active = settings.active;
       context.reducedMotion = reduced.matches;
+      context.elapsed = elapsedTime;
+      context.pointer = settings.pointerEffects ? pointer : undefined;
       const samples = (settings.motion ?? clusterMotion)(time, context);
       resting =
-        settings.motion === workMotion &&
+        pointerBaseMotion(settings.motion ?? clusterMotion) === workMotion &&
         !settings.active &&
         samples.length === 0;
       const frame = customFrame.sample(
@@ -211,10 +225,10 @@ export function createStippleRenderer(
     if (previous === undefined) previous = now;
     const elapsed = now - previous;
     if (elapsed >= 1000 / settings.maxFps) {
-      time +=
-        Math.min(Math.max(250, 1000 / settings.maxFps), elapsed) *
-        0.001 *
-        settings.speed;
+      const delta =
+        Math.min(Math.max(250, 1000 / settings.maxFps), elapsed) * 0.001;
+      elapsedTime += delta;
+      time += delta * settings.speed;
       previous = now;
       paint();
     }
@@ -225,10 +239,18 @@ export function createStippleRenderer(
     frame = 0;
     previous = undefined;
     if (disposed) return;
+    if (
+      !visible() ||
+      settings.paused ||
+      reduced.matches ||
+      settings.speed === 0
+    )
+      clearPointer();
     paint();
     if (animating()) frame = requestAnimationFrame(render);
   }
   function resize() {
+    clearPointer();
     const rect = canvas.getBoundingClientRect();
     width = rect.width;
     height = rect.height;
@@ -261,6 +283,7 @@ export function createStippleRenderer(
   }
   function lost(event: Event) {
     event.preventDefault();
+    clearPointer();
     cancelAnimationFrame(frame);
     frame = 0;
     previous = undefined;
@@ -273,6 +296,32 @@ export function createStippleRenderer(
       ),
     );
   }
+  function clearPointer() {
+    pointer.inside = false;
+    pointer.sequence++;
+    pointer.path++;
+  }
+  function movePointer(event: PointerEvent) {
+    if (
+      !settings.pointerEffects ||
+      event.pointerType === "touch" ||
+      settings.paused ||
+      reduced.matches ||
+      settings.speed === 0 ||
+      !visible()
+    )
+      return;
+    const rect = canvas.getBoundingClientRect();
+    if (rect.width <= 0 || rect.height <= 0) return;
+    pointer.x = (event.clientX - rect.left) / rect.width;
+    pointer.y = (event.clientY - rect.top) / rect.height;
+    pointer.inside =
+      pointer.x >= 0 && pointer.x <= 1 && pointer.y >= 0 && pointer.y <= 1;
+    pointer.sequence++;
+  }
+  surface?.addEventListener("pointermove", movePointer, { passive: true });
+  surface?.addEventListener("pointerleave", clearPointer, { passive: true });
+  surface?.addEventListener("pointercancel", clearPointer, { passive: true });
   canvas.addEventListener("webglcontextlost", lost);
   canvas.addEventListener("webglcontextrestored", initialize);
   const observer = new ResizeObserver(resize);
@@ -291,6 +340,7 @@ export function createStippleRenderer(
       if (disposed || next === settings) return;
       if (next.seed !== settings.seed) {
         time = 0;
+        elapsedTime = 0;
       }
       settings = next;
       resize();
@@ -307,6 +357,9 @@ export function createStippleRenderer(
       window.removeEventListener("resize", resize);
       canvas.removeEventListener("webglcontextlost", lost);
       canvas.removeEventListener("webglcontextrestored", initialize);
+      surface?.removeEventListener("pointermove", movePointer);
+      surface?.removeEventListener("pointerleave", clearPointer);
+      surface?.removeEventListener("pointercancel", clearPointer);
     },
   };
 }

@@ -10,6 +10,17 @@ export type StipplePalette = readonly StippleColor[];
 export type StippleColorBlend = "gradient" | "dither" | "none";
 export const MAX_STIPPLE_METABALLS = 32;
 
+export type StipplePointer = Readonly<{
+  /** Position in viewport fractions. */
+  x: number;
+  y: number;
+  inside: boolean;
+  /** Changes on pointer movement or departure; a stationary pointer does not emit. */
+  sequence: number;
+  /** Changes when a trail must start fresh, including leave/re-entry between frames. */
+  path: number;
+}>;
+
 export type StippleMetaball = {
   /** Position in viewport fractions: (0, 0) is top-left, (1, 1) bottom-right. */
   x: number;
@@ -39,6 +50,10 @@ export type StippleMotionContext = Readonly<{
   active?: boolean;
   /** The user's reduced-motion preference. */
   reducedMotion?: boolean;
+  /** Unscaled animation seconds; freezes with pause, hidden/offscreen and reduced motion. */
+  elapsed?: number;
+  /** Local mouse/pen input; absent when pointerEffects is disabled. */
+  pointer?: StipplePointer;
 }>;
 export type StippleMotion = (
   /** Simulation seconds, after speed and pause are applied. */
@@ -67,6 +82,8 @@ export type StippleSettings = {
   motion?: StippleMotion;
   /** Start/finish lifecycle-aware motions without freezing their exit animation. */
   active?: boolean;
+  /** Enable pointer input for composed effects; does not add an effect by itself. */
+  pointerEffects?: boolean;
   /** Maximum drawing-buffer width, independent of the container's CSS size. */
   maxWidth?: number;
   /** Drawing rate limit. */
@@ -131,6 +148,7 @@ export function resolveStippleSettings(settings: StippleSettings) {
     edgeFadeSteps: Math.max(0, Math.floor(finite(settings.edgeFadeSteps, 1))),
     motion: settings.motion,
     active: settings.active ?? true,
+    pointerEffects: settings.pointerEffects ?? true,
     maxWidth: Math.max(1, finite(settings.maxWidth, 1200)),
     maxFps: clamp(finite(settings.maxFps, 30), 1, 60),
     pattern: patterns.includes(settings.pattern ?? "diamond")
