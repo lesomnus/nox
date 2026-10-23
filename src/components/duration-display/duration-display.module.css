@@ -5,9 +5,10 @@
   font-family: var(--ui-font-mono);
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
+  color: var(--ui-text-value);
 }
 
 .zeroDay,
 .zeroDay > span {
-  color: var(--ui-shade-65);
+  color: var(--ui-text-leading);
 }

@@ -1,6 +1,7 @@
 .time {
   font-variant-numeric: tabular-nums;
+  color: var(--ui-text-value);
 }
 .separator {
-  color: var(--ui-muted);
+  color: var(--ui-text-separator);
 }

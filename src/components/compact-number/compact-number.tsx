@@ -91,7 +91,17 @@ export function CompactNumber({
       <span className={styles.leading} aria-hidden="true">
         {number.leading}
       </span>
-      <span aria-hidden="true">{number.digits}</span>
+      <span aria-hidden="true">
+        {number.digits.split(/(\.)/).map((part, index) =>
+          part === "." ? (
+            <span key={index} className={styles.separator}>
+              {part}
+            </span>
+          ) : (
+            part
+          ),
+        )}
+      </span>
       {number.unit && (
         <span className={styles.unit} aria-hidden="true">
           {number.unit}

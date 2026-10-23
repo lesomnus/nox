@@ -79,6 +79,17 @@ default palette. Set `data-ui-theme="light"` on the document root for the light
 palette. Root-level `--ui-*` overrides also reach portaled menus and dialogs. Keep
 token values in CSS rather than duplicating design measurements in documentation.
 
+Formatted text shares three color roles across `ElapsedTime`, `CompactNumber`,
+`DurationDisplay` and `DateTime`:
+
+- `--ui-text-value`: significant digits and values.
+- `--ui-text-separator`: punctuation, decimal points and unit labels.
+- `--ui-text-leading`: padding zeroes and insignificant leading fields.
+
+The roles reference the theme palette, so they follow dark/light changes. Override
+them on the document root or a component container to customize these displays
+together. General labels and descriptions continue to use `--ui-muted`.
+
 `PageToolbar` provides a persistent page header with leading content and optional
 trailing `actions`. Put a selector, breadcrumbs or title in its children and keep
 scrolling content in a sibling below it. It has no routing or resource dependency.
