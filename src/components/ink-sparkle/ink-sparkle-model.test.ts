@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { inkSparkleDuration, inkSparkleFrame } from "./ink-sparkle-model";
+import {
+  inkSparkleDuration,
+  inkSparkleFrame,
+  inkSparklePlayback,
+} from "./ink-sparkle-model";
 
 const frame = (t: number) => inkSparkleFrame(t, 320, 180, [40, 90], 1337);
 
@@ -16,6 +20,18 @@ describe("Flutter InkSparkle animation port", () => {
     expect(frame(0).center).toEqual([40, 90]);
     expect(frame(0.1).center[0]).toBeGreaterThan(40);
     expect(frame(0.375).center).toEqual([160, 90]);
+  });
+  it("can hold the center outside either side while the radius expands", () => {
+    for (const origin of [
+      [-8, 11],
+      [48, 11],
+    ] as const) {
+      const early = inkSparkleFrame(0.1, 40, 22, origin, 1337, "fixed");
+      const late = inkSparkleFrame(0.7, 40, 22, origin, 1337, "fixed");
+      expect(early.center).toEqual(origin);
+      expect(late.center).toEqual(origin);
+      expect(late.radiusScale).toBeGreaterThan(early.radiusScale);
+    }
   });
   it("preserves independent normalized 13/27/60 and 13/27/50 envelopes", () => {
     expect(frame(0).alpha).toBe(0);
@@ -39,5 +55,41 @@ describe("Flutter InkSparkle animation port", () => {
     expect(frame(0).circle1[0]).toBeCloseTo(
       0.75 + 1337 * 0.01 * Math.cos(1.5 * 0.55),
     );
+  });
+});
+
+describe("InkSparkle playback controls", () => {
+  it("stretches the same progress timeline to a chosen duration", () => {
+    expect(inkSparklePlayback(617 / 4, 617, true).progress).toBe(0.25);
+    expect(inkSparklePlayback(500, 2000, true).progress).toBe(0.25);
+    expect(inkSparklePlayback(1000, 2000, true).progress).toBe(0.5);
+  });
+  it("finishes one-shot playback instead of restarting it", () => {
+    expect(inkSparklePlayback(500, 2000, false)).toEqual({
+      progress: 0.25,
+      cycle: 0,
+      complete: false,
+    });
+    expect(inkSparklePlayback(2000, 2000, false)).toEqual({
+      progress: 1,
+      cycle: 0,
+      complete: true,
+    });
+    expect(inkSparklePlayback(9000, 2000, false)).toEqual({
+      progress: 1,
+      cycle: 0,
+      complete: true,
+    });
+    expect(inkSparklePlayback(2500, 2000, true)).toEqual({
+      progress: 0.25,
+      cycle: 1,
+      complete: false,
+    });
+  });
+  it("uses the native duration for invalid values and clamps negative elapsed time", () => {
+    for (const duration of [0, -1, NaN, Infinity]) {
+      expect(inkSparklePlayback(617, duration, false).complete).toBe(true);
+    }
+    expect(inkSparklePlayback(-1, 2000, false).progress).toBe(0);
   });
 });

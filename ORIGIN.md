@@ -37,8 +37,8 @@ this repository. The original cxz workspace was left in place.
 
 - 2026-10-23: ported Flutter InkSparkle from flutter/flutter commit
   `457d49bc600142ecb927f382cf20a728af186ea7`. The original fragment shader is
-  vendored unchanged in `src/components/switch/ink-sparkle.frag`; its Dart
+  vendored unchanged in `src/components/ink-sparkle/ink-sparkle.frag`; its Dart
   animation and uniforms are ported to TypeScript. WebGL2 adapts the backend
   bindings. Flutter's copyright and BSD license are retained in
   `docs/flutter-LICENSE.txt`, included in package distributions. See
-  `docs/switch.md` for integration details and the original source links.
+  `docs/ink-sparkle.md` for integration details and the original source links.

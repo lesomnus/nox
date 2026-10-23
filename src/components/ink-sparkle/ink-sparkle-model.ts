@@ -2,6 +2,24 @@
 // Ported from Flutter ink_sparkle.dart. BSD-3-Clause: docs/flutter-LICENSE.txt.
 
 export const inkSparkleDuration = 617;
+export type InkSparkleCenterMotion = "to-center" | "fixed";
+
+export function inkSparklePlayback(
+  elapsed: number,
+  duration: number,
+  loop: boolean,
+) {
+  const lifetime =
+    Number.isFinite(duration) && duration > 0 ? duration : inkSparkleDuration;
+  const time = Math.max(0, elapsed);
+  return {
+    progress: loop
+      ? (time % lifetime) / lifetime
+      : Math.min(1, time / lifetime),
+    cycle: loop ? Math.floor(time / lifetime) : 0,
+    complete: !loop && time >= lifetime,
+  };
+}
 
 // Flutter Curves.fastOutSlowIn: Cubic(0.4, 0.0, 0.2, 1.0).
 function fastOutSlowIn(t: number) {
@@ -32,10 +50,12 @@ export function inkSparkleFrame(
   height: number,
   origin: readonly [number, number],
   seed: number,
+  centerMotion: InkSparkleCenterMotion = "to-center",
 ) {
   const t = Math.max(0, Math.min(1, progress));
   const radiusScale = fastOutSlowIn(Math.min(1, t / 0.75));
-  const centerProgress = Math.min(1, radiusScale * 2);
+  const centerProgress =
+    centerMotion === "fixed" ? 0 : Math.min(1, radiusScale * 2);
   const phase = seed + radiusScale;
   const turbulenceScale = 1.5;
   const rotateRight = Math.PI * 0.0078125;

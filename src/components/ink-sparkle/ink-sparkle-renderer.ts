@@ -1,5 +1,8 @@
 import flutterShader from "./ink-sparkle.frag?raw";
-import { inkSparkleFrame } from "./ink-sparkle-model";
+import {
+  inkSparkleFrame,
+  type InkSparkleCenterMotion,
+} from "./ink-sparkle-model";
 
 // Keep the upstream shader verbatim. Only adapt Flutter's runtime bindings to
 // WebGL2, including top-left logical fragment coordinates and uniform aliases.
@@ -106,6 +109,7 @@ export function createInkSparkleRenderer(canvas: HTMLCanvasElement) {
         ratio: number,
         origin: readonly [number, number],
         color: readonly [number, number, number, number],
+        centerMotion: InkSparkleCenterMotion = "to-center",
       ) {
         const rasterWidth = Math.max(1, Math.round(width * ratio));
         const rasterHeight = Math.max(1, Math.round(height * ratio));
@@ -113,7 +117,14 @@ export function createInkSparkleRenderer(canvas: HTMLCanvasElement) {
           canvas.width = rasterWidth;
           canvas.height = rasterHeight;
         }
-        const frame = inkSparkleFrame(progress, width, height, origin, seed);
+        const frame = inkSparkleFrame(
+          progress,
+          width,
+          height,
+          origin,
+          seed,
+          centerMotion,
+        );
         gl.useProgram(program);
         gl.viewport(0, 0, canvas.width, canvas.height);
         gl.uniform4f(uniform.u_color, ...color);
