@@ -20,6 +20,8 @@ export function DateTime({
   motion = "none",
   direction,
   duration,
+  maxFlipSteps,
+  flipCharacters,
   ...props
 }: DateTimeProps) {
   const date =
@@ -36,6 +38,8 @@ export function DateTime({
       motion={motion}
       direction={direction}
       duration={duration}
+      maxFlipSteps={maxFlipSteps}
+      flipCharacters={flipCharacters}
       characterClassName={(character) =>
         /\D/.test(character) ? styles.separator : undefined
       }

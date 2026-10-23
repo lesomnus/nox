@@ -18,6 +18,8 @@ export function ElapsedTime({
   motion = "none",
   direction,
   duration,
+  maxFlipSteps,
+  flipCharacters,
 }: ElapsedTimeProps) {
   const [now, setNow] = useState(Date.now);
   useEffect(() => {
@@ -56,6 +58,8 @@ export function ElapsedTime({
         motion={motion}
         direction={direction}
         duration={duration}
+        maxFlipSteps={maxFlipSteps}
+        flipCharacters={flipCharacters}
         characterClassName={(character, index) =>
           index < split
             ? "elapsed-time-leading"

@@ -24,7 +24,7 @@
   inset: 0;
   pointer-events: none;
 }
-.cell[data-motion="slide"][data-changing] > .glyph {
+.cell[data-changing] > .glyph {
   visibility: hidden;
 }
 .outgoing,
@@ -81,6 +81,18 @@
   background: var(--ui-text-flip-divider);
   pointer-events: none;
 }
+.flip_frames {
+  position: absolute;
+  z-index: 1;
+  inset: 0;
+  perspective: inherit;
+}
+.face {
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
 .half {
   z-index: 2;
   top: auto;
@@ -98,15 +110,15 @@
   justify-content: center;
 }
 .fold_out,
-.cell[data-direction="up"] > .resting,
-.cell[data-direction="up"] > .fold_in {
+.cell[data-direction="up"] .resting,
+.cell[data-direction="up"] .fold_in {
   top: 0;
   bottom: auto;
   transform-origin: center bottom;
 }
 .fold_out > span,
-.cell[data-direction="up"] > .resting > span,
-.cell[data-direction="up"] > .fold_in > span {
+.cell[data-direction="up"] .resting > span,
+.cell[data-direction="up"] .fold_in > span {
   top: 0;
 }
 .fold_out {
@@ -119,16 +131,16 @@
   animation: fold-in-down calc(var(--animated-text-duration) / 2) ease-out both;
   animation-delay: calc(var(--animated-text-duration) / 2);
 }
-.cell[data-direction="up"] > .fold_out {
+.cell[data-direction="up"] .fold_out {
   top: auto;
   bottom: 0;
   transform-origin: center top;
   animation-name: fold-out-up;
 }
-.cell[data-direction="up"] > .fold_out > span {
+.cell[data-direction="up"] .fold_out > span {
   top: -100%;
 }
-.cell[data-direction="up"] > .fold_in {
+.cell[data-direction="up"] .fold_in {
   animation-name: fold-in-up;
 }
 @keyframes fold-out-down {

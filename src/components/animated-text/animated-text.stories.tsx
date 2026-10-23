@@ -12,6 +12,7 @@ const meta = {
   argTypes: {
     motion: { control: "select", options: ["none", "slide", "flip"] },
     direction: { control: "select", options: ["auto", "up", "down"] },
+    maxFlipSteps: { control: { type: "number", min: 1, max: 26, step: 1 } },
   },
   render: function Interactive(args) {
     const [, updateArgs] = useArgs();
@@ -38,6 +39,111 @@ export const SlideUp: Story = { args: { direction: "up" } };
 export const SlideDown: Story = { args: { direction: "down" } };
 export const Flip: Story = { args: { motion: "flip" } };
 export const NoMotion: Story = { args: { motion: "none" } };
+
+const textExample: Story["render"] = function TextExample(args) {
+  const [, updateArgs] = useArgs();
+  return (
+    <div className={styles.preview}>
+      <AnimatedText {...args} className={styles.value} />
+      <div className={styles.actions}>
+        {["READY", "BOARD", "CLOSED"].map((value) => (
+          <Button key={value} onClick={() => updateArgs({ value })}>
+            {value}
+          </Button>
+        ))}
+      </div>
+    </div>
+  );
+};
+export const TextSlide: Story = {
+  args: { value: "READY" },
+  render: textExample,
+};
+export const TextFlip: Story = {
+  args: { value: "READY", motion: "flip" },
+  render: textExample,
+};
+export const FlipForwardOnly: Story = {
+  args: { value: "READY", motion: "flip", direction: "down" },
+  render: textExample,
+};
+export const FlipThrough: Story = {
+  args: {
+    value: "A",
+    motion: "flip",
+    direction: "down",
+    duration: 900,
+    maxFlipSteps: 6,
+  },
+  render: function FlipThrough(args) {
+    const [, updateArgs] = useArgs();
+    return (
+      <div className={styles.preview}>
+        <AnimatedText {...args} className={styles.value} />
+        <small>
+          Distance-based flips · max {args.maxFlipSteps ?? 1} per character ·{" "}
+          {args.duration} ms total
+        </small>
+        <div className={styles.actions}>
+          {["A", "D", "Z"].map((value) => (
+            <Button key={value} onClick={() => updateArgs({ value })}>
+              {value}
+            </Button>
+          ))}
+        </div>
+      </div>
+    );
+  },
+};
+export const DepartureBoard: Story = {
+  args: {
+    value: "SEOUL",
+    motion: "flip",
+    direction: "down",
+    duration: 900,
+    maxFlipSteps: 6,
+  },
+  render: function DepartureBoard(args) {
+    const [, updateArgs] = useArgs();
+    return (
+      <div className={styles.preview}>
+        <AnimatedText {...args} className={styles.value} />
+        <div className={styles.actions}>
+          {["SEOUL", "TOKYO", "PARIS", "OSAKA"].map((value) => (
+            <Button key={value} onClick={() => updateArgs({ value })}>
+              {value}
+            </Button>
+          ))}
+        </div>
+      </div>
+    );
+  },
+};
+export const KoreanText: Story = {
+  args: {
+    value: "가나다",
+    motion: "flip",
+    direction: "down",
+    duration: 900,
+    maxFlipSteps: 5,
+    flipCharacters: "가나다라마바사아자차카타파하",
+  },
+  render: function KoreanText(args) {
+    const [, updateArgs] = useArgs();
+    return (
+      <div className={styles.preview}>
+        <AnimatedText {...args} className={styles.value} />
+        <div className={styles.actions}>
+          {["가나다", "라마바", "사아자"].map((value) => (
+            <Button key={value} onClick={() => updateArgs({ value })}>
+              {value}
+            </Button>
+          ))}
+        </div>
+      </div>
+    );
+  },
+};
 export const Clocks: Story = {
   render: function Clocks() {
     const [startedAt] = useState(() => Date.now() - 58_000);
@@ -78,20 +184,26 @@ export const Clocks: Story = {
   },
 };
 export const Rollover: Story = {
-  render: function Rollover() {
+  render: function Rollover(args) {
     const [seconds, setSeconds] = useState(59);
     return (
       <div className={styles.clocks}>
         <ElapsedTime
           durationMs={seconds * 1000}
           label="Rollover elapsed time"
-          motion="slide"
-          duration={600}
+          motion={args.motion}
+          direction={args.direction}
+          duration={args.duration}
+          maxFlipSteps={args.maxFlipSteps}
+          flipCharacters={args.flipCharacters}
         />
         <DateTime
           value={Date.UTC(2026, 9, 23, 23, 59, seconds)}
           motion="flip"
-          duration={600}
+          direction={args.direction}
+          duration={args.duration}
+          maxFlipSteps={args.maxFlipSteps}
+          flipCharacters={args.flipCharacters}
         />
         <div className={styles.actions}>
           <Button onClick={() => setSeconds((value) => value + 1)}>

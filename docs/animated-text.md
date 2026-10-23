@@ -9,13 +9,70 @@ replace the active transition rather than queuing old values, and the accessible
 name always contains the current value. Reduced-motion preferences disable the
 transitions.
 
+## Text and one-way flaps
+
+Text uses the same component as numbers. For an airport-style board that never
+reverses its physical flip direction, use `direction="down"` (or `"up"` for a
+fixed upward flap). This overrides automatic ordering, including decreasing
+numbers and alphabetic wraparound.
+
+```tsx
+<AnimatedText value={status} motion="slide" />
+<AnimatedText value={destination} motion="flip" direction="down" />
+```
+
+## Distance-dependent flips
+
+Set `maxFlipSteps` to show intermediate cards. It caps the **total flips per
+changed character, including the final landing**, and defaults to 1 for the
+existing direct transition. Each character's flips share the existing total
+`duration`, so a longer distance produces more, faster flips without lengthening
+the whole update. No initial-mount animation is added.
+
+```tsx
+<AnimatedText
+  value={destination}
+  motion="flip"
+  direction="down"
+  duration={900}
+  maxFlipSteps={6}
+/>
+```
+
+Default character rings are `0–9`, `A–Z` and `a–z`, separately. Down moves forward,
+up moves backward, wrapping at the end of the ring. With down and a cap of 6:
+`A → D` visits `B, C, D`, `Z → A` makes one forward flip, and `A → Z` samples six
+cards along the forward path. Long distances skip evenly spaced cards to respect
+the limit; the last card is always the requested character. Limits below 1 or
+non-finite limits fall back to one flip; fractions are rounded down.
+
+For another alphabet or a mixed sequence, pass `flipCharacters`. Unicode code
+points are supported, duplicate entries are ignored, and characters absent from
+the ring use a direct flip. Unlisted punctuation remains static. Added or removed
+positions update immediately, as before.
+
+```tsx
+<AnimatedText
+  value={text}
+  motion="flip"
+  direction="down"
+  maxFlipSteps={5}
+  flipCharacters="가나다라마바사아자차카타파하"
+/>
+```
+
+Intermediate cards are visual only: the accessible name immediately contains the
+requested value. A new value replaces the previous sequence and cancels its
+timers. Reduced-motion preferences and `duration={0}` skip all intermediate
+cards. Slide and none motion ignore the flip options.
+
 ```tsx
 <AnimatedText value={price.toFixed(2)} motion="slide" />
 <DateTime value={now} motion="flip" />
 <ElapsedTime startedAt={startedAt} label="Elapsed time" motion="slide" direction="up" />
 ```
 
-DateTime and ElapsedTime accept the same motion, direction and duration options;
+DateTime and ElapsedTime accept the same motion, direction, duration and flip options;
 their default is `motion="none"`. DateTime is controlled by its host, while
 ElapsedTime keeps its existing one-second clock. Neither adds a second clock to
 AnimatedText. The `characterClassName` callback styles individual characters;
@@ -49,6 +106,8 @@ padding, margins or minimum character widths.
 
 Storybook **Components/AnimatedText** has increase/decrease controls, fixed up and
 down slides, split flaps, live clocks and a midnight/minute rollover example.
+TextSlide, TextFlip, FlipForwardOnly, FlipThrough, DepartureBoard and KoreanText
+demonstrate text labels, one-way flaps, bounded sequences and custom alphabets.
 DateTime and ElapsedTime also have their own Sliding and Flipping stories.
 Browser checks cover interruption, direction, timestamp semantics and reduced
 motion; package checks cover compiled and TSX source consumers.

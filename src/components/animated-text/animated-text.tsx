@@ -7,7 +7,7 @@ import {
   type CSSProperties,
   type HTMLAttributes,
 } from "react";
-import { textDirection, type TextMotionOptions } from "./text-motion";
+import { flipPath, textDirection, type TextMotionOptions } from "./text-motion";
 import styles from "./animated-text.module.css";
 
 export type {
@@ -50,6 +50,7 @@ const noMotionSubscription = () => () => {};
 
 type Transition = {
   from: string[];
+  paths: string[][];
   to: string;
   direction: "up" | "down";
   id: number;
@@ -61,6 +62,8 @@ export function AnimatedText({
   motion = "slide",
   direction = "auto",
   duration = 360,
+  maxFlipSteps = 1,
+  flipCharacters,
   comparisonValue,
   characterClassName,
   className = "",
@@ -95,23 +98,47 @@ export function AnimatedText({
       return;
     }
     const id = ++sequence.current;
+    const from = Array.from(before.text);
+    const physicalDirection = textDirection(
+      direction,
+      before.text,
+      text,
+      before.order,
+      order.current,
+    );
     setTransition({
-      from: Array.from(before.text),
+      from,
+      paths:
+        motion === "flip"
+          ? Array.from(text, (character, index) =>
+              from[index] === undefined
+                ? []
+                : flipPath(
+                    from[index],
+                    character,
+                    physicalDirection,
+                    maxFlipSteps,
+                    flipCharacters,
+                  ),
+            )
+          : [],
       to: text,
-      direction: textDirection(
-        direction,
-        before.text,
-        text,
-        before.order,
-        order.current,
-      ),
+      direction: physicalDirection,
       id,
     });
     const timer = setTimeout(() => {
       setTransition((active) => (active?.id === id ? undefined : active));
     }, milliseconds);
     return () => clearTimeout(timer);
-  }, [text, motion, direction, milliseconds, reduced]);
+  }, [
+    text,
+    motion,
+    direction,
+    milliseconds,
+    reduced,
+    maxFlipSteps,
+    flipCharacters,
+  ]);
 
   const active =
     motion !== "none" && !reduced && transition?.to === text
@@ -151,7 +178,10 @@ export function AnimatedText({
           : Array.from(text, (character, index) => {
               const old = active?.from[index];
               const changing = old !== undefined && old !== character;
-              const card = motion === "flip" && /[\p{L}\p{N}]/u.test(character);
+              const card =
+                motion === "flip" &&
+                (/[\p{L}\p{N}]/u.test(character) ||
+                  flipCharacters?.includes(character));
               const animate =
                 !!active && changing && (motion !== "flip" || card);
               return (
@@ -163,6 +193,9 @@ export function AnimatedText({
                   }
                   data-changing={animate || undefined}
                   data-direction={active?.direction}
+                  data-flip-steps={
+                    animate && card ? active.paths[index].length : undefined
+                  }
                 >
                   <span className={styles.glyph}>{character}</span>
                   {animate && (
@@ -181,23 +214,11 @@ export function AnimatedText({
                           </span>
                         </>
                       ) : (
-                        <>
-                          <span
-                            className={`${styles.layer} ${styles.half} ${styles.resting}`}
-                          >
-                            <span>{old}</span>
-                          </span>
-                          <span
-                            className={`${styles.layer} ${styles.half} ${styles.fold_out}`}
-                          >
-                            <span>{old}</span>
-                          </span>
-                          <span
-                            className={`${styles.layer} ${styles.half} ${styles.fold_in}`}
-                          >
-                            <span>{character}</span>
-                          </span>
-                        </>
+                        <FlipFrames
+                          from={old!}
+                          path={active.paths[index]}
+                          duration={milliseconds}
+                        />
                       )}
                     </Fragment>
                   )}
@@ -205,6 +226,56 @@ export function AnimatedText({
               );
             })}
       </span>
+    </span>
+  );
+}
+
+/** Each character fits its own distance-dependent flips inside the shared duration. */
+function FlipFrames({
+  from,
+  path,
+  duration,
+}: {
+  from: string;
+  path: string[];
+  duration: number;
+}) {
+  const [step, setStep] = useState(0);
+  useLayoutEffect(() => {
+    const timers = path
+      .slice(1)
+      .map((_, index) =>
+        setTimeout(
+          () => setStep(index + 1),
+          (duration * (index + 1)) / path.length,
+        ),
+      );
+    return () => timers.forEach(clearTimeout);
+  }, [path, duration]);
+  const previous = step === 0 ? from : path[step - 1];
+  const next = path[step];
+  return (
+    <span
+      className={styles.flip_frames}
+      data-flip-step={step + 1}
+      style={
+        {
+          "--animated-text-duration": `${duration / path.length}ms`,
+        } as CSSProperties
+      }
+    >
+      <Fragment key={step}>
+        <span className={`${styles.layer} ${styles.face}`}>{next}</span>
+        <span className={`${styles.layer} ${styles.half} ${styles.resting}`}>
+          <span>{previous}</span>
+        </span>
+        <span className={`${styles.layer} ${styles.half} ${styles.fold_out}`}>
+          <span>{previous}</span>
+        </span>
+        <span className={`${styles.layer} ${styles.half} ${styles.fold_in}`}>
+          <span>{next}</span>
+        </span>
+      </Fragment>
     </span>
   );
 }
