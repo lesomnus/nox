@@ -185,7 +185,9 @@ can interpolate colors or interleave dots of the original palette colors.
 Optional `edgeFade` softens dot colors at the edges; `edgeFadeSteps` caps the
 additional shades, defaulting to one halfway-to-background shade. A
 time-based motion callback can control metaball positions, size and shape. The
-original movement is also exported as the reusable `clusterMotion` preset. It fills its container,
+original movement is also exported as the reusable `clusterMotion` preset.
+`workMotion` uses `active` to bloom interacting metaballs when work starts and
+shrink them away while still drifting when it finishes. It fills its container,
 keeps children interactive, pauses when hidden or offscreen, and respects reduced
 motion. Unsupported or lost WebGL contexts show the background color; restored
 contexts resume rendering. See [stipple background](docs/stipple-background.md)

@@ -2,6 +2,7 @@ import { rasterSize, type ResolvedStippleSettings } from "./stipple-model";
 import { fragmentShaderSource, vertexShaderSource } from "./stipple-shaders";
 import { createCustomStippleFrame, type StippleFrame } from "./stipple-frame";
 import { clusterMotion } from "./stipple-motions";
+import { workMotion } from "./stipple-work-motion";
 
 function createGpu(canvas: HTMLCanvasElement) {
   const gl = canvas.getContext("webgl2", {
@@ -138,7 +139,15 @@ export function createStippleRenderer(
 ) {
   let settings = initialSettings;
   const customFrame = createCustomStippleFrame();
-  const context = { width: 0, height: 0, aspect: 1, seed: settings.seed };
+  const context = {
+    width: 0,
+    height: 0,
+    aspect: 1,
+    seed: settings.seed,
+    active: settings.active,
+    reducedMotion: false,
+  };
+  let resting = false;
   let motionFailed = false;
   let gpu: ReturnType<typeof createGpu> | undefined;
   let disposed = false;
@@ -157,6 +166,7 @@ export function createStippleRenderer(
     !disposed &&
     !!gpu &&
     !motionFailed &&
+    !resting &&
     visible() &&
     !settings.paused &&
     settings.speed > 0 &&
@@ -168,8 +178,15 @@ export function createStippleRenderer(
       context.height = height;
       context.aspect = width / height;
       context.seed = settings.seed;
+      context.active = settings.active;
+      context.reducedMotion = reduced.matches;
+      const samples = (settings.motion ?? clusterMotion)(time, context);
+      resting =
+        settings.motion === workMotion &&
+        !settings.active &&
+        samples.length === 0;
       const frame = customFrame.sample(
-        (settings.motion ?? clusterMotion)(time, context),
+        samples,
         context.aspect,
         settings.palette,
       );

@@ -69,7 +69,7 @@ try {
     join(temporary, "main.tsx"),
     `
     import { createRoot } from "react-dom/client";
-    import { Button, Checkbox, DateTime, DescriptionList, IdentifierValue, NavigationPanel, StippleBackground, clusterMotion, UIProvider } from "@lesomnus/nox";
+    import { Button, Checkbox, DateTime, DescriptionList, IdentifierValue, NavigationPanel, StippleBackground, clusterMotion, workMotion, UIProvider } from "@lesomnus/nox";
     import { TerminalWorkbench } from "@lesomnus/nox/terminal";
     import "@lesomnus/nox/styles.css";
     void TerminalWorkbench;
@@ -79,6 +79,7 @@ try {
         <Checkbox aria-label="Select record" />
         <StippleBackground paused pattern="diamond" colorBlend="dither" palette={["#abc", "#123456", "#fedcba", "#84a59d"]} motion={(t, {aspect}) => [{x: 0.5, y: 0.5, radius: 0.2 + Math.sin(t) * 0.02, scale: [aspect, 1], rotation: t}]} style={{height: 100}} />
         <StippleBackground motion={clusterMotion} edgeFade={0.75} edgeFadeSteps={3} seed={7} paused style={{height: 100}} />
+        <StippleBackground motion={workMotion} active={false} style={{height: 100}} />
         <NavigationPanel title="Records">
           <DescriptionList rows={[
             { label: "ID", value: <IdentifierValue value="1a2b3c4d-5e6f-7788-9900-aabbccddeeff" /> },

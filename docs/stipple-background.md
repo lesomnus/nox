@@ -65,6 +65,9 @@ above the decorative canvas, which is hidden from assistive technology.
   zero disables color attenuation. Fractional counts are rounded down.
 - `motion`: an optional `(t, context) => metaballs` callback that replaces the
   built-in movement. See the contract and example below.
+- `active`: a work/activity signal for lifecycle-aware motions such as
+  `workMotion`, defaulting to true. Unlike `paused`, false lets an exit animation
+  finish. The original `clusterMotion` does not use this signal.
 - `palette`: a list of cluster colors, using short or full RGB hex strings.
   Empty or entirely invalid palettes use the defaults; invalid entries are
   ignored. Palette changes preserve the current motion.
@@ -140,7 +143,7 @@ the fragment shader's work. Invalid positions and invisible samples are skipped.
   at zero, freezes during pause/reduced motion/hidden/offscreen states, and resets
   when `seed` changes. Changing the callback preserves the clock.
 - `context` provides readonly `width` and `height` in CSS pixels, `aspect`, and
-  the resolved `seed`. The renderer reuses this context object; read its current
+  the resolved `seed`, `active` and `reducedMotion` flags. The renderer reuses this context object; read its current
   values during the callback rather than retaining it as a snapshot.
 - `x` and `y` are viewport fractions. The origin is top-left and the opposite
   corner is `(1, 1)`. Values outside that range allow entry and exit motion.
@@ -239,6 +242,46 @@ callback and copy the fields you want to change, as in the example; do not mutat
 or retain those samples as snapshots. Palette and color blending remain separate
 component controls.
 
+### Work lifecycle
+
+Use `workMotion` when the background accompanies an ongoing task:
+
+```tsx
+import { StippleBackground, workMotion } from "@lesomnus/nox";
+
+<StippleBackground
+  className="work-background"
+  motion={workMotion}
+  active={isWorking}
+  palette={["#b8e0f2", "#b3e6bd", "#c2baf0"]}
+/>;
+```
+
+Keep the component mounted when work finishes so its exit can play. Initially
+inactive backgrounds have no dots. Starting work grows some metaballs within
+the viewport and brings others in from outside. They drift with inertia, soft
+mutual attraction and close-range repulsion. Each pair receives equal and
+opposite forces; a soft inward boundary and gentle wandering keep the movement
+contained without bouncing at the edge. Their shapes also slowly change.
+
+Finishing work preserves positions and velocities while the metaballs shrink
+at different rates. Starting again during this fade regrows the current fields
+instead of replacing them. Once every field disappears, the direct
+`motion={workMotion}` preset stops requesting animation frames; starting work
+wakes it again. The canvas then shows only `backgroundColor`, not transparency.
+`speed` controls both movement and entrance/exit timing. `paused` freezes both.
+With reduced motion, active work has a static composition and finishing hides
+the fields immediately.
+
+This preset integrates forces in bounded, fixed steps and caches its own state
+per renderer context. Share the function freely across backgrounds. Consecutive
+samples produce the same seeded paths regardless of normal frame cadence.
+Large time jumps cap catch-up work; backwards seeking or changing the seed
+restarts the simulation. Unlike `clusterMotion`, it is a stateful simulation,
+not an arbitrary-time path sampler. Custom wrappers can read `context.active`
+and compose the returned samples, but automatic idle sleeping applies to the
+direct preset only. Both presets reuse their arrays and samples.
+
 ## Motion and lifecycle
 
 Some clusters travel into and out of the viewport; others emerge inside it,
@@ -259,5 +302,6 @@ frame. React StrictMode replay can initialize the same canvas again.
 See **Effects/StippleBackground** in Storybook for every pattern, a still image,
 a full-viewport wallpaper, monochrome and custom palettes, a reproducible seed,
 gradient/dither comparisons, the original preset and a modified preset,
+the **Work Motion** start/finish example,
 custom motion, interactive overlaid content and an
 unmount/remount example. Its controls update the live renderer.

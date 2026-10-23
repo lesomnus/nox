@@ -153,6 +153,55 @@ const settledDraws = async (page: Page) => {
   expect((await stats(page)).draws).toBe(before);
 };
 
+test("work motion blooms, keeps drifting through finish, sleeps when empty and restarts on the same GPU", async ({
+  page,
+}) => {
+  await page.goto(story("work-motion", "speed:1"));
+  await expect(page.locator('[data-renderer="webgl2"]')).toBeVisible();
+  expect((await stats(page)).colored).toBe(0);
+  await settledDraws(page);
+  const programs = (await stats(page)).programs;
+  const canvas = await page.locator("canvas").elementHandle();
+  await page.getByRole("button", { name: "Start work" }).click();
+  await expect.poll(async () => (await stats(page)).colored).toBeGreaterThan(0);
+  const initial = (await stats(page)).hash;
+  await expect.poll(async () => (await stats(page)).hash).not.toBe(initial);
+  await page.getByRole("button", { name: "Finish work" }).click();
+  expect((await stats(page)).colored).toBeGreaterThan(0);
+  await expect.poll(async () => (await stats(page)).colored).toBe(0);
+  await expect
+    .poll(() =>
+      page.locator("canvas").evaluate((el: HTMLCanvasElement) => {
+        const gl = el.getContext("webgl2")!;
+        const program = gl.getParameter(gl.CURRENT_PROGRAM) as WebGLProgram;
+        return gl.getUniform(program, gl.getUniformLocation(program, "uCount"));
+      }),
+    )
+    .toBe(0);
+  await settledDraws(page);
+  await page.getByRole("button", { name: "Start work" }).click();
+  await expect.poll(async () => (await stats(page)).colored).toBeGreaterThan(0);
+  expect((await stats(page)).programs).toBe(programs);
+  expect(
+    await canvas!.evaluate((el) => el === document.querySelector("canvas")),
+  ).toBe(true);
+});
+
+test("work motion respects reduced motion without leaving an invisible active background", async ({
+  page,
+}) => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.goto(story("work-motion"));
+  await expect(page.locator('[data-renderer="webgl2"]')).toBeVisible();
+  expect((await stats(page)).colored).toBe(0);
+  await page.getByRole("button", { name: "Start work" }).click();
+  await expect.poll(async () => (await stats(page)).colored).toBeGreaterThan(0);
+  await settledDraws(page);
+  await page.getByRole("button", { name: "Finish work" }).click();
+  await expect.poll(async () => (await stats(page)).colored).toBe(0);
+  await settledDraws(page);
+});
+
 test("all five patterns produce actual colored pixels within the raster budget", async ({
   page,
 }) => {

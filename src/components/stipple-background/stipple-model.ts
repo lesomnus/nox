@@ -33,6 +33,10 @@ export type StippleMotionContext = Readonly<{
   height: number;
   aspect: number;
   seed: number;
+  /** Work/activity signal for lifecycle-aware motions; defaults to true. */
+  active?: boolean;
+  /** The user's reduced-motion preference. */
+  reducedMotion?: boolean;
 }>;
 export type StippleMotion = (
   /** Simulation seconds, after speed and pause are applied. */
@@ -59,6 +63,8 @@ export type StippleSettings = {
   edgeFadeSteps?: number;
   /** Replace the built-in movement with a synchronous time-based sampler. */
   motion?: StippleMotion;
+  /** Start/finish lifecycle-aware motions without freezing their exit animation. */
+  active?: boolean;
   /** Maximum drawing-buffer width, independent of the container's CSS size. */
   maxWidth?: number;
   /** Drawing rate limit. */
@@ -122,6 +128,7 @@ export function resolveStippleSettings(settings: StippleSettings) {
     edgeFade: clamp(finite(settings.edgeFade, 0), 0, 1),
     edgeFadeSteps: Math.max(0, Math.floor(finite(settings.edgeFadeSteps, 1))),
     motion: settings.motion,
+    active: settings.active ?? true,
     maxWidth: Math.max(1, finite(settings.maxWidth, 1200)),
     maxFps: clamp(finite(settings.maxFps, 30), 1, 60),
     pattern: patterns.includes(settings.pattern ?? "diamond")

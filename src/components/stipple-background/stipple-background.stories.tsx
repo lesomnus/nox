@@ -4,6 +4,7 @@ import {
   Button,
   StippleBackground,
   clusterMotion,
+  workMotion,
   type StippleMotion,
 } from "@lesomnus/nox";
 import styles from "./stipple-background.stories.module.css";
@@ -47,6 +48,7 @@ const meta = {
     maxWidth: 1200,
     maxFps: 30,
     paused: false,
+    active: true,
     backgroundColor: "#0a1438",
     palette: ["#b8e0f2", "#b3e6bd", "#c2baf0"],
     className: styles.preview,
@@ -116,6 +118,33 @@ export const ModifiedClusterMotion: Story = {
           "Compose the preset with your own shape changes. Copy each sample before changing it; the preset reuses its array and objects.",
       },
     },
+  },
+};
+export const WorkMotion: Story = {
+  args: { motion: workMotion },
+  parameters: {
+    docs: {
+      description: {
+        story:
+          "Start work to bloom metaballs in place and bring others in from beyond the viewport. Soft mutual attraction and close-range repulsion curve their paths. Finish work keeps them moving as they shrink at different rates. Start again during the exit to regrow without jumping. active is a lifecycle signal; paused freezes both movement and transitions.",
+      },
+    },
+  },
+  render: function Example(args) {
+    const [working, setWorking] = useState(false);
+    return (
+      <StippleBackground {...args} active={working}>
+        <div className={styles.content}>
+          <h2>Work in motion</h2>
+          <p>Bloom, drift, interact, then quietly disappear.</p>
+          <div className={styles.toolbar}>
+            <Button onClick={() => setWorking(!working)}>
+              {working ? "Finish work" : "Start work"}
+            </Button>
+          </div>
+        </div>
+      </StippleBackground>
+    );
   },
 };
 export const Palette: Story = {
