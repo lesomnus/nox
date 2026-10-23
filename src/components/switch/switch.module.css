@@ -52,7 +52,6 @@
 .switch_control[data-pending] {
   --switch-wave-rgb: 255 255 255;
   --switch-wave-strength: 1;
-  --switch-wave-direction: 1;
   cursor: progress;
 }
 .switch_control[data-pending] > span {
@@ -81,7 +80,6 @@
 .switch_control[data-pending][aria-checked="true"] {
   --switch-wave-rgb: 0 0 0;
   --switch-wave-strength: 1.6;
-  --switch-wave-direction: -1;
 }
 .switch_control[data-pending][aria-checked="true"]::after {
   left: auto;
@@ -95,7 +93,7 @@
 }
 @keyframes rail_ripple {
   0% {
-    transform: translateX(calc(2px * var(--switch-wave-direction))) scale(0.15);
+    transform: scale(0.15);
     opacity: 0;
   }
   15% {
@@ -105,7 +103,7 @@
     opacity: 0.85;
   }
   100% {
-    transform: translateX(calc(46px * var(--switch-wave-direction))) scale(1.65);
+    transform: scale(3.2);
     opacity: 0;
   }
 }
@@ -116,6 +114,6 @@
   }
   .switch_control[data-pending]::after {
     animation: none;
-    transform: translateX(calc(10px * var(--switch-wave-direction))) scale(1);
+    transform: scale(1);
   }
 }

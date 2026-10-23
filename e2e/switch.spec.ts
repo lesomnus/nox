@@ -22,7 +22,7 @@ test("pending transitions retain the confirmed state and block repeat input", as
 });
 
 for (const checked of [false, true]) {
-  test(`pending ${checked ? "off" : "on"} expands an eased ripple toward the destination and supports reduced motion`, async ({
+  test(`pending ${checked ? "off" : "on"} grows an eased ripple in place and supports reduced motion`, async ({
     page,
   }) => {
     await page.emulateMedia({ reducedMotion: "reduce" });
@@ -95,8 +95,8 @@ for (const checked of [false, true]) {
     });
     expect(scales.endScale).toBeGreaterThan(scales.startScale);
     expect(scales.endScale - scales.startScale).toBeGreaterThan(0.3);
-    if (checked) expect(scales.endX).toBeLessThan(scales.startX);
-    else expect(scales.endX).toBeGreaterThan(scales.startX);
+    expect(scales.startX).toBe(0);
+    expect(scales.endX).toBe(0);
     expect(Number(scales.startOpacity)).toBeGreaterThan(0.8);
     expect(Number(scales.endOpacity)).toBeGreaterThan(0.8);
     expect(Number(scales.tailOpacity)).toBeLessThan(0.2);
