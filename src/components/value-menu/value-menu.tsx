@@ -390,7 +390,9 @@ export function ValueMenu({
                 }
               >
                 {searchable && options.length === 0 && (
-                  <p role="status">{t("No matches")}</p>
+                  <p className={styles.emptyState} role="status">
+                    {t("No matches")}
+                  </p>
                 )}
                 {visibleSections.map((section, sectionIndex) => (
                   <Fragment key={section.index}>

@@ -185,6 +185,17 @@
   font-weight: inherit;
 }
 
+.emptyState {
+  display: flex;
+  align-items: center;
+  min-height: var(--value-row-height);
+  margin: 0;
+  padding: var(--value-padding-block) var(--value-padding-inline);
+  color: var(--ui-muted);
+  font-size: min(1em, 12px);
+  line-height: 20px;
+}
+
 .groupTitle {
   display: flex;
   align-items: center;

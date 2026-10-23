@@ -354,6 +354,27 @@ export const SearchableScrolling: Story = {
   args: { ...Scrolling.args, searchable: true },
 };
 
+export const NoMatches: Story = {
+  args: {
+    searchable: true,
+    options: [{ value: "medium", label: "Medium" }],
+  },
+  parameters: {
+    docs: {
+      description: {
+        story:
+          "Open the selector to see No matches. Only the current value is configured, so there are no remaining search results. The empty row uses muted, smaller text and the same padding and row height as other menu items, without browser paragraph margins.",
+      },
+    },
+  },
+};
+
+export const CompactNoMatches: Story = {
+  ...NoMatches,
+  args: { ...NoMatches.args, variant: "compact" },
+  decorators: ComposerValue.decorators,
+};
+
 export const EmptySections: Story = {
   args: {
     groups: [
