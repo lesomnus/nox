@@ -5,3 +5,9 @@
 .separator {
   color: var(--ui-text-separator);
 }
+.placeholder {
+  display: inline-block;
+  width: 1ch;
+  text-align: center;
+  color: var(--ui-text-leading);
+}
