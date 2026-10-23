@@ -12,7 +12,7 @@ is fixed **8px outside** the departure edge: `[-8, 11]` when turning on and
 than migrating into the slot. Click position does not change the center.
 
 The rail clips the effect, and the opaque handle stays above it. Ink is white
-when turning on and black when turning off, both at 0.5 alpha. Flutter's white
+at 0.35 alpha when turning on and black at 0.5 alpha when turning off. Flutter's white
 sparkles are retained in both cases. Reduced motion shows a static sample.
 Without WebGL2, the pending state remains accessible and functional.
 
