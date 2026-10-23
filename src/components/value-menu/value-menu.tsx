@@ -9,6 +9,7 @@ import {
   useRef,
   useState,
   type KeyboardEvent,
+  type ReactNode,
 } from "react";
 import { createPortal } from "react-dom";
 import { Button } from "../button/button";
@@ -17,6 +18,8 @@ import { useUI } from "../../providers/ui-provider";
 export type ValueOption = {
   value: string;
   label: string;
+  /** Decorative content shown before the value label. */
+  icon?: ReactNode;
   muted?: boolean;
   /** Keep the option visible while preventing selection. */
   disabled?: boolean;
@@ -27,6 +30,8 @@ export type ValueOption = {
 
 export type ValueOptionGroup = {
   label?: string;
+  /** Decorative content shown before the section title. */
+  icon?: ReactNode;
   items: ValueOption[];
 };
 
@@ -165,7 +170,7 @@ export function ValueMenu({
       );
       const anchor = trigger()?.querySelector(".button-content");
       const current = popup.querySelector(
-        ".setting-current .button-content, input.setting-current",
+        ".setting-current .button-content, .setting-search",
       );
       if (anchor && current) {
         const before = anchor.getBoundingClientRect();
@@ -298,6 +303,7 @@ export function ValueMenu({
         title={disabled ? disabledReason : text}
         onClick={() => (open ? close() : openMenu())}
       >
+        <ValueIcon icon={selected?.icon} />
         <span className="meta-value">{text}</span>
       </Button>
       {open &&
@@ -315,7 +321,7 @@ export function ValueMenu({
                 event.target instanceof Element &&
                 (event.target.closest("button:disabled") ||
                   event.target.getAttribute("role") === "separator" ||
-                  event.target.classList.contains(styles.groupTitle))
+                  event.target.closest(`.${styles.groupTitle}`))
               )
                 event.preventDefault();
             }}
@@ -335,20 +341,23 @@ export function ValueMenu({
             aria-label={t("{label} choices", { label })}
           >
             {searchable ? (
-              <input
-                ref={search}
-                className="setting-current setting-search"
-                aria-label={t("Search {label}", { label })}
-                role="combobox"
-                aria-expanded="true"
-                aria-autocomplete="list"
-                aria-controls={`${id}-results`}
-                value={query}
-                onChange={(e) => {
-                  setQuery(e.target.value);
-                  setQueryEdited(true);
-                }}
-              />
+              <div className="setting-current setting-search-row">
+                <ValueIcon icon={selected?.icon} />
+                <input
+                  ref={search}
+                  className="setting-search"
+                  aria-label={t("Search {label}", { label })}
+                  role="combobox"
+                  aria-expanded="true"
+                  aria-autocomplete="list"
+                  aria-controls={`${id}-results`}
+                  value={query}
+                  onChange={(e) => {
+                    setQuery(e.target.value);
+                    setQueryEdited(true);
+                  }}
+                />
+              </div>
             ) : (
               <Button
                 type="button"
@@ -361,6 +370,7 @@ export function ValueMenu({
                 disabled={selected?.disabled}
                 onClick={() => close(true)}
               >
+                <ValueIcon icon={selected?.icon} />
                 <span className="meta-value">{text}</span>
               </Button>
             )}
@@ -395,7 +405,10 @@ export function ValueMenu({
                           id={`${id}-group-${section.index}`}
                           className={styles.groupTitle}
                         >
-                          {section.label}
+                          <ValueIcon icon={section.icon} />
+                          <span className={styles.groupTitleText}>
+                            {section.label}
+                          </span>
                         </span>
                       )}
                       {section.items.map((choice, itemIndex) => (
@@ -417,6 +430,7 @@ export function ValueMenu({
                               choose(choice.value);
                             }}
                           >
+                            <ValueIcon icon={choice.icon} />
                             <ValueLabel
                               option={choice}
                               query={searchable && queryEdited ? query : ""}
@@ -434,6 +448,14 @@ export function ValueMenu({
         )}
     </div>
   );
+}
+
+function ValueIcon({ icon }: { icon?: ReactNode }) {
+  return icon ? (
+    <span className={styles.icon} aria-hidden="true">
+      {icon}
+    </span>
+  ) : null;
 }
 
 function ValueLabel({ option, query }: { option: ValueOption; query: string }) {

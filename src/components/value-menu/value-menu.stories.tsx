@@ -4,6 +4,7 @@ import {
   ValueMenu,
   StippleBackground,
   type StippleMotion,
+  type ValueOptionGroup,
 } from "@lesomnus/nox";
 import styles from "./value-menu.stories.module.css";
 
@@ -210,6 +211,94 @@ export const DisabledOptions: Story = {
 
 export const SearchableDisabledOptions: Story = {
   args: { ...DisabledOptions.args, searchable: true },
+};
+
+function ExampleIcon({ path }: { path: string }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d={path} />
+    </svg>
+  );
+}
+
+const iconGroups: ValueOptionGroup[] = [
+  {
+    label: "Quick",
+    icon: <ExampleIcon path="m13 2-9 12h7l-1 8 10-13h-7l1-7Z" />,
+    items: [
+      {
+        value: "low",
+        label: "Low",
+        icon: (
+          <ExampleIcon path="M20 4C9 3 3 8 5 15c2 7 14 5 15-11ZM4 21l10-10" />
+        ),
+      },
+      {
+        value: "medium",
+        label: "Medium",
+        icon: <ExampleIcon path="M4 18a9 9 0 1 1 16 0M12 14l4-6" />,
+      },
+    ],
+  },
+  {
+    label: "Deep",
+    icon: (
+      <ExampleIcon path="m12 3 10 5-10 5L2 8l10-5Zm-10 9 10 5 10-5M2 16l10 5 10-5" />
+    ),
+    items: [
+      {
+        value: "high",
+        label: "High",
+        icon: (
+          <ExampleIcon path="M12 3c1 7 7 6 7 12a7 7 0 0 1-14 0c0-4 4-6 7-12Z" />
+        ),
+      },
+      {
+        value: "maximum",
+        label: "Maximum",
+        disabled: true,
+        icon: (
+          <ExampleIcon path="m12 3 3 6 7 1-5 5 1 7-6-3-6 3 1-7-5-5 7-1 3-6Z" />
+        ),
+      },
+    ],
+  },
+];
+
+export const TitleIcons: Story = {
+  args: {
+    groups: iconGroups.map((group) => ({
+      ...group,
+      items: group.items.map(({ icon: _icon, ...item }) => item),
+    })),
+  },
+};
+
+export const ValueIcons: Story = {
+  args: { groups: iconGroups.map(({ icon: _icon, ...group }) => group) },
+};
+
+export const WithIcons: Story = {
+  args: { groups: iconGroups },
+  parameters: {
+    docs: {
+      description: {
+        story:
+          "Both groups and options accept an optional icon (ReactNode) before their text. Option icons also appear beside the current value. Icons are decorative and do not affect accessible names or text search; disabled options retain their icon with the shared disabled styling.",
+      },
+    },
+  },
+};
+
+export const SearchableIcons: Story = {
+  args: { ...WithIcons.args, searchable: true },
 };
 
 export const EmptySections: Story = {
