@@ -21,6 +21,8 @@ export type UIMessage =
   | "Resize panes"
   | "Reconnect"
   | "Copied"
+  | "Copy"
+  | "About {label}"
   | "Copy failed"
   | "Clipboard access failed. Use the terminal context menu to copy.";
 export type UITranslate = (

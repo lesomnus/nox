@@ -69,11 +69,22 @@ try {
     join(temporary, "main.tsx"),
     `
     import { createRoot } from "react-dom/client";
-    import { Button, UIProvider } from "@lesomnus/nox";
+    import { Button, Checkbox, DateTime, DescriptionList, IdentifierValue, NavigationPanel, UIProvider } from "@lesomnus/nox";
     import { TerminalWorkbench } from "@lesomnus/nox/terminal";
     import "@lesomnus/nox/styles.css";
     void TerminalWorkbench;
-    createRoot(document.getElementById("root")!).render(<UIProvider><Button>Save</Button></UIProvider>);
+    createRoot(document.getElementById("root")!).render(
+      <UIProvider>
+        <Button>Save</Button>
+        <Checkbox aria-label="Select record" />
+        <NavigationPanel title="Records">
+          <DescriptionList rows={[
+            { label: "ID", value: <IdentifierValue value="1a2b3c4d-5e6f-7788-9900-aabbccddeeff" /> },
+            { label: "Created", value: <DateTime value="2026-10-20T02:38:19Z" /> },
+          ]} />
+        </NavigationPanel>
+      </UIProvider>
+    );
   `,
   );
   const compilerOptions = {
