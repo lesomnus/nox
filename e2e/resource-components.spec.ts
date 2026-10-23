@@ -114,7 +114,9 @@ test.describe("absolute timestamps in the viewer's timezone", () => {
       "/iframe.html?id=components-datetime--invalid&viewMode=story",
     );
     await expect(time).toHaveCount(0);
-    await expect(page.locator("#storybook-root")).toHaveText("—");
+    await expect(page.getByRole("img", { name: "Invalid date" })).toHaveText(
+      "xxxx-xx-xxTxx:xx:xx+xx:xx",
+    );
   });
 });
 
