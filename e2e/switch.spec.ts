@@ -22,7 +22,7 @@ test("pending transitions retain the confirmed state and block repeat input", as
 });
 
 for (const checked of [false, true]) {
-  test(`pending ${checked ? "off" : "on"} moves a slightly growing circle across the rail and supports reduced motion`, async ({
+  test(`pending ${checked ? "off" : "on"} expands an eased ripple toward the destination and supports reduced motion`, async ({
     page,
   }) => {
     await page.emulateMedia({ reducedMotion: "reduce" });
@@ -72,7 +72,7 @@ for (const checked of [false, true]) {
       const animation = node
         .getAnimations({ subtree: true })
         .find((item) =>
-          (item as CSSAnimation).animationName.includes("wave_pass"),
+          (item as CSSAnimation).animationName.includes("rail_ripple"),
         )!;
       animation.pause();
       animation.currentTime = 200;
@@ -80,20 +80,25 @@ for (const checked of [false, true]) {
       const startOpacity = getComputedStyle(node, "::after").opacity;
       animation.currentTime = 900;
       const end = new DOMMatrix(getComputedStyle(node, "::after").transform);
+      const endOpacity = getComputedStyle(node, "::after").opacity;
+      animation.currentTime = 1550;
+      const tailOpacity = getComputedStyle(node, "::after").opacity;
       return {
+        tailOpacity,
         startScale: start.a,
         endScale: end.a,
         startX: start.m41,
         endX: end.m41,
         startOpacity,
-        endOpacity: getComputedStyle(node, "::after").opacity,
+        endOpacity,
       };
     });
     expect(scales.endScale).toBeGreaterThan(scales.startScale);
-    expect(scales.endScale - scales.startScale).toBeLessThan(0.2);
+    expect(scales.endScale - scales.startScale).toBeGreaterThan(0.3);
     if (checked) expect(scales.endX).toBeLessThan(scales.startX);
     else expect(scales.endX).toBeGreaterThan(scales.startX);
-    expect(scales.startOpacity).toBe("1");
-    expect(scales.endOpacity).toBe("1");
+    expect(Number(scales.startOpacity)).toBeGreaterThan(0.8);
+    expect(Number(scales.endOpacity)).toBeGreaterThan(0.8);
+    expect(Number(scales.tailOpacity)).toBeLessThan(0.2);
   });
 }

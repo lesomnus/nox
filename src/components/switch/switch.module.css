@@ -70,12 +70,13 @@
   pointer-events: none;
   background: radial-gradient(
     circle,
-    rgb(var(--switch-wave-rgb) / calc(0.5 * var(--switch-wave-strength))) 0%,
-    rgb(var(--switch-wave-rgb) / calc(0.32 * var(--switch-wave-strength))) 28%,
-    rgb(var(--switch-wave-rgb) / calc(0.14 * var(--switch-wave-strength))) 50%,
-    transparent 72%
+    rgb(var(--switch-wave-rgb) / calc(0.08 * var(--switch-wave-strength))) 0%,
+    rgb(var(--switch-wave-rgb) / calc(0.24 * var(--switch-wave-strength))) 38%,
+    rgb(var(--switch-wave-rgb) / calc(0.5 * var(--switch-wave-strength))) 58%,
+    rgb(var(--switch-wave-rgb) / calc(0.18 * var(--switch-wave-strength))) 78%,
+    transparent 100%
   );
-  animation: wave_pass 1400ms linear infinite;
+  animation: rail_ripple 1600ms cubic-bezier(0.2, 0.65, 0.35, 1) infinite;
 }
 .switch_control[data-pending][aria-checked="true"] {
   --switch-wave-rgb: 0 0 0;
@@ -92,13 +93,20 @@
 .switch_control[data-pending][aria-checked="true"]:not(:disabled):hover {
   background: var(--ui-shade-204);
 }
-@keyframes wave_pass {
-  from {
-    transform: translateX(calc(-20px * var(--switch-wave-direction)))
-      scale(0.85);
+@keyframes rail_ripple {
+  0% {
+    transform: translateX(calc(2px * var(--switch-wave-direction))) scale(0.15);
+    opacity: 0;
   }
-  to {
-    transform: translateX(calc(60px * var(--switch-wave-direction))) scale(1.15);
+  15% {
+    opacity: 1;
+  }
+  70% {
+    opacity: 0.85;
+  }
+  100% {
+    transform: translateX(calc(46px * var(--switch-wave-direction))) scale(1.65);
+    opacity: 0;
   }
 }
 @media (prefers-reduced-motion: reduce) {
