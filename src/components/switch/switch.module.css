@@ -50,6 +50,7 @@
   cursor: default;
 }
 .switch_control[data-pending] {
+  --switch-wave-rgb: 255 255 255;
   cursor: progress;
 }
 .switch_control[data-pending] > span {
@@ -67,12 +68,15 @@
   pointer-events: none;
   background: radial-gradient(
     circle,
-    rgb(255 255 255 / 0.5) 0%,
-    rgb(255 255 255 / 0.32) 28%,
-    rgb(255 255 255 / 0.14) 50%,
+    rgb(var(--switch-wave-rgb) / 0.5) 0%,
+    rgb(var(--switch-wave-rgb) / 0.32) 28%,
+    rgb(var(--switch-wave-rgb) / 0.14) 50%,
     transparent 72%
   );
   animation: light_bloom 1400ms ease-out infinite;
+}
+.switch_control[data-pending][aria-checked="true"] {
+  --switch-wave-rgb: 0 0 0;
 }
 .switch_control[data-pending][aria-checked="true"]::after {
   left: auto;
