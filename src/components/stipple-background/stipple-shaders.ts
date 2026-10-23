@@ -29,6 +29,7 @@ uniform int uColorCount;
 uniform vec4 uBlobs[${MAX_STIPPLE_METABALLS}];
 uniform vec4 uShapes[${MAX_STIPPLE_METABALLS}];
 uniform float uEnvelopes[${MAX_STIPPLE_METABALLS}];
+uniform float uDeformations[${MAX_STIPPLE_METABALLS}];
 
 uniform vec3 uBackground;
 uniform vec3 uColors[${MAX_STIPPLE_METABALLS}];
@@ -43,7 +44,7 @@ float smoothMin(float a, float b, float k) {
   return min(a, b) - h * h * k * 0.25;
 }
 
-float metaballSDF(vec2 p, vec4 blob, vec4 shape, float id, float t) {
+float metaballSDF(vec2 p, vec4 blob, vec4 shape, float id, float t, float deformation) {
   vec2 q = p - blob.xy;
   float c = cos(shape.z), s = sin(shape.z);
   q = mat2(c, -s, s, c) * q;
@@ -55,6 +56,14 @@ float metaballSDF(vec2 p, vec4 blob, vec4 shape, float id, float t) {
     + 0.012 * sin(a * 5.0 - t * 0.31 + id * 2.41);
 
   float r = blob.z * (1.0 + wobble * shape.w);
+  if (deformation > 0.0) {
+    float phase = t * (0.22 + 0.05 * sin(id * 1.73)) + id * 2.399;
+    float direction = phase * 0.5 + 0.4 * sin(t * 0.13 + id * 1.11);
+    float lobes = 0.12 * cos(a * 2.0 + phase) + 0.06 * cos(a * 3.0 - phase * 0.73);
+    float notch = pow(0.5 + 0.5 * cos(a - direction), 20.0);
+    float depth = 0.42 + 0.18 * cos(phase * 0.7);
+    r += blob.z * deformation * (lobes - depth * notch);
+  }
   return (length(q) - r) * min(shape.x, shape.y);
 }
 
@@ -231,7 +240,7 @@ void main() {
     if (i >= uCount) break;
     vec4 b = uBlobs[i];
     if (uEnvelopes[i] <= 0.0 || b.z <= 0.0) continue;
-    float d = metaballSDF(p, b, uShapes[i], float(i), uTime);
+    float d = metaballSDF(p, b, uShapes[i], float(i), uTime, uDeformations[i]);
     d += (1.0 - uEnvelopes[i]) * (scatter + densityCoreBand);
     int group = int(b.w);
     fields[group] = smoothMin(fields[group], d, uMerge);

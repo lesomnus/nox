@@ -151,6 +151,11 @@ the fragment shader's work. Invalid positions and invisible samples are skipped.
   `rotation` turns it clockwise in radians. `wobble` controls organic boundary
   deformation; omit it for a smooth circle or ellipse. Ellipse distances use an
   approximation, so strongly stretched shapes can have a different falloff.
+- `deformation` adds a liquid silhouette, from zero to one: broad moving lobes
+  and a localized inward dent. Unlike ellipse stretching, it can make the
+  outline concave without cutting a hole through the field. It defaults to
+  zero and composes with `scale`, `rotation` and the finer `wobble` ripples.
+  These animated outlines also use an approximate distance field.
 - `color` indexes the current palette and wraps when outside its range. When
   omitted, the sample's array index selects the color.
 - `influence` is a growth/fade envelope from zero to one. It scales both radius
@@ -176,6 +181,7 @@ const orbit: StippleMotion = (t, { aspect }) => [
     influence: 0.5 - 0.5 * Math.cos(t * 0.2),
     color: 1,
     wobble: 1,
+    deformation: 0.8,
   },
 ];
 

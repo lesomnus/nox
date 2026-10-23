@@ -147,6 +147,34 @@ export const WorkMotion: Story = {
     );
   },
 };
+export const LiquidMetaball: Story = {
+  args: { speed: 1, scatterPx: 4, palette: ["#fff"], backgroundColor: "#000" },
+  parameters: {
+    docs: {
+      description: {
+        story:
+          "Liquid deformation forms moving lobes and a deep inward dent without cutting a hole through the field. Toggle to compare it with an undeformed circle. This is separate from ellipse scale/rotation and the smaller wobble ripples. Work Motion combines these controls for independently undulating droplets.",
+      },
+    },
+  },
+  render: function Example(args) {
+    const [liquid, setLiquid] = useState(true);
+    return (
+      <StippleBackground
+        {...args}
+        motion={() => [
+          { x: 0.5, y: 0.5, radius: 0.28, deformation: liquid ? 1 : 0 },
+        ]}
+      >
+        <div className={styles.content}>
+          <Button onClick={() => setLiquid(!liquid)}>
+            {liquid ? "Use ellipse" : "Use liquid"}
+          </Button>
+        </div>
+      </StippleBackground>
+    );
+  },
+};
 export const Palette: Story = {
   args: { palette: ["#f6bd60", "#f28482", "#84a59d", "#b8b8ff"] },
 };

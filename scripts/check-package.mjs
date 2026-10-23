@@ -80,6 +80,7 @@ try {
         <StippleBackground paused pattern="diamond" colorBlend="dither" palette={["#abc", "#123456", "#fedcba", "#84a59d"]} motion={(t, {aspect}) => [{x: 0.5, y: 0.5, radius: 0.2 + Math.sin(t) * 0.02, scale: [aspect, 1], rotation: t}]} style={{height: 100}} />
         <StippleBackground motion={clusterMotion} edgeFade={0.75} edgeFadeSteps={3} seed={7} paused style={{height: 100}} />
         <StippleBackground motion={workMotion} active={false} style={{height: 100}} />
+        <StippleBackground paused motion={() => [{x:0.5, y:0.5, radius:0.2, deformation:0.8}]} style={{height:100}} />
         <NavigationPanel title="Records">
           <DescriptionList rows={[
             { label: "ID", value: <IdentifierValue value="1a2b3c4d-5e6f-7788-9900-aabbccddeeff" /> },

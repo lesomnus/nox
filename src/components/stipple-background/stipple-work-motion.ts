@@ -92,6 +92,7 @@ function createWork(
     color,
     influence: 0,
     wobble: 0.6,
+    deformation: 0.75,
     scale: [1, 1],
     rotation: 0,
   }));
@@ -247,6 +248,9 @@ function createWork(
             0.24 * Math.sin(t * b.pulseRate + b.phase) +
             0.12 * Math.sin(t * b.slowPulseRate + b.pulsePhase));
         ball.influence = b.influence * b.life;
+        ball.deformation =
+          0.55 +
+          0.4 * (0.5 + 0.5 * Math.sin(t * b.slowPulseRate + b.pulsePhase));
         const shape = ball.scale as [number, number];
         shape[0] = 1 + 0.22 * Math.sin(t * 0.23 + b.phase);
         shape[1] = 1 + 0.17 * Math.cos(t * 0.29 + b.phase);

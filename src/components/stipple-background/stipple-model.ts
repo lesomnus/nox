@@ -24,6 +24,8 @@ export type StippleMetaball = {
   rotation?: number;
   /** Organic boundary deformation, from zero (smooth ellipse) to one. */
   wobble?: number;
+  /** Liquid silhouette deformation: moving lobes and inward dents, from zero to one. */
+  deformation?: number;
   /** Growth/fade envelope from zero to one; defaults to one. */
   influence?: number;
 };

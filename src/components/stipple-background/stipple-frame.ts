@@ -8,6 +8,7 @@ export type StippleFrame = {
   blobs: Float32Array;
   shapes: Float32Array;
   envelopes: Float32Array;
+  deformations: Float32Array;
   colors: Float32Array;
   count: number;
   colorCount: number;
@@ -22,6 +23,7 @@ export function createCustomStippleFrame() {
     blobs: new Float32Array(MAX_STIPPLE_METABALLS * 4),
     shapes: new Float32Array(MAX_STIPPLE_METABALLS * 4),
     envelopes: new Float32Array(MAX_STIPPLE_METABALLS),
+    deformations: new Float32Array(MAX_STIPPLE_METABALLS),
     colors: new Float32Array(MAX_STIPPLE_METABALLS * 3),
     count: 0,
     colorCount: 0,
@@ -73,6 +75,7 @@ export function createCustomStippleFrame() {
         frame.shapes[offset + 2] = -finite(ball.rotation, 0);
         frame.shapes[offset + 3] = clamp(finite(ball.wobble, 0), 0, 1);
         frame.envelopes[index] = influence;
+        frame.deformations[index] = clamp(finite(ball.deformation, 0), 0, 1);
       }
       return frame;
     },

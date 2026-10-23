@@ -86,6 +86,7 @@ function createGpu(canvas: HTMLCanvasElement) {
         "uShapes[0]",
         "uColors[0]",
         "uEnvelopes[0]",
+        "uDeformations[0]",
         "uBackground",
       ].map((name) => [name, gl.getUniformLocation(program!, name)]),
     );
@@ -120,6 +121,7 @@ function createGpu(canvas: HTMLCanvasElement) {
         gl.uniform4fv(uniforms["uShapes[0]"], frame.shapes);
         gl.uniform3fv(uniforms["uColors[0]"], frame.colors);
         gl.uniform1fv(uniforms["uEnvelopes[0]"], frame.envelopes);
+        gl.uniform1fv(uniforms["uDeformations[0]"], frame.deformations);
         gl.uniform3fv(uniforms.uBackground, settings.background);
         gl.drawArrays(gl.TRIANGLES, 0, 3);
       },

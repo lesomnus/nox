@@ -16,6 +16,7 @@ describe("custom stipple samples", () => {
           scale: [2, 0.5],
           rotation: Math.PI / 2,
           wobble: 0.3,
+          deformation: 0.8,
           color: 1,
         },
       ],
@@ -28,6 +29,7 @@ describe("custom stipple samples", () => {
     expect([...frame.shapes.slice(0, 2)]).toEqual([2, 0.5]);
     expect(frame.shapes[2]).toBeCloseTo(-Math.PI / 2);
     expect(frame.shapes[3]).toBeCloseTo(0.3);
+    expect(frame.deformations[0]).toBeCloseTo(0.8);
     expect([...frame.colors.slice(0, 3)]).toEqual([0, 0, 1]);
   });
   it("groups the same palette color and reuses buffers across samples and empty frames", () => {
@@ -39,7 +41,7 @@ describe("custom stipple samples", () => {
       color,
     }));
     const frame = sampler.sample(balls, 1, palette);
-    const { blobs, colors, shapes, envelopes } = frame;
+    const { blobs, colors, shapes, envelopes, deformations } = frame;
     expect(frame.colorCount).toBe(2);
     expect([blobs[3], blobs[7], blobs[11]]).toEqual([0, 1, 0]);
     expect(sampler.sample([], 1, palette)).toBe(frame);
@@ -51,6 +53,23 @@ describe("custom stipple samples", () => {
     expect(frame.colors).toBe(colors);
     expect(frame.shapes).toBe(shapes);
     expect(frame.envelopes).toBe(envelopes);
+    expect(frame.deformations).toBe(deformations);
+  });
+  it("keeps liquid deformation opt-in, clamps it and clears a prior value on reuse", () => {
+    const sampler = createCustomStippleFrame();
+    const ball = { x: 0.5, y: 0.5, radius: 0.2 };
+    const frame = sampler.sample(
+      [
+        { ...ball, deformation: 2 },
+        { ...ball, deformation: -1 },
+        { ...ball, deformation: NaN },
+      ],
+      1,
+      palette,
+    );
+    expect([...frame.deformations.slice(0, 3)]).toEqual([1, 0, 0]);
+    sampler.sample([ball], 1, palette);
+    expect(frame.deformations[0]).toBe(0);
   });
   it("bounds the GPU workload and excludes invalid or invisible samples", () => {
     const sampler = createCustomStippleFrame();

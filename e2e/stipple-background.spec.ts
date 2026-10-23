@@ -18,6 +18,7 @@ declare global {
     stippleProbeRow?: { width: number; height: number; pixels: number[] };
     checkStippleDotColors?: boolean;
     stippleDotProbe?: { dots: number; splitDots: number };
+    stippleShapeProbe?: number[];
   }
 }
 
@@ -152,6 +153,54 @@ const settledDraws = async (page: Page) => {
   await page.waitForTimeout(250);
   expect((await stats(page)).draws).toBe(before);
 };
+
+test("liquid fields have a genuinely concave silhouette, animate in place and can return to an ellipse", async ({
+  page,
+}) => {
+  await page.addInitScript(() => {
+    const proto = WebGL2RenderingContext.prototype;
+    const draw = proto.drawArrays;
+    proto.drawArrays = function (...args) {
+      draw.apply(this, args);
+      const radius = this.drawingBufferHeight * 0.28;
+      window.stippleShapeProbe = [-0.45, 0, 0.45].map((y) => {
+        const pixels = new Uint8Array(12 * 12 * 4);
+        this.readPixels(
+          Math.round(this.drawingBufferWidth * 0.5 + radius * 0.75) - 6,
+          Math.round(this.drawingBufferHeight * 0.5 + radius * y) - 6,
+          12,
+          12,
+          this.RGBA,
+          this.UNSIGNED_BYTE,
+          pixels,
+        );
+        let count = 0;
+        for (let i = 0; i < pixels.length; i += 4) if (pixels[i] > 100) count++;
+        return count;
+      });
+    };
+  });
+  await page.goto(
+    story("liquid-metaball", "paused:true;maxWidth:600;scatterPx:0"),
+  );
+  await expect(page.locator('[data-renderer="webgl2"]')).toBeVisible();
+  const probe = () => page.evaluate(() => window.stippleShapeProbe!);
+  const [lower, dent, upper] = await probe();
+  expect(lower).toBeGreaterThan(3);
+  expect(upper).toBeGreaterThan(3);
+  expect(dent).toBe(0);
+  const programs = (await stats(page)).programs;
+  await page.getByRole("button", { name: "Use ellipse" }).click();
+  await expect.poll(async () => (await probe())[1]).toBeGreaterThan(3);
+  const ellipse = await probe();
+  expect(ellipse.every((count) => count > 3)).toBe(true);
+  expect((await stats(page)).programs).toBe(programs);
+  await settledDraws(page);
+  await page.goto(story("liquid-metaball", "speed:1"));
+  await expect.poll(async () => (await stats(page)).colored).toBeGreaterThan(0);
+  const hash = (await stats(page)).hash;
+  await expect.poll(async () => (await stats(page)).hash).not.toBe(hash);
+});
 
 test("work motion blooms, keeps drifting through finish, sleeps when empty and restarts on the same GPU", async ({
   page,
