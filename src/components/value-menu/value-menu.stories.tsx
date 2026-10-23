@@ -343,7 +343,7 @@ export const Scrolling: Story = {
     docs: {
       description: {
         story:
-          "40 presets across four sections, with icons, dividers and disabled options. The choice list scrolls within its existing 240px height limit (or the available viewport space), while the current-value row stays in place. Try the mouse wheel, arrow keys and Home/End.",
+          "40 presets across four sections, with icons, dividers and disabled options. The shared Nox ScrollArea supplies the custom handle and edge fades within the existing 240px height limit (or the available viewport space), while the current-value row stays in place. Try the mouse wheel, dragging the handle, arrow keys and Home/End.",
       },
     },
   },
