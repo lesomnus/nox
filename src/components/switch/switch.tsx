@@ -4,11 +4,14 @@ export function Switch({
   label,
   checked,
   disabled = false,
+  pending = false,
   onChange,
 }: {
   label: string;
   checked: boolean;
   disabled?: boolean;
+  /** Keep checked at the current value while its opposite is being applied. */
+  pending?: boolean;
   onChange: (checked: boolean) => void;
 }) {
   return (
@@ -17,11 +20,20 @@ export function Switch({
       role="switch"
       aria-label={label}
       aria-checked={checked}
+      aria-busy={pending || undefined}
+      aria-disabled={pending || undefined}
+      data-pending={pending || undefined}
       disabled={disabled}
       className={styles.switch_control}
-      onClick={() => onChange(!checked)}
+      onClick={() => {
+        if (!pending) onChange(!checked);
+      }}
     >
-      <span aria-hidden="true" />
+      <span aria-hidden="true">
+        <svg viewBox="0 0 16 16" fill="none">
+          <path d="m6 4 4 4-4 4" />
+        </svg>
+      </span>
     </button>
   );
 }
