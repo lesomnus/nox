@@ -60,8 +60,28 @@ export const ComposerValue: Story = {
 };
 
 const backdropMotion: StippleMotion = (t) => [
-  { x: 0.35 + 0.06 * Math.sin(t * 0.4), y: 0.5, radius: 0.28, color: 0 },
-  { x: 0.65 + 0.05 * Math.cos(t * 0.3), y: 0.45, radius: 0.3, color: 1 },
+  {
+    x: 0.5 + 0.34 * Math.sin(t * 1.3),
+    y: 0.52 + 0.2 * Math.cos(t * 0.9),
+    radius: 0.15 + 0.035 * Math.sin(t * 1.1),
+    scale: [1.5, 0.65],
+    rotation: t * 0.8,
+    color: 0,
+  },
+  {
+    x: 0.5 + 0.32 * Math.cos(t * 1.1 + 0.8),
+    y: 0.5 + 0.22 * Math.sin(t * 1.4),
+    radius: 0.14 + 0.03 * Math.cos(t * 0.7),
+    scale: [0.7, 1.4],
+    rotation: -t * 0.7,
+    color: 1,
+  },
+  {
+    x: 0.5 + 0.24 * Math.sin(t * 1.7 + 2.4),
+    y: 0.5 + 0.18 * Math.cos(t * 1.2 + 0.9),
+    radius: 0.1 + 0.025 * Math.sin(t * 1.8),
+    color: 0,
+  },
 ];
 
 export const StippleBackdrop: Story = {
@@ -70,6 +90,7 @@ export const StippleBackdrop: Story = {
       <StippleBackground
         className={styles.backdrop}
         motion={backdropMotion}
+        speed={1}
         pattern="diamond"
         grainPx={1.5}
         scatterPx={180}

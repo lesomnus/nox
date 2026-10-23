@@ -35,6 +35,17 @@ test("ValueMenu visibly blurs the StippleBackground behind its portaled surface"
   });
   const sharp = await menu.screenshot({ animations: "disabled" });
   expect(blurred.equals(sharp)).toBe(false);
+  await menu.evaluate((node) => {
+    (node as HTMLElement).style.removeProperty("backdrop-filter");
+  });
+  await page.emulateMedia({ reducedMotion: "no-preference" });
+  const beforeMotion = await menu.screenshot();
+  await expect
+    .poll(async () => (await menu.screenshot()).equals(beforeMotion), {
+      timeout: 5000,
+      intervals: [300, 600],
+    })
+    .toBe(false);
   await menu.getByRole("option", { name: "high", exact: true }).click();
   await expect(trigger).toHaveText("high");
   expect(errors).toEqual([]);
