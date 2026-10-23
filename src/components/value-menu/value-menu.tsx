@@ -13,6 +13,7 @@ import {
 } from "react";
 import { createPortal } from "react-dom";
 import { Button } from "../button/button";
+import { ScrollArea } from "../scroll-area/scroll-area";
 import { useUI } from "../../providers/ui-provider";
 
 export type ValueOption = {
@@ -224,6 +225,8 @@ export function ValueMenu({
     if (disabled) close();
   }, [disabled]);
   function key(e: KeyboardEvent) {
+    // ScrollArea handles its own scrollbar keyboard navigation.
+    if (e.defaultPrevented) return;
     if (e.key === "Escape") {
       e.preventDefault();
       close(true);
@@ -376,8 +379,10 @@ export function ValueMenu({
             )}
             <div className={`${styles.choices} ${dialogStyles.entrance}`}>
               <div className="setting-divider" role="separator" />
-              <div
-                className="setting-options"
+              <ScrollArea
+                className={styles.optionsArea}
+                viewportClassName="setting-options"
+                scrollbarLabel={t("Scroll {label} choices", { label })}
                 id={`${id}-results`}
                 role={searchable ? "listbox" : undefined}
                 aria-label={
@@ -441,7 +446,7 @@ export function ValueMenu({
                     </div>
                   </Fragment>
                 ))}
-              </div>
+              </ScrollArea>
             </div>
           </div>,
           root.current?.closest("dialog[open]") ?? document.body,

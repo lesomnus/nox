@@ -112,9 +112,14 @@
   margin: 6px 0;
   background: var(--ui-shade-60);
 }
-:is(.value_menu, .setting_menu) :global(.setting-options) {
+.optionsArea.optionsArea {
+  --ui-scroll-area-background: var(--ui-dropdown-background);
+  flex: 0 1 auto;
+  background: transparent;
+}
+.setting_menu :global(.setting-options) {
+  height: auto;
   max-height: var(--options-height, 240px);
-  overflow: auto;
 }
 .setting_menu button {
   display: block;
