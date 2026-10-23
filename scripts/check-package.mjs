@@ -69,7 +69,7 @@ try {
     join(temporary, "main.tsx"),
     `
     import { createRoot } from "react-dom/client";
-    import { Button, Checkbox, DateTime, DescriptionList, IdentifierValue, NavigationPanel, UIProvider } from "@lesomnus/nox";
+    import { Button, Checkbox, DateTime, DescriptionList, IdentifierValue, NavigationPanel, StippleBackground, UIProvider } from "@lesomnus/nox";
     import { TerminalWorkbench } from "@lesomnus/nox/terminal";
     import "@lesomnus/nox/styles.css";
     void TerminalWorkbench;
@@ -77,6 +77,7 @@ try {
       <UIProvider>
         <Button>Save</Button>
         <Checkbox aria-label="Select record" />
+        <StippleBackground paused pattern="diamond" colors={["#abc", "#123456", "#fedcba"]} style={{height: 100}} />
         <NavigationPanel title="Records">
           <DescriptionList rows={[
             { label: "ID", value: <IdentifierValue value="1a2b3c4d-5e6f-7788-9900-aabbccddeeff" /> },

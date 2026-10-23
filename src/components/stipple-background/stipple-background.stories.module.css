@@ -1,0 +1,30 @@
+.preview {
+  height: 380px;
+  border-radius: var(--ui-dialog-radius);
+}
+.content {
+  display: grid;
+  align-content: center;
+  justify-items: start;
+  gap: calc(2 * var(--ui-space));
+  min-height: 380px;
+  box-sizing: border-box;
+  padding: calc(6 * var(--ui-space));
+  color: #fff;
+}
+.content h2,
+.content p {
+  margin: 0;
+}
+.toolbar {
+  display: flex;
+  gap: var(--ui-space);
+  padding: var(--ui-space);
+  border-radius: var(--ui-dialog-radius);
+  background: var(--ui-dropdown-background);
+  backdrop-filter: blur(var(--ui-dropdown-blur));
+}
+.wallpaper.wallpaper {
+  position: fixed;
+  inset: 0;
+}

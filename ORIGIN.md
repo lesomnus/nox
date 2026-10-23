@@ -28,3 +28,9 @@ this repository. The original cxz workspace was left in place.
   unread-session tracking and global CSS hooks remain in cxz. Added standalone
   styles, native-label/ref support, clipboard feedback, composition stories and
   browser regressions. No cxz files or dependency pointers were changed.
+
+- 2026-10-23: adapted the user-supplied Diamond Stipple Aurora Metaballs HTML
+  wallpaper into StippleBackground. Preserved its paired metaballs, same-color
+  smooth union, grain patterns and compressed edge falloff. Added React props,
+  container sizing, palette uniforms, deterministic motion, bounded drawing,
+  lifecycle cleanup, automatic pausing and context fallback/restoration.

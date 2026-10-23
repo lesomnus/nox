@@ -164,6 +164,15 @@ lists, growing content and no-overflow examples. Content fetching and
 virtualization belong to the caller. An application's elastic transcript
 scrollbar remains specialized; it is not part of this primitive.
 
+## Animated backgrounds
+
+`StippleBackground` provides a WebGL2 metaball background with five stipple
+patterns, configurable colors and controlled motion. It fills its container,
+keeps children interactive, pauses when hidden or offscreen, and respects reduced
+motion. Unsupported or lost WebGL contexts show the background color; restored
+contexts resume rendering. See [stipple background](docs/stipple-background.md)
+and **Effects/StippleBackground** in Storybook.
+
 ## Terminal workbench
 
 The separate terminal entry provides tabs, drag docking, nested resizable panes,

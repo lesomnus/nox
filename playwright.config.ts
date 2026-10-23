@@ -19,7 +19,7 @@ export default defineConfig({
   },
   webServer: {
     command:
-      "node node_modules/vite/bin/vite.js preview --outDir storybook-static --host 127.0.0.1 --port 6009 --strictPort",
+      "vite preview --outDir storybook-static --host 127.0.0.1 --port 6009 --strictPort",
     url: "http://127.0.0.1:6009/iframe.html",
     timeout: 30000,
   },
