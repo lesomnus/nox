@@ -52,7 +52,10 @@ recreates resources, and unmount releases them. If WebGL2 is unavailable, the
 effect remains transparent and a non-looping effect completes immediately.
 
 See **Effects/InkSparkle/Original**, **Slow**, **OutsideCenter**,
-**SpeedComparison**, and **SingleBurst** for public-import examples.
+**SpeedComparison**, **SingleBurst**, and **ButtonClick** for public-import examples.
+ButtonClick composes the shared Button with a clipped, non-interactive overlay:
+mouse clicks use local coordinates and keyboard activation uses the center.
+Completed bursts unmount; rapid clicks can overlap within a bounded limit.
 
 ## Flutter InkSparkle port
 

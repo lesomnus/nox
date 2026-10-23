@@ -1,6 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
-import { useState } from "react";
-import { InkSparkle } from "@lesomnus/nox";
+import { useRef, useState } from "react";
+import { Button, InkSparkle } from "@lesomnus/nox";
+import styles from "./ink-sparkle.stories.module.css";
 
 const meta = {
   title: "Effects/InkSparkle",
@@ -109,6 +110,62 @@ export const SingleBurst: Story = {
             onComplete={() => setCompleted((value) => value + 1)}
           />
         </div>
+      </div>
+    );
+  },
+};
+export const ButtonClick: Story = {
+  args: { loop: false, duration: 1200 },
+  argTypes: { origin: { control: false }, loop: { control: false } },
+  parameters: {
+    docs: {
+      description: {
+        story:
+          "Compose the public Button and InkSparkle components without changing Button. A click starts a single burst at its local position; keyboard activation starts at the center. The overlay follows the button's bounds, leaves the label's press animation intact and never intercepts input. Rapid clicks overlap up to four bursts; completed canvases are removed.",
+      },
+    },
+  },
+  render: function ButtonClick(args) {
+    const revision = useRef(0);
+    const [bursts, setBursts] = useState<
+      { id: number; origin: readonly [number, number] }[]
+    >([]);
+    return (
+      <div className={styles.clickExample}>
+        <div className={styles.buttonSurface}>
+          <Button
+            variant="solid"
+            className={styles.clickButton}
+            onClick={(event) => {
+              const rect = event.currentTarget.getBoundingClientRect();
+              const origin: readonly [number, number] =
+                event.detail === 0
+                  ? [rect.width / 2, rect.height / 2]
+                  : [event.clientX - rect.left, event.clientY - rect.top];
+              const id = ++revision.current;
+              setBursts((current) => [...current.slice(-3), { id, origin }]);
+            }}
+          >
+            Click to sparkle
+          </Button>
+          {bursts.map(({ id, origin }) => (
+            <InkSparkle
+              {...args}
+              key={id}
+              origin={origin}
+              loop={false}
+              className={styles.buttonInk}
+              onComplete={() =>
+                setBursts((current) =>
+                  current.filter((burst) => burst.id !== id),
+                )
+              }
+            />
+          ))}
+        </div>
+        <p>
+          Click anywhere on the button, or focus it and press Enter or Space.
+        </p>
       </div>
     );
   },
