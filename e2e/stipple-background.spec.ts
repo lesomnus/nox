@@ -174,7 +174,7 @@ test("work motion blooms, keeps drifting through finish, sleeps when empty and r
       page.locator("canvas").evaluate((el: HTMLCanvasElement) => {
         const gl = el.getContext("webgl2")!;
         const program = gl.getParameter(gl.CURRENT_PROGRAM) as WebGLProgram;
-        return gl.getUniform(program, gl.getUniformLocation(program, "uCount"));
+        return gl.getUniform(program, gl.getUniformLocation(program, "uCount")!);
       }),
     )
     .toBe(0);
