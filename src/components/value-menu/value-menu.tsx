@@ -18,6 +18,8 @@ export type ValueOption = {
   value: string;
   label: string;
   muted?: boolean;
+  /** Keep the option visible while preventing selection. */
+  disabled?: boolean;
   searchText?: string;
   /** Display a divider before this item when another visible item precedes it. */
   separatorBefore?: boolean;
@@ -189,10 +191,12 @@ export function ValueMenu({
     if (searchable) {
       search.current?.focus({ preventScroll: true });
       search.current?.select();
-    } else
-      menu.current
-        ?.querySelector<HTMLButtonElement>("[role=option]")
-        ?.focus({ preventScroll: true });
+    } else {
+      const option = menu.current?.querySelector<HTMLButtonElement>(
+        "[role=option]:not(:disabled)",
+      );
+      (option ?? menu.current)?.focus({ preventScroll: true });
+    }
   }, [open, searchable]);
   useEffect(() => {
     if (!open) return;
@@ -226,9 +230,12 @@ export function ValueMenu({
         e.preventDefault();
         if (!queryEdited) {
           close(true);
-        } else if (options[0]) {
-          choose(options[0].value);
-          close(true);
+        } else {
+          const option = options.find((item) => !item.disabled);
+          if (option) {
+            choose(option.value);
+            close(true);
+          }
         }
         return;
       }
@@ -244,8 +251,10 @@ export function ValueMenu({
       ...(menu.current?.querySelectorAll<HTMLButtonElement>("[role=option]") ||
         []),
     ];
-    const visual =
-      up && !searchable ? [...buttons.slice(1), buttons[0]] : buttons;
+    const visual = (
+      up && !searchable ? [...buttons.slice(1), buttons[0]] : buttons
+    ).filter((button) => !button.disabled);
+    if (visual.length === 0) return;
     const index = visual.indexOf(document.activeElement as HTMLButtonElement);
     const next =
       e.key === "Home"
@@ -300,11 +309,12 @@ export function ValueMenu({
             data-searchable={searchable}
             className={`${styles.setting_menu} ${dialogStyles.entrance} setting-menu ${up ? "opens-up" : ""}`}
             data-enter-effect="fade"
-            onMouseDown={(event) => {
-              // Decorative rows must not blur the focused option/search field.
+            onPointerDownCapture={(event) => {
+              // Non-interactive rows must not blur the focused option/search field.
               if (
                 event.target instanceof Element &&
-                (event.target.getAttribute("role") === "separator" ||
+                (event.target.closest("button:disabled") ||
+                  event.target.getAttribute("role") === "separator" ||
                   event.target.classList.contains(styles.groupTitle))
               )
                 event.preventDefault();
@@ -321,6 +331,7 @@ export function ValueMenu({
                 close();
             }}
             role={searchable ? "group" : "listbox"}
+            tabIndex={-1}
             aria-label={t("{label} choices", { label })}
           >
             {searchable ? (
@@ -347,6 +358,7 @@ export function ValueMenu({
                 role="option"
                 tabIndex={-1}
                 aria-selected="true"
+                disabled={selected?.disabled}
                 onClick={() => close(true)}
               >
                 <span className="meta-value">{text}</span>
@@ -397,6 +409,7 @@ export function ValueMenu({
                             role="option"
                             tabIndex={-1}
                             aria-selected={choice.value === value}
+                            disabled={choice.disabled}
                             title={choice.label}
                             data-muted={!!choice.muted}
                             onClick={() => {

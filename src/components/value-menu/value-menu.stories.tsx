@@ -178,6 +178,40 @@ export const SearchableSections: Story = {
   },
 };
 
+export const DisabledOptions: Story = {
+  args: {
+    groups: [
+      {
+        label: "Quick",
+        items: [
+          { value: "low", label: "Low", disabled: true },
+          { value: "balanced", label: "Balanced" },
+          { value: "medium", label: "Medium" },
+        ],
+      },
+      {
+        label: "Deep",
+        items: [
+          { value: "high", label: "High" },
+          { value: "maximum", label: "Maximum", disabled: true },
+        ],
+      },
+    ],
+  },
+  parameters: {
+    docs: {
+      description: {
+        story:
+          "Set disabled on individual options to keep them visible but unavailable. They use the shared disabled button style and are skipped by mouse selection, arrow keys, Home/End and search Enter. The current value may also be disabled without disabling the selector itself.",
+      },
+    },
+  },
+};
+
+export const SearchableDisabledOptions: Story = {
+  args: { ...DisabledOptions.args, searchable: true },
+};
+
 export const EmptySections: Story = {
   args: {
     groups: [
