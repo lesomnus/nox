@@ -96,7 +96,7 @@ function createTrail(seed: number, count: number) {
           p.y = y;
           p.vx = Math.cos(angle) * speed;
           p.vy = Math.sin(angle) * speed;
-          p.radius = 0.07 + random() * 0.06;
+          p.radius = 0.02 + random() * 0.06;
           p.sample.color = serial++;
         }
       }
@@ -144,7 +144,7 @@ function createTrail(seed: number, count: number) {
         const remaining = Math.max(0, 1 - age / p.life);
         p.sample.influence = context.reducedMotion
           ? 0
-          : smooth(remaining / 0.25) * smooth(age / 0.06);
+          : smooth(remaining / 0.25) * smooth(age / 0.28);
         const travel = 0.7 * (1 - Math.exp(-age / 0.7));
         p.sample.x = p.x + (p.vx * travel) / aspect;
         p.sample.y = p.y + p.vy * travel;

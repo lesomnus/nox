@@ -316,8 +316,8 @@ idle behavior. Both presets reuse their arrays and samples.
 ## Pointer bursts and composition
 
 `withPointerBurst` decorates any `StippleMotion` with transient metaballs along
-the pointer's path. They bloom briefly, travel radially away from their birth
-point and immediately shrink until completely gone. A stationary pointer stops
+the pointer's path. They gently bloom at varied sizes, travel radially away from
+their birth point and immediately shrink until completely gone. A stationary pointer stops
 emitting. Leaving the container resets the anchor, so returning does not draw a
 bridge across the gap. Finishing work stops new emissions while existing bursts
 disappear; reduced motion clears the transient effect.

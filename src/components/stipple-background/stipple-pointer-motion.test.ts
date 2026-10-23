@@ -56,7 +56,7 @@ describe("pointer burst composition", () => {
     expect(composed(0.02, ctx)).toBe(result);
     expect(base).toEqual([ball]);
   });
-  it("blooms at the cursor, radiates in different directions and immediately shrinks away", () => {
+  it("gently blooms at varied sizes, radiates in different directions and shrinks away", () => {
     const motion = withPointerBurst(empty),
       ctx = context();
     const initial = copy(motion, ctx);
@@ -64,14 +64,22 @@ describe("pointer burst composition", () => {
       initial.length,
     );
     ctx.elapsed = 0.08;
+    const emerging = copy(motion, ctx).filter((b) => b.influence! > 0);
+    ctx.elapsed = 0.28;
     const grown = copy(motion, ctx).filter((b) => b.influence! > 0);
     expect(grown).toHaveLength(3);
+    grown.forEach((b, i) => {
+      expect(b.radius * b.influence!).toBeGreaterThan(
+        emerging[i].radius * emerging[i].influence!,
+      );
+    });
+    expect(new Set(grown.map((b) => b.radius)).size).toBe(3);
     expect(grown.some((b) => b.x < 0.5)).toBe(true);
     expect(grown.some((b) => b.x > 0.5)).toBe(true);
     const distances = grown.map((b) =>
       Math.hypot((b.x - 0.5) * ctx.aspect, b.y - 0.5),
     );
-    ctx.elapsed = 0.2;
+    ctx.elapsed = 0.45;
     const shrinking = copy(motion, ctx).filter((b) => b.influence! > 0);
     shrinking.forEach((b, i) => {
       expect(Math.hypot((b.x - 0.5) * ctx.aspect, b.y - 0.5)).toBeGreaterThan(
