@@ -1,10 +1,7 @@
-import {
-  createStippleMotion,
-  rasterSize,
-  type ResolvedStippleSettings,
-} from "./stipple-model";
+import { rasterSize, type ResolvedStippleSettings } from "./stipple-model";
 import { fragmentShaderSource, vertexShaderSource } from "./stipple-shaders";
 import { createCustomStippleFrame, type StippleFrame } from "./stipple-frame";
+import { clusterMotion } from "./stipple-motions";
 
 function createGpu(canvas: HTMLCanvasElement) {
   const gl = canvas.getContext("webgl2", {
@@ -100,7 +97,10 @@ function createGpu(canvas: HTMLCanvasElement) {
         gl.bindVertexArray(vao);
         gl.uniform2f(uniforms.uResolution, canvas.width, canvas.height);
         gl.uniform1f(uniforms.uTime, time);
-        gl.uniform1f(uniforms.uFlow, settings.motion ? 0 : 1);
+        gl.uniform1f(
+          uniforms.uFlow,
+          !settings.motion || settings.motion === clusterMotion ? 1 : 0,
+        );
         gl.uniform1f(uniforms.uGrainPx, settings.grainPx * scale);
         gl.uniform1f(uniforms.uScatterPx, settings.scatterPx * scale);
         gl.uniform1f(uniforms.uMerge, settings.merge);
@@ -131,7 +131,6 @@ export function createStippleRenderer(
   reportError: (error: Error) => void,
 ) {
   let settings = initialSettings;
-  let motion = createStippleMotion(settings.seed);
   const customFrame = createCustomStippleFrame();
   const context = { width: 0, height: 0, aspect: 1, seed: settings.seed };
   let motionFailed = false;
@@ -163,17 +162,11 @@ export function createStippleRenderer(
       context.height = height;
       context.aspect = width / height;
       context.seed = settings.seed;
-      let frame: StippleFrame;
-      if (settings.motion) {
-        frame = customFrame.sample(
-          settings.motion(time, context),
-          context.aspect,
-          settings.palette,
-        );
-      } else {
-        motion.sample(time, context.aspect, settings.palette);
-        frame = motion;
-      }
+      const frame = customFrame.sample(
+        (settings.motion ?? clusterMotion)(time, context),
+        context.aspect,
+        settings.palette,
+      );
       gpu.draw(settings, time, scale, frame);
       if (motionFailed) {
         motionFailed = false;
@@ -272,7 +265,6 @@ export function createStippleRenderer(
     update(next: ResolvedStippleSettings) {
       if (disposed || next === settings) return;
       if (next.seed !== settings.seed) {
-        motion = createStippleMotion(next.seed);
         time = 0;
       }
       settings = next;

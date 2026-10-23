@@ -21,6 +21,7 @@ export type {
   StippleMotionContext,
 } from "./stipple-model";
 export { MAX_STIPPLE_METABALLS } from "./stipple-model";
+export { clusterMotion } from "./stipple-motions";
 export type StippleBackgroundProps = Omit<ComponentProps<"div">, "onError"> &
   StippleSettings & {
     onError?: (error: Error) => void;

@@ -182,7 +182,8 @@ patterns, a configurable cluster palette and controlled motion. Only dots are
 drawn, including where clusters grow and disappear inside the viewport. Each
 mount uses a random arrangement unless a reproducible seed is supplied. Overlaps
 can interpolate colors or interleave dots of the original palette colors. A
-time-based motion callback can control metaball positions, size and shape. It fills its container,
+time-based motion callback can control metaball positions, size and shape. The
+original movement is also exported as the reusable `clusterMotion` preset. It fills its container,
 keeps children interactive, pauses when hidden or offscreen, and respects reduced
 motion. Unsupported or lost WebGL contexts show the background color; restored
 contexts resume rendering. See [stipple background](docs/stipple-background.md)

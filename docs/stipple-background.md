@@ -161,6 +161,53 @@ updates are unnecessary inside the sampler. A thrown callback reports through
 `onError` and suspends animation over the fallback background; a corrected
 callback or setting update can resume rendering.
 
+## Predefined motions
+
+`clusterMotion` is the original movement, exported as a `StippleMotion` function.
+It combines paired metaballs orbiting a drifting center, merging and separating,
+with staggered growth and disappearance inside or across the viewport. Omitting
+`motion` and passing `motion={clusterMotion}` use the same implementation.
+
+```tsx
+import { StippleBackground, clusterMotion } from "@lesomnus/nox";
+
+<StippleBackground className="welcome-background" motion={clusterMotion} />;
+```
+
+The function can be shared by multiple backgrounds. Each renderer's context
+keeps its own cached samples; seed, time and aspect determine the result.
+Sampling a later or earlier time produces the same result regardless of frame
+cadence. The preset computes the current lifetime directly rather than replaying
+every intervening animation frame.
+
+Compose it with a custom callback to keep its paths and adjust individual fields:
+
+```tsx
+import {
+  StippleBackground,
+  clusterMotion,
+  type StippleMotion,
+} from "@lesomnus/nox";
+
+const stretchedClusters: StippleMotion = (t, context) =>
+  clusterMotion(t, context).map((ball) => ({
+    ...ball,
+    scale: [1.6, 0.7],
+    rotation: t * 0.1,
+  }));
+
+<StippleBackground
+  className="welcome-background"
+  motion={stretchedClusters}
+  colorBlend="none"
+/>;
+```
+
+The preset reuses its returned array and sample objects. Read them during the
+callback and copy the fields you want to change, as in the example; do not mutate
+or retain those samples as snapshots. Palette and color blending remain separate
+component controls.
+
 ## Motion and lifecycle
 
 Some clusters travel into and out of the viewport; others emerge inside it,
@@ -180,5 +227,6 @@ frame. React StrictMode replay can initialize the same canvas again.
 
 See **Effects/StippleBackground** in Storybook for every pattern, a still image,
 a full-viewport wallpaper, monochrome and custom palettes, a reproducible seed,
-gradient/dither comparisons, custom motion, interactive overlaid content and an
+gradient/dither comparisons, the original preset and a modified preset,
+custom motion, interactive overlaid content and an
 unmount/remount example. Its controls update the live renderer.

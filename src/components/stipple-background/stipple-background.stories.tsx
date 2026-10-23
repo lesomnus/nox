@@ -1,6 +1,11 @@
 import { StrictMode, useState } from "react";
 import type { Meta, StoryObj } from "@storybook/react-vite";
-import { Button, StippleBackground, type StippleMotion } from "@lesomnus/nox";
+import {
+  Button,
+  StippleBackground,
+  clusterMotion,
+  type StippleMotion,
+} from "@lesomnus/nox";
 import styles from "./stipple-background.stories.module.css";
 
 const orbitingPair: StippleMotion = (t) => [
@@ -80,6 +85,35 @@ export const Hex: Story = { args: { pattern: "hex" } };
 export const Fractal: Story = { args: { pattern: "fractal" } };
 export const Still: Story = { args: { paused: true } };
 export const Seeded: Story = { args: { seed: 1, paused: true } };
+export const ClusterMotion: Story = {
+  args: { motion: clusterMotion },
+  parameters: {
+    docs: {
+      description: {
+        story:
+          "The original motion is exported as clusterMotion. Passing this callback explicitly is equivalent to omitting motion; it can be shared between independent backgrounds.",
+      },
+    },
+  },
+};
+export const ModifiedClusterMotion: Story = {
+  args: {
+    motion: (t, context) =>
+      clusterMotion(t, context).map((ball) => ({
+        ...ball,
+        scale: [1.6, 0.7] as const,
+        rotation: t * 0.1,
+      })),
+  },
+  parameters: {
+    docs: {
+      description: {
+        story:
+          "Compose the preset with your own shape changes. Copy each sample before changing it; the preset reuses its array and objects.",
+      },
+    },
+  },
+};
 export const Palette: Story = {
   args: { palette: ["#f6bd60", "#f28482", "#84a59d", "#b8b8ff"] },
 };

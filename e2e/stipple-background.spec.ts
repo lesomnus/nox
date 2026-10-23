@@ -208,6 +208,36 @@ test("cluster centers remain stippled without solid debug fills", async ({
   expect(metrics.maxRun).toBeLessThanOrEqual(6);
 });
 
+test("the exported cluster preset matches the default and supports shape composition", async ({
+  page,
+}) => {
+  await page.goto(story("diamond", "paused:true"));
+  await expect(page.locator('[data-renderer="webgl2"]')).toBeVisible();
+  const defaultHash = (await stats(page)).hash;
+  await page.goto(story("cluster-motion", "paused:true"));
+  await expect(page.locator('[data-renderer="webgl2"]')).toBeVisible();
+  expect((await stats(page)).hash).toBe(defaultHash);
+  await settledDraws(page);
+  await page.goto(story("modified-cluster-motion", "paused:true"));
+  await expect(page.locator('[data-renderer="webgl2"]')).toBeVisible();
+  expect((await stats(page)).hash).not.toBe(defaultHash);
+  const shape = await page
+    .locator("canvas")
+    .evaluate((el: HTMLCanvasElement) => {
+      const gl = el.getContext("webgl2")!;
+      const program = gl.getParameter(gl.CURRENT_PROGRAM) as WebGLProgram;
+      return [
+        ...gl.getUniform(
+          program,
+          gl.getUniformLocation(program, "uShapes[0]")!,
+        ),
+      ];
+    });
+  expect(shape[0]).toBeCloseTo(1.6);
+  expect(shape[1]).toBeCloseTo(0.7);
+  expect(shape[3]).toBe(1);
+});
+
 test("gradient mixes dot colors while dither retains only the original palette", async ({
   page,
 }) => {
