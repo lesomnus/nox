@@ -18,3 +18,10 @@
 .menuFrame {
   width: min(100%, 240px);
 }
+
+.scrollExample {
+  display: grid;
+  gap: 16px;
+  width: min(100%, 280px);
+  margin-inline: auto;
+}

@@ -301,6 +301,59 @@ export const SearchableIcons: Story = {
   args: { ...WithIcons.args, searchable: true },
 };
 
+const scrollGroups: ValueOptionGroup[] = [
+  "Quick",
+  "Balanced",
+  "Deep",
+  "Experimental",
+].map((label, groupIndex) => {
+  const source = iconGroups[groupIndex % iconGroups.length];
+  return {
+    label,
+    icon: source.icon,
+    items: Array.from({ length: 10 }, (_, index) => ({
+      value: `preset-${groupIndex * 10 + index + 1}`,
+      label: `${label} ${String(index + 1).padStart(2, "0")}`,
+      icon: source.items[index % source.items.length].icon,
+      disabled: index === 4,
+      separatorBefore: index === 5,
+    })),
+  };
+});
+
+export const Scrolling: Story = {
+  args: {
+    label: "Preset",
+    value: "preset-1",
+    minMenuWidth: 240,
+    groups: scrollGroups,
+  },
+  decorators: [
+    (Story) => (
+      <div className={styles.scrollExample}>
+        <p className={styles.hint}>
+          Open the selector and scroll through 40 presets. Arrow keys keep the
+          focused preset in view.
+        </p>
+        <Story />
+      </div>
+    ),
+  ],
+  parameters: {
+    docs: {
+      description: {
+        story:
+          "40 presets across four sections, with icons, dividers and disabled options. The choice list scrolls within its existing 240px height limit (or the available viewport space), while the current-value row stays in place. Try the mouse wheel, arrow keys and Home/End.",
+      },
+    },
+  },
+};
+
+export const SearchableScrolling: Story = {
+  ...Scrolling,
+  args: { ...Scrolling.args, searchable: true },
+};
+
 export const EmptySections: Story = {
   args: {
     groups: [
