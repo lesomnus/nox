@@ -171,3 +171,14 @@
   color: var(--ui-brand-color);
   font-weight: inherit;
 }
+
+.groupTitle {
+  display: block;
+  padding: var(--ui-control-inset) var(--value-padding-inline);
+  color: var(--ui-muted);
+  font-size: 11px;
+  line-height: 18px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

@@ -5,6 +5,7 @@ import {
   useEffect,
   useId,
   useLayoutEffect,
+  Fragment,
   useRef,
   useState,
   type KeyboardEvent,
@@ -18,6 +19,13 @@ export type ValueOption = {
   label: string;
   muted?: boolean;
   searchText?: string;
+  /** Display a divider before this item when another visible item precedes it. */
+  separatorBefore?: boolean;
+};
+
+export type ValueOptionGroup = {
+  label?: string;
+  items: ValueOption[];
 };
 
 // The selected row overlays the trigger text exactly. A portal avoids clipping
@@ -26,7 +34,8 @@ export function ValueMenu({
   label,
   display,
   value,
-  options: items,
+  options: items = [],
+  groups,
   muted = false,
   minMenuWidth = 140,
   variant = "default",
@@ -38,7 +47,9 @@ export function ValueMenu({
   label: string;
   display?: string;
   value: string;
-  options: ValueOption[];
+  options?: ValueOption[];
+  /** Titled/untitled sections; when supplied, these replace options. */
+  groups?: ValueOptionGroup[];
   muted?: boolean;
   minMenuWidth?: number;
   variant?: "default" | "compact";
@@ -56,16 +67,26 @@ export function ValueMenu({
   const search = useRef<HTMLInputElement>(null);
   const [open, setOpen] = useState(false);
   const [up, setUp] = useState(true);
-  const selected = items.find((item) => item.value === value);
+  const sections = groups ?? [{ items }];
+  const selected = sections
+    .flatMap((section) => section.items)
+    .find((item) => item.value === value);
   const text = display ?? selected?.label ?? value;
   const isMuted = muted || selected?.muted;
-  const options = items.filter(
-    (item) =>
-      item.value !== value &&
-      (!searchable ||
-        !queryEdited ||
-        matchesValueQuery(`${item.label} ${item.searchText ?? ""}`, query)),
-  );
+  const visibleSections = sections
+    .map((section, index) => ({
+      ...section,
+      index,
+      items: section.items.filter(
+        (item) =>
+          item.value !== value &&
+          (!searchable ||
+            !queryEdited ||
+            matchesValueQuery(`${item.label} ${item.searchText ?? ""}`, query)),
+      ),
+    }))
+    .filter((section) => section.items.length > 0);
+  const options = visibleSections.flatMap((section) => section.items);
   const trigger = () =>
     root.current?.querySelector<HTMLButtonElement>(".setting-trigger");
   function openMenu() {
@@ -97,9 +118,6 @@ export function ValueMenu({
         getComputedStyle(root.current).getPropertyValue("--ui-control-inset"),
       );
       const chrome = rect.height + 2 * inset + 13;
-      const height = chrome + options.length * rect.height;
-      const upwards = rect.top + height > window.innerHeight;
-      setUp(upwards);
       const popup = menu.current;
       // The portal leaves the trigger's typography context, including numeric
       // variants that can also change the width of punctuation such as '-'.
@@ -128,6 +146,12 @@ export function ValueMenu({
         "--menu-width",
         `${Math.min(window.innerWidth - 2 * inset, Math.max(rect.width + 2 * inset, minMenuWidth))}px`,
       );
+      // Headers and dividers also take space. Measure the complete list after
+      // applying its width/typography, even when it is already scroll-clipped.
+      const list = popup.querySelector<HTMLElement>(".setting-options");
+      const height = chrome + (list?.scrollHeight ?? 0);
+      const upwards = rect.top + height > window.innerHeight;
+      setUp(upwards);
       popup.style.left = `${Math.min(rect.left - inset, window.innerWidth - parseFloat(popup.style.getPropertyValue("--menu-width")) - inset)}px`;
       popup.style.top = upwards ? "auto" : `${rect.top - inset}px`;
       popup.style.bottom = upwards
@@ -158,17 +182,17 @@ export function ValueMenu({
       if (!menu.current?.contains(e.target as Node)) position();
     };
     document.addEventListener("scroll", scrolled, true);
-    if (!searchable)
-      menu.current
-        .querySelector<HTMLButtonElement>("[role=option]")
-        ?.focus({ preventScroll: true });
     return () => document.removeEventListener("scroll", scrolled, true);
-  }, [open, options.length, minMenuWidth, searchable, up]);
+  }, [open, items, groups, query, queryEdited, minMenuWidth, searchable, up]);
   useLayoutEffect(() => {
-    if (open && searchable) {
+    if (!open) return;
+    if (searchable) {
       search.current?.focus({ preventScroll: true });
       search.current?.select();
-    }
+    } else
+      menu.current
+        ?.querySelector<HTMLButtonElement>("[role=option]")
+        ?.focus({ preventScroll: true });
   }, [open, searchable]);
   useEffect(() => {
     if (!open) return;
@@ -235,7 +259,7 @@ export function ValueMenu({
               : index + (e.key === "ArrowUp" ? -1 : 1) + visual.length) %
             visual.length;
     visual[next]?.focus({ preventScroll: true });
-    if (searchable) visual[next]?.scrollIntoView({ block: "nearest" });
+    visual[next]?.scrollIntoView({ block: "nearest" });
   }
   return (
     <div
@@ -276,6 +300,15 @@ export function ValueMenu({
             data-searchable={searchable}
             className={`${styles.setting_menu} ${dialogStyles.entrance} setting-menu ${up ? "opens-up" : ""}`}
             data-enter-effect="fade"
+            onMouseDown={(event) => {
+              // Decorative rows must not blur the focused option/search field.
+              if (
+                event.target instanceof Element &&
+                (event.target.getAttribute("role") === "separator" ||
+                  event.target.classList.contains(styles.groupTitle))
+              )
+                event.preventDefault();
+            }}
             onKeyDown={(e) => {
               e.stopPropagation();
               key(e);
@@ -332,26 +365,54 @@ export function ValueMenu({
                 {searchable && options.length === 0 && (
                   <p role="status">{t("No matches")}</p>
                 )}
-                {options.map((choice) => (
-                  <Button
-                    key={choice.value}
-                    data-option-value={choice.value}
-                    type="button"
-                    role="option"
-                    tabIndex={-1}
-                    aria-selected={choice.value === value}
-                    title={choice.label}
-                    data-muted={!!choice.muted}
-                    onClick={() => {
-                      close(true);
-                      choose(choice.value);
-                    }}
-                  >
-                    <ValueLabel
-                      option={choice}
-                      query={searchable && queryEdited ? query : ""}
-                    />
-                  </Button>
+                {visibleSections.map((section, sectionIndex) => (
+                  <Fragment key={section.index}>
+                    {sectionIndex > 0 && (
+                      <div className="setting-divider" role="separator" />
+                    )}
+                    <div
+                      role="group"
+                      aria-labelledby={
+                        section.label
+                          ? `${id}-group-${section.index}`
+                          : undefined
+                      }
+                    >
+                      {section.label && (
+                        <span
+                          id={`${id}-group-${section.index}`}
+                          className={styles.groupTitle}
+                        >
+                          {section.label}
+                        </span>
+                      )}
+                      {section.items.map((choice, itemIndex) => (
+                        <Fragment key={choice.value}>
+                          {choice.separatorBefore && itemIndex > 0 && (
+                            <div className="setting-divider" role="separator" />
+                          )}
+                          <Button
+                            data-option-value={choice.value}
+                            type="button"
+                            role="option"
+                            tabIndex={-1}
+                            aria-selected={choice.value === value}
+                            title={choice.label}
+                            data-muted={!!choice.muted}
+                            onClick={() => {
+                              close(true);
+                              choose(choice.value);
+                            }}
+                          >
+                            <ValueLabel
+                              option={choice}
+                              query={searchable && queryEdited ? query : ""}
+                            />
+                          </Button>
+                        </Fragment>
+                      ))}
+                    </div>
+                  </Fragment>
                 ))}
               </div>
             </div>

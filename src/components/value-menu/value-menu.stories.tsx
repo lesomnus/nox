@@ -123,3 +123,70 @@ export const StippleBackdrop: Story = {
     },
   },
 };
+
+export const Separators: Story = {
+  args: {
+    value: "low",
+    options: [
+      { value: "default", label: "Project default", muted: true },
+      { value: "low", label: "Low" },
+      { value: "medium", label: "Medium" },
+      { value: "high", label: "High", separatorBefore: true },
+      { value: "maximum", label: "Maximum" },
+    ],
+  },
+};
+
+export const Sections: Story = {
+  args: {
+    groups: [
+      {
+        label: "Quick",
+        items: [
+          { value: "low", label: "Low" },
+          { value: "medium", label: "Medium" },
+        ],
+      },
+      {
+        label: "Deep",
+        items: [
+          { value: "high", label: "High" },
+          { value: "maximum", label: "Maximum", separatorBefore: true },
+        ],
+      },
+    ],
+  },
+  parameters: {
+    docs: {
+      description: {
+        story:
+          "groups replaces the flat options list and uses the same { label, items } shape as ActionMenu. Section titles are optional; dividers separate visible sections. An item's separatorBefore adds a divider within its section. The selected value keeps its anchored row and is omitted from the remaining choices.",
+      },
+    },
+  },
+};
+
+export const SearchableSections: Story = {
+  args: { ...Sections.args, searchable: true },
+  parameters: {
+    docs: {
+      description: {
+        story:
+          "Search filters choices within sections. Empty sections, their titles and orphaned dividers disappear. Arrow keys and Enter navigate/select choices, skipping titles and dividers.",
+      },
+    },
+  },
+};
+
+export const EmptySections: Story = {
+  args: {
+    groups: [
+      { label: "Current", items: [{ value: "medium", label: "Medium" }] },
+      { label: "Empty", items: [] },
+      {
+        label: "Remaining",
+        items: [{ value: "high", label: "High", separatorBefore: true }],
+      },
+    ],
+  },
+};
