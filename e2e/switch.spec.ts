@@ -56,7 +56,7 @@ for (const checked of [false, true]) {
     expect(reduced.left).toBe(checked ? 5 : -29);
     expect(reduced.background).toContain("radial-gradient");
     expect(reduced.background).toContain(
-      checked ? "rgba(0, 0, 0, 0.5)" : "rgba(255, 255, 255, 0.5)",
+      checked ? "rgba(0, 0, 0, 0.8)" : "rgba(255, 255, 255, 0.5)",
     );
     expect(reduced.thumbContent).toBe("none");
     expect(reduced.zIndex).toBe("0");
