@@ -18,11 +18,12 @@ export const DisabledChecked: Story = {
   args: { disabled: true, defaultChecked: true },
 };
 export const Labeled: Story = {
-  render: function Example() {
+  render: function Example({ disabled }) {
     const [checked, setChecked] = useState(false);
     return (
       <label>
         <Checkbox
+          disabled={disabled}
           checked={checked}
           onChange={(e) => setChecked(e.currentTarget.checked)}
         />{" "}
@@ -30,4 +31,8 @@ export const Labeled: Story = {
       </label>
     );
   },
+};
+export const DisabledLabeled: Story = {
+  render: Labeled.render,
+  args: { disabled: true },
 };

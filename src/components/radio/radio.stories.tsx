@@ -26,14 +26,19 @@ export const DisabledChecked: Story = {
   args: { disabled: true, defaultChecked: true },
 };
 export const Labeled: Story = {
-  render: function Example() {
+  render: function Example({ disabled }) {
     const id = useId();
     return (
       <label htmlFor={id}>
-        <Radio id={id} name={id} value="compact" /> Compact layout
+        <Radio id={id} name={id} value="compact" disabled={disabled} /> Compact
+        layout
       </label>
     );
   },
+};
+export const DisabledLabeled: Story = {
+  render: Labeled.render,
+  args: { disabled: true },
 };
 export const Group: Story = {
   render: function Example() {
