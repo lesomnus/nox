@@ -87,10 +87,20 @@ for (const checked of [false, true]) {
       return {
         visible: bytes.some((value, index) => index % 4 === 3 && value > 0),
         error: gl.getError(),
+        center: Array.from(
+          gl.getUniform(
+            gl.getParameter(gl.CURRENT_PROGRAM),
+            gl.getUniformLocation(
+              gl.getParameter(gl.CURRENT_PROGRAM),
+              "u_center",
+            )!,
+          ) as Float32Array,
+        ),
       };
     });
     expect(pixels.visible).toBe(true);
     expect(pixels.error).toBe(0);
+    expect(pixels.center).toEqual([checked ? 48 : -8, 11]);
     const frozen = await control.screenshot();
     const bounds = (await control.locator("span").boundingBox())!;
     const clip = { x: bounds.x + 4, y: bounds.y + 4, width: 8, height: 8 };

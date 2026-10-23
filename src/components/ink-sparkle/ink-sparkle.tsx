@@ -1,22 +1,49 @@
 import { useEffect, useRef, type CSSProperties } from "react";
-import { inkSparkleDuration } from "./ink-sparkle-model";
+import {
+  inkSparkleDuration,
+  inkSparklePlayback,
+  type InkSparkleCenterMotion,
+} from "./ink-sparkle-model";
 import { createInkSparkleRenderer } from "./ink-sparkle-renderer";
+import styles from "./ink-sparkle.module.css";
+
+export type { InkSparkleCenterMotion } from "./ink-sparkle-model";
+
+export interface InkSparkleProps {
+  className?: string;
+  /** Normalized RGBA channels, each from 0 to 1. Sparkles remain white. */
+  color?: readonly [number, number, number, number];
+  /** Center in local CSS pixels; negative/off-surface coordinates are supported. */
+  origin?: readonly [number, number];
+  /** Milliseconds per burst. Defaults to Flutter's original 617ms. */
+  duration?: number;
+  /** Original contact-to-center motion, or expansion around a fixed origin. */
+  centerMotion?: InkSparkleCenterMotion;
+  /** Repeat until unmounted. Defaults to a single burst. */
+  loop?: boolean;
+  /** Called once after a single burst. Reduced motion completes immediately. */
+  onComplete?: () => void;
+  seed?: number;
+  style?: CSSProperties;
+}
 
 /** Flutter InkSparkle, with its original shader and animation, in a web canvas. */
 export function InkSparkle({
   className,
-  color,
+  color = [1, 1, 1, 0.24],
   origin,
   seed,
   style,
-}: {
-  className?: string;
-  color: readonly [number, number, number, number];
-  origin?: readonly [number, number];
-  seed?: number;
-  style?: CSSProperties;
-}) {
+  duration = inkSparkleDuration,
+  centerMotion = "to-center",
+  loop = false,
+  onComplete,
+}: InkSparkleProps) {
   const ref = useRef<HTMLCanvasElement>(null);
+  const completeRef = useRef(onComplete);
+  useEffect(() => {
+    completeRef.current = onComplete;
+  }, [onComplete]);
   const [red, green, blue, alpha] = color;
   const originX = origin?.[0];
   const originY = origin?.[1];
@@ -27,6 +54,7 @@ export function InkSparkle({
     let request = 0;
     let start = performance.now();
     let cycle = -1;
+    let completed = false;
     let cycleSeed = seed ?? Math.random() * 1000;
     const stop = () => cancelAnimationFrame(request);
     const draw = (now: number) => {
@@ -35,33 +63,37 @@ export function InkSparkle({
       const height = canvas.clientHeight;
       if (width <= 0 || height <= 0) return;
       const elapsed = Math.max(0, now - start);
-      const nextCycle = Math.floor(elapsed / inkSparkleDuration);
-      if (nextCycle !== cycle) {
-        cycle = nextCycle;
+      const playback = inkSparklePlayback(elapsed, duration, loop);
+      if (playback.cycle !== cycle) {
+        cycle = playback.cycle;
         cycleSeed = seed ?? Math.random() * 1000;
       }
       renderer.draw(
-        media.matches
-          ? 0.3
-          : (elapsed % inkSparkleDuration) / inkSparkleDuration,
+        media.matches ? 0.3 : playback.progress,
         cycleSeed,
         width,
         height,
         window.devicePixelRatio || 1,
         [originX ?? width / 2, originY ?? height / 2],
         [red, green, blue, alpha],
+        centerMotion,
       );
+      if (!completed && (playback.complete || (media.matches && !loop))) {
+        completed = true;
+        completeRef.current?.();
+      }
     };
     const tick = (now: number) => {
       draw(now);
-      request = requestAnimationFrame(tick);
+      if (!completed) request = requestAnimationFrame(tick);
     };
     const resume = () => {
       stop();
       if (!renderer || document.hidden) return;
+      if (completed) return;
       start = performance.now();
       draw(start);
-      if (!media.matches) request = requestAnimationFrame(tick);
+      if (!media.matches && !completed) request = requestAnimationFrame(tick);
     };
     const initialize = () => {
       try {
@@ -72,6 +104,10 @@ export function InkSparkle({
       } catch (error) {
         canvas.dataset.renderer = "unavailable";
         canvas.dataset.error = String(error);
+        if (!loop && !completed) {
+          completed = true;
+          completeRef.current?.();
+        }
       }
     };
     const lost = (event: Event) => {
@@ -100,11 +136,22 @@ export function InkSparkle({
         ?.getExtension("WEBGL_lose_context")
         ?.loseContext();
     };
-  }, [red, green, blue, alpha, originX, originY, seed]);
+  }, [
+    red,
+    green,
+    blue,
+    alpha,
+    originX,
+    originY,
+    seed,
+    duration,
+    centerMotion,
+    loop,
+  ]);
   return (
     <canvas
       ref={ref}
-      className={className}
+      className={`${styles.canvas} ${className ?? ""}`}
       style={style}
       aria-hidden="true"
       data-ink-sparkle=""

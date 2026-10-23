@@ -300,3 +300,11 @@ owns clock updates; the component also works for static durations.
 masked blur entrance as ActionMenu. Set `from="right"` (or another menu direction),
 `className` for the frame and `contentClassName` for the content layout. Mount it
 when the popup opens to replay the entrance. See [design guidelines](docs/design-guidelines.md).
+
+`InkSparkle` is a reusable Material 3 ink effect with Flutter's original shader.
+Choose `duration` to control speed, `origin` and `centerMotion` to place the
+center (including outside the surface), and `loop` for repeated bursts. It plays
+once by default and supports `onComplete` for overlay cleanup. See
+[InkSparkle](docs/ink-sparkle.md) and **Effects/InkSparkle** in Storybook. Switch
+uses the same public effect with a slower 2000ms burst and a fixed center outside
+the rail.

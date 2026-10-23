@@ -1,5 +1,4 @@
-import { useRef } from "react";
-import { InkSparkle } from "./ink-sparkle";
+import { InkSparkle } from "../ink-sparkle/ink-sparkle";
 import styles from "./switch.module.css";
 
 export function Switch({
@@ -16,7 +15,6 @@ export function Switch({
   pending?: boolean;
   onChange: (checked: boolean) => void;
 }) {
-  const position = useRef<readonly [number, number] | undefined>(undefined);
   return (
     <button
       type="button"
@@ -28,21 +26,18 @@ export function Switch({
       data-pending={pending || undefined}
       disabled={disabled}
       className={styles.switch_control}
-      onClick={(event) => {
-        if (pending) return;
-        const bounds = event.currentTarget.getBoundingClientRect();
-        position.current =
-          event.detail > 0
-            ? [event.clientX - bounds.left, event.clientY - bounds.top]
-            : [checked ? 29 : 11, 11];
-        onChange(!checked);
+      onClick={() => {
+        if (!pending) onChange(!checked);
       }}
     >
       <span aria-hidden="true" />
       {pending && (
         <InkSparkle
           className={styles.ink_sparkle}
-          origin={position.current ?? [checked ? 29 : 11, 11]}
+          origin={[checked ? 48 : -8, 11]}
+          centerMotion="fixed"
+          duration={2000}
+          loop
           color={checked ? [0, 0, 0, 0.5] : [1, 1, 1, 0.5]}
         />
       )}
