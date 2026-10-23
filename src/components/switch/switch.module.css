@@ -13,6 +13,8 @@
   transition: background 160ms ease-out;
 }
 .switch_control > span {
+  display: grid;
+  place-items: center;
   width: 16px;
   height: 16px;
   flex-shrink: 0;
@@ -44,9 +46,69 @@
   opacity: 0.4;
   cursor: default;
 }
+.switch_control svg {
+  width: 12px;
+  height: 12px;
+  opacity: 0;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.switch_control[data-pending] {
+  cursor: progress;
+}
+.switch_control[data-pending] > span {
+  transform: translateX(9px);
+}
+.switch_control[data-pending] svg {
+  opacity: 1;
+  color: var(--ui-shade-20);
+  animation: toward_on 800ms ease-in-out infinite;
+}
+.switch_control[data-pending][aria-checked="true"] svg {
+  color: var(--ui-shade-204);
+  animation-name: toward_off;
+}
+.switch_control[data-pending]:not(:disabled):hover {
+  background: var(--ui-shade-54);
+}
+.switch_control[data-pending][aria-checked="true"]:not(:disabled):hover {
+  background: var(--ui-shade-204);
+}
+@keyframes toward_on {
+  0%,
+  100% {
+    transform: translateX(-2px);
+    opacity: 0.45;
+  }
+  50% {
+    transform: translateX(2px);
+    opacity: 1;
+  }
+}
+@keyframes toward_off {
+  0%,
+  100% {
+    transform: rotate(180deg) translateX(-2px);
+    opacity: 0.45;
+  }
+  50% {
+    transform: rotate(180deg) translateX(2px);
+    opacity: 1;
+  }
+}
 @media (prefers-reduced-motion: reduce) {
   .switch_control,
   .switch_control > span {
     transition: none;
+  }
+  .switch_control[data-pending] svg {
+    animation: none;
+    transform: none;
+  }
+  .switch_control[data-pending][aria-checked="true"] svg {
+    animation: none;
+    transform: rotate(180deg);
   }
 }
