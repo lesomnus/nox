@@ -37,31 +37,35 @@ for (const checked of [false, true]) {
       "matrix(1, 0, 0, 1, 9, 0)",
     );
     const thumb = control.locator("span");
-    await expect(thumb).toHaveCSS("overflow", "hidden");
-    const reduced = await thumb.evaluate((node) => {
+    await expect(control).toHaveCSS("overflow", "hidden");
+    await expect(thumb).toHaveCSS("z-index", "1");
+    const reduced = await control.evaluate((node) => {
       const style = getComputedStyle(node, "::after");
       return {
         animation: style.animationName,
         scale: new DOMMatrix(style.transform).a,
         left: parseFloat(style.left),
         background: style.backgroundImage,
-        trackContent: getComputedStyle(node.parentElement!, "::after").content,
+        thumbContent: getComputedStyle(node.firstElementChild!, "::after")
+          .content,
+        zIndex: style.zIndex,
       };
     });
     expect(reduced.animation).toBe("none");
     expect(reduced.scale).toBeCloseTo(1.2);
-    expect(reduced.left).toBe(checked ? 0 : -16);
+    expect(reduced.left).toBe(checked ? 5 : -29);
     expect(reduced.background).toContain("radial-gradient");
-    expect(reduced.trackContent).toBe("none");
+    expect(reduced.thumbContent).toBe("none");
+    expect(reduced.zIndex).toBe("0");
     await page.emulateMedia({ reducedMotion: "no-preference" });
     await expect
       .poll(() =>
-        thumb.evaluate(
+        control.evaluate(
           (node) => getComputedStyle(node, "::after").animationName,
         ),
       )
       .not.toBe("none");
-    const scales = await thumb.evaluate((node) => {
+    const scales = await control.evaluate((node) => {
       const animation = node
         .getAnimations({ subtree: true })
         .find((item) =>
