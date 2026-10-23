@@ -58,5 +58,7 @@
 }
 .input:disabled + .box {
   border-width: 2px;
+  border-style: dashed;
+  background-clip: padding-box;
   opacity: 0.35;
 }
