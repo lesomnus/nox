@@ -55,7 +55,11 @@ test("sheen clips to nested text while preserving SVG color and the accessible l
   );
   const sheen = await content.evaluate((el) => {
     const style = getComputedStyle(el);
-    const animation = el.getAnimations()[0];
+    const animation = el
+      .getAnimations()
+      .find((item) =>
+        (item as CSSAnimation).animationName?.includes("loading_sheen"),
+      )!;
     animation.pause();
     animation.currentTime = 0;
     const start = getComputedStyle(el).backgroundPosition;
