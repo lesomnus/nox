@@ -52,6 +52,7 @@
 .switch_control[data-pending] {
   --switch-wave-rgb: 255 255 255;
   --switch-wave-strength: 1;
+  --switch-wave-direction: 1;
   cursor: progress;
 }
 .switch_control[data-pending] > span {
@@ -61,10 +62,10 @@
   content: "";
   position: absolute;
   z-index: 0;
-  top: -21px;
-  left: -29px;
-  width: 64px;
-  height: 64px;
+  top: -5px;
+  left: -16px;
+  width: 32px;
+  height: 32px;
   border-radius: 50%;
   pointer-events: none;
   background: radial-gradient(
@@ -74,15 +75,16 @@
     rgb(var(--switch-wave-rgb) / calc(0.14 * var(--switch-wave-strength))) 50%,
     transparent 72%
   );
-  animation: light_bloom 1400ms ease-out infinite;
+  animation: wave_pass 1400ms linear infinite;
 }
 .switch_control[data-pending][aria-checked="true"] {
   --switch-wave-rgb: 0 0 0;
   --switch-wave-strength: 1.6;
+  --switch-wave-direction: -1;
 }
 .switch_control[data-pending][aria-checked="true"]::after {
   left: auto;
-  right: -29px;
+  right: -16px;
 }
 .switch_control[data-pending]:not(:disabled):hover {
   background: var(--ui-shade-54);
@@ -90,21 +92,13 @@
 .switch_control[data-pending][aria-checked="true"]:not(:disabled):hover {
   background: var(--ui-shade-204);
 }
-@keyframes light_bloom {
-  0% {
-    transform: scale(0.08);
-    opacity: 0;
+@keyframes wave_pass {
+  from {
+    transform: translateX(calc(-20px * var(--switch-wave-direction)))
+      scale(0.85);
   }
-  15% {
-    opacity: 1;
-  }
-  75% {
-    transform: scale(1.5);
-    opacity: 0.6;
-  }
-  100% {
-    transform: scale(1.65);
-    opacity: 0;
+  to {
+    transform: translateX(calc(60px * var(--switch-wave-direction))) scale(1.15);
   }
 }
 @media (prefers-reduced-motion: reduce) {
@@ -114,7 +108,6 @@
   }
   .switch_control[data-pending]::after {
     animation: none;
-    transform: scale(1.2);
-    opacity: 0.6;
+    transform: translateX(calc(10px * var(--switch-wave-direction))) scale(1);
   }
 }

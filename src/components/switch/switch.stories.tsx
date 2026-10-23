@@ -31,7 +31,7 @@ export const AsyncTransition: Story = {
     docs: {
       description: {
         story:
-          "Keep checked at the confirmed value and set pending while applying its opposite. A radial wave expands along the rail from the departure edge toward the destination, beneath the opaque centered thumb: light when turning on and darkness when turning off and blocks repeat requests. Update checked on success, then clear pending; on failure, just clear pending to return to the original state.",
+          "Keep checked at the confirmed value and set pending while applying its opposite. A soft circle travels across the rail toward the destination while growing slightly, beneath the opaque centered thumb: light when turning on and darkness when turning off. Pending blocks repeat requests. Update checked on success, then clear pending; on failure, just clear pending to return to the original state.",
       },
     },
   },
