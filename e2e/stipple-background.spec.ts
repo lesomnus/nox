@@ -4,6 +4,7 @@ type Metrics = {
   draws: number;
   hash: number;
   colored: number;
+  maxRun: number;
   programs: number;
   buffers: number;
   shaders: number;
@@ -32,6 +33,7 @@ test.beforeEach(async ({ page }) => {
       draws: 0,
       hash: 0,
       colored: 0,
+      maxRun: 0,
       programs: 0,
       buffers: 0,
       shaders: 0,
@@ -76,21 +78,28 @@ test.beforeEach(async ({ page }) => {
         bytes,
       );
       let hash = 2166136261,
-        colored = 0;
+        colored = 0,
+        maxRun = 0,
+        run = 0;
       for (let i = 0; i < bytes.length; i += 4) {
         hash = Math.imul(hash ^ bytes[i], 16777619);
         hash = Math.imul(hash ^ bytes[i + 1], 16777619);
-        if (bytes[i + 1] > 100) colored++;
+        if ((i / 4) % this.drawingBufferWidth === 0) run = 0;
+        if (bytes[i + 1] > 100) {
+          colored++;
+          maxRun = Math.max(maxRun, ++run);
+        } else run = 0;
       }
       metrics.draws++;
       metrics.hash = hash >>> 0;
       metrics.colored = colored;
+      metrics.maxRun = maxRun;
     };
   });
 });
 
-const story = (name: string, args = "") =>
-  `/iframe.html?id=effects-stipplebackground--${name}&viewMode=story&args=maxWidth:96;maxFps:10${args ? ";" + args : ""}`;
+const story = (name: string, args = "", seeded = true) =>
+  `/iframe.html?id=effects-stipplebackground--${name}&viewMode=story&args=maxWidth:96;maxFps:10${seeded ? ";seed:1" : ""}${args ? ";" + args : ""}`;
 const stats = (page: Page) => page.evaluate(() => window.stippleMetrics);
 const settledDraws = async (page: Page) => {
   await page.waitForTimeout(120);
@@ -136,6 +145,33 @@ test("content works above the canvas and live pattern/pause changes reuse GPU re
   const hash = (await stats(page)).hash;
   await page.getByRole("button", { name: "Change pattern" }).click();
   await expect.poll(async () => (await stats(page)).hash).not.toBe(hash);
+  await page.getByRole("button", { name: "Change pattern" }).click();
+  await expect.poll(async () => (await stats(page)).hash).toBe(hash);
+  await page.getByRole("button", { name: "Change palette" }).click();
+  await expect.poll(async () => (await stats(page)).hash).not.toBe(hash);
+  const palette = await page
+    .locator("canvas")
+    .evaluate((el: HTMLCanvasElement) => {
+      const gl = el.getContext("webgl2")!;
+      const program = gl.getParameter(gl.CURRENT_PROGRAM) as WebGLProgram;
+      return Array.from({ length: 4 }, (_, i) => [
+        ...gl.getUniform(
+          program,
+          gl.getUniformLocation(program, `uColors[${i}]`)!,
+        ),
+      ]);
+    });
+  const expected = [
+    [246, 189, 96],
+    [242, 132, 130],
+    [132, 165, 157],
+    [184, 184, 255],
+  ];
+  palette.forEach((color, i) =>
+    color.forEach((value, j) =>
+      expect(value).toBeCloseTo(expected[i][j] / 255, 5),
+    ),
+  );
   await expect(page.locator("canvas")).toHaveCount(1);
   expect(
     await canvas!.evaluate((el) => el === document.querySelector("canvas")),
@@ -155,6 +191,39 @@ test("content works above the canvas and live pattern/pause changes reuse GPU re
   await expect
     .poll(async () => (await stats(page)).draws)
     .toBeGreaterThan(before);
+});
+
+test("cluster centers remain stippled without solid debug fills", async ({
+  page,
+}) => {
+  await page.goto(story("checker", "paused:true;maxWidth:540;grainPx:2"));
+  await expect(page.locator('[data-renderer="webgl2"]')).toBeVisible();
+  const metrics = await stats(page);
+  expect(metrics.colored).toBeGreaterThan(100);
+  expect(metrics.maxRun).toBeLessThanOrEqual(6);
+});
+
+test("omitting seed randomizes each mount while explicit seeds reproduce the arrangement", async ({
+  page,
+}) => {
+  const positions = () =>
+    page.locator("canvas").evaluate((el: HTMLCanvasElement) => {
+      const gl = el.getContext("webgl2")!;
+      const program = gl.getParameter(gl.CURRENT_PROGRAM) as WebGLProgram;
+      return [
+        ...gl.getUniform(program, gl.getUniformLocation(program, "uBlobs[0]")!),
+      ];
+    });
+  for (const seeded of [false, true]) {
+    await page.goto(story("strict-lifecycle", "paused:true", seeded));
+    await expect(page.locator('[data-renderer="webgl2"]')).toBeVisible();
+    const before = await positions();
+    await page.getByRole("button", { name: "Unmount", exact: true }).click();
+    await page.getByRole("button", { name: "Mount", exact: true }).click();
+    await expect(page.locator('[data-renderer="webgl2"]')).toBeVisible();
+    if (seeded) expect(await positions()).toEqual(before);
+    else expect(await positions()).not.toEqual(before);
+  }
 });
 
 test("reduced motion and zero speed render a still image", async ({ page }) => {

@@ -14,6 +14,7 @@ export type {
   StipplePattern,
   StippleColor,
   StippleColors,
+  StipplePalette,
 } from "./stipple-model";
 export type StippleBackgroundProps = Omit<ComponentProps<"div">, "onError"> &
   StippleSettings & {
@@ -28,6 +29,7 @@ export function StippleBackground({
   maxWidth,
   maxFps,
   pattern,
+  palette,
   colors,
   backgroundColor,
   seed,
@@ -45,7 +47,8 @@ export function StippleBackground({
   const [status, setStatus] = useState<"pending" | "webgl2" | "fallback">(
     "pending",
   );
-  const [firstColor, secondColor, thirdColor] = colors ?? [];
+  const [randomSeed] = useState(() => Math.floor(Math.random() * 4294967296));
+  const paletteKey = (palette ?? colors)?.join(",");
   const settings = useMemo(
     () =>
       resolveStippleSettings({
@@ -56,9 +59,9 @@ export function StippleBackground({
         maxWidth,
         maxFps,
         pattern,
-        colors,
+        palette: paletteKey?.split(",") as StippleSettings["palette"],
         backgroundColor,
-        seed,
+        seed: seed !== undefined && Number.isFinite(seed) ? seed : randomSeed,
         paused,
       }),
     [
@@ -69,11 +72,10 @@ export function StippleBackground({
       maxWidth,
       maxFps,
       pattern,
-      firstColor,
-      secondColor,
-      thirdColor,
+      paletteKey,
       backgroundColor,
       seed,
+      randomSeed,
       paused,
     ],
   );

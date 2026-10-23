@@ -6,6 +6,7 @@ export type StipplePattern =
   | "fractal";
 export type StippleColor = `#${string}`;
 export type StippleColors = readonly [StippleColor, StippleColor, StippleColor];
+export type StipplePalette = readonly StippleColor[];
 
 export type StippleSettings = {
   /** Simulation time multiplier; zero keeps a still image. */
@@ -21,13 +22,20 @@ export type StippleSettings = {
   /** Drawing rate limit. */
   maxFps?: number;
   pattern?: StipplePattern;
+  /** Candidate cluster colors, using short or full RGB hex strings. */
+  palette?: StipplePalette;
+  /** Three-color shorthand; palette takes precedence when provided. */
   colors?: StippleColors;
   backgroundColor?: StippleColor;
+  /** Omit to choose a random arrangement once per mounted instance. */
   seed?: number;
   paused?: boolean;
 };
 
 const DEFAULT_COLORS: StippleColors = ["#b8e0f2", "#b3e6bd", "#c2baf0"];
+const DEFAULT_PALETTE = new Float32Array(
+  DEFAULT_COLORS.flatMap((c) => hexColor(c)!),
+);
 export const DEFAULT_BACKGROUND = "#0a1438";
 const patterns: StipplePattern[] = [
   "bayer8",
@@ -52,6 +60,11 @@ export function hexColor(value: string) {
 export function resolveStippleSettings(settings: StippleSettings) {
   const background =
     hexColor(settings.backgroundColor ?? "") ?? hexColor(DEFAULT_BACKGROUND)!;
+  const palette = (
+    settings.palette ??
+    settings.colors ??
+    DEFAULT_COLORS
+  ).flatMap((color) => hexColor(color) ?? []);
   return {
     speed: Math.max(0, finite(settings.speed, 0.2)),
     grainPx: Math.max(0, finite(settings.grainPx, 1)),
@@ -62,11 +75,7 @@ export function resolveStippleSettings(settings: StippleSettings) {
     pattern: patterns.includes(settings.pattern ?? "diamond")
       ? patterns.indexOf(settings.pattern ?? "diamond")
       : 2,
-    colors: new Float32Array(
-      DEFAULT_COLORS.flatMap(
-        (color, i) => hexColor(settings.colors?.[i] ?? "") ?? hexColor(color)!,
-      ),
-    ),
+    palette: palette.length ? new Float32Array(palette) : DEFAULT_PALETTE,
     background: new Float32Array(background),
     backgroundCss: `rgb(${background.map((value) => Math.round(value * 255)).join(" ")})`,
     seed: finite(settings.seed, 1) >>> 0,
@@ -95,8 +104,8 @@ export function rasterSize(
   };
 }
 
-const PAIR_COUNT = 6;
-export const BLOB_COUNT = PAIR_COUNT * 2;
+export const CLUSTER_COUNT = 6;
+export const BLOB_COUNT = CLUSTER_COUNT * 2;
 
 function randomSource(seed: number) {
   let state = seed;
@@ -114,6 +123,8 @@ const smoothstep = (a: number, b: number, x: number) => {
 const easeInOut = (t: number) =>
   t < 0.5 ? 2 * t * t : 1 - (-2 * t + 2) ** 2 / 2;
 const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
+export const clusterEnvelope = (progress: number) =>
+  Math.min(smoothstep(0, 0.18, progress), 1 - smoothstep(0.68, 1, progress));
 
 export function createStippleMotion(seed: number) {
   const random = randomSource(seed);
@@ -132,13 +143,18 @@ export function createStippleMotion(seed: number) {
     };
   }
   function makePair(i: number, bornAt: number) {
+    const inside = i % 2 === 0;
+    const interior = () => ({ x: rand(-0.2, 0.2), y: rand(-0.2, 0.2) });
     return {
-      color: i % 3,
+      color: bornAt <= 0 ? i : Math.floor(random() * 4294967296),
+      inside,
       bornAt,
       life: rand(40, 68),
-      from: edge(),
-      target: { x: rand(-0.55, 0.55), y: rand(-0.38, 0.38) },
-      exit: edge(true),
+      from: inside ? interior() : edge(),
+      target: inside
+        ? interior()
+        : { x: rand(-0.55, 0.55), y: rand(-0.38, 0.38) },
+      exit: inside ? interior() : edge(true),
       heading: rand(0, Math.PI * 2),
       headingDrift: rand(-0.18, 0.18),
       sepPhase: rand(0, Math.PI * 2),
@@ -153,13 +169,21 @@ export function createStippleMotion(seed: number) {
       wobbleY: rand(0, Math.PI * 2),
     };
   }
-  const pairs = Array.from({ length: PAIR_COUNT }, (_, i) =>
+  const pairs = Array.from({ length: CLUSTER_COUNT }, (_, i) =>
     makePair(i, rand(-30, 0)),
   );
   const blobs = new Float32Array(BLOB_COUNT * 4);
+  const colors = new Float32Array(CLUSTER_COUNT * 3);
+  const envelopes = new Float32Array(BLOB_COUNT);
+  const colorSlots = new Int32Array(CLUSTER_COUNT);
   return {
-    sample(time: number, aspect: number) {
+    colors,
+    envelopes,
+    sample(time: number, aspect: number, palette = DEFAULT_PALETTE) {
       const xScale = Math.min(1, aspect / 1.35);
+      colorSlots.fill(-1);
+      colors.fill(0);
+      let slotCount = 0;
       let index = 0;
       for (let i = 0; i < pairs.length; i++) {
         let pair = pairs[i];
@@ -169,13 +193,14 @@ export function createStippleMotion(seed: number) {
         const life = age / pair.life;
         const entering = easeInOut(smoothstep(0, 0.22, life));
         const exiting = smoothstep(0.7, 1, life);
+        const sway = pair.inside ? 0.04 : 0.16;
         let cx =
           lerp(pair.from.x, pair.target.x, entering) +
-          0.16 * Math.sin(time * 0.08 + pair.wobbleX);
+          sway * Math.sin(time * 0.08 + pair.wobbleX);
         let cy =
           lerp(pair.from.y, pair.target.y, entering) +
-          0.13 * Math.cos(time * 0.07 + pair.wobbleY);
-        cx = lerp(cx, pair.exit.x, exiting) * xScale;
+          sway * Math.cos(time * 0.07 + pair.wobbleY);
+        cx = lerp(cx, pair.exit.x, exiting) * (pair.inside ? aspect : xScale);
         cy = lerp(cy, pair.exit.y, exiting);
         const direction =
           pair.heading +
@@ -183,39 +208,41 @@ export function createStippleMotion(seed: number) {
           0.55 * Math.sin(time * 0.05 + pair.sepPhase);
         const separationWave =
           0.5 - 0.5 * Math.cos(time * pair.sepRate + pair.sepPhase);
-        const envelope = Math.min(
-          smoothstep(0, 0.18, life),
-          1 - smoothstep(0.68, 1, life),
-        );
-        const r1 = Math.max(
-          0.0001,
+        const envelope = clusterEnvelope(life);
+        envelopes[i * 2] = envelopes[i * 2 + 1] = envelope;
+        const r1 =
           pair.baseR1 *
-            (0.58 +
-              0.42 *
-                (0.5 + 0.5 * Math.sin(time * pair.pulseRate1 + pair.pulse1))) *
-            envelope *
-            (0.35 + 0.65 * (0.5 + 0.5 * Math.sin(time * 0.1 + pair.sepPhase))),
-        );
-        const r2 = Math.max(
-          0.0001,
+          (0.58 +
+            0.42 *
+              (0.5 + 0.5 * Math.sin(time * pair.pulseRate1 + pair.pulse1))) *
+          envelope *
+          (0.35 + 0.65 * (0.5 + 0.5 * Math.sin(time * 0.1 + pair.sepPhase)));
+        const r2 =
           pair.baseR2 *
-            (0.58 +
-              0.42 *
-                (0.5 + 0.5 * Math.cos(time * pair.pulseRate2 + pair.pulse2))) *
-            envelope *
-            (0.3 + 0.7 * (0.5 + 0.5 * Math.cos(time * 0.11 + pair.pulse2))),
-        );
+          (0.58 +
+            0.42 *
+              (0.5 + 0.5 * Math.cos(time * pair.pulseRate2 + pair.pulse2))) *
+          envelope *
+          (0.3 + 0.7 * (0.5 + 0.5 * Math.cos(time * 0.11 + pair.pulse2)));
         const separation = (r1 + r2) * (0.12 + 2.35 * separationWave) * 0.5;
         const dx = Math.cos(direction) * separation * xScale;
         const dy = Math.sin(direction) * separation;
+        const paletteIndex = pair.color % (palette.length / 3);
+        let slot = colorSlots.indexOf(paletteIndex);
+        if (slot === -1) {
+          slot = slotCount++;
+          colorSlots[slot] = paletteIndex;
+          for (let channel = 0; channel < 3; channel++)
+            colors[slot * 3 + channel] = palette[paletteIndex * 3 + channel];
+        }
         blobs[index++] = cx - dx;
         blobs[index++] = cy - dy;
         blobs[index++] = r1;
-        blobs[index++] = pair.color;
+        blobs[index++] = slot;
         blobs[index++] = cx + dx;
         blobs[index++] = cy + dy;
         blobs[index++] = r2;
-        blobs[index++] = pair.color;
+        blobs[index++] = slot;
       }
       return blobs;
     },

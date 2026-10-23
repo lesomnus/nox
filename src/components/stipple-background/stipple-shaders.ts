@@ -1,4 +1,4 @@
-import { BLOB_COUNT } from "./stipple-model";
+import { BLOB_COUNT, CLUSTER_COUNT } from "./stipple-model";
 
 export const vertexShaderSource = `#version 300 es
 layout(location = 0) in vec2 aPosition;
@@ -20,9 +20,10 @@ uniform float uScatterPx;
 uniform float uMerge;
 uniform int uPattern;
 uniform vec4 uBlobs[${BLOB_COUNT}];
+uniform float uEnvelopes[${BLOB_COUNT}];
 
 uniform vec3 uBackground;
-uniform vec3 uColors[3];
+uniform vec3 uColors[${CLUSTER_COUNT}];
 
 float hash12(vec2 p) {
   return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453123);
@@ -32,12 +33,6 @@ float smoothMin(float a, float b, float k) {
   if (k <= 0.0) return min(a, b);
   float h = max(k - abs(a - b), 0.0) / k;
   return min(a, b) - h * h * k * 0.25;
-}
-
-vec3 pickColor(float idx) {
-  if (idx < 0.5) return uColors[0];
-  if (idx < 1.5) return uColors[1];
-  return uColors[2];
 }
 
 float metaballSDF(vec2 p, vec4 blob, float id, float t) {
@@ -199,47 +194,37 @@ void main() {
     sin(p.y * 5.0 + uTime * 0.23),
     cos(p.x * 4.4 - uTime * 0.19)
   );
-  float d0 = 10.0;
-  float d1 = 10.0;
-  float d2 = 10.0;
+  float scatter = sqrt(max(1.0, uScatterPx)) * 9.0 / uResolution.y;
+  float densityCoreBand = 16.0 / uResolution.y;
+  float fields[${CLUSTER_COUNT}];
+  for (int i = 0; i < ${CLUSTER_COUNT}; i++) fields[i] = 1e6;
 
   for (int i = 0; i < ${BLOB_COUNT}; i++) {
     vec4 b = uBlobs[i];
+    if (uEnvelopes[i] <= 0.0 || b.z <= 0.0) continue;
     float d = metaballSDF(p, b, float(i), uTime);
+    d += (1.0 - uEnvelopes[i]) * (scatter + densityCoreBand);
+    int group = int(b.w);
+    fields[group] = smoothMin(fields[group], d, uMerge);
+  }
 
-    if (b.w < 0.5) {
-      d0 = smoothMin(d0, d, uMerge);
-    } else if (b.w < 1.5) {
-      d1 = smoothMin(d1, d, uMerge);
-    } else {
-      d2 = smoothMin(d2, d, uMerge);
+  float d = fields[0];
+  int colorIndex = 0;
+  for (int i = 1; i < ${CLUSTER_COUNT}; i++) {
+    if (fields[i] < d) {
+      d = fields[i];
+      colorIndex = i;
     }
   }
 
-  float d = d0;
-  float colorIndex = 0.0;
-
-  if (d1 < d) {
-    d = d1;
-    colorIndex = 1.0;
-  }
-  if (d2 < d) {
-    d = d2;
-    colorIndex = 2.0;
-  }
-
-  vec3 color = pickColor(colorIndex);
-  float effectiveScatterPx = sqrt(max(1.0, uScatterPx)) * 9.0;
-  float scatter = effectiveScatterPx / uResolution.y;
-  float solidCoreBand = 16.0 / uResolution.y;
+  vec3 color = uColors[colorIndex];
   float density = 1.0 - smoothstep(
-    -solidCoreBand,
+    -densityCoreBand,
      scatter,
      d
   );
   density = pow(density, 1.35);
 
-  float solidCore = step(d, -solidCoreBand);
   // Smaller square cells can place every dot between fragment sample centers.
   float cellSize = max(3.0, uGrainPx * 6.0);
   vec2 cell;
@@ -259,7 +244,7 @@ void main() {
   ivec2 icell = ivec2(cell);
 
   float pat = structuredPattern(icell, uPattern);
-  float h = hash12(cell + vec2(colorIndex * 17.0, colorIndex * 43.0));
+  float h = hash12(cell + vec2(float(colorIndex) * 17.0, float(colorIndex) * 43.0));
   float threshold = clamp(pat * 0.82 + h * 0.18, 0.0, 1.0);
   vec2 jitter = vec2(
     fract(h * 19.31),
@@ -269,12 +254,9 @@ void main() {
   center += jitter * (cellSize * 0.12);
   float dotRadius = cellSize * 0.23;
 
-  float occupied = max(solidCore, step(threshold, density));
+  float occupied = density > 0.0 ? step(threshold, density) : 0.0;
   float dot = circleDot(fragPx, center, dotRadius);
-  float coreFill = solidCore;
-  float stippleFill = (1.0 - solidCore) * occupied * dot;
-
-  float fill = clamp(coreFill + stippleFill, 0.0, 1.0);
+  float fill = occupied * dot;
 
   fragColor = vec4(mix(uBackground, color, fill), 1.0);
 }

@@ -76,6 +76,7 @@ function createGpu(canvas: HTMLCanvasElement) {
         "uPattern",
         "uBlobs[0]",
         "uColors[0]",
+        "uEnvelopes[0]",
         "uBackground",
       ].map((name) => [name, gl.getUniformLocation(program!, name)]),
     );
@@ -86,6 +87,8 @@ function createGpu(canvas: HTMLCanvasElement) {
         time: number,
         scale: number,
         blobs: Float32Array,
+        colors: Float32Array,
+        envelopes: Float32Array,
       ) {
         gl.viewport(0, 0, canvas.width, canvas.height);
         gl.useProgram(program);
@@ -97,7 +100,8 @@ function createGpu(canvas: HTMLCanvasElement) {
         gl.uniform1f(uniforms.uMerge, settings.merge);
         gl.uniform1i(uniforms.uPattern, settings.pattern);
         gl.uniform4fv(uniforms["uBlobs[0]"], blobs);
-        gl.uniform3fv(uniforms["uColors[0]"], settings.colors);
+        gl.uniform3fv(uniforms["uColors[0]"], colors);
+        gl.uniform1fv(uniforms["uEnvelopes[0]"], envelopes);
         gl.uniform3fv(uniforms.uBackground, settings.background);
         gl.drawArrays(gl.TRIANGLES, 0, 3);
       },
@@ -143,7 +147,9 @@ export function createStippleRenderer(
       settings,
       time,
       scale,
-      motion.sample(time, canvas.width / canvas.height),
+      motion.sample(time, canvas.width / canvas.height, settings.palette),
+      motion.colors,
+      motion.envelopes,
     );
   }
   function render(now: number) {
