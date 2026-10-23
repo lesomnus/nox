@@ -20,6 +20,7 @@ export function ElapsedTime({
   duration,
   characterDelay,
   maxFlipSteps,
+  flipEasing,
   flipCharacters,
 }: ElapsedTimeProps) {
   const [now, setNow] = useState(Date.now);
@@ -61,6 +62,7 @@ export function ElapsedTime({
         duration={duration}
         characterDelay={characterDelay}
         maxFlipSteps={maxFlipSteps}
+        flipEasing={flipEasing}
         flipCharacters={flipCharacters}
         characterClassName={(character, index) =>
           index < split

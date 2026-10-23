@@ -26,8 +26,10 @@ numbers and alphabetic wraparound.
 Set `maxFlipSteps` to show intermediate cards. It caps the **total flips per
 changed character, including the final landing**, and defaults to 1 for the
 existing direct transition. Each character's flips share the existing total
-`duration`, so a longer distance produces more, faster flips without lengthening
-the whole update. No initial-mount animation is added.
+`duration`. The default cadence accelerates through the middle of the path and
+decelerates as it reaches the target: early and final flips take longer than the
+middle ones. More distant targets allow more fast intermediate flips within the
+same time budget. No initial-mount animation is added.
 
 ```tsx
 <AnimatedText
@@ -38,6 +40,18 @@ the whole update. No initial-mount animation is added.
   maxFlipSteps={6}
 />
 ```
+
+`flipEasing="ease-in-out"` is the default. It changes both the start schedule and
+the actual duration of each card's flip along a smooth sine progress curve;
+there are no extra pauses between cards. Three or more flips make the speed
+change visible. A single flip keeps the full duration. Use `flipEasing="linear"`
+to give every card the same amount of time instead. This cadence option also
+works with fixed upward direction, custom alphabets and character start delays,
+and DateTime / ElapsedTime forward it. It does not change slide motion.
+
+Storybook **FlipAcceleration** and **FlipLinear** compare the two cadences. The
+existing **FlipThrough** / **DepartureBoard** examples now use acceleration and
+deceleration by default.
 
 Default character rings are `0–9`, `A–Z` and `a–z`, separately. Down moves forward,
 up moves backward, wrapping at the end of the ring. With down and a cap of 6:

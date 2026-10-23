@@ -20,6 +20,108 @@ const delaysOf = (page: Page) =>
       ),
     );
 
+for (const direction of ["down", "up"]) {
+  test(`flip cadence accelerates then decelerates toward the target going ${direction}`, async ({
+    page,
+  }) => {
+    await frozenStory(
+      page,
+      "flip-acceleration",
+      `direction:${direction};duration:1600`,
+    );
+    const value = page.locator(display);
+    const target = direction === "down" ? "Z" : "D";
+    await page.getByRole("button", { name: target, exact: true }).click();
+    await expect(value).toHaveAttribute("aria-label", target);
+    await expect(value.locator("[data-flip-steps]")).toHaveAttribute(
+      "data-flip-steps",
+      "8",
+    );
+    const frame = value.locator("[data-flip-step]");
+    const durations: number[] = [];
+    for (let step = 1; step <= 8; step++) {
+      await expect(frame).toHaveAttribute("data-flip-step", String(step));
+      const timing = await frame.evaluate((node) => {
+        const animation = node
+          .getAnimations({ subtree: true })
+          .find((item) =>
+            (item as CSSAnimation).animationName.includes("fold-out"),
+          )!;
+        return {
+          duration: parseFloat(
+            getComputedStyle(node).getPropertyValue("--animated-text-duration"),
+          ),
+          half: animation.effect!.getTiming().duration as number,
+          name: (animation as CSSAnimation).animationName,
+          delay: animation.effect!.getTiming().delay,
+        };
+      });
+      durations.push(timing.duration);
+      expect(timing.half).toBeCloseTo(timing.duration / 2);
+      expect(timing.name).toContain(`fold-out-${direction}`);
+      expect(timing.delay).toBe(0);
+      await page.clock.runFor(Math.ceil(timing.duration) + 1);
+    }
+    expect(durations[0]).toBeGreaterThan(durations[1]);
+    expect(durations[1]).toBeGreaterThan(durations[2]);
+    expect(durations[2]).toBeGreaterThan(durations[3]);
+    expect(durations[4]).toBeLessThan(durations[5]);
+    expect(durations[5]).toBeLessThan(durations[6]);
+    expect(durations[6]).toBeLessThan(durations[7]);
+    expect(durations.reduce((sum, duration) => sum + duration, 0)).toBeCloseTo(
+      1600,
+    );
+    await expect(value.locator("[data-changing]")).toHaveCount(0);
+    await expect(value).toHaveText(target);
+  });
+}
+
+test("eased flip steps stay consecutive after a character start delay", async ({
+  page,
+}) => {
+  await frozenStory(
+    page,
+    "staggered-flip",
+    "duration:900;characterDelay:200;maxFlipSteps:6",
+  );
+  const value = page.locator(display);
+  await page.getByRole("button", { name: "TOKYO", exact: true }).click();
+  await expect(value).toHaveAttribute("aria-label", "TOKYO");
+  const frame = value
+    .locator("[data-changing]")
+    .last()
+    .locator("[data-flip-step]");
+  const firstDuration = await frame.evaluate((el) =>
+    parseFloat(
+      getComputedStyle(el).getPropertyValue("--animated-text-duration"),
+    ),
+  );
+  expect(firstDuration).toBeGreaterThan(300);
+  await expect(frame).toHaveCSS("--animated-text-delay", "800ms");
+  await page.clock.runFor(801);
+  await expect(frame).toHaveAttribute("data-flip-step", "1");
+  await page.clock.runFor(353);
+  await expect(frame).toHaveAttribute("data-flip-step", "2");
+  await expect(frame).toHaveCSS("--animated-text-delay", "0ms");
+  const middleDuration = await frame.evaluate((el) =>
+    parseFloat(
+      getComputedStyle(el).getPropertyValue("--animated-text-duration"),
+    ),
+  );
+  expect(middleDuration).toBeLessThan(firstDuration);
+  await page.clock.runFor(195);
+  await expect(frame).toHaveAttribute("data-flip-step", "3");
+  const finalDuration = await frame.evaluate((el) =>
+    parseFloat(
+      getComputedStyle(el).getPropertyValue("--animated-text-duration"),
+    ),
+  );
+  expect(finalDuration).toBeCloseTo(firstDuration);
+  await page.clock.runFor(352);
+  await expect(value.locator("[data-changing]")).toHaveCount(0);
+  await expect(value).toHaveText("TOKYO");
+});
+
 test("slide stagger skips static positions and waits for the last character to finish", async ({
   page,
 }) => {
@@ -58,7 +160,7 @@ test("staggered multi-flips wait once then run consecutive steps", async ({
   await frozenStory(
     page,
     "staggered-flip",
-    "characterDelay:200;duration:900;maxFlipSteps:3",
+    "characterDelay:200;duration:900;maxFlipSteps:3;flipEasing:linear",
   );
   const value = page.locator(display);
   await page.getByRole("button", { name: "TOKYO", exact: true }).click();
@@ -226,7 +328,11 @@ test("text examples animate labels and one-way flaps never reverse", async ({
 test("distance-dependent flips visit intermediate cards inside the total duration", async ({
   page,
 }) => {
-  await frozenStory(page, "flip-through", "duration:1200;maxFlipSteps:6");
+  await frozenStory(
+    page,
+    "flip-through",
+    "duration:1200;maxFlipSteps:6;flipEasing:linear",
+  );
   const value = page.locator(display);
   await page.getByRole("button", { name: "D", exact: true }).click();
   await expect(value).toHaveAttribute("aria-label", "D");

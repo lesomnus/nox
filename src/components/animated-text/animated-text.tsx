@@ -1,6 +1,7 @@
 import {
   Fragment,
   useLayoutEffect,
+  useMemo,
   useRef,
   useState,
   useSyncExternalStore,
@@ -10,9 +11,11 @@ import {
 import {
   characterDelays,
   flipPath,
+  flipStepTimings,
   isFlipCharacter,
   textDirection,
   type TextMotionOptions,
+  type TextFlipEasing,
 } from "./text-motion";
 import styles from "./animated-text.module.css";
 
@@ -20,6 +23,7 @@ export type {
   TextMotion,
   TextDirection,
   TextMotionOptions,
+  TextFlipEasing,
   TextCharacterDelay,
   TextCharacterDelayContext,
 } from "./text-motion";
@@ -73,6 +77,7 @@ export function AnimatedText({
   duration = 360,
   characterDelay = 0,
   maxFlipSteps = 1,
+  flipEasing = "ease-in-out",
   flipCharacters,
   comparisonValue,
   characterClassName,
@@ -165,6 +170,7 @@ export function AnimatedText({
     milliseconds,
     reduced,
     maxFlipSteps,
+    flipEasing,
     flipCharacters,
   ]);
 
@@ -251,6 +257,7 @@ export function AnimatedText({
                           from={old!}
                           path={active.paths[index]}
                           duration={milliseconds}
+                          easing={flipEasing}
                           delay={active.delays[index]}
                         />
                       )}
@@ -270,24 +277,27 @@ function FlipFrames({
   path,
   duration,
   delay,
+  easing,
 }: {
   from: string;
   path: string[];
   duration: number;
   delay: number;
+  easing: TextFlipEasing;
 }) {
   const [step, setStep] = useState(0);
+  const timings = useMemo(
+    () => flipStepTimings(path.length, duration, easing),
+    [path.length, duration, easing],
+  );
   useLayoutEffect(() => {
-    const timers = path
+    const timers = timings
       .slice(1)
-      .map((_, index) =>
-        setTimeout(
-          () => setStep(index + 1),
-          delay + (duration * (index + 1)) / path.length,
-        ),
+      .map(({ start }, index) =>
+        setTimeout(() => setStep(index + 1), delay + start),
       );
     return () => timers.forEach(clearTimeout);
-  }, [path, duration, delay]);
+  }, [timings, delay]);
   const previous = step === 0 ? from : path[step - 1];
   const next = path[step];
   return (
@@ -296,7 +306,7 @@ function FlipFrames({
       data-flip-step={step + 1}
       style={
         {
-          "--animated-text-duration": `${duration / path.length}ms`,
+          "--animated-text-duration": `${timings[step].duration}ms`,
           "--animated-text-delay": `${step === 0 ? delay : 0}ms`,
         } as CSSProperties
       }

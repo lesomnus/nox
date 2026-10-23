@@ -22,6 +22,7 @@ export function DateTime({
   duration,
   characterDelay,
   maxFlipSteps,
+  flipEasing,
   flipCharacters,
   ...props
 }: DateTimeProps) {
@@ -41,6 +42,7 @@ export function DateTime({
       duration={duration}
       characterDelay={characterDelay}
       maxFlipSteps={maxFlipSteps}
+      flipEasing={flipEasing}
       flipCharacters={flipCharacters}
       characterClassName={(character) =>
         /\D/.test(character) ? styles.separator : undefined

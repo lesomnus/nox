@@ -1,5 +1,6 @@
 export type TextMotion = "none" | "slide" | "flip";
 export type TextDirection = "auto" | "up" | "down";
+export type TextFlipEasing = "ease-in-out" | "linear";
 
 export type TextCharacterDelayContext = {
   character: string;
@@ -29,9 +30,32 @@ export type TextMotionOptions = {
   characterDelay?: TextCharacterDelay;
   /** Maximum flips per changed character within duration, including the final flip. */
   maxFlipSteps?: number;
+  /** Sequence cadence: accelerate then decelerate (default), or keep every flip equal. */
+  flipEasing?: TextFlipEasing;
   /** Ordered cyclic characters for intermediate flips. Defaults to digits or same-case Latin letters. */
   flipCharacters?: string;
 };
+
+/** Equal card distances along a sine ease-in-out progress curve, inverted to time. */
+export function flipStepTimings(
+  steps: number,
+  duration: number,
+  easing: TextFlipEasing = "ease-in-out",
+): { start: number; duration: number }[] {
+  const timeAt = (boundary: number) => {
+    if (boundary === 0) return 0;
+    if (boundary === steps) return duration;
+    const progress = boundary / steps;
+    return (
+      duration *
+      (easing === "linear" ? progress : Math.acos(1 - 2 * progress) / Math.PI)
+    );
+  };
+  return Array.from({ length: steps }, (_, index) => {
+    const start = timeAt(index);
+    return { start, duration: timeAt(index + 1) - start };
+  });
+}
 
 export function isFlipCharacter(
   character: string,

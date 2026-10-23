@@ -13,6 +13,7 @@ const meta = {
     motion: { control: "select", options: ["none", "slide", "flip"] },
     direction: { control: "select", options: ["auto", "up", "down"] },
     maxFlipSteps: { control: { type: "number", min: 1, max: 26, step: 1 } },
+    flipEasing: { control: "select", options: ["ease-in-out", "linear"] },
     characterDelay: {
       type: "number",
       control: { type: "number", min: 0, step: 20 },
@@ -103,7 +104,10 @@ export const FlipThrough: Story = {
         <AnimatedText {...args} className={styles.value} />
         <small>
           Distance-based flips · max {args.maxFlipSteps ?? 1} per character ·{" "}
-          {args.duration} ms total
+          {args.duration} ms total ·{" "}
+          {args.flipEasing === "linear"
+            ? "constant speed"
+            : "slow → fast → slow"}
         </small>
         <div className={styles.actions}>
           {["A", "D", "Z"].map((value) => (
@@ -139,6 +143,24 @@ export const DepartureBoard: Story = {
       </div>
     );
   },
+};
+export const FlipAcceleration: Story = {
+  args: {
+    ...FlipThrough.args,
+    duration: 1500,
+    maxFlipSteps: 8,
+    flipEasing: "ease-in-out",
+  },
+  render: FlipThrough.render,
+};
+export const FlipLinear: Story = {
+  args: {
+    ...FlipThrough.args,
+    duration: 1500,
+    maxFlipSteps: 8,
+    flipEasing: "linear",
+  },
+  render: FlipThrough.render,
 };
 export const StaggeredFlip: Story = {
   args: { ...DepartureBoard.args, characterDelay: 100 },
@@ -276,6 +298,7 @@ export const Rollover: Story = {
           duration={args.duration}
           characterDelay={args.characterDelay}
           maxFlipSteps={args.maxFlipSteps}
+          flipEasing={args.flipEasing}
           flipCharacters={args.flipCharacters}
         />
         <DateTime
@@ -285,6 +308,7 @@ export const Rollover: Story = {
           duration={args.duration}
           characterDelay={args.characterDelay}
           maxFlipSteps={args.maxFlipSteps}
+          flipEasing={args.flipEasing}
           flipCharacters={args.flipCharacters}
         />
         <div className={styles.actions}>

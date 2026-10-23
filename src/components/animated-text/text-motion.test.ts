@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { characterDelays, flipPath, textDirection } from "./text-motion";
+import {
+  characterDelays,
+  flipPath,
+  flipStepTimings,
+  textDirection,
+} from "./text-motion";
 
 describe("formatted value motion", () => {
   it("follows numeric rather than lexical ordering", () => {
@@ -16,6 +21,42 @@ describe("formatted value motion", () => {
   });
   it("compares formatted strings naturally without a numeric hint", () => {
     expect(textDirection("auto", "99:59", "100:00")).toBe("down");
+  });
+});
+
+describe("flip acceleration and arrival", () => {
+  it("starts slowly, accelerates through the middle and slows at the target", () => {
+    const timings = flipStepTimings(6, 900);
+    const durations = timings.map((timing) => timing.duration);
+    expect(durations[0]).toBeGreaterThan(durations[1]);
+    expect(durations[1]).toBeGreaterThan(durations[2]);
+    expect(durations[3]).toBeLessThan(durations[4]);
+    expect(durations[4]).toBeLessThan(durations[5]);
+    expect(durations[0]).toBeCloseTo(durations[5]);
+    expect(durations[1]).toBeCloseTo(durations[4]);
+    expect(durations[2]).toBeCloseTo(durations[3]);
+    expect(timings[0].start).toBe(0);
+    for (let index = 1; index < timings.length; index++)
+      expect(timings[index].start).toBeCloseTo(
+        timings[index - 1].start + timings[index - 1].duration,
+      );
+    expect(timings.at(-1)!.start + timings.at(-1)!.duration).toBeCloseTo(900);
+  });
+  it("preserves total duration and lands with a longer final flip even on short paths", () => {
+    const timings = flipStepTimings(3, 1200);
+    expect(timings[0].duration).toBeGreaterThan(timings[1].duration);
+    expect(timings[2].duration).toBeGreaterThan(timings[1].duration);
+    expect(
+      timings.reduce((sum, timing) => sum + timing.duration, 0),
+    ).toBeCloseTo(1200);
+    expect(flipStepTimings(1, 360)).toEqual([{ start: 0, duration: 360 }]);
+  });
+  it("retains equal card durations as an explicit linear option", () => {
+    expect(flipStepTimings(3, 900, "linear")).toEqual([
+      { start: 0, duration: 300 },
+      { start: 300, duration: 300 },
+      { start: 600, duration: 300 },
+    ]);
   });
 });
 
