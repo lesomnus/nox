@@ -38,7 +38,7 @@ export function Switch({
           centerMotion="fixed"
           duration={2000}
           loop
-          color={checked ? [0, 0, 0, 0.5] : [1, 1, 1, 0.35]}
+          color={checked ? [0, 0, 0, 0.5] : [1, 1, 1, 0.2]}
         />
       )}
     </button>
