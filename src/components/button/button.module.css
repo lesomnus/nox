@@ -39,9 +39,9 @@
   /* Keep currentColor for SVG icons; only text receives the moving highlight. */
   background-image: linear-gradient(
     100deg,
-    color-mix(in srgb, currentColor 85%, transparent) 40%,
+    color-mix(in srgb, currentColor 75%, transparent) 40%,
     color-mix(in srgb, currentColor 50%, var(--ui-shade-255)) 50%,
-    color-mix(in srgb, currentColor 85%, transparent) 60%
+    color-mix(in srgb, currentColor 75%, transparent) 60%
   );
   background-size: 300% 100%;
   background-clip: text;
