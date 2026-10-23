@@ -6,6 +6,8 @@ with the consuming application.
 
 Package: `@lesomnus/nox` · Repository: [lesomnus/nox](https://github.com/lesomnus/nox)
 
+[Browse Storybook](https://lesomnus.github.io/nox/)
+
 ## Develop
 
 Node 22.12+ (CI uses Node 24), npm 11.
@@ -226,6 +228,12 @@ import { SourceEditor } from "@lesomnus/nox/editor";
 The editor accepts plain settings and theme values; it does not know about settings.json, font downloads or application storage. It loads Monaco lazily and ships editor/JSON worker assets. An existing host MonacoEnvironment is respected. The host gives the editor a bounded layout area. The explicit `nox-source` condition uses source files for Vite hot reload; the default uses compiled ES modules and TypeScript declarations.
 
 ## Independent previews
+
+The [published Storybook](https://lesomnus.github.io/nox/) follows `main`.
+The **Storybook Pages** workflow builds and deploys it on each push to `main`,
+and can also be run manually from GitHub Actions. GitHub Pages uses the
+**GitHub Actions** publishing source. Build output is uploaded as a deployment
+artifact; it is not committed to the repository.
 
 `npm run storybook` imports only this package and documentation framing. Its
 stories demonstrate controls, value editing, menus, cards, injected translation,
