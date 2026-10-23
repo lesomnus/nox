@@ -22,7 +22,7 @@ test("pending transitions retain the confirmed state and block repeat input", as
 });
 
 for (const checked of [false, true]) {
-  test(`pending ${checked ? "off" : "on"} centers the thumb and indicates direction with reduced motion`, async ({
+  test(`pending ${checked ? "off" : "on"} moves a slightly growing circle across the rail and supports reduced motion`, async ({
     page,
   }) => {
     await page.emulateMedia({ reducedMotion: "reduce" });
@@ -52,8 +52,8 @@ for (const checked of [false, true]) {
       };
     });
     expect(reduced.animation).toBe("none");
-    expect(reduced.scale).toBeCloseTo(1.2);
-    expect(reduced.left).toBe(checked ? 5 : -29);
+    expect(reduced.scale).toBeCloseTo(1);
+    expect(reduced.left).toBe(checked ? 24 : -16);
     expect(reduced.background).toContain("radial-gradient");
     expect(reduced.background).toContain(
       checked ? "rgba(0, 0, 0, 0.8)" : "rgba(255, 255, 255, 0.5)",
@@ -72,16 +72,28 @@ for (const checked of [false, true]) {
       const animation = node
         .getAnimations({ subtree: true })
         .find((item) =>
-          (item as CSSAnimation).animationName.includes("light_bloom"),
+          (item as CSSAnimation).animationName.includes("wave_pass"),
         )!;
       animation.pause();
       animation.currentTime = 200;
-      const start = new DOMMatrix(getComputedStyle(node, "::after").transform)
-        .a;
+      const start = new DOMMatrix(getComputedStyle(node, "::after").transform);
+      const startOpacity = getComputedStyle(node, "::after").opacity;
       animation.currentTime = 900;
-      const end = new DOMMatrix(getComputedStyle(node, "::after").transform).a;
-      return { start, end };
+      const end = new DOMMatrix(getComputedStyle(node, "::after").transform);
+      return {
+        startScale: start.a,
+        endScale: end.a,
+        startX: start.m41,
+        endX: end.m41,
+        startOpacity,
+        endOpacity: getComputedStyle(node, "::after").opacity,
+      };
     });
-    expect(scales.end).toBeGreaterThan(scales.start);
+    expect(scales.endScale).toBeGreaterThan(scales.startScale);
+    expect(scales.endScale - scales.startScale).toBeLessThan(0.2);
+    if (checked) expect(scales.endX).toBeLessThan(scales.startX);
+    else expect(scales.endX).toBeGreaterThan(scales.startX);
+    expect(scales.startOpacity).toBe("1");
+    expect(scales.endOpacity).toBe("1");
   });
 }
