@@ -7,23 +7,39 @@ import {
   type Ref,
 } from "react";
 
-// Keep uniform scaling, but cap the longest edge's total contraction at 4px.
-export function Button({
-  children,
-  pressTarget,
-  variant = "default",
-  className = "",
-  ...props
-}: ButtonHTMLAttributes<HTMLButtonElement> & {
+export type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
+  /** Hold the pressed state and sweep a soft highlight over the label. */
+  loading?: boolean;
   pressTarget?: string;
   variant?: "default" | "toolbar";
   ref?: Ref<HTMLButtonElement>;
-}) {
+};
+
+export function Button({
+  children,
+  pressTarget,
+  loading = false,
+  variant = "default",
+  className = "",
+  onClick,
+  ...props
+}: ButtonProps) {
   return (
     <button
       {...props}
+      aria-busy={loading || props["aria-busy"]}
+      aria-disabled={loading || props["aria-disabled"]}
+      data-loading={loading || undefined}
       data-variant={variant}
       className={`${styles.button} ${className}`}
+      onClick={(event) => {
+        if (loading) {
+          event.preventDefault();
+          event.stopPropagation();
+          return;
+        }
+        onClick?.(event);
+      }}
     >
       <ButtonContent pressTarget={pressTarget}>{children}</ButtonContent>
     </button>

@@ -26,9 +26,37 @@
   outline: 2px solid var(--ui-shade-237);
   outline-offset: 2px;
 }
-.button:not(:disabled):active > .button_content {
+.button:not(:disabled):active > .button_content,
+.button[data-loading] > .button_content {
   transform: scale(var(--press-scale, 0.95));
   transition-duration: 60ms;
+}
+
+.button[data-loading]:not(:disabled) {
+  cursor: progress;
+}
+.button[data-loading] > .button_content {
+  /* Keep currentColor for SVG icons; only text receives the moving highlight. */
+  background-image: linear-gradient(
+    100deg,
+    color-mix(in srgb, currentColor 85%, transparent) 40%,
+    color-mix(in srgb, currentColor 50%, var(--ui-shade-255)) 50%,
+    color-mix(in srgb, currentColor 85%, transparent) 60%
+  );
+  background-size: 300% 100%;
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: loading_sheen var(--ui-button-loading-duration, 1600ms) linear
+    infinite;
+}
+@keyframes loading_sheen {
+  from {
+    background-position: 100% 0;
+  }
+  to {
+    background-position: 0% 0;
+  }
 }
 
 .button_content {
@@ -41,8 +69,15 @@
   transition: transform 120ms ease-out;
 }
 @media (prefers-reduced-motion: reduce) {
-  .button_content {
+  .button_content,
+  .button:not(:disabled):active > .button_content,
+  .button[data-loading] > .button_content {
     transition: none;
+  }
+  .button[data-loading] > .button_content {
+    animation: none;
+    background-image: none;
+    -webkit-text-fill-color: currentColor;
   }
 }
 .button[data-variant="toolbar"] {
