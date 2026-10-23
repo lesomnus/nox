@@ -3,6 +3,7 @@
   box-sizing: border-box;
 }
 .setting_menu {
+  color: var(--ui-shade-237);
   background: var(--ui-dropdown-background);
   -webkit-backdrop-filter: blur(var(--ui-dropdown-blur));
   backdrop-filter: blur(var(--ui-dropdown-blur));
