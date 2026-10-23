@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { flipPath, textDirection } from "./text-motion";
+import { characterDelays, flipPath, textDirection } from "./text-motion";
 
 describe("formatted value motion", () => {
   it("follows numeric rather than lexical ordering", () => {
@@ -16,6 +16,73 @@ describe("formatted value motion", () => {
   });
   it("compares formatted strings naturally without a numeric hint", () => {
     expect(textDirection("auto", "99:59", "100:00")).toBe("down");
+  });
+});
+
+describe("character start delays", () => {
+  it("staggers only changed animated characters, without gaps for static positions", () => {
+    expect(characterDelays("12:34", "12:56", "flip", 80)).toEqual([
+      0, 0, 0, 0, 80,
+    ]);
+    expect(characterDelays("ABCD", "WXYZ", "slide", 100)).toEqual([
+      0, 100, 200, 300,
+    ]);
+  });
+  it("provides Unicode positions, previous values and compact change indices", () => {
+    const contexts: unknown[] = [];
+    expect(
+      characterDelays("😀A:B", "😀C:D", "flip", (context) => {
+        contexts.push(context);
+        return context.changedIndex * 70 + 10;
+      }),
+    ).toEqual([0, 10, 0, 80]);
+    expect(contexts).toEqual([
+      {
+        character: "C",
+        previousCharacter: "A",
+        index: 1,
+        length: 4,
+        changedIndex: 0,
+        changedCount: 2,
+        text: "😀C:D",
+        previousText: "😀A:B",
+      },
+      {
+        character: "D",
+        previousCharacter: "B",
+        index: 3,
+        length: 4,
+        changedIndex: 1,
+        changedCount: 2,
+        text: "😀C:D",
+        previousText: "😀A:B",
+      },
+    ]);
+  });
+  it("evaluates callbacks only for animated changes, once per character", () => {
+    let calls = 0;
+    const delay = () => ++calls * 20;
+    expect(characterDelays("A-", "B!C", "flip", delay)).toEqual([20, 0, 0]);
+    expect(calls).toBe(1);
+    expect(characterDelays("A-", "B!C", "none", delay)).toEqual([0, 0, 0]);
+    expect(calls).toBe(1);
+    expect(characterDelays("A-", "B!C", "flip", delay, "-!")).toEqual([
+      40, 60, 0,
+    ]);
+    expect(calls).toBe(3);
+  });
+  it("normalizes negative, non-finite and missing delays", () => {
+    for (const delay of [-100, NaN, Infinity])
+      expect(characterDelays("AA", "BB", "slide", delay)).toEqual([0, 0]);
+    expect(
+      characterDelays(
+        "AAA",
+        "BBB",
+        "slide",
+        ({ index }) => [-1, Infinity, 25.5][index],
+      ),
+    ).toEqual([0, 0, 25.5]);
+    expect(characterDelays("AA", "BB", "slide")).toEqual([0, 0]);
   });
 });
 

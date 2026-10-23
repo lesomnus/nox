@@ -11,6 +11,197 @@ async function frozenStory(page: Page, name: string, args: string) {
   await page.clock.pauseAt(new Date("2026-10-23T00:01:00Z"));
 }
 
+const delaysOf = (page: Page) =>
+  page
+    .locator(`${display} [data-changing]`)
+    .evaluateAll((cells) =>
+      cells.map((cell) =>
+        getComputedStyle(cell).getPropertyValue("--animated-text-delay"),
+      ),
+    );
+
+test("slide stagger skips static positions and waits for the last character to finish", async ({
+  page,
+}) => {
+  await frozenStory(page, "staggered-slide", "characterDelay:200;duration:400");
+  const value = page.locator(display);
+  await page.getByRole("button", { name: "BOARD", exact: true }).click();
+  await expect(value).toHaveAttribute("aria-label", "BOARD");
+  expect(await delaysOf(page)).toEqual(["0ms", "200ms", "400ms", "600ms"]);
+  const pending = value.locator("[data-changing]").last();
+  const frames = await pending.evaluate((cell) =>
+    cell.getAnimations({ subtree: true }).map((animation) => {
+      animation.pause();
+      animation.currentTime = 300;
+      const timing = animation.effect!.getComputedTiming();
+      return {
+        delay: animation.effect!.getTiming().delay,
+        progress: timing.progress,
+      };
+    }),
+  );
+  expect(frames).toEqual([
+    { delay: 600, progress: 0 },
+    { delay: 600, progress: 0 },
+  ]);
+  await expect(pending.locator(":scope > span").nth(1)).toHaveText("Y");
+  await page.clock.runFor(401);
+  await expect(value.locator("[data-changing]")).toHaveCount(4);
+  await page.clock.runFor(600);
+  await expect(value.locator("[data-changing]")).toHaveCount(0);
+  await expect(value).toHaveText("BOARD");
+});
+
+test("staggered multi-flips wait once then run consecutive steps", async ({
+  page,
+}) => {
+  await frozenStory(
+    page,
+    "staggered-flip",
+    "characterDelay:200;duration:900;maxFlipSteps:3",
+  );
+  const value = page.locator(display);
+  await page.getByRole("button", { name: "TOKYO", exact: true }).click();
+  expect(await delaysOf(page)).toEqual([
+    "0ms",
+    "200ms",
+    "400ms",
+    "600ms",
+    "800ms",
+  ]);
+  const last = value.locator("[data-changing]").last();
+  const frame = last.locator("[data-flip-step]");
+  const animationDelays = await last.evaluate((cell) =>
+    cell
+      .getAnimations({ subtree: true })
+      .map((animation) => animation.effect!.getTiming().delay),
+  );
+  expect(animationDelays).toHaveLength(2);
+  expect(animationDelays[0]).toBeCloseTo(800);
+  expect(animationDelays[1]).toBeCloseTo(950);
+  await page.clock.runFor(901);
+  await expect(value.locator("[data-changing]")).toHaveCount(5);
+  await expect(frame).toHaveAttribute("data-flip-step", "1");
+  await page.clock.runFor(201);
+  await expect(frame).toHaveAttribute("data-flip-step", "2");
+  await expect(frame).toHaveCSS("--animated-text-delay", "0ms");
+  await page.clock.runFor(300);
+  await expect(frame).toHaveAttribute("data-flip-step", "3");
+  await page.clock.runFor(300);
+  await expect(value.locator("[data-changing]")).toHaveCount(0);
+  await expect(value).toHaveText("TOKYO");
+});
+
+test("inline delay callbacks stay frozen through host renders and refresh for the next value", async ({
+  page,
+}) => {
+  await frozenStory(page, "custom-timing", "duration:800");
+  const value = page.locator(display);
+  await page.getByRole("button", { name: "DDDDD", exact: true }).click();
+  await expect(value).toHaveAttribute("aria-label", "DDDDD");
+  expect(await delaysOf(page)).toEqual([
+    "200ms",
+    "0ms",
+    "400ms",
+    "100ms",
+    "300ms",
+  ]);
+  await page.getByRole("spinbutton", { name: "Delay multiplier" }).fill("2");
+  expect(await delaysOf(page)).toEqual([
+    "200ms",
+    "0ms",
+    "400ms",
+    "100ms",
+    "300ms",
+  ]);
+  await page.clock.runFor(1201);
+  await expect(value).toHaveText("DDDDD");
+  await page.getByRole("button", { name: "AAAAA", exact: true }).click();
+  await expect(value).toHaveAttribute("aria-label", "AAAAA");
+  expect(await delaysOf(page)).toEqual([
+    "400ms",
+    "0ms",
+    "800ms",
+    "200ms",
+    "600ms",
+  ]);
+  await page.clock.runFor(801);
+  await expect(value.locator("[data-changing]")).toHaveCount(5);
+  await page.clock.runFor(800);
+  await expect(value).toHaveText("AAAAA");
+});
+
+test("a new value cancels pending starts and completion timers", async ({
+  page,
+}) => {
+  await frozenStory(page, "custom-timing", "duration:800");
+  await page.getByRole("spinbutton", { name: "Delay multiplier" }).fill("5");
+  const value = page.locator(display);
+  await page.getByRole("button", { name: "DDDDD", exact: true }).click();
+  await page.clock.runFor(100);
+  await page.getByRole("button", { name: "AAAAA", exact: true }).click();
+  await page.clock.runFor(2750);
+  await expect(value).toHaveAttribute("aria-label", "AAAAA");
+  await expect(value.locator("[data-changing]")).toHaveCount(5);
+  await page.clock.runFor(100);
+  await expect(value.locator("[data-changing]")).toHaveCount(0);
+  await expect(value).toHaveText("AAAAA");
+});
+
+test("irregular callbacks yield bounded delays and time components forward stagger options", async ({
+  page,
+}) => {
+  await page.goto(story("random-flip", "duration:2000"));
+  await page.getByRole("button", { name: "TOKYO", exact: true }).click();
+  const delays = (await delaysOf(page)).map(parseFloat);
+  expect(delays).toHaveLength(5);
+  for (const delay of delays) {
+    expect(delay).toBeGreaterThanOrEqual(0);
+    expect(delay).toBeLessThan(450);
+  }
+  await page.goto(
+    story("rollover", "characterDelay:120;duration:2000;motion:flip"),
+  );
+  await page.getByRole("button", { name: "Next second" }).click();
+  const values = await page
+    .locator(".elapsed-time [data-changing]")
+    .evaluateAll((cells) =>
+      cells.map((cell) =>
+        getComputedStyle(cell).getPropertyValue("--animated-text-delay"),
+      ),
+    );
+  expect(values).toEqual(["0ms", "120ms", "240ms"]);
+  expect(
+    await page
+      .locator("time [data-changing]")
+      .evaluateAll((cells) =>
+        cells.some(
+          (cell) =>
+            parseFloat(
+              getComputedStyle(cell).getPropertyValue("--animated-text-delay"),
+            ) > 0,
+        ),
+      ),
+  ).toBe(true);
+  await expect(page.locator("[characterDelay]")).toHaveCount(0);
+});
+
+test("reduced motion and zero duration skip stagger waits", async ({
+  page,
+}) => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.goto(story("staggered-flip", "characterDelay:2000"));
+  const value = page.locator(display);
+  await page.getByRole("button", { name: "TOKYO", exact: true }).click();
+  await expect(value).toHaveText("TOKYO");
+  await expect(value.locator("[data-changing]")).toHaveCount(0);
+  await page.emulateMedia({ reducedMotion: "no-preference" });
+  await page.goto(story("staggered-slide", "characterDelay:2000;duration:0"));
+  await page.getByRole("button", { name: "BOARD", exact: true }).click();
+  await expect(value).toHaveText("BOARD");
+  await expect(value.locator("[data-changing]")).toHaveCount(0);
+});
+
 test("text examples animate labels and one-way flaps never reverse", async ({
   page,
 }) => {

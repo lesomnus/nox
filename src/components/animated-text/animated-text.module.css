@@ -30,6 +30,7 @@
 .outgoing,
 .incoming {
   animation-duration: var(--animated-text-duration);
+  animation-delay: var(--animated-text-delay, 0ms);
   animation-timing-function: var(--ui-text-motion-easing);
   animation-fill-mode: both;
 }
@@ -124,12 +125,15 @@
 .fold_out {
   z-index: 3;
   animation: fold-out-down calc(var(--animated-text-duration) / 2) ease-in both;
+  animation-delay: var(--animated-text-delay, 0ms);
 }
 .fold_in {
   z-index: 4;
   transform-origin: center top;
   animation: fold-in-down calc(var(--animated-text-duration) / 2) ease-out both;
-  animation-delay: calc(var(--animated-text-duration) / 2);
+  animation-delay: calc(
+    var(--animated-text-delay, 0ms) + var(--animated-text-duration) / 2
+  );
 }
 .cell[data-direction="up"] .fold_out {
   top: auto;

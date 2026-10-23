@@ -20,6 +20,7 @@ export function DateTime({
   motion = "none",
   direction,
   duration,
+  characterDelay,
   maxFlipSteps,
   flipCharacters,
   ...props
@@ -38,6 +39,7 @@ export function DateTime({
       motion={motion}
       direction={direction}
       duration={duration}
+      characterDelay={characterDelay}
       maxFlipSteps={maxFlipSteps}
       flipCharacters={flipCharacters}
       characterClassName={(character) =>

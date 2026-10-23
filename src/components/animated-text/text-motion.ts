@@ -1,17 +1,84 @@
 export type TextMotion = "none" | "slide" | "flip";
 export type TextDirection = "auto" | "up" | "down";
 
+export type TextCharacterDelayContext = {
+  character: string;
+  previousCharacter: string;
+  /** Position in the complete new text, measured in Unicode code points. */
+  index: number;
+  length: number;
+  /** Position among changed, animated characters only. */
+  changedIndex: number;
+  changedCount: number;
+  text: string;
+  previousText: string;
+};
+
+/** A stagger interval, or a callback returning an absolute start delay in ms. */
+export type TextCharacterDelay =
+  | number
+  | ((context: TextCharacterDelayContext) => number);
+
 export type TextMotionOptions = {
   motion?: TextMotion;
   /** Auto moves increasing values down and decreasing values up. */
   direction?: TextDirection;
-  /** Transition duration in milliseconds. */
+  /** Each character's transition duration in milliseconds, excluding its start delay. */
   duration?: number;
+  /** Stagger changed characters by this interval, or compute each start delay in ms. */
+  characterDelay?: TextCharacterDelay;
   /** Maximum flips per changed character within duration, including the final flip. */
   maxFlipSteps?: number;
   /** Ordered cyclic characters for intermediate flips. Defaults to digits or same-case Latin letters. */
   flipCharacters?: string;
 };
+
+export function isFlipCharacter(
+  character: string,
+  characters?: string,
+): boolean {
+  return /[\p{L}\p{N}]/u.test(character) || !!characters?.includes(character);
+}
+
+/** Evaluate once per update so random callbacks remain stable throughout a transition. */
+export function characterDelays(
+  previousText: string,
+  text: string,
+  motion: TextMotion,
+  delay: TextCharacterDelay = 0,
+  flipCharacters?: string,
+): number[] {
+  const previous = Array.from(previousText);
+  const next = Array.from(text);
+  const changed = next.flatMap((character, index) =>
+    motion !== "none" &&
+    previous[index] !== undefined &&
+    previous[index] !== character &&
+    (motion === "slide" || isFlipCharacter(character, flipCharacters))
+      ? [index]
+      : [],
+  );
+  const delays = next.map(() => 0);
+  changed.forEach((index, changedIndex) => {
+    const milliseconds =
+      typeof delay === "number"
+        ? delay * changedIndex
+        : delay({
+            character: next[index],
+            previousCharacter: previous[index],
+            index,
+            length: next.length,
+            changedIndex,
+            changedCount: changed.length,
+            text,
+            previousText,
+          });
+    delays[index] = Number.isFinite(milliseconds)
+      ? Math.max(0, milliseconds)
+      : 0;
+  });
+  return delays;
+}
 
 const characterGroups = [
   "0123456789",

@@ -7,13 +7,21 @@ import {
   type CSSProperties,
   type HTMLAttributes,
 } from "react";
-import { flipPath, textDirection, type TextMotionOptions } from "./text-motion";
+import {
+  characterDelays,
+  flipPath,
+  isFlipCharacter,
+  textDirection,
+  type TextMotionOptions,
+} from "./text-motion";
 import styles from "./animated-text.module.css";
 
 export type {
   TextMotion,
   TextDirection,
   TextMotionOptions,
+  TextCharacterDelay,
+  TextCharacterDelayContext,
 } from "./text-motion";
 
 export type AnimatedTextProps = Omit<
@@ -51,6 +59,7 @@ const noMotionSubscription = () => () => {};
 type Transition = {
   from: string[];
   paths: string[][];
+  delays: number[];
   to: string;
   direction: "up" | "down";
   id: number;
@@ -62,6 +71,7 @@ export function AnimatedText({
   motion = "slide",
   direction = "auto",
   duration = 360,
+  characterDelay = 0,
   maxFlipSteps = 1,
   flipCharacters,
   comparisonValue,
@@ -79,12 +89,18 @@ export function AnimatedText({
   );
   const previous = useRef({ text, order: comparisonValue });
   const order = useRef(comparisonValue);
+  const delayOption = useRef(characterDelay);
   const sequence = useRef(0);
   const [transition, setTransition] = useState<Transition>();
   // Order can change between display ticks without interrupting a transition.
   useLayoutEffect(() => {
     order.current = comparisonValue;
   }, [comparisonValue]);
+  // Inline callbacks may change identity on any host render. Sample the latest
+  // callback only when a new value transitions; do not restart an active one.
+  useLayoutEffect(() => {
+    delayOption.current = characterDelay;
+  }, [characterDelay]);
   useLayoutEffect(() => {
     const before = previous.current;
     previous.current = { text, order: order.current };
@@ -106,8 +122,16 @@ export function AnimatedText({
       before.order,
       order.current,
     );
+    const delays = characterDelays(
+      before.text,
+      text,
+      motion,
+      delayOption.current,
+      flipCharacters,
+    );
     setTransition({
       from,
+      delays,
       paths:
         motion === "flip"
           ? Array.from(text, (character, index) =>
@@ -126,9 +150,13 @@ export function AnimatedText({
       direction: physicalDirection,
       id,
     });
-    const timer = setTimeout(() => {
-      setTransition((active) => (active?.id === id ? undefined : active));
-    }, milliseconds);
+    const timer = setTimeout(
+      () => {
+        setTransition((active) => (active?.id === id ? undefined : active));
+      },
+      milliseconds +
+        delays.reduce((longest, delay) => Math.max(longest, delay), 0),
+    );
     return () => clearTimeout(timer);
   }, [
     text,
@@ -179,9 +207,7 @@ export function AnimatedText({
               const old = active?.from[index];
               const changing = old !== undefined && old !== character;
               const card =
-                motion === "flip" &&
-                (/[\p{L}\p{N}]/u.test(character) ||
-                  flipCharacters?.includes(character));
+                motion === "flip" && isFlipCharacter(character, flipCharacters);
               const animate =
                 !!active && changing && (motion !== "flip" || card);
               return (
@@ -195,6 +221,13 @@ export function AnimatedText({
                   data-direction={active?.direction}
                   data-flip-steps={
                     animate && card ? active.paths[index].length : undefined
+                  }
+                  style={
+                    animate
+                      ? ({
+                          "--animated-text-delay": `${active.delays[index]}ms`,
+                        } as CSSProperties)
+                      : undefined
                   }
                 >
                   <span className={styles.glyph}>{character}</span>
@@ -218,6 +251,7 @@ export function AnimatedText({
                           from={old!}
                           path={active.paths[index]}
                           duration={milliseconds}
+                          delay={active.delays[index]}
                         />
                       )}
                     </Fragment>
@@ -235,10 +269,12 @@ function FlipFrames({
   from,
   path,
   duration,
+  delay,
 }: {
   from: string;
   path: string[];
   duration: number;
+  delay: number;
 }) {
   const [step, setStep] = useState(0);
   useLayoutEffect(() => {
@@ -247,11 +283,11 @@ function FlipFrames({
       .map((_, index) =>
         setTimeout(
           () => setStep(index + 1),
-          (duration * (index + 1)) / path.length,
+          delay + (duration * (index + 1)) / path.length,
         ),
       );
     return () => timers.forEach(clearTimeout);
-  }, [path, duration]);
+  }, [path, duration, delay]);
   const previous = step === 0 ? from : path[step - 1];
   const next = path[step];
   return (
@@ -261,6 +297,7 @@ function FlipFrames({
       style={
         {
           "--animated-text-duration": `${duration / path.length}ms`,
+          "--animated-text-delay": `${step === 0 ? delay : 0}ms`,
         } as CSSProperties
       }
     >

@@ -18,6 +18,7 @@ export function ElapsedTime({
   motion = "none",
   direction,
   duration,
+  characterDelay,
   maxFlipSteps,
   flipCharacters,
 }: ElapsedTimeProps) {
@@ -58,6 +59,7 @@ export function ElapsedTime({
         motion={motion}
         direction={direction}
         duration={duration}
+        characterDelay={characterDelay}
         maxFlipSteps={maxFlipSteps}
         flipCharacters={flipCharacters}
         characterClassName={(character, index) =>

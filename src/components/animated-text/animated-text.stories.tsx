@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import type { Meta, StoryObj } from "@storybook/react-vite";
-import { useArgs } from "storybook/preview-api";
+import { useArgs, useState as useStoryState } from "storybook/preview-api";
 import { AnimatedText, Button, DateTime, ElapsedTime } from "@lesomnus/nox";
 import styles from "./animated-text.stories.module.css";
 
@@ -13,6 +13,10 @@ const meta = {
     motion: { control: "select", options: ["none", "slide", "flip"] },
     direction: { control: "select", options: ["auto", "up", "down"] },
     maxFlipSteps: { control: { type: "number", min: 1, max: 26, step: 1 } },
+    characterDelay: {
+      type: "number",
+      control: { type: "number", min: 0, step: 20 },
+    },
   },
   render: function Interactive(args) {
     const [, updateArgs] = useArgs();
@@ -63,6 +67,23 @@ export const TextFlip: Story = {
   args: { value: "READY", motion: "flip" },
   render: textExample,
 };
+export const StaggeredSlide: Story = {
+  args: { value: "READY", motion: "slide", characterDelay: 100 },
+  render: textExample,
+};
+export const CenterOutSlide: Story = {
+  args: { value: "READY", motion: "slide" },
+  argTypes: { characterDelay: { control: false } },
+  render: (args, context) =>
+    textExample!(
+      {
+        ...args,
+        characterDelay: ({ index, length }) =>
+          Math.abs(index - (length - 1) / 2) * 120,
+      },
+      context,
+    ),
+};
 export const FlipForwardOnly: Story = {
   args: { value: "READY", motion: "flip", direction: "down" },
   render: textExample,
@@ -110,6 +131,65 @@ export const DepartureBoard: Story = {
         <AnimatedText {...args} className={styles.value} />
         <div className={styles.actions}>
           {["SEOUL", "TOKYO", "PARIS", "OSAKA"].map((value) => (
+            <Button key={value} onClick={() => updateArgs({ value })}>
+              {value}
+            </Button>
+          ))}
+        </div>
+      </div>
+    );
+  },
+};
+export const StaggeredFlip: Story = {
+  args: { ...DepartureBoard.args, characterDelay: 100 },
+  render: DepartureBoard.render,
+};
+export const RandomFlip: Story = {
+  args: DepartureBoard.args,
+  argTypes: { characterDelay: { control: false } },
+  render: (args, context) =>
+    DepartureBoard.render!(
+      {
+        ...args,
+        characterDelay: () => Math.random() * 450,
+      },
+      context,
+    ),
+};
+export const CustomTiming: Story = {
+  args: {
+    value: "AAAAA",
+    motion: "flip",
+    direction: "down",
+    duration: 800,
+    maxFlipSteps: 3,
+  },
+  argTypes: { characterDelay: { control: false } },
+  render: function CustomTiming(args) {
+    const [, updateArgs] = useArgs();
+    const [multiplier, setMultiplier] = useStoryState(1);
+    return (
+      <div className={styles.preview}>
+        <AnimatedText
+          {...args}
+          className={styles.value}
+          characterDelay={({ index }) =>
+            [200, 0, 400, 100, 300][index % 5] * multiplier
+          }
+        />
+        <label>
+          Delay multiplier{" "}
+          <input
+            type="number"
+            aria-label="Delay multiplier"
+            min="0"
+            step="0.5"
+            value={multiplier}
+            onChange={(event) => setMultiplier(Number(event.target.value))}
+          />
+        </label>
+        <div className={styles.actions}>
+          {["AAAAA", "DDDDD"].map((value) => (
             <Button key={value} onClick={() => updateArgs({ value })}>
               {value}
             </Button>
@@ -194,6 +274,7 @@ export const Rollover: Story = {
           motion={args.motion}
           direction={args.direction}
           duration={args.duration}
+          characterDelay={args.characterDelay}
           maxFlipSteps={args.maxFlipSteps}
           flipCharacters={args.flipCharacters}
         />
@@ -202,6 +283,7 @@ export const Rollover: Story = {
           motion="flip"
           direction={args.direction}
           duration={args.duration}
+          characterDelay={args.characterDelay}
           maxFlipSteps={args.maxFlipSteps}
           flipCharacters={args.flipCharacters}
         />
