@@ -36,39 +36,45 @@ for (const checked of [false, true]) {
       "transform",
       "matrix(1, 0, 0, 1, 9, 0)",
     );
-    const reduced = await control.evaluate((node) => {
+    const thumb = control.locator("span");
+    await expect(thumb).toHaveCSS("overflow", "hidden");
+    const reduced = await thumb.evaluate((node) => {
       const style = getComputedStyle(node, "::after");
       return {
         animation: style.animationName,
-        x: new DOMMatrix(style.transform).m41,
+        scale: new DOMMatrix(style.transform).a,
+        left: parseFloat(style.left),
+        background: style.backgroundImage,
+        trackContent: getComputedStyle(node.parentElement!, "::after").content,
       };
     });
-    expect(reduced).toEqual({ animation: "none", x: checked ? 0 : 20 });
+    expect(reduced.animation).toBe("none");
+    expect(reduced.scale).toBeCloseTo(1.2);
+    expect(reduced.left).toBe(checked ? 0 : -16);
+    expect(reduced.background).toContain("radial-gradient");
+    expect(reduced.trackContent).toBe("none");
     await page.emulateMedia({ reducedMotion: "no-preference" });
     await expect
       .poll(() =>
-        control.evaluate(
+        thumb.evaluate(
           (node) => getComputedStyle(node, "::after").animationName,
         ),
       )
       .not.toBe("none");
-    const positions = await control.evaluate(async (node) => {
-      await new Promise(requestAnimationFrame);
+    const scales = await thumb.evaluate((node) => {
       const animation = node
         .getAnimations({ subtree: true })
         .find((item) =>
-          (item as CSSAnimation).animationName.includes("light_sweep"),
+          (item as CSSAnimation).animationName.includes("light_bloom"),
         )!;
       animation.pause();
       animation.currentTime = 200;
       const start = new DOMMatrix(getComputedStyle(node, "::after").transform)
-        .m41;
-      animation.currentTime = 600;
-      const end = new DOMMatrix(getComputedStyle(node, "::after").transform)
-        .m41;
+        .a;
+      animation.currentTime = 900;
+      const end = new DOMMatrix(getComputedStyle(node, "::after").transform).a;
       return { start, end };
     });
-    if (checked) expect(positions.end).toBeLessThan(positions.start);
-    else expect(positions.end).toBeGreaterThan(positions.start);
+    expect(scales.end).toBeGreaterThan(scales.start);
   });
 }
