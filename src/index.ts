@@ -19,7 +19,7 @@ export * from "./components/value-menu/value-menu";
 export * from "./components/icon-value-menu/icon-value-menu";
 export * from "./components/prefix-value-menu/prefix-value-menu";
 export * from "./components/segmented-control/segmented-control";
-export * from "./components/confirmation-dialog/confirmation-dialog";
+export * from "./components/dialog/dialog";
 export * from "./components/editable-value/editable-value";
 export * from "./components/floating-card/floating-card";
 export * from "./components/setting-field/setting-field";

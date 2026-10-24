@@ -3,7 +3,11 @@ import type { Meta, StoryObj } from "@storybook/react-vite";
 import {
   ActionMenu,
   Button,
-  ConfirmationDialog,
+  Dialog,
+  DialogBody,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
   PrefixValueMenu,
   ValueMenu,
   type ActionMenuItem,
@@ -377,32 +381,35 @@ export const InsideDialog: Story = {
       <>
         <Button onClick={() => setOpen(true)}>Open dialog</Button>
         {open && (
-          <ConfirmationDialog
-            title="Menu overlays inside dialogs"
-            confirmLabel="Done"
-            execute={() => true}
-            close={() => setOpen(false)}
-          >
-            <div className={styles.example}>
-              <p className={styles.hint}>
-                MenuSurface portals into the nearest open native dialog, so both
-                menus stay in its top layer and remain interactive.
-              </p>
-              <div className={styles.row}>
-                <ActionMenu
-                  label="Dialog actions"
-                  triggerContent="Actions"
-                  items={basicActions}
-                />
-                <ValueMenu
-                  label="Dialog effort"
-                  value={value}
-                  choose={setValue}
-                  options={effortOptions}
-                />
+          <Dialog open={open} onClose={() => setOpen(false)}>
+            <DialogHeader>
+              <DialogTitle>Menu overlays inside dialogs</DialogTitle>
+            </DialogHeader>
+            <DialogBody>
+              <div className={styles.example}>
+                <p className={styles.hint}>
+                  MenuSurface portals into the nearest open native dialog, so
+                  both menus stay in its top layer and remain interactive.
+                </p>
+                <div className={styles.row}>
+                  <ActionMenu
+                    label="Dialog actions"
+                    triggerContent="Actions"
+                    items={basicActions}
+                  />
+                  <ValueMenu
+                    label="Dialog effort"
+                    value={value}
+                    choose={setValue}
+                    options={effortOptions}
+                  />
+                </div>
               </div>
-            </div>
-          </ConfirmationDialog>
+            </DialogBody>
+            <DialogFooter>
+              <Button onClick={() => setOpen(false)}>Done</Button>
+            </DialogFooter>
+          </Dialog>
         )}
       </>
     );

@@ -145,7 +145,12 @@ The component has no application dependencies or idle animation loop. See
 [SVG effects on HTML](https://developer.mozilla.org/en-US/docs/Web/SVG/Guides/Applying_SVG_effects_to_HTML_content)
 describes the underlying mask mechanism.
 
-The public core entry exports Button/ButtonContent, BadgedIcon, ConfirmButton, ActionMenu, ValueMenu, SegmentedControl, Switch, ConfirmationDialog, EditableValue, FloatingCard, SettingField, SettingSlider, ElapsedTime, CompactNumber, DurationDisplay, DialogReveal, SplitLayout, ResizeHandle, ScrollArea and UIProvider. Button's `toolbar` variant provides the compact rectangular shape. Button defaults to `effect="sparkle"`; use `effect="none"` to opt out or `effectOptions` to customize ink color/timing. Callbacks and selected values belong to the consuming application; Application adapters handle persistence and session operations separately.
+The public core entry exports Button/ButtonContent, BadgedIcon, ConfirmButton, ActionMenu, ValueMenu, SegmentedControl, Switch, Dialog/DialogHeader/DialogTitle/DialogDescription/DialogBody/DialogFooter, EditableValue, FloatingCard, SettingField, SettingSlider, ElapsedTime, CompactNumber, DurationDisplay, DialogReveal, SplitLayout, ResizeHandle, ScrollArea and UIProvider. Button's `toolbar` variant provides the compact rectangular shape. Button defaults to `effect="sparkle"`; use `effect="none"` to opt out or `effectOptions` to customize ink color/timing. Callbacks and selected values belong to the consuming application; Application adapters handle persistence and session operations separately.
+
+`Dialog` provides the modal lifecycle and focus boundary; compose its header,
+body and footer freely. Confirmation buttons, async execution and failure policy
+belong to the consumer. See [composable dialogs](docs/dialog.md), including the
+migration from the former `ConfirmationDialog` export.
 
 `ActionMenu` and `ValueMenu` share the exported `MenuSurface` for portaling,
 themed foreground/background, blur, frame and trigger typography. Their rows,
