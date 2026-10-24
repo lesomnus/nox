@@ -176,7 +176,7 @@ test("navigation header stays fixed and only the scroll body reveals its handle"
   page,
 }) => {
   await page.goto(
-    "/iframe.html?id=navigation-navigationpanel--default&viewMode=story",
+    "/iframe.html?id=layout-navigationpanel--default&viewMode=story",
   );
   const panel = page.getByRole("complementary", { name: "Documents" });
   const header = panel.locator("header");
@@ -199,7 +199,7 @@ test("navigation header stays fixed and only the scroll body reveals its handle"
     panel.getByRole("button", { name: "Document 24", exact: true }),
   ).toBeInViewport();
   await page.goto(
-    "/iframe.html?id=navigation-navigationpanel--settings&viewMode=story",
+    "/iframe.html?id=layout-navigationpanel--settings&viewMode=story",
   );
   await page.getByRole("button", { name: "Editor", exact: true }).click();
   await expect(
@@ -256,7 +256,7 @@ test("new surfaces adapt to the shared light palette", async ({ page }) => {
   const box = page.getByRole("checkbox").locator("+ span");
   await expect(box).toHaveCSS("background-color", "rgb(18, 18, 18)");
   await page.goto(
-    "/iframe.html?id=navigation-navigationpanel--default&viewMode=story&globals=theme:light",
+    "/iframe.html?id=layout-navigationpanel--default&viewMode=story&globals=theme:light",
   );
   await expect(page.locator('[data-scroll-area="root"]')).toHaveCSS(
     "background-color",

@@ -90,6 +90,11 @@ The roles reference the theme palette, so they follow dark/light changes. Overri
 them on the document root or a component container to customize these displays
 together. General labels and descriptions continue to use `--ui-muted`.
 
+Storybook's **Layout** category groups `PageToolbar`, `NavigationPanel`,
+`SplitLayout`, `ResizeHandle` and `ScrollArea`: page headers, bounded panels,
+split panes, resize boundaries and scrolling regions. They compose arbitrary
+content and leave routing, data and application state to the caller.
+
 `PageToolbar` provides a persistent page header with leading content and optional
 trailing `actions`. Put a selector, breadcrumbs or title in its children and keep
 scrolling content in a sibling below it. It has no routing or resource dependency.
@@ -186,7 +191,7 @@ receives its scroll events. `viewportClassName`, `contentClassName` and
 `classNames` customize slots. Override `--ui-scroll-area-background` to match
 the containing surface and its fades; rail geometry, handle appearance and
 fade limits use the other `--ui-scroll-area-*` CSS tokens. Defaults live in
-`src/theme/tokens.css`. See **Components/ScrollArea** for short overflow, long
+`src/theme/tokens.css`. See **Layout/ScrollArea** for short overflow, long
 lists, growing content and no-overflow examples. Content fetching and
 virtualization belong to the caller. An application's elastic transcript
 scrollbar remains specialized; it is not part of this primitive.

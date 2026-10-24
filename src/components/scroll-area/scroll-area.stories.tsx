@@ -9,7 +9,7 @@ const entries = (count: number) =>
     </div>
   ));
 const meta = {
-  title: "Components/ScrollArea",
+  title: "Layout/ScrollArea",
   component: ScrollArea,
   tags: ["autodocs"],
   args: {
