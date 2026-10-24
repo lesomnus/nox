@@ -18,6 +18,7 @@ const meta = {
     value: { control: { type: "range", min: 0, max: 100, step: 1 } },
     animated: { control: "boolean" },
     variant: { control: "select", options: ["default", "bordered"] },
+    sparkleOptions: { control: "object" },
   },
   decorators: [
     (Story) => (
@@ -47,6 +48,48 @@ export const Bordered: Story = {
       description: {
         story:
           "The box has a one-pixel border and the shared two-pixel control inset between its inner edge and the rail. Outer and rail corner radii remain concentric. These styles belong to Progress itself.",
+      },
+    },
+  },
+};
+
+export const CustomColors: Story = {
+  args: { value: 65, variant: "bordered" },
+  render: (args) => (
+    <div className={styles.customColors}>
+      <div className={styles.colorExample}>
+        <span>Light bar · dark ink</span>
+        <Progress
+          {...args}
+          className={styles.lightBar}
+          aria-label="Light bar with dark ink"
+          sparkleOptions={{
+            ...args.sparkleOptions,
+            color: [0, 0, 0, 0.4],
+            sparkleColor: [0, 0, 0, 1],
+          }}
+        />
+      </div>
+      <div className={styles.colorExample}>
+        <span>Dark bar · light ink</span>
+        <Progress
+          {...args}
+          className={styles.darkBar}
+          aria-label="Dark bar with light ink"
+          sparkleOptions={{
+            ...args.sparkleOptions,
+            color: [1, 1, 1, 0.3],
+            sparkleColor: [1, 1, 1, 0.8],
+          }}
+        />
+      </div>
+    </div>
+  ),
+  parameters: {
+    docs: {
+      description: {
+        story:
+          "Set --ui-progress-fill-color for the bar and sparkleOptions.color / sparkleOptions.sparkleColor for its effect. Colors use normalized RGBA channels (0–1); alpha controls ink opacity and sparkle strength independently.",
       },
     },
   },

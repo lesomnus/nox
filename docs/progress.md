@@ -29,6 +29,30 @@ changing the bar height keeps that origin outside the bar. `sparkleOptions`
 customizes `color`, `sparkleColor`, `duration` and `seed`; the default burst takes
 2000ms. The origin, fixed-center motion and looping remain owned by Progress.
 
+Colors are configurable React props, independent of the bar's CSS color.
+`color` controls the ink and `sparkleColor` the sparkling pixels. Both accept
+normalized `[red, green, blue, alpha]` channels from 0 to 1; alpha controls
+opacity/strength. Defaults are black ink at 0.4 opacity and black sparkles at
+full strength. For a dark bar, use lighter ink instead:
+
+```tsx
+<Progress
+  className="dark-progress"
+  aria-label="Upload progress"
+  value={65}
+  sparkleOptions={{
+    color: [1, 1, 1, 0.3],
+    sparkleColor: [1, 1, 1, 0.8],
+  }}
+/>
+```
+
+```css
+.dark-progress {
+  --ui-progress-fill-color: #27364a;
+}
+```
+
 Set `animated={false}` to remove the decorative canvas and width transitions.
 Zero progress does not allocate a canvas. Reduced motion removes width
 transitions and uses InkSparkle's static sample. If WebGL2 is unavailable, the
@@ -52,6 +76,6 @@ Optional CSS overrides:
 | `--ui-progress-border-color`        | `--ui-shade-60`                                                |
 | `--ui-progress-transition-duration` | `180ms`                                                        |
 
-See **Components/Progress/Default**, **Static**, **Bordered**, **Interactive**
+See **Components/Progress/Default**, **Static**, **Bordered**, **Custom Colors**, **Interactive**
 and **States**. Interactive exposes the value slider and animation switch;
 Storybook Controls also expose the public props on every example.
