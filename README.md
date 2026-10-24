@@ -94,13 +94,17 @@ together. General labels and descriptions continue to use `--ui-muted`.
 trailing `actions`. Put a selector, breadcrumbs or title in its children and keep
 scrolling content in a sibling below it. It has no routing or resource dependency.
 
-`IconValueMenu` combines a decorative icon and compact `ValueMenu` with a shared
-hover, focus and open background. The icon stays outside the trigger and popup;
-the selected value retains its text position when the menu opens.
+`PrefixValueMenu` combines leading text, an icon or another React node with a
+compact `ValueMenu` and a shared hover, focus and open background. Its `prefix`
+stays outside the trigger and popup; `label` supplies the accessible selector name.
+The selected value retains its text position when the menu opens.
 `--ui-icon-size` and `--ui-icon-size-small` define regular and compact glyph
-sizes; the icon field scopes its glyphs to the compact token. Value menus share
+sizes; the prefix slot scopes its SVG glyphs to the compact token. Value menus share
 the dialog entrance motion while their selected row stays in place. Reduced
 motion disables the entrance animations.
+
+`IconValueMenu` is a deprecated compatibility wrapper: `icon` maps to `prefix`
+and `iconClassName` maps to `prefixClassName`, using the same implementation.
 
 `DialogTrigger` requires `adjacent` to show a disabled visual copy above a modal
 backdrop. Use it only when the dialog actually sits beside its source. Centered
@@ -140,7 +144,7 @@ for the same scrollbar, rail, edge fades and item clearance. Selection,
 actions, placement and keyboard behavior belong to each menu. The top-level
 **Menus** Storybook gallery collects shared appearance and feature examples.
 **Menus/Features** compares both menus side by side using the same items;
-**Components/ActionMenu**, **ValueMenu** and **IconValueMenu** keep their basic API
+**Components/ActionMenu**, **ValueMenu** and **PrefixValueMenu** keep their basic API
 controls and component-specific cases. See [menu overlays](docs/menu-surface.md)
 for the capability table.
 

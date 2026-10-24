@@ -8,7 +8,8 @@ The component pages keep their basic API controls and specific behavior:
 - **Components/ActionMenu**: basic commands and an action-driven language trigger.
 - **Components/ValueMenu**: the basic selector, item dividers, empty search results
   and selected-only/empty groups.
-- **Components/IconValueMenu**: the icon wrapper's basic API.
+- **Components/PrefixValueMenu**: the leading-content wrapper's basic API, with
+  icon and text examples.
 
 Shared feature examples belong under Menus rather than being repeated on one
 component page. Value-only controls in a comparison affect only ValueMenu; the
@@ -16,8 +17,11 @@ capability table below identifies those differences.
 
 `ActionMenu` runs commands or toggles checked choices in a popup beside its
 trigger. `ValueMenu` selects a value, aligning its current row with the trigger's
-text. `IconValueMenu` wraps ValueMenu with an adjacent decorative icon and a
-shared hover background.
+text. `PrefixValueMenu` wraps ValueMenu with an adjacent `prefix` React node and
+a shared hover background. The prefix can be text, an icon or other inert
+content; `label` supplies the accessible selector name. `prefixClassName` styles
+the leading slot. The old `IconValueMenu` name and `icon`/`iconClassName` props
+remain as a deprecated compatibility wrapper over this same implementation.
 
 ## Shared surface and supported features
 
@@ -44,7 +48,7 @@ focused item without moving the popup itself.
 
 Sharing the surface does not make the interaction APIs interchangeable. Each
 menu owns its placement, focus, keyboard navigation, dismissal and roles.
-IconValueMenu supports the same choices and search behavior as ValueMenu.
+PrefixValueMenu supports the same choices and search behavior as ValueMenu.
 
 | Capability                                         | ActionMenu                                    | ValueMenu                                           |
 | -------------------------------------------------- | --------------------------------------------- | --------------------------------------------------- |
@@ -62,7 +66,7 @@ IconValueMenu supports the same choices and search behavior as ValueMenu.
 | Long lists                                         | Shared MenuScrollArea                         | Shared MenuScrollArea with a stationary current row |
 | Placement                                          | `placement`, `position`, `gap`                | Current-text alignment, automatic viewport bounds   |
 | Entrance animation                                 | Optional `motion`, direction and slide/reveal | Built in                                            |
-| Custom trigger                                     | `triggerContent`                              | `display`, compact variant, IconValueMenu           |
+| Custom trigger                                     | `triggerContent`                              | `display`, compact variant, PrefixValueMenu         |
 | Arrow keys, Home/End, Escape and outside dismissal | Yes                                           | Yes                                                 |
 | Open-native-dialog portal and themed typography    | Shared MenuSurface                            | Shared MenuSurface                                  |
 
@@ -114,7 +118,7 @@ The example's icons and action handlers come from the consuming application.
 - **Placement And Motion** shows above/below/beside/custom placement and
   directional slide/reveal entrances.
 - **Trigger Variants** compares ellipsis/text/icon action buttons and
-  default/compact/icon-grouped value selectors.
+  default/compact value selectors and selectors with icon or text prefixes.
 - **Inside Dialog** shows both menus remaining interactive in a native dialog.
 
 **Features** provides focused cases for disabled triggers, compact typography,

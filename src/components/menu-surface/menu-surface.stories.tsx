@@ -4,7 +4,7 @@ import {
   ActionMenu,
   Button,
   ConfirmationDialog,
-  IconValueMenu,
+  PrefixValueMenu,
   ValueMenu,
   type ActionMenuItem,
 } from "@lesomnus/nox";
@@ -339,8 +339,9 @@ export const TriggerVariants: Story = {
     return (
       <div className={styles.example}>
         <p className={styles.hint}>
-          Ellipsis, text and icon action triggers; default, compact and
-          icon-grouped value selectors. The value examples share state.
+          Ellipsis, text and icon action triggers; default, compact and prefixed
+          value selectors. Prefixes can be text or icons. The value examples
+          share state.
         </p>
         <div className={styles.row}>
           <ActionMenu label="More actions" items={basicActions} />
@@ -356,11 +357,12 @@ export const TriggerVariants: Story = {
           />
           <ValueMenu {...common} label="Default effort" />
           <ValueMenu {...common} label="Compact effort" variant="compact" />
-          <IconValueMenu
+          <PrefixValueMenu
             {...common}
             label="Icon effort"
-            icon={<MenuIcon path={paths.quick} />}
+            prefix={<MenuIcon path={paths.quick} />}
           />
+          <PrefixValueMenu {...common} label="Text effort" prefix="Effort" />
         </div>
       </div>
     );

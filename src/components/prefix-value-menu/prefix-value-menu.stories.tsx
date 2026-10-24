@@ -1,16 +1,16 @@
 import { useState } from "react";
 import type { Meta, StoryObj } from "@storybook/react-vite";
-import { IconValueMenu } from "@lesomnus/nox";
+import { PrefixValueMenu } from "@lesomnus/nox";
 
 const meta = {
-  title: "Components/IconValueMenu",
-  component: IconValueMenu,
+  title: "Components/PrefixValueMenu",
+  component: PrefixValueMenu,
   tags: ["autodocs"],
   parameters: {
     docs: {
       description: {
         component:
-          "A decorative icon beside ValueMenu. Hovering or keyboard-focusing the value, or opening its menu, reveals one muted background behind the icon and value together. The icon stays inert and the current-value overlay remains aligned with the trigger text. Use this basic story's Controls for the wrapper API; shared disabled and search examples live under Menus/Features.",
+          "Text, an icon or other leading React content beside ValueMenu. Hovering or keyboard-focusing the value, or opening its menu, reveals one muted background behind the prefix and value together. The prefix stays inert and the current-value overlay remains aligned with the trigger text. label supplies the accessible selector name. Shared disabled and search examples live under Menus/Features.",
       },
     },
   },
@@ -22,7 +22,7 @@ const meta = {
       label: value,
     })),
     choose: () => {},
-    icon: (
+    prefix: (
       <svg
         width="14"
         height="14"
@@ -39,9 +39,12 @@ const meta = {
   },
   render: function Example(args) {
     const [value, choose] = useState(args.value);
-    return <IconValueMenu {...args} value={value} choose={choose} />;
+    return <PrefixValueMenu {...args} value={value} choose={choose} />;
   },
-} satisfies Meta<typeof IconValueMenu>;
+} satisfies Meta<typeof PrefixValueMenu>;
 export default meta;
 type Story = StoryObj<typeof meta>;
 export const Default: Story = {};
+export const TextPrefix: Story = {
+  args: { prefix: "Effort" },
+};
