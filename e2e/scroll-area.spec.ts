@@ -1,5 +1,26 @@
 import { expect, test } from "@playwright/test";
 
+test("horizontal scrollbar follows content resizing and releases its reserved space", async ({
+  page,
+}) => {
+  await page.goto(
+    "/iframe.html?id=layout-scrollarea--horizontal-overflow&viewMode=story",
+  );
+  const viewport = page.locator('[data-scroll-area="viewport"]');
+  const bar = page.getByRole("scrollbar", { name: "Scroll columns" });
+  await expect(bar).toBeVisible();
+  await bar.focus();
+  await bar.press("ArrowRight");
+  await expect
+    .poll(() => viewport.evaluate((node) => node.scrollLeft))
+    .toBeGreaterThan(0);
+  await page.getByRole("button", { name: "Fit content" }).click();
+  await expect(bar).toHaveCount(0);
+  await expect(viewport).toHaveCSS("height", "160px");
+  await page.getByRole("button", { name: "Widen content" }).click();
+  await expect(bar).toBeVisible();
+});
+
 test("standalone scroll area supplies its own style, centered rail, hover, drag and keyboard scrolling", async ({
   page,
 }) => {

@@ -3,6 +3,8 @@ export { BRAND_COLOR } from "./theme/colors";
 export { monospaceFont, MONOSPACE_FONT_FALLBACK } from "./theme/fonts";
 export * from "./providers/ui-provider";
 export * from "./components/button/button";
+export * from "./components/link-button/link-button";
+export * from "./components/skeleton/skeleton";
 export * from "./components/badged-icon/badged-icon";
 export * from "./components/panel-item/panel-item";
 export * from "./components/page-toolbar/page-toolbar";

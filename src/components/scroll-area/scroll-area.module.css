@@ -23,6 +23,67 @@
   display: flow-root;
   padding-right: var(--ui-scroll-area-content-inset);
 }
+.area[data-horizontal-overflow] .viewport {
+  height: calc(100% - var(--ui-scroll-area-hit-size));
+}
+.area[data-horizontal-scrollbar] .content {
+  min-width: fit-content;
+}
+.horizontalRail {
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  transform: translateX(-50%);
+  height: var(--ui-scroll-area-hit-size);
+  z-index: 2;
+  pointer-events: none;
+}
+.horizontalRail::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: calc(
+    (var(--ui-scroll-area-hit-size) - var(--ui-scroll-area-handle-size)) / 2
+  );
+  height: var(--ui-scroll-area-handle-size);
+  border-radius: var(--ui-scroll-area-handle-radius);
+  background: var(--ui-scroll-area-rail-background);
+}
+.horizontalThumb {
+  position: absolute;
+  height: 100%;
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+  pointer-events: auto;
+}
+.horizontalHandle {
+  position: absolute;
+  inset-inline: 0;
+  top: calc(
+    (var(--ui-scroll-area-hit-size) - var(--ui-scroll-area-handle-size)) / 2
+  );
+  height: var(--ui-scroll-area-handle-size);
+  border-radius: var(--ui-scroll-area-handle-radius);
+  background: var(--ui-scroll-area-handle-color);
+  opacity: 0.7;
+}
+.horizontalThumb:is(:hover, :focus-visible) .horizontalHandle,
+.area[data-dragging] .horizontalHandle {
+  opacity: 1;
+}
+.area[data-dragging] .horizontalThumb {
+  cursor: grabbing;
+}
+.horizontalThumb:focus-visible {
+  outline: 1px solid var(--ui-shade-204);
+  outline-offset: -2px;
+  border-radius: var(--ui-scroll-area-handle-radius);
+}
+.area[data-horizontal-overflow] .bottomFade {
+  bottom: var(--ui-scroll-area-hit-size);
+}
 .rail {
   position: absolute;
   top: 50%;

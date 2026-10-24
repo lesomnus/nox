@@ -72,11 +72,14 @@ try {
     import { Progress, type ProgressProps } from "@lesomnus/nox";
     import { PinInput, type PinInputProps, SplitLayout, type SplitNode, setSplitRatio, PrefixValueMenu, type PrefixValueMenuProps, IconValueMenu, AuroraGlow, type AuroraGlowProps, type AuroraPalette, InkSparkle, type InkSparkleProps, Button, Checkbox, DateTime, DescriptionList, IdentifierValue, MenuSurface, type MenuSurfaceProps, MenuScrollArea, MenuItem, type MenuItemProps, MenuIcon, MenuGroupLabel, MenuDivider, NavigationPanel, StippleBackground, clusterMotion, workMotion, withPointerBurst, UIProvider } from "@lesomnus/nox";
     import { Table, TableHeader, TableBody, TableFooter, TableRow, TableHead, TableCell, TableCaption, TableScrollArea, type TableProps, type TableRowProps } from "@lesomnus/nox";
+    import { LinkButton, Skeleton, type LinkButtonProps, type SkeletonProps } from "@lesomnus/nox";
     import { TerminalWorkbench } from "@lesomnus/nox/terminal";
     import "@lesomnus/nox/styles.css";
     void TerminalWorkbench;
     const table: TableProps = { "aria-label": "Records", stickyHeader: true, ref: node => { void node?.rows.length; } };
     const selectedRow: TableRowProps = { selected: true };
+    const link: LinkButtonProps = { href: "#record", trailing: null, ref: node => { void node?.href; } };
+    const skeleton: SkeletonProps = { variant: "circle", width: 32, animated: false, ref: node => { void node?.offsetWidth; } };
     const progress: ProgressProps = { value: 42, variant: "bordered", animated: false, sparkleOptions: { duration: 2000 } };
     const pin: PinInputProps = { label: "Device code", groups: [4,4], mode: "alphanumeric", name: "device_code" };
     void MenuSurface;
@@ -107,7 +110,9 @@ try {
         <Button effect="sparkle" effectOptions={{color:[1,1,1,0.06],sparkleColor:[1,1,1,0.2],duration:1200,centerMotion:"fixed",seed:1}}>Custom ink</Button>
         <div style={{height:80}}><InkSparkle {...sparkle} /></div>
         <Checkbox aria-label="Select record" />
-        <TableScrollArea style={{height:120}} scrollbarLabel="Scroll records">
+        <LinkButton {...link}>Record</LinkButton>
+        <Skeleton {...skeleton} />
+        <TableScrollArea style={{height:120}} scrollbarLabel="Scroll records" horizontalScrollbarLabel="Scroll record columns">
           <Table {...table}>
             <TableCaption>Records</TableCaption>
             <TableHeader><TableRow><TableHead>Name</TableHead><TableHead align="right">Count</TableHead></TableRow></TableHeader>

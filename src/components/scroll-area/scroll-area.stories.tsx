@@ -21,7 +21,7 @@ const meta = {
     docs: {
       description: {
         component:
-          "A standalone vertical scroll viewport with native wheel/touch scrolling, a centered rail that grows with overflow, capped handles, hover/focus/drag visibility, proximity expansion and background-colored edge fades. Its CSS Modules and --ui-scroll-area-* tokens work without cxz app styles or a provider. Supply a bounded height (or use a constrained flex parent), arbitrary children and an accessible scrollbarLabel. viewportRef exposes the native scroll element; onScroll reports its events. className, viewportClassName, contentClassName and classNames customize slots. This component does not virtualize or fetch its content.",
+          "A standalone scroll viewport with native wheel/touch scrolling, a centered vertical rail, capped handles, hover/focus/drag visibility and edge fades. Enable horizontalScrollbar for a visible horizontal handle with pointer and keyboard navigation; horizontalScrollbarLabel names it. Its CSS Modules and --ui-scroll-area-* tokens work without cxz app styles or a provider. Supply a bounded height, arbitrary children and an accessible scrollbarLabel. viewportRef exposes the native scroll element; onScroll reports its events. className, viewportClassName, contentClassName and classNames customize slots. This component does not virtualize or fetch its content.",
       },
     },
   },
@@ -33,6 +33,35 @@ export const ShortOverflow: StoryObj<typeof meta> = {
 };
 export const NoOverflow: StoryObj<typeof meta> = {
   args: { children: entries(3) },
+};
+export const HorizontalOverflow: StoryObj<typeof meta> = {
+  render: function Example(args) {
+    const [wide, setWide] = useState(true);
+    return (
+      <section>
+        <Button onClick={() => setWide((value) => !value)}>
+          {wide ? "Fit content" : "Widen content"}
+        </Button>
+        <ScrollArea
+          {...args}
+          horizontalScrollbar
+          horizontalScrollbarLabel="Scroll columns"
+          style={{ height: 160 }}
+        >
+          <div
+            style={{
+              width: wide ? 1000 : "100%",
+              padding: 12,
+              boxSizing: "border-box",
+            }}
+          >
+            Columns with native wheel and touch scrolling, plus a draggable
+            horizontal handle.
+          </div>
+        </ScrollArea>
+      </section>
+    );
+  },
 };
 export const GrowingContent: StoryObj<typeof meta> = {
   render: function Growing(args) {

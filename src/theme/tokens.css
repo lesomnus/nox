@@ -96,7 +96,20 @@
     transparent
   );
   --ui-space: 4px;
-  --ui-table-background: var(--ui-shade-24);
+  --ui-table-background: transparent;
+  --ui-link-button-height: 32px;
+  --ui-link-button-border: var(--ui-shade-48);
+  --ui-link-button-hover-border: var(--ui-shade-72);
+  --ui-link-button-color: var(--ui-muted);
+  --ui-link-button-hover-background: var(--ui-hover);
+  --ui-skeleton-background: var(--ui-shade-36);
+  --ui-skeleton-highlight: color-mix(
+    in srgb,
+    var(--ui-shade-136) 18%,
+    transparent
+  );
+  --ui-skeleton-radius: var(--ui-space);
+  --ui-skeleton-duration: 1600ms;
   --ui-table-header-color: var(--ui-muted);
   --ui-table-row-border: var(--ui-shade-36);
   --ui-table-hover-background: var(--ui-shade-32);

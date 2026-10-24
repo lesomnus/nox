@@ -85,6 +85,7 @@ export function TableScrollArea({
 }: TableScrollAreaProps) {
   return (
     <ScrollArea
+      horizontalScrollbar
       {...props}
       className={`${styles.scroll} ${className}`}
       classNames={{

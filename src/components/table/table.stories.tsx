@@ -3,6 +3,8 @@ import { useState } from "react";
 import {
   Checkbox,
   EditableValue,
+  LinkButton,
+  Skeleton,
   Table,
   TableHeader,
   TableBody,
@@ -167,13 +169,12 @@ export const Selectable: Story = {
                 </TableCell>
                 <TableHead scope="row">{session.name}</TableHead>
                 <TableCell>
-                  <a
+                  <LinkButton
                     href={`#account-${session.account.toLowerCase()}`}
                     className={styles.accountLink}
                   >
-                    <span>{session.account}</span>
-                    <span aria-hidden="true">↗</span>
-                  </a>
+                    {session.account}
+                  </LinkButton>
                 </TableCell>
                 <TableCell className={styles.muted}>{session.state}</TableCell>
                 <TableCell align="right">{session.tasks}</TableCell>
@@ -295,6 +296,9 @@ export const Empty: Story = {
 export const Loading: Story = {
   render: (args) => (
     <Table {...args} className={styles.table} aria-label="Sessions" aria-busy>
+      <TableCaption className={styles.srOnly}>
+        <span role="status">Loading sessions…</span>
+      </TableCaption>
       <Columns />
       <TableHeader>
         <TableRow>
@@ -302,11 +306,22 @@ export const Loading: Story = {
         </TableRow>
       </TableHeader>
       <TableBody>
-        <TableRow>
-          <TableCell colSpan={4} align="center" className={styles.empty}>
-            <span role="status">Loading sessions…</span>
-          </TableCell>
-        </TableRow>
+        {Array.from({ length: 5 }, (_, index) => (
+          <TableRow key={index}>
+            <TableCell>
+              <Skeleton width={index % 2 ? "78%" : "60%"} />
+            </TableCell>
+            <TableCell>
+              <Skeleton width="70%" />
+            </TableCell>
+            <TableCell>
+              <Skeleton width={index % 2 ? "85%" : "50%"} />
+            </TableCell>
+            <TableCell>
+              <Skeleton width="30%" style={{ marginLeft: "auto" }} />
+            </TableCell>
+          </TableRow>
+        ))}
       </TableBody>
     </Table>
   ),

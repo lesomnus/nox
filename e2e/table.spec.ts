@@ -22,6 +22,11 @@ test("native table exposes its caption, row headings and footer", async ({
     "Total tasks",
   ]);
   await expect(table.locator("tfoot")).toContainText("28");
+  await expect(table).toHaveCSS("background-color", "rgba(0, 0, 0, 0)");
+  await expect(table.locator("thead")).toHaveCSS(
+    "background-color",
+    "rgba(0, 0, 0, 0)",
+  );
 });
 
 test("caller-owned selection supports keyboard and mixed select-all without turning rows into click targets", async ({
@@ -79,9 +84,14 @@ test("narrow table scrolls horizontally inside its region", async ({
     scroll: node.scrollWidth,
   }));
   expect(sizes.scroll).toBeGreaterThan(sizes.width);
-  await viewport.evaluate((node) => {
-    node.scrollLeft = node.scrollWidth;
-  });
+  const bar = page.getByRole("scrollbar", { name: "Scroll horizontally" });
+  await expect(bar).toBeVisible();
+  await expect(bar).toHaveAttribute("aria-orientation", "horizontal");
+  await expect(
+    page.locator('[data-scroll-area="horizontal-handle"]'),
+  ).toHaveCSS("opacity", "0.7");
+  await bar.focus();
+  await bar.press("End");
   await expect
     .poll(() => viewport.evaluate((node) => node.scrollLeft))
     .toBeGreaterThan(0);
@@ -90,4 +100,39 @@ test("narrow table scrolls horizontally inside its region", async ({
       () => document.documentElement.scrollWidth <= window.innerWidth,
     ),
   ).toBe(true);
+  await bar.press("Home");
+  await expect.poll(() => viewport.evaluate((node) => node.scrollLeft)).toBe(0);
+  const thumbBox = (await bar.boundingBox())!;
+  const railBox = (await page
+    .locator('[data-scroll-area="horizontal-rail"]')
+    .boundingBox())!;
+  await page.mouse.move(
+    thumbBox.x + thumbBox.width / 2,
+    thumbBox.y + thumbBox.height / 2,
+  );
+  await page.mouse.down();
+  await page.mouse.move(
+    railBox.x + railBox.width,
+    thumbBox.y + thumbBox.height / 2,
+  );
+  await page.mouse.up();
+  await expect
+    .poll(() =>
+      viewport.evaluate(
+        (node) => node.scrollWidth - node.clientWidth - node.scrollLeft,
+      ),
+    )
+    .toBeLessThan(1);
+});
+
+test("table loading keeps column placeholders hidden from assistive technology", async ({
+  page,
+}) => {
+  await page.goto(story("loading"));
+  const table = page.getByRole("table", { name: "Sessions" });
+  await expect(table).toHaveAttribute("aria-busy", "true");
+  await expect(table.locator("tbody tr")).toHaveCount(5);
+  await expect(table.getByRole("cell")).toHaveCount(20);
+  await expect(page.getByRole("status")).toHaveText("Loading sessions…");
+  await expect(table.locator("tbody")).toHaveText("");
 });

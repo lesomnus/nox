@@ -36,24 +36,32 @@ Use a real checkbox or button for keyboard-accessible interactions.
 
 `Table` defaults to `stickyHeader`. The entire `TableHeader` sticks within the
 nearest scrolling ancestor, including multi-row headers. Use
-`stickyHeader={false}` to disable it.
+`stickyHeader={false}` to disable it. The base table and header are transparent;
+the sticky header uses backdrop blur while rows pass underneath it. Override
+`--ui-table-background` if an opaque surface is needed.
 
 For bounded scrolling, wrap the table in `TableScrollArea`. It accepts all
 `ScrollArea` props, including `viewportRef`, `scrollbarLabel` and slot classes.
 Set its `aria-label` and `role="region"` when it is a separately named region.
 Its default height is 360px; override with `className`, `style.height` or
 `--ui-table-viewport-height`. Give the table a `minWidth` if narrow viewports
-should scroll horizontally. It can also be used without any wrapper.
+should scroll horizontally. Horizontal overflow shows a visible scrollbar with
+pointer dragging, Left/Right, PageUp/PageDown and Home/End navigation. Its space
+is reserved below the viewport so it does not cover the last row. Set
+`horizontalScrollbar={false}` to hide it, or `horizontalScrollbarLabel` to
+customize its accessible name. The table can also be used without any wrapper.
 
 Optional `TableCaption` names/describes the table; `TableFooter` displays totals
 or summaries. Empty/loading states can use a `TableCell` with `colSpan` and
-caller-provided content; pass `aria-busy` to `Table` while loading.
+caller-provided content; pass `aria-busy` to `Table` while loading. The Loading
+story uses reusable `Skeleton` placeholders per cell, with one loading status
+for the whole table. Selectable account links use `LinkButton`.
 
 Theme tokens (override on a table or its scroll area):
 
 | Token                                  | Default              |
 | -------------------------------------- | -------------------- |
-| `--ui-table-background`                | `--ui-shade-24`      |
+| `--ui-table-background`                | `transparent`        |
 | `--ui-table-header-color`              | `--ui-muted`         |
 | `--ui-table-row-border`                | `--ui-shade-36`      |
 | `--ui-table-hover-background`          | `--ui-shade-32`      |
