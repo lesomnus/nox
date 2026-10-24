@@ -53,6 +53,9 @@
   );
   background: var(--ui-dialog-body-background);
 }
+.body.body:last-child {
+  margin-bottom: var(--ui-control-inset);
+}
 .body
   :where(
     input:not([type="checkbox"], [type="radio"], [type="range"]),
