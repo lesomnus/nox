@@ -3,6 +3,7 @@ import { createContext, useContext, useMemo, type ReactNode } from "react";
 export type UIMessage =
   | "Search {label}"
   | "Scroll {label} choices"
+  | "Scroll {label}"
   | "No matches"
   | "Cancel"
   | "Confirm"

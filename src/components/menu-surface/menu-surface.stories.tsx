@@ -254,9 +254,9 @@ export const SearchAndScrolling: Story = {
     return (
       <div className={styles.example}>
         <p className={styles.hint}>
-          Forty entries in each menu. ActionMenu scrolls natively. ValueMenu
-          adds search, item dividers and ScrollArea while keeping the current
-          row anchored.
+          Forty entries in each menu, both using the same MenuScrollArea handle
+          and edge fades. ValueMenu adds search and item dividers while keeping
+          the current row anchored.
         </p>
         <div className={styles.row}>
           <ActionMenu

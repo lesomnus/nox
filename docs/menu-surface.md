@@ -35,29 +35,36 @@ dimensions. Row spacing uses the menu-item padding tokens; compact ValueMenu
 supplies its compact spacing to the same parts. Group typography and dividers
 also share one implementation.
 
+Both menus use `MenuScrollArea`, built on ScrollArea, for their scroll viewport,
+hover-only handle, proximity expansion, rail, edge fades and scrollbar clearance.
+The shared `--ui-menu-scroll-max-height` token and available viewport space bound
+the list. ValueMenu keeps its current/search row outside the scrolling choices.
+Scrollbar keyboard input stays with the scrollbar; item navigation reveals the
+focused item without moving the popup itself.
+
 Sharing the surface does not make the interaction APIs interchangeable. Each
 menu owns its placement, focus, keyboard navigation, dismissal and roles.
 IconValueMenu supports the same choices and search behavior as ValueMenu.
 
-| Capability                                         | ActionMenu                                    | ValueMenu                                         |
-| -------------------------------------------------- | --------------------------------------------- | ------------------------------------------------- |
-| Titled/untitled groups and dividers between groups | `groups`                                      | `groups`                                          |
-| Item icons                                         | `items[].icon`                                | `options[].icon` or `groups[].items[].icon`       |
-| Group-title icons                                  | —                                             | `groups[].icon`                                   |
-| Current state                                      | `items[].checked`                             | `value` and `choose`                              |
-| Disabled items                                     | `items[].disabled`                            | `options[].disabled`                              |
-| Disabled trigger with explanation                  | `disabled`, `disabledReason`                  | `disabled`, `disabledReason`                      |
-| Shortcut keycaps                                   | `items[].shortcut`                            | —                                                 |
-| Dangerous actions and status footer                | `items[].danger`, `status`                    | —                                                 |
-| Text search and search aliases                     | —                                             | `searchable`, `searchText`                        |
-| Divider before an individual item                  | —                                             | `separatorBefore`                                 |
-| Muted/default value                                | —                                             | `muted` on the selector or option                 |
-| Long lists                                         | Bounded popup with native scrolling           | ScrollArea with a stationary current row          |
-| Placement                                          | `placement`, `position`, `gap`                | Current-text alignment, automatic viewport bounds |
-| Entrance animation                                 | Optional `motion`, direction and slide/reveal | Built in                                          |
-| Custom trigger                                     | `triggerContent`                              | `display`, compact variant, IconValueMenu         |
-| Arrow keys, Home/End, Escape and outside dismissal | Yes                                           | Yes                                               |
-| Open-native-dialog portal and themed typography    | Shared MenuSurface                            | Shared MenuSurface                                |
+| Capability                                         | ActionMenu                                    | ValueMenu                                           |
+| -------------------------------------------------- | --------------------------------------------- | --------------------------------------------------- |
+| Titled/untitled groups and dividers between groups | `groups`                                      | `groups`                                            |
+| Item icons                                         | `items[].icon`                                | `options[].icon` or `groups[].items[].icon`         |
+| Group-title icons                                  | —                                             | `groups[].icon`                                     |
+| Current state                                      | `items[].checked`                             | `value` and `choose`                                |
+| Disabled items                                     | `items[].disabled`                            | `options[].disabled`                                |
+| Disabled trigger with explanation                  | `disabled`, `disabledReason`                  | `disabled`, `disabledReason`                        |
+| Shortcut keycaps                                   | `items[].shortcut`                            | —                                                   |
+| Dangerous actions and status footer                | `items[].danger`, `status`                    | —                                                   |
+| Text search and search aliases                     | —                                             | `searchable`, `searchText`                          |
+| Divider before an individual item                  | —                                             | `separatorBefore`                                   |
+| Muted/default value                                | —                                             | `muted` on the selector or option                   |
+| Long lists                                         | Shared MenuScrollArea                         | Shared MenuScrollArea with a stationary current row |
+| Placement                                          | `placement`, `position`, `gap`                | Current-text alignment, automatic viewport bounds   |
+| Entrance animation                                 | Optional `motion`, direction and slide/reveal | Built in                                            |
+| Custom trigger                                     | `triggerContent`                              | `display`, compact variant, IconValueMenu           |
+| Arrow keys, Home/End, Escape and outside dismissal | Yes                                           | Yes                                                 |
+| Open-native-dialog portal and themed typography    | Shared MenuSurface                            | Shared MenuSurface                                  |
 
 Groups replace the flat item list when supplied. Both menus use
 `{ label, items }` groups. Icons are caller-supplied React nodes; use decorative
@@ -123,7 +130,7 @@ monospace font. Switch the Storybook theme to compare dark and light surfaces.
 
 ## Custom overlays
 
-`MenuSurface` and the row parts are exported for custom menus. Supply an `anchor` element,
+`MenuSurface`, `MenuScrollArea` and the row parts are exported for custom menus. Supply an `anchor` element,
 position the surface with its div props/ref, and implement the appropriate
 accessibility, focus and dismissal behavior. It portals into the anchor's
 nearest open native dialog, or the document body otherwise, so menus remain in
@@ -132,6 +139,7 @@ styles. Compose `MenuItem` with an `icon` and optional `trailing` content,
 `MenuGroupLabel` for a section title and `MenuDivider` between groups. MenuItem
 forwards Button props, refs and native events. These parts provide appearance;
 the consumer supplies filtering, roles, keyboard behavior and selection.
+MenuScrollArea accepts ScrollArea props, including `viewportRef` and slot classes.
 
 Entrance transforms should release their animation state on completion. Check
 settled menu edges using rendered pixels at fractional zoom as well as DOM

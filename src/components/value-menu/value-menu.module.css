@@ -61,6 +61,10 @@
   white-space: nowrap;
 }
 .setting_menu {
+  --menu-scroll-max-height: var(
+    --options-height,
+    var(--ui-menu-scroll-max-height)
+  );
   top: calc(-1 * var(--ui-control-inset));
   left: calc(-1 * var(--ui-control-inset));
   display: flex;
@@ -93,22 +97,6 @@
 :is(.value_menu, .setting_menu) :global(.setting-current) :global(.meta-value) {
   width: var(--value-text-width, auto);
   max-width: calc(var(--value-width) - 2 * var(--value-padding-inline));
-}
-.optionsArea.optionsArea {
-  --ui-scroll-area-background: var(--ui-dropdown-background);
-  --ui-scroll-area-content-inset: 0px;
-  flex: 0 1 auto;
-  background: transparent;
-}
-.optionsArea:has([role="scrollbar"]) button {
-  padding-right: max(
-    var(--value-padding-inline),
-    calc(var(--ui-scroll-area-hit-size) / 2)
-  );
-}
-.setting_menu :global(.setting-options) {
-  height: auto;
-  max-height: var(--options-height, 240px);
 }
 .setting_menu button {
   display: block;

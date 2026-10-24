@@ -6,7 +6,7 @@
   min-width: 190px;
   max-width: calc(100vw - 16px);
   max-height: 50dvh;
-  overflow: auto;
+  overflow: hidden;
 }
 .shortcut {
   display: inline-flex;

@@ -18,7 +18,7 @@ import {
   MenuIcon,
   MenuItem,
 } from "../menu-surface/menu-item";
-import { ScrollArea } from "../scroll-area/scroll-area";
+import { MenuScrollArea } from "../menu-surface/menu-scroll-area";
 import { useUI } from "../../providers/ui-provider";
 
 export type ValueOption = {
@@ -157,7 +157,7 @@ export function ValueMenu({
         : "auto";
       popup.style.setProperty(
         "--options-height",
-        `${Math.max(rect.height, Math.min(240, (upwards ? rect.bottom : window.innerHeight - rect.top) - chrome))}px`,
+        `${Math.max(rect.height, (upwards ? rect.bottom : window.innerHeight - rect.top) - chrome)}px`,
       );
       const anchor = trigger()?.querySelector(".button-content");
       const current = popup.querySelector(
@@ -369,8 +369,7 @@ export function ValueMenu({
           )}
           <div className={`${styles.choices} ${dialogStyles.entrance}`}>
             <MenuDivider className="setting-divider" />
-            <ScrollArea
-              className={styles.optionsArea}
+            <MenuScrollArea
               viewportClassName="setting-options"
               scrollbarLabel={t("Scroll {label} choices", { label })}
               id={`${id}-results`}
@@ -433,7 +432,7 @@ export function ValueMenu({
                   </div>
                 </Fragment>
               ))}
-            </ScrollArea>
+            </MenuScrollArea>
           </div>
         </MenuSurface>
       )}

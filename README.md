@@ -135,7 +135,8 @@ The public core entry exports Button/ButtonContent, BadgedIcon, ConfirmButton, A
 `ActionMenu` and `ValueMenu` share the exported `MenuSurface` for portaling,
 themed foreground/background, blur, frame and trigger typography. Their rows,
 icon slots, group labels and dividers use the same exported `MenuItem`,
-`MenuIcon`, `MenuGroupLabel` and `MenuDivider` parts. Selection,
+`MenuIcon`, `MenuGroupLabel` and `MenuDivider` parts. Both use `MenuScrollArea`
+for the same scrollbar, rail, edge fades and item clearance. Selection,
 actions, placement and keyboard behavior belong to each menu. The top-level
 **Menus** Storybook gallery collects shared appearance and feature examples.
 **Menus/Features** compares both menus side by side using the same items;

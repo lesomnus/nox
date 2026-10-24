@@ -13,6 +13,7 @@ export * from "./components/confirm-button/confirm-button";
 export * from "./components/action-menu/action-menu";
 export * from "./components/menu-surface/menu-surface";
 export * from "./components/menu-surface/menu-item";
+export * from "./components/menu-surface/menu-scroll-area";
 export * from "./components/value-menu/value-menu";
 export * from "./components/icon-value-menu/icon-value-menu";
 export * from "./components/segmented-control/segmented-control";

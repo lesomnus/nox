@@ -337,8 +337,8 @@ export const Scrolling: Story = {
     (Story) => (
       <div className={styles.scrollExample}>
         <p className={styles.hint}>
-          Open the selector and scroll through 40 presets. Arrow keys keep the
-          focused preset in view.
+          Open either menu and scroll through 40 presets. Both use the same
+          handle and edge fades; arrow keys keep the focused preset in view.
         </p>
         <Story />
       </div>
@@ -348,7 +348,7 @@ export const Scrolling: Story = {
     docs: {
       description: {
         story:
-          "40 presets across four sections, with icons, dividers and disabled options. The shared Nox ScrollArea supplies the custom handle and edge fades within the existing 240px height limit (or the available viewport space), while the current-value row stays in place. Try the mouse wheel, dragging the handle, arrow keys and Home/End.",
+          "40 presets across four sections, with icons, dividers and disabled options. Both menus use MenuScrollArea for the custom handle, edge fades, height limit and scrollbar clearance. ValueMenu keeps its current row in place. Try the mouse wheel, dragging the handle, arrow keys and Home/End.",
       },
     },
   },
