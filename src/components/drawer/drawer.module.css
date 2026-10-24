@@ -1,0 +1,126 @@
+.overlay,
+.overlay * {
+  box-sizing: border-box;
+}
+.overlay {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100dvh;
+  max-width: none;
+  max-height: none;
+  padding: 0;
+  margin: 0;
+  border: 0;
+  background: transparent;
+  color: var(--ui-shade-237);
+  overflow: clip;
+}
+.overlay::backdrop {
+  background: transparent;
+}
+.backdrop {
+  position: absolute;
+  inset: 0;
+  background: var(--ui-drawer-backdrop, rgb(0 0 0 / 22%));
+  animation: dim-in var(--ui-dialog-enter-duration) ease-out both;
+}
+.positioner {
+  position: absolute;
+  inset: var(--drawer-inset, calc(2 * var(--ui-space)));
+  display: flex;
+  align-items: center;
+  pointer-events: none;
+}
+.overlay[data-align="start"] .positioner {
+  align-items: flex-start;
+}
+.overlay[data-align="end"] .positioner {
+  align-items: flex-end;
+}
+.overlay[data-side="right"] {
+  --drawer-x: calc(100% + var(--drawer-inset, 2 * var(--ui-space)));
+  --drawer-y: 0px;
+}
+.overlay[data-side="left"] {
+  --drawer-x: calc(-100% - var(--drawer-inset, 2 * var(--ui-space)));
+  --drawer-y: 0px;
+}
+.overlay[data-side="top"] {
+  --drawer-x: 0px;
+  --drawer-y: calc(-100% - var(--drawer-inset, 2 * var(--ui-space)));
+}
+.overlay[data-side="bottom"] {
+  --drawer-x: 0px;
+  --drawer-y: calc(100% + var(--drawer-inset, 2 * var(--ui-space)));
+}
+.overlay:is([data-side="top"], [data-side="bottom"]) .positioner {
+  flex-direction: column;
+}
+.overlay:is([data-side="right"], [data-side="bottom"]) .positioner {
+  justify-content: flex-end;
+}
+.frame {
+  flex: 0 0 auto;
+  min-width: 0;
+  min-height: 0;
+  width: var(--drawer-width, 420px);
+  height: var(--drawer-height, 100%);
+  max-width: 100%;
+  max-height: 100%;
+  pointer-events: auto;
+  animation: enter var(--ui-dialog-enter-duration) var(--ui-dialog-enter-easing)
+    both;
+}
+.overlay:is([data-side="top"], [data-side="bottom"]) .frame {
+  width: var(--drawer-width, 100%);
+  height: var(--drawer-height, 320px);
+}
+.overlay[data-closing="true"] .frame {
+  animation: exit var(--ui-dialog-enter-duration) ease-in both;
+}
+.overlay[data-closing="true"] .backdrop {
+  animation: dim-out var(--ui-dialog-enter-duration) ease-in both;
+}
+@keyframes enter {
+  from {
+    opacity: 0;
+    transform: translate(var(--drawer-x), var(--drawer-y));
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes exit {
+  from {
+    opacity: 1;
+    transform: none;
+  }
+  to {
+    opacity: 0;
+    transform: translate(var(--drawer-x), var(--drawer-y));
+  }
+}
+@keyframes dim-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@keyframes dim-out {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .frame,
+  .backdrop {
+    animation: none !important;
+  }
+}

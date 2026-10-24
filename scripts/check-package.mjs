@@ -70,6 +70,7 @@ try {
     `
     import { createRoot } from "react-dom/client";
     import { Progress, type ProgressProps } from "@lesomnus/nox";
+    import { Drawer, DrawerCard, type DrawerProps, type DrawerSide } from "@lesomnus/nox";
     import { DatePicker, dateWindowSelection, dateWeekSelection, type DatePickerProps, type DatePickerDateInfo, type DatePickerRange, type DatePickerSelectionResolver } from "@lesomnus/nox";
     import { PinInput, type PinInputProps, SplitLayout, type SplitNode, setSplitRatio, PrefixValueMenu, type PrefixValueMenuProps, IconValueMenu, AuroraGlow, type AuroraGlowProps, type AuroraPalette, InkSparkle, type InkSparkleProps, Button, Checkbox, DateTime, DescriptionList, IdentifierValue, MenuSurface, type MenuSurfaceProps, MenuScrollArea, MenuItem, type MenuItemProps, MenuIcon, MenuGroupLabel, MenuDivider, NavigationPanel, StippleBackground, clusterMotion, workMotion, withPointerBurst, UIProvider } from "@lesomnus/nox";
     import { Table, TableHeader, TableBody, TableFooter, TableRow, TableHead, TableCell, TableCaption, TableScrollArea, type TableProps, type TableRowProps } from "@lesomnus/nox";
@@ -78,6 +79,8 @@ try {
     import { TerminalWorkbench } from "@lesomnus/nox/terminal";
     import "@lesomnus/nox/styles.css";
     void TerminalWorkbench;
+    const drawerSide: DrawerSide = "bottom";
+    const drawer: DrawerProps = { open: false, onClose: () => {}, side: drawerSide, width: 360, height: "40%", align: "end", inset: 8, ref: node => { void node?.open; } };
     const table: TableProps = { "aria-label": "Records", stickyHeader: true, ref: node => { void node?.rows.length; } };
     const selectedRow: TableRowProps = { selected: true };
     const link: LinkButtonProps = { href: "#record", trailing: null, ref: node => { void node?.href; } };
@@ -118,6 +121,7 @@ try {
         <IconValueMenu label="Legacy effort" icon="Effort" value="medium" options={[{value:"medium",label:"Medium"}]} choose={() => {}} />
         <Button>Save</Button>
         <Progress {...progress} aria-label="Build progress" />
+        <Drawer {...drawer} aria-label="Details"><DrawerCard title="Details">Custom content</DrawerCard></Drawer>
         <DatePicker {...datePicker} />
         <DatePicker {...multipleDates} /><DatePicker {...dateRange} />
         <PinInput {...pin} />

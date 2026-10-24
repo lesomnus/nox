@@ -22,6 +22,8 @@ export * from "./components/icon-value-menu/icon-value-menu";
 export * from "./components/prefix-value-menu/prefix-value-menu";
 export * from "./components/segmented-control/segmented-control";
 export * from "./components/dialog/dialog";
+export * from "./components/drawer/drawer";
+export * from "./components/drawer-card/drawer-card";
 export * from "./components/editable-value/editable-value";
 export * from "./components/floating-card/floating-card";
 export * from "./components/setting-field/setting-field";
