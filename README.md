@@ -132,6 +132,11 @@ describes the underlying mask mechanism.
 
 The public core entry exports Button/ButtonContent, BadgedIcon, ConfirmButton, ActionMenu, ValueMenu, SegmentedControl, Switch, ConfirmationDialog, EditableValue, FloatingCard, SettingField, SettingSlider, ElapsedTime, CompactNumber, DurationDisplay, DialogReveal, SplitLayout, ResizeHandle, ScrollArea and UIProvider. Button's `toolbar` variant provides the compact rectangular shape. Button defaults to `effect="sparkle"`; use `effect="none"` to opt out or `effectOptions` to customize ink color/timing. Callbacks and selected values belong to the consuming application; Application adapters handle persistence and session operations separately.
 
+`ActionMenu` and `ValueMenu` share the exported `MenuSurface` for portaling,
+themed foreground/background, blur, frame and trigger typography. Selection,
+actions, placement and keyboard behavior belong to each menu. See
+[menu overlays](docs/menu-surface.md).
+
 `Checkbox`, `Radio`, `CopyButton`, `IdentifierValue`, `DateTime`, `FieldLabel`,
 `DescriptionList` and `NavigationPanel` provide native selection, clipboard
 feedback, stable identifier previews, local timestamps and compact record views.

@@ -16,7 +16,7 @@ const meta = {
     docs: {
       description: {
         component:
-          "A value selector (combobox/listbox). The selected row overlays the trigger text in place, followed by a divider and other choices. This is a separate component from ActionMenu, whose popup sits beside its trigger and contains actions or checked choices. The compact variant only changes spacing.",
+          "A value selector (combobox/listbox). The selected row overlays the trigger text in place, followed by a divider and other choices. ValueMenu and ActionMenu share MenuSurface for portaling, theme appearance and trigger typography; their placement and interactions remain distinct. The compact variant only changes spacing.",
       },
     },
   },

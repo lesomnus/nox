@@ -1,27 +1,12 @@
-:is(.action_menu),
-:is(.action_menu_popup),
-:is(.action_menu_popup) * {
-  box-sizing: border-box;
-}
 .action_menu {
+  box-sizing: border-box;
   display: inline-flex;
 }
 .action_menu_popup {
-  background: var(--ui-dropdown-background);
-  -webkit-backdrop-filter: blur(var(--ui-dropdown-blur));
-  backdrop-filter: blur(var(--ui-dropdown-blur));
-}
-.action_menu_popup {
-  position: fixed;
-  z-index: 100;
   min-width: 190px;
   max-width: calc(100vw - 16px);
   max-height: 50dvh;
   overflow: auto;
-  padding: var(--ui-control-inset);
-  border: 1px solid var(--ui-shade-54);
-  /* Keep the outer curve concentric with the 6px button curve. */
-  border-radius: calc(6px + var(--ui-control-inset) + 1px);
 }
 .action_menu_popup button {
   display: block;

@@ -8,8 +8,8 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import { createPortal } from "react-dom";
 import { Button } from "../button/button";
+import { MenuSurface } from "../menu-surface/menu-surface";
 
 export type MenuMotionDirection =
   | "left"
@@ -195,115 +195,111 @@ export function ActionMenu({
           </svg>
         )}
       </Button>
-      {open &&
-        createPortal(
+      {open && (
+        <MenuSurface
+          anchor={trigger.current?.querySelector("button")}
+          className={`${styles.action_menu_popup} ${motion ? dialogStyles.entrance : ""} action-menu-popup`}
+          data-placement={placement}
+          data-enter-from={direction}
+          data-enter-effect={reveal ? "reveal-frame" : undefined}
+          ref={menu}
+          id={id}
+          role="menu"
+          aria-label={label}
+          onBlur={(event) => {
+            const target = event.relatedTarget as Node | null;
+            if (
+              !event.currentTarget.contains(target) &&
+              !trigger.current?.contains(target)
+            )
+              close();
+          }}
+          onKeyDown={(event) => {
+            if (event.key === "Escape") {
+              event.preventDefault();
+              event.stopPropagation();
+              close(true);
+            }
+            if (["ArrowDown", "ArrowUp", "Home", "End"].includes(event.key)) {
+              event.preventDefault();
+              const buttons = [
+                ...event.currentTarget.querySelectorAll<HTMLButtonElement>(
+                  "button:not(:disabled)",
+                ),
+              ];
+              const current = buttons.indexOf(
+                document.activeElement as HTMLButtonElement,
+              );
+              const next =
+                event.key === "Home"
+                  ? 0
+                  : event.key === "End"
+                    ? buttons.length - 1
+                    : (current +
+                        (event.key === "ArrowUp" ? -1 : 1) +
+                        buttons.length) %
+                      buttons.length;
+              buttons[next]?.focus();
+            }
+          }}
+        >
           <div
-            className={`${styles.action_menu_popup} ${motion ? dialogStyles.entrance : ""} action-menu-popup`}
-            data-placement={placement}
+            className={reveal ? dialogStyles.entrance : undefined}
             data-enter-from={direction}
-            data-enter-effect={reveal ? "reveal-frame" : undefined}
-            ref={menu}
-            id={id}
-            role="menu"
-            aria-label={label}
-            onBlur={(event) => {
-              const target = event.relatedTarget as Node | null;
-              if (
-                !event.currentTarget.contains(target) &&
-                !trigger.current?.contains(target)
-              )
-                close();
-            }}
-            onKeyDown={(event) => {
-              if (event.key === "Escape") {
-                event.preventDefault();
-                event.stopPropagation();
-                close(true);
-              }
-              if (["ArrowDown", "ArrowUp", "Home", "End"].includes(event.key)) {
-                event.preventDefault();
-                const buttons = [
-                  ...event.currentTarget.querySelectorAll<HTMLButtonElement>(
-                    "button:not(:disabled)",
-                  ),
-                ];
-                const current = buttons.indexOf(
-                  document.activeElement as HTMLButtonElement,
-                );
-                const next =
-                  event.key === "Home"
-                    ? 0
-                    : event.key === "End"
-                      ? buttons.length - 1
-                      : (current +
-                          (event.key === "ArrowUp" ? -1 : 1) +
-                          buttons.length) %
-                        buttons.length;
-                buttons[next]?.focus();
-              }
-            }}
+            data-enter-effect={reveal ? "reveal" : undefined}
           >
-            <div
-              className={reveal ? dialogStyles.entrance : undefined}
-              data-enter-from={direction}
-              data-enter-effect={reveal ? "reveal" : undefined}
-            >
-              {(groups ?? [{ label: "", items }]).map((group) => (
-                <div
-                  className="action-menu-group"
-                  key={group.label}
-                  role="group"
-                  aria-label={group.label || undefined}
-                >
-                  {group.label && (
-                    <span
-                      className="action-menu-group-title"
-                      aria-hidden="true"
-                    >
-                      {group.label}
+            {(groups ?? [{ label: "", items }]).map((group) => (
+              <div
+                className="action-menu-group"
+                key={group.label}
+                role="group"
+                aria-label={group.label || undefined}
+              >
+                {group.label && (
+                  <span className="action-menu-group-title" aria-hidden="true">
+                    {group.label}
+                  </span>
+                )}
+                {group.items.map((item) => (
+                  <Button
+                    key={item.label}
+                    type="button"
+                    role={
+                      item.checked === undefined
+                        ? "menuitem"
+                        : "menuitemcheckbox"
+                    }
+                    aria-checked={item.checked}
+                    aria-label={item.label}
+                    disabled={item.disabled}
+                    data-danger={item.danger}
+                    onClick={(event) => {
+                      close(true);
+                      item.run(event.currentTarget);
+                    }}
+                  >
+                    <span className="action-menu-item-label">
+                      {item.icon}
+                      <span>{item.label}</span>
                     </span>
-                  )}
-                  {group.items.map((item) => (
-                    <Button
-                      key={item.label}
-                      type="button"
-                      role={
-                        item.checked === undefined
-                          ? "menuitem"
-                          : "menuitemcheckbox"
-                      }
-                      aria-checked={item.checked}
-                      aria-label={item.label}
-                      disabled={item.disabled}
-                      data-danger={item.danger}
-                      onClick={(event) => {
-                        close(true);
-                        item.run(event.currentTarget);
-                      }}
-                    >
-                      <span className="action-menu-item-label">
-                        {item.icon}
-                        <span>{item.label}</span>
+                    {item.shortcut && (
+                      <span className={styles.shortcut}>
+                        {(typeof item.shortcut === "string"
+                          ? [item.shortcut]
+                          : item.shortcut
+                        ).map((key, index) => (
+                          <kbd key={index}>{key}</kbd>
+                        ))}
                       </span>
-                      {item.shortcut && (
-                        <span className={styles.shortcut}>
-                          {(typeof item.shortcut === "string"
-                            ? [item.shortcut]
-                            : item.shortcut
-                          ).map((key, index) => (
-                            <kbd key={index}>{key}</kbd>
-                          ))}
-                        </span>
-                      )}
-                    </Button>
-                  ))}
-                </div>
-              ))}
-              {status && <small role="status">{status}</small>}
-            </div>
-          </div>,
-          document.body,
-        )}
+                    )}
+                  </Button>
+                ))}
+              </div>
+            ))}
+            {status && <small role="status">{status}</small>}
+          </div>
+        </MenuSurface>
+      )}
     </div>
   );
 }

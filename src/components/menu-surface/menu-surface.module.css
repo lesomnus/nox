@@ -1,0 +1,20 @@
+.surface,
+.surface * {
+  box-sizing: border-box;
+}
+.surface {
+  position: fixed;
+  z-index: 1100;
+  padding: var(--ui-control-inset);
+  color: var(--ui-shade-237);
+  background: var(--ui-dropdown-background);
+  -webkit-backdrop-filter: blur(var(--ui-dropdown-blur));
+  backdrop-filter: blur(var(--ui-dropdown-blur));
+  border-radius: calc(6px + var(--ui-control-inset));
+  outline: 1px solid var(--ui-shade-58);
+  outline-offset: -1px;
+  box-shadow: 0 6px 24px #0005;
+}
+.surface :where(button, input) {
+  letter-spacing: inherit;
+}
