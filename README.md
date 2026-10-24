@@ -134,8 +134,10 @@ The public core entry exports Button/ButtonContent, BadgedIcon, ConfirmButton, A
 
 `ActionMenu` and `ValueMenu` share the exported `MenuSurface` for portaling,
 themed foreground/background, blur, frame and trigger typography. Selection,
-actions, placement and keyboard behavior belong to each menu. See
-[menu overlays](docs/menu-surface.md).
+actions, placement and keyboard behavior belong to each menu. The top-level
+**Menus** Storybook gallery collects shared appearance and feature examples;
+**Components/ActionMenu**, **ValueMenu** and **IconValueMenu** retain their API
+controls. See [menu overlays](docs/menu-surface.md) for the capability table.
 
 `Checkbox`, `Radio`, `CopyButton`, `IdentifierValue`, `DateTime`, `FieldLabel`,
 `DescriptionList` and `NavigationPanel` provide native selection, clipboard

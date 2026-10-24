@@ -4,9 +4,7 @@ test("ValueMenu paints equal row insets after its entrance at fractional zoom", 
   page,
 }) => {
   await page.setViewportSize({ width: 1200, height: 900 });
-  await page.goto(
-    "/iframe.html?id=components-actionmenu--shared-surface&viewMode=story",
-  );
+  await page.goto("/iframe.html?id=menus--overview&viewMode=story");
   await page.getByRole("combobox", { name: "Effort" }).click();
   const menu = page.getByRole("listbox", { name: "Effort choices" });
   await menu.evaluate((node) => {

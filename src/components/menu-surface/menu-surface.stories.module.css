@@ -1,0 +1,49 @@
+.example {
+  display: grid;
+  gap: calc(4 * var(--ui-space));
+}
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: calc(4 * var(--ui-space));
+}
+.row > :global(.value-menu) {
+  flex: 0 1 140px;
+}
+.hint,
+.feedback {
+  margin: 0;
+  font-size: 12px;
+  color: var(--ui-muted);
+}
+.feedback {
+  min-height: 1.4em;
+  font-family: var(--ui-font-mono);
+}
+.mono {
+  font-family: var(--ui-font-mono);
+}
+.placement {
+  min-height: 320px;
+  align-content: center;
+}
+.backdrop {
+  display: grid;
+  align-content: center;
+  gap: calc(4 * var(--ui-space));
+  min-height: 320px;
+  padding: calc(8 * var(--ui-space));
+  border-radius: var(--ui-dialog-radius);
+  background-color: var(--ui-shade-32);
+  background-image: radial-gradient(var(--ui-shade-115) 1px, transparent 1px);
+  background-size: 8px 8px;
+  font-family: var(--ui-font-mono);
+}
+.backdrop p {
+  margin: 0;
+  max-width: 32ch;
+}
+.backdrop .row {
+  justify-content: center;
+}
