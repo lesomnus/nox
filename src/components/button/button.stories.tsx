@@ -25,7 +25,11 @@ export const NoEffect: Story = { args: { effect: "none", variant: "solid" } };
 export const CustomInk: Story = {
   args: {
     variant: "solid",
-    effectOptions: { color: [0.4, 0.65, 1, 0.15], duration: 1200 },
+    effectOptions: {
+      color: [0.4, 0.65, 1, 0.15],
+      sparkleColor: [0.4, 0.65, 1, 0.25],
+      duration: 1200,
+    },
   },
 };
 export const PreventedPress: Story = {

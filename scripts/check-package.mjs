@@ -69,18 +69,57 @@ try {
     join(temporary, "main.tsx"),
     `
     import { createRoot } from "react-dom/client";
-    import { InkSparkle, type InkSparkleProps, Button, Checkbox, DateTime, DescriptionList, IdentifierValue, NavigationPanel, StippleBackground, clusterMotion, workMotion, withPointerBurst, UIProvider } from "@lesomnus/nox";
+    import { Progress, type ProgressProps } from "@lesomnus/nox";
+    import { PinInput, type PinInputProps, SplitLayout, type SplitNode, setSplitRatio, PrefixValueMenu, type PrefixValueMenuProps, IconValueMenu, AuroraGlow, type AuroraGlowProps, type AuroraPalette, InkSparkle, type InkSparkleProps, Button, Checkbox, DateTime, DescriptionList, IdentifierValue, MenuSurface, type MenuSurfaceProps, MenuScrollArea, MenuItem, type MenuItemProps, MenuIcon, MenuGroupLabel, MenuDivider, NavigationPanel, StippleBackground, clusterMotion, workMotion, withPointerBurst, UIProvider } from "@lesomnus/nox";
+    import { Table, TableHeader, TableBody, TableFooter, TableRow, TableHead, TableCell, TableCaption, TableScrollArea, type TableProps, type TableRowProps } from "@lesomnus/nox";
+    import { LinkButton, Skeleton, type LinkButtonProps, type SkeletonProps } from "@lesomnus/nox";
     import { TerminalWorkbench } from "@lesomnus/nox/terminal";
     import "@lesomnus/nox/styles.css";
     void TerminalWorkbench;
-    const sparkle: InkSparkleProps = { duration: 2000, origin: [-8, 40], centerMotion: "fixed", loop: true };
+    const table: TableProps = { "aria-label": "Records", stickyHeader: true, ref: node => { void node?.rows.length; } };
+    const selectedRow: TableRowProps = { selected: true };
+    const link: LinkButtonProps = { href: "#record", trailing: null, ref: node => { void node?.href; } };
+    const skeleton: SkeletonProps = { variant: "circle", width: 32, animated: false, ref: node => { void node?.offsetWidth; } };
+    const progress: ProgressProps = { value: 42, variant: "bordered", animated: false, sparkleOptions: { duration: 2000 } };
+    const pin: PinInputProps = { label: "Device code", groups: [4,4], mode: "alphanumeric", name: "device_code" };
+    void MenuSurface;
+    void MenuIcon;
+    const menuSurface: MenuSurfaceProps = { anchor: null, role: "menu", style: { left: 0, top: 0 } };
+    void menuSurface;
+    const menuItem: MenuItemProps = { role: "menuitem", icon: <svg viewBox="0 0 24 24"><path d="M4 12h16" /></svg>, trailing: "Open", onClick: (event) => event.currentTarget.focus() };
+    const splitTree: SplitNode = {kind:"split",id:"root",axis:"horizontal",ratio:0.5,first:{kind:"pane",id:"a"},second:{kind:"pane",id:"b"}};
+    const prefixMenu: PrefixValueMenuProps = {label:"Effort",prefix:"Effort",prefixClassName:"prefix",value:"medium",options:[{value:"medium",label:"Medium"}],choose:() => {}};
+    const auroraPalette: AuroraPalette = ["#23b04a", "#2596e9", "#b14ccd"];
+    const aurora: AuroraGlowProps = {active: true, paused: false, speed: 0.75, strength: 0.4, seed: 12, palette: auroraPalette};
+    const sparkle: InkSparkleProps = { duration: 2000, origin: [-8, 40], centerMotion: "fixed", loop: true, sparkleColor: [0.25, 0.5, 0.75, 0.2] };
     createRoot(document.getElementById("root")!).render(
       <UIProvider>
+        <div style={{position:"relative",height:40}}><AuroraGlow {...aurora} /></div>
+        <div style={{height:100}}><SplitLayout node={splitTree} renderPane={id => id} junctionLabel="Resize both axes" onResize={(id,ratio) => {void setSplitRatio(splitTree,id,ratio);}} /><SplitLayout node={splitTree} renderPane={id => id} onChange={tree => {void tree;}} /></div>
+        <PrefixValueMenu {...prefixMenu} />
+        <IconValueMenu label="Legacy effort" icon="Effort" value="medium" options={[{value:"medium",label:"Medium"}]} choose={() => {}} />
         <Button>Save</Button>
+        <Progress {...progress} aria-label="Build progress" />
+        <PinInput {...pin} />
+        <MenuScrollArea role="menu" aria-label="Custom actions" scrollbarLabel="Scroll actions">
+          <MenuGroupLabel icon={<svg viewBox="0 0 24 24"><path d="M4 12h16" /></svg>}>Commands</MenuGroupLabel>
+          <MenuItem {...menuItem}>Details</MenuItem>
+          <MenuDivider />
+        </MenuScrollArea>
         <Button effect="none">No ink</Button>
-        <Button effect="sparkle" effectOptions={{color:[1,1,1,0.06],duration:1200,centerMotion:"fixed",seed:1}}>Custom ink</Button>
+        <Button effect="sparkle" effectOptions={{color:[1,1,1,0.06],sparkleColor:[1,1,1,0.2],duration:1200,centerMotion:"fixed",seed:1}}>Custom ink</Button>
         <div style={{height:80}}><InkSparkle {...sparkle} /></div>
         <Checkbox aria-label="Select record" />
+        <LinkButton {...link}>Record</LinkButton>
+        <Skeleton {...skeleton} />
+        <TableScrollArea style={{height:120}} scrollbarLabel="Scroll records" horizontalScrollbarLabel="Scroll record columns">
+          <Table {...table}>
+            <TableCaption>Records</TableCaption>
+            <TableHeader><TableRow><TableHead>Name</TableHead><TableHead align="right">Count</TableHead></TableRow></TableHeader>
+            <TableBody><TableRow {...selectedRow}><TableHead scope="row">Example</TableHead><TableCell align="right">1</TableCell></TableRow></TableBody>
+            <TableFooter><TableRow><TableCell colSpan={2}>Total: 1</TableCell></TableRow></TableFooter>
+          </Table>
+        </TableScrollArea>
         <StippleBackground paused pattern="diamond" colorBlend="dither" palette={["#abc", "#123456", "#fedcba", "#84a59d"]} motion={(t, {aspect}) => [{x: 0.5, y: 0.5, radius: 0.2 + Math.sin(t) * 0.02, scale: [aspect, 1], rotation: t}]} style={{height: 100}} />
         <StippleBackground motion={clusterMotion} edgeFade={0.75} edgeFadeSteps={3} seed={7} paused style={{height: 100}} />
         <StippleBackground motion={workMotion} active={false} style={{height: 100}} />

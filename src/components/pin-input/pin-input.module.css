@@ -1,0 +1,114 @@
+.root,
+.root * {
+  box-sizing: border-box;
+}
+.root {
+  position: relative;
+  display: inline-flex;
+  width: fit-content;
+  min-width: 0;
+  max-width: 100%;
+  vertical-align: middle;
+}
+.input {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  outline: 0;
+  border-radius: 0;
+  background: transparent;
+  color: transparent;
+  caret-color: transparent;
+  font: 16px var(--ui-font-mono);
+  -webkit-text-fill-color: transparent;
+}
+.input::placeholder {
+  color: transparent;
+}
+
+/* Native reveal controls overlap the slots and cannot reveal their masked text. */
+.input::-ms-reveal {
+  display: none;
+}
+
+.input::selection {
+  background: transparent;
+  color: transparent;
+}
+.slots,
+.group {
+  display: inline-flex;
+  align-items: center;
+  min-width: 0;
+}
+.slots {
+  gap: calc(2 * var(--ui-space));
+  width: 100%;
+  max-width: 100%;
+}
+.group {
+  gap: var(--ui-pin-input-gap);
+}
+.slot {
+  position: relative;
+  display: grid;
+  place-items: center;
+  flex: 0 1 var(--ui-pin-input-slot-width);
+  width: var(--ui-pin-input-slot-width);
+  min-width: 0;
+  height: var(--ui-pin-input-slot-height);
+  border: 1px solid var(--ui-shade-60);
+  border-radius: var(--ui-pin-input-radius);
+  background: var(--ui-shade-24);
+  color: var(--ui-shade-237);
+  font: 500 16px var(--ui-font-mono);
+  font-variant-numeric: tabular-nums;
+}
+.separator {
+  flex: 0 0 auto;
+  color: var(--ui-text-separator);
+  font-family: var(--ui-font-mono);
+}
+.root:hover:not([data-disabled]) .slot {
+  border-color: var(--ui-shade-115);
+}
+.root:focus-within .slot[data-active] {
+  border-color: var(--ui-shade-204);
+  outline: 2px solid color-mix(in srgb, var(--ui-shade-160) 35%, transparent);
+  outline-offset: 2px;
+}
+.root:focus-within .slot[data-selected] {
+  background: var(--ui-selected);
+}
+.root:focus-within:not([data-readonly]) .slot[data-active][data-empty]::after {
+  content: "";
+  width: 1px;
+  height: 18px;
+  background: var(--ui-shade-204);
+  animation: caret 1s step-end infinite;
+}
+.root[data-invalid] .slot {
+  border-color: var(--ui-pin-input-error-color);
+}
+.root[data-disabled] {
+  opacity: 0.4;
+}
+.root[data-disabled] .input {
+  cursor: default;
+}
+@keyframes caret {
+  50% {
+    opacity: 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .root:focus-within:not([data-readonly])
+    .slot[data-active][data-empty]::after {
+    animation: none;
+  }
+}

@@ -1,24 +1,31 @@
-import type { ComponentProps, ReactNode } from "react";
-import { ValueMenu } from "../value-menu/value-menu";
-import styles from "./icon-value-menu.module.css";
+import type { ReactNode } from "react";
+import {
+  PrefixValueMenu,
+  type PrefixValueMenuProps,
+} from "../prefix-value-menu/prefix-value-menu";
 
+/** @deprecated Use PrefixValueMenuProps with prefix and prefixClassName. */
+export type IconValueMenuProps = Omit<
+  PrefixValueMenuProps,
+  "prefix" | "prefixClassName"
+> & {
+  icon: ReactNode;
+  iconClassName?: string;
+};
+
+/** @deprecated Use PrefixValueMenu with prefix and prefixClassName. */
 export function IconValueMenu({
   icon,
   className = "",
   iconClassName = "",
-  variant = "compact",
   ...props
-}: ComponentProps<typeof ValueMenu> & {
-  icon: ReactNode;
-  className?: string;
-  iconClassName?: string;
-}) {
+}: IconValueMenuProps) {
   return (
-    <div className={`icon-value-menu ${styles.field} ${className}`}>
-      <span className={`${styles.icon} ${iconClassName}`} aria-hidden="true">
-        {icon}
-      </span>
-      <ValueMenu {...props} variant={variant} />
-    </div>
+    <PrefixValueMenu
+      {...props}
+      prefix={icon}
+      prefixClassName={iconClassName}
+      className={`icon-value-menu ${className}`}
+    />
   );
 }

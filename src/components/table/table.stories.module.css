@@ -1,0 +1,56 @@
+.table {
+  min-width: 500px;
+  table-layout: fixed;
+}
+.selection {
+  width: 40px;
+}
+.name {
+  width: 34%;
+}
+.account {
+  width: 24%;
+}
+.state {
+  width: 26%;
+}
+.number {
+  width: 16%;
+  font-variant-numeric: tabular-nums;
+}
+.muted {
+  color: var(--ui-muted);
+}
+.accountLink {
+  --ui-link-button-height: calc(
+    var(--ui-table-row-height) - 2 * var(--ui-control-inset)
+  );
+  width: 100%;
+}
+.toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: calc(2 * var(--ui-space));
+  font-size: 12px;
+}
+.empty {
+  height: 120px;
+  color: var(--ui-muted);
+}
+.scroll {
+  height: 260px;
+}
+.horizontal {
+  max-width: 320px;
+}
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}

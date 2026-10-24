@@ -19,6 +19,9 @@ export type ScrollAreaSlot =
   | "rail"
   | "thumb"
   | "handle"
+  | "horizontalRail"
+  | "horizontalThumb"
+  | "horizontalHandle"
   | "fade"
   | "topFade"
   | "bottomFade";
@@ -28,6 +31,9 @@ export type ScrollAreaProps = Omit<
 > & {
   children: ReactNode;
   scrollbarLabel?: string;
+  /** Show an additional horizontal scrollbar when content overflows. */
+  horizontalScrollbar?: boolean;
+  horizontalScrollbarLabel?: string;
   viewportRef?: RefObject<HTMLDivElement | null>;
   viewportClassName?: string;
   contentClassName?: string;
@@ -41,6 +47,8 @@ export function ScrollArea({
   children,
   viewportRef,
   scrollbarLabel = "Scroll",
+  horizontalScrollbar = false,
+  horizontalScrollbarLabel = "Scroll horizontally",
   className = "",
   classNames = {},
   viewportClassName = "",
@@ -65,11 +73,22 @@ export function ScrollArea({
   const content = useRef<HTMLDivElement>(null);
   const rail = useRef<HTMLDivElement>(null);
   const drag = useRef<{ pointer: number; y: number; top: number } | null>(null);
+  const horizontalDrag = useRef<{
+    pointer: number;
+    x: number;
+    left: number;
+  } | null>(null);
   const motion = useRef({ top: 0, time: 0, strength: 0 });
   const motionRaf = useRef(0);
   const [near, setNear] = useState(false);
   const [dragging, setDragging] = useState(false);
   const [view, setView] = useState({ top: 0, max: 0, height: 0, thumb: 0 });
+  const [horizontalView, setHorizontalView] = useState({
+    left: 0,
+    max: 0,
+    width: 0,
+    thumb: 0,
+  });
 
   function measure() {
     const el = pane.current;
@@ -131,6 +150,26 @@ export function ScrollArea({
       height,
       thumb,
     });
+    if (horizontalScrollbar) {
+      const availableWidth = el.clientWidth;
+      const maxHorizontal = Math.max(0, el.scrollWidth - availableWidth);
+      const width = Math.min(
+        availableWidth,
+        railMax,
+        availableWidth * clamp(railRatio, 0, 1),
+        railMin + maxHorizontal * railGrowth,
+      );
+      setHorizontalView({
+        left: clamp(el.scrollLeft, 0, maxHorizontal),
+        max: maxHorizontal,
+        width,
+        thumb: Math.min(
+          width,
+          Math.max(32, Math.min(maxSize, width * clamp(maxRatio, 0, 1))),
+          Math.max(32, (width * availableWidth) / (el.scrollWidth || 1)),
+        ),
+      });
+    }
   }
   function paintMotion(strength: number) {
     // Extend the edge where content leaves the viewport, without re-rendering
@@ -181,17 +220,25 @@ export function ScrollArea({
       observer.disconnect();
       cancelAnimationFrame(motionRaf.current);
     };
-  }, []);
+  }, [horizontalScrollbar]);
 
   const travel = Math.max(0, view.height - view.thumb);
+  const horizontalTravel = Math.max(
+    0,
+    horizontalView.width - horizontalView.thumb,
+  );
   return (
     <div
       ref={region}
       {...props}
       className={`${styles.area} ${className}`}
       data-scroll-area="root"
+      data-horizontal-scrollbar={horizontalScrollbar || undefined}
       data-near={near || undefined}
       data-dragging={dragging || undefined}
+      data-horizontal-overflow={
+        (horizontalScrollbar && horizontalView.max > 0) || undefined
+      }
       onPointerMove={(event) => {
         const bounds = event.currentTarget.getBoundingClientRect();
         setNear(
@@ -297,6 +344,80 @@ export function ScrollArea({
           </div>
         )}
       </div>
+      {horizontalScrollbar && horizontalView.max > 0 && (
+        <div
+          className={slot("horizontalRail")}
+          data-scroll-area="horizontal-rail"
+          style={{ width: horizontalView.width }}
+        >
+          <div
+            className={slot("horizontalThumb")}
+            role="scrollbar"
+            tabIndex={0}
+            aria-label={horizontalScrollbarLabel}
+            aria-orientation="horizontal"
+            aria-controls={id}
+            aria-valuemin={0}
+            aria-valuemax={Math.round(horizontalView.max)}
+            aria-valuenow={Math.round(horizontalView.left)}
+            style={{
+              left: horizontalView.max
+                ? (horizontalView.left / horizontalView.max) * horizontalTravel
+                : 0,
+              width: horizontalView.thumb,
+            }}
+            onPointerDown={(event) => {
+              if (event.button !== 0 || !horizontalTravel) return;
+              event.preventDefault();
+              event.currentTarget.focus({ preventScroll: true });
+              event.currentTarget.setPointerCapture(event.pointerId);
+              horizontalDrag.current = {
+                pointer: event.pointerId,
+                x: event.clientX,
+                left: pane.current!.scrollLeft,
+              };
+              setDragging(true);
+            }}
+            onPointerMove={(event) => {
+              const active = horizontalDrag.current;
+              if (
+                !active ||
+                active.pointer !== event.pointerId ||
+                !horizontalTravel
+              )
+                return;
+              pane.current!.scrollLeft =
+                active.left +
+                ((event.clientX - active.x) * horizontalView.max) /
+                  horizontalTravel;
+            }}
+            onLostPointerCapture={() => {
+              horizontalDrag.current = null;
+              setDragging(false);
+            }}
+            onKeyDown={(event) => {
+              const el = pane.current!;
+              const positions: Record<string, number> = {
+                ArrowLeft: el.scrollLeft - 40,
+                ArrowRight: el.scrollLeft + 40,
+                PageUp: el.scrollLeft - el.clientWidth,
+                PageDown: el.scrollLeft + el.clientWidth,
+                Home: 0,
+                End: horizontalView.max,
+              };
+              const next = positions[event.key];
+              if (next === undefined) return;
+              event.preventDefault();
+              el.scrollLeft = next;
+            }}
+          >
+            <span
+              className={slot("horizontalHandle")}
+              data-scroll-area="horizontal-handle"
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 }

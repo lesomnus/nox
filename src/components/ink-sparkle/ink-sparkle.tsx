@@ -11,8 +11,10 @@ export type { InkSparkleCenterMotion } from "./ink-sparkle-model";
 
 export interface InkSparkleProps {
   className?: string;
-  /** Normalized RGBA channels, each from 0 to 1. Sparkles remain white. */
+  /** Normalized RGBA ink channels, each from 0 to 1. */
   color?: readonly [number, number, number, number];
+  /** Independent normalized RGBA sparkle tint; alpha controls strength. Defaults to opaque white. */
+  sparkleColor?: readonly [number, number, number, number];
   /** Center in local CSS pixels; negative/off-surface coordinates are supported. */
   origin?: readonly [number, number];
   /** Milliseconds per burst. Defaults to Flutter's original 617ms. */
@@ -33,6 +35,7 @@ export interface InkSparkleProps {
 export function InkSparkle({
   className,
   color = [1, 1, 1, 0.24],
+  sparkleColor = [1, 1, 1, 1],
   origin,
   seed,
   style,
@@ -50,6 +53,7 @@ export function InkSparkle({
     completeRef.current = onComplete;
   }, [onComplete]);
   const [red, green, blue, alpha] = color;
+  const [sparkleRed, sparkleGreen, sparkleBlue, sparkleAlpha] = sparkleColor;
   const originX = origin?.[0];
   const originY = origin?.[1];
   useEffect(() => {
@@ -99,6 +103,7 @@ export function InkSparkle({
         [originX ?? width / 2, originY ?? height / 2],
         [red, green, blue, alpha],
         centerMotion,
+        [sparkleRed, sparkleGreen, sparkleBlue, sparkleAlpha],
       );
       if (
         !holding &&
@@ -185,6 +190,10 @@ export function InkSparkle({
     green,
     blue,
     alpha,
+    sparkleRed,
+    sparkleGreen,
+    sparkleBlue,
+    sparkleAlpha,
     originX,
     originY,
     seed,

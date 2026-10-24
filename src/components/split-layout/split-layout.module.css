@@ -1,3 +1,4 @@
+.layout,
 .pane,
 .split,
 .part {
@@ -8,6 +9,10 @@
   min-height: 0;
   overflow: hidden;
 }
+.layout {
+  position: relative;
+  isolation: isolate;
+}
 .pane,
 .part {
   flex-direction: column;
@@ -16,27 +21,86 @@
   flex-direction: column;
 }
 .separator {
-  flex: 0 0 5px;
+  --line-size: var(--ui-split-line-size);
+  --line-color: var(--ui-shade-54);
+  flex: 0 0 var(--ui-resize-handle-size);
   position: relative;
   cursor: col-resize;
   touch-action: none;
   outline: none;
+  user-select: none;
 }
-.split[data-axis="vertical"] > .separator {
+.separator[data-axis="vertical"] {
   cursor: row-resize;
 }
 .separator::before {
   content: "";
   position: absolute;
-  inset: 0 2px;
-  background: var(--ui-shade-54);
+  inset: 0 calc((var(--ui-resize-handle-size) - var(--line-size)) / 2);
+  background: var(--line-color);
 }
-.split[data-axis="vertical"] > .separator::before {
-  inset: 2px 0;
+.separator[data-axis="vertical"]::before {
+  inset: calc((var(--ui-resize-handle-size) - var(--line-size)) / 2) 0;
 }
-.separator:hover::before,
-.separator:focus-visible::before,
-.separator:active::before {
-  inset: 0;
-  background: var(--ui-muted);
+.separator:is(:hover, :active, [data-highlighted], [data-dragging]) {
+  --line-size: var(--ui-split-line-hover-size);
+  --line-color: var(--ui-muted);
+}
+.junction {
+  /* Paint the gutter with a stroke overlap; keep the larger hit area separate. */
+  --bridge-inset: calc(
+    50% - var(--ui-resize-handle-size) / 2 - var(--ui-split-line-size)
+  );
+  --vertical-size: var(--ui-split-line-size);
+  --horizontal-size: var(--ui-split-line-size);
+  --vertical-color: var(--ui-shade-54);
+  --horizontal-color: var(--ui-shade-54);
+  position: absolute;
+  z-index: 1;
+  width: calc(var(--ui-resize-handle-size) * 3);
+  height: calc(var(--ui-resize-handle-size) * 3);
+  translate: -50% -50%;
+  cursor: move;
+  touch-action: none;
+  user-select: none;
+  outline: none;
+}
+.junction::before,
+.junction::after {
+  content: "";
+  position: absolute;
+  pointer-events: none;
+}
+.junction::before {
+  left: 50%;
+  top: var(--line-top);
+  bottom: var(--line-bottom);
+  width: var(--vertical-size);
+  background: var(--vertical-color);
+  translate: -50% 0;
+}
+.junction::after {
+  top: 50%;
+  left: var(--line-left);
+  right: var(--line-right);
+  height: var(--horizontal-size);
+  background: var(--horizontal-color);
+  translate: 0 -50%;
+}
+.junction:is(:hover, [data-highlight-vertical]) {
+  --vertical-size: var(--ui-split-line-hover-size);
+  --vertical-color: var(--ui-muted);
+}
+.junction:is(:hover, [data-highlight-vertical])::before {
+  z-index: 1;
+}
+.junction:is(:hover, [data-highlight-horizontal]) {
+  --horizontal-size: var(--ui-split-line-hover-size);
+  --horizontal-color: var(--ui-muted);
+}
+.junction:is(:hover, [data-highlight-horizontal])::after {
+  z-index: 1;
+}
+.junction:is(:hover, [data-highlight-vertical], [data-highlight-horizontal]) {
+  z-index: 2;
 }

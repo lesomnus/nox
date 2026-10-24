@@ -7,6 +7,11 @@ import {
   dialogAppearanceClassName,
 } from "../dialog-surface/dialog-surface";
 import { useUI } from "../../providers/ui-provider";
+import {
+  captureDialogTrigger,
+  DialogTrigger,
+  type DialogTriggerOrigin,
+} from "../dialog-trigger/dialog-trigger";
 
 // A native modal keeps shortcuts and the background inert while the input
 // occupies exactly the displayed value's bounds, even inside a floating card.
@@ -26,6 +31,7 @@ export function EditableValue({
   const { t } = useUI();
   const trigger = useRef<HTMLButtonElement>(null);
   const [editing, setEditing] = useState(false);
+  const [labelOrigin, setLabelOrigin] = useState<DialogTriggerOrigin>();
   return (
     <>
       <Button
@@ -35,7 +41,17 @@ export function EditableValue({
         data-monospace={monospace}
         aria-label={t("Edit {label}", { label })}
         aria-haspopup="dialog"
-        onClick={() => setEditing(true)}
+        onClick={() => {
+          // Native description-list terms label their following values.
+          let term = trigger.current?.closest("dd")?.previousElementSibling;
+          while (term?.matches("dd")) term = term.previousElementSibling;
+          setLabelOrigin(
+            term instanceof HTMLElement && term.matches("dt")
+              ? captureDialogTrigger(term)
+              : undefined,
+          );
+          setEditing(true);
+        }}
       >
         {value || "—"}
       </Button>
@@ -44,6 +60,7 @@ export function EditableValue({
           label={label}
           value={value}
           origin={trigger.current!}
+          labelOrigin={labelOrigin}
           save={save}
           validate={validate}
           close={() => setEditing(false)}
@@ -57,6 +74,7 @@ function ValueEditor({
   label,
   value,
   origin,
+  labelOrigin,
   save,
   validate,
   close,
@@ -64,6 +82,7 @@ function ValueEditor({
   label: string;
   value: string;
   origin: HTMLButtonElement;
+  labelOrigin?: DialogTriggerOrigin;
   save: (value: string) => Promise<void>;
   validate?: (value: string) => string | undefined;
   close: () => void;
@@ -77,6 +96,19 @@ function ValueEditor({
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [position, setPosition] = useState<CSSProperties>();
+  useLayoutEffect(() => {
+    const element = labelOrigin?.element;
+    if (!element) return;
+    // Preserve layout, but avoid painting the same label twice across layers.
+    const visibility = element.style.getPropertyValue("visibility");
+    const priority = element.style.getPropertyPriority("visibility");
+    element.style.setProperty("visibility", "hidden");
+    return () => {
+      if (visibility)
+        element.style.setProperty("visibility", visibility, priority);
+      else element.style.removeProperty("visibility");
+    };
+  }, [labelOrigin]);
   useLayoutEffect(() => {
     const node = dialog.current!;
     alive.current = true;
@@ -168,6 +200,9 @@ function ValueEditor({
           close();
       }}
     >
+      {position && labelOrigin && (
+        <DialogTrigger origin={labelOrigin} adjacent />
+      )}
       <form
         onSubmit={(event) => {
           event.preventDefault();

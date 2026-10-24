@@ -44,6 +44,15 @@ stable `id`. Values can contain controls, dates, identifiers or arbitrary React
 content. Missing values use `empty`; numeric zero remains visible. Choose one
 or two `columns` to fit the containing view.
 
+`EditableValue` aligns its text with a plain value without adding layout space
+for its padded hit area. Its own styles extend that padding around the text,
+so editable and read-only fields share the same text origin and row height.
+The input opens over the padded control with the same text position; callers
+do not need offsets or example-specific styles.
+When used in a description list, the field's `dt` label also remains above the
+editing backdrop at its original position and typography. The label returns
+to normal when editing closes; no additional wiring is required.
+
 ```tsx
 import { DateTime, DescriptionList, IdentifierValue } from "@lesomnus/nox";
 

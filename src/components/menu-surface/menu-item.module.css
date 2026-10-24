@@ -1,0 +1,58 @@
+.item.item {
+  display: block;
+  width: 100%;
+  padding: var(--menu-item-padding-block, var(--ui-menu-item-padding-block))
+    var(--menu-item-padding-inline, var(--ui-menu-item-padding-inline));
+  text-align: left;
+  font-size: inherit;
+}
+.item :global(.button-content) {
+  justify-content: flex-start;
+  gap: var(--ui-space);
+}
+.item:not(:disabled):hover {
+  color: var(--ui-shade-255);
+}
+.item[aria-checked="true"] {
+  background: var(--ui-selected);
+}
+.trailing {
+  display: inline-flex;
+  flex-shrink: 0;
+  margin-left: auto;
+  padding-left: calc(2 * var(--ui-space));
+}
+.icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: var(--ui-icon-size-small);
+  height: var(--ui-icon-size-small);
+}
+.icon > :is(svg, img) {
+  width: 100%;
+  height: 100%;
+}
+.group {
+  display: flex;
+  align-items: center;
+  gap: var(--ui-space);
+  padding: var(--ui-control-inset)
+    var(--menu-item-padding-inline, var(--ui-menu-item-padding-inline));
+  color: var(--ui-muted);
+  font-size: 10px;
+  line-height: 18px;
+}
+.groupText {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.divider {
+  height: 1px;
+  flex-shrink: 0;
+  margin: 6px 0;
+  background: var(--ui-shade-60);
+}

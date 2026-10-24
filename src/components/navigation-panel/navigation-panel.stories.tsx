@@ -3,7 +3,7 @@ import { Button, NavigationPanel, PanelItem } from "@lesomnus/nox";
 import { useState } from "react";
 
 const meta = {
-  title: "Navigation/NavigationPanel",
+  title: "Layout/NavigationPanel",
   component: NavigationPanel,
   tags: ["autodocs"],
   decorators: [

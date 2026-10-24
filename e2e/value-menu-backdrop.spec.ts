@@ -18,7 +18,7 @@ test("ValueMenu visibly blurs the StippleBackground behind its portaled surface"
   page.on("pageerror", (error) => errors.push(error.message));
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.goto(
-    "/iframe.html?id=components-valuemenu--stipple-backdrop&viewMode=story",
+    "/iframe.html?id=menus-features--stipple-backdrop&viewMode=story",
   );
   const scene = page.locator("[data-renderer]");
   await expect(scene).toHaveAttribute("data-renderer", "webgl2", {

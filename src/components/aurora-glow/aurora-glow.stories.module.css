@@ -1,0 +1,76 @@
+.stage,
+.composer {
+  width: min(100%, 720px);
+  box-sizing: border-box;
+  color: var(--ui-shade-204);
+}
+.stage {
+  position: relative;
+  isolation: isolate;
+  height: 140px;
+  border: 1px solid var(--ui-shade-48);
+  border-radius: 12px;
+  background: var(--ui-shade-16);
+}
+.composer {
+  padding-block: 24px;
+}
+.toolbarFrame {
+  position: relative;
+  isolation: isolate;
+  border-radius: 10px;
+  background: var(--ui-shade-16);
+}
+.glass {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: var(--ui-space);
+  padding: var(--ui-space);
+  border: 1px solid color-mix(in srgb, var(--ui-shade-60) 50%, transparent);
+  border-radius: inherit;
+  background: color-mix(in srgb, var(--ui-shade-16) 72%, transparent);
+  backdrop-filter: blur(10px);
+}
+.toolButton,
+.send {
+  height: 28px;
+  min-height: 0;
+}
+.toolButton {
+  width: 48px;
+}
+.toolButton svg {
+  width: var(--ui-icon-size-small);
+  height: var(--ui-icon-size-small);
+}
+.send {
+  width: 96px;
+  margin-left: auto;
+}
+.elapsed {
+  font-family: var(--ui-font-mono);
+  color: var(--ui-shade-115);
+}
+.editor {
+  position: relative;
+  margin-top: calc(-1 * var(--ui-space));
+  padding: 20px 12px;
+  border: 1px solid var(--ui-shade-48);
+  border-radius: 10px;
+  background: var(--ui-shade-24);
+  color: var(--ui-shade-115);
+  font-family: var(--ui-font-mono);
+}
+.lifecycle {
+  display: grid;
+  gap: calc(2 * var(--ui-space));
+}
+.controls {
+  display: flex;
+  gap: var(--ui-space);
+}
+.controls [aria-pressed="true"] {
+  background: var(--ui-shade-48);
+}

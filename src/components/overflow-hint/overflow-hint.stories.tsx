@@ -9,6 +9,28 @@ const meta = {
     content: "1a2b3c4d-5e6f-7788-9900-aabbccddeeff",
     children: "1a2b3c4",
   },
+  argTypes: {
+    placement: {
+      type: "string",
+      control: "select",
+      options: [
+        "top-start",
+        "top",
+        "top-end",
+        "bottom-start",
+        "bottom",
+        "bottom-end",
+        "left-start",
+        "left",
+        "left-end",
+        "right-start",
+        "right",
+        "right-end",
+        "adjacent",
+        "in-place",
+      ],
+    },
+  },
   decorators: [
     (Story) => (
       <div
@@ -29,7 +51,7 @@ const meta = {
     docs: {
       description: {
         component:
-          "Hover or focus the abbreviated text. The full value is a fixed portal outside this clipped container, constrained to the viewport. Use placement='in-place' for an in-place overlay: the full text shares the original text origin, baseline and typography. Escape, scrolling and resizing dismiss the hint.",
+          "Hover or focus the abbreviated text. The full value is a fixed portal outside this clipped container, constrained to the viewport. The default top-start puts the hint's bottom-left above the anchor; placement controls its side and alignment. Use placement='in-place' for an in-place overlay: the full text shares the original text origin, baseline and typography. Escape, scrolling and resizing dismiss the hint.",
       },
     },
   },
@@ -37,6 +59,16 @@ const meta = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 export const Default: Story = {};
+export const BottomEnd: Story = { args: { placement: "bottom-end" } };
+export const Right: Story = { args: { placement: "right" } };
+export const Adjacent: Story = { args: { placement: "adjacent" } };
+export const ViewportEdge: Story = {
+  render: (args) => (
+    <div style={{ position: "fixed", top: 8, right: 8 }}>
+      <OverflowHint {...args} />
+    </div>
+  ),
+};
 
 export const InPlace: Story = {
   args: { placement: "in-place" },

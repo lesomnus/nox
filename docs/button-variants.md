@@ -8,6 +8,9 @@
 <Button effectOptions={{ color: [0.4, 0.65, 1, 0.12], duration: 1200 }}>
   Custom ink
 </Button>
+<Button effectOptions={{ sparkleColor: [0.6, 0.6, 0.6, 0.2] }}>
+  Softer sparkles
+</Button>
 ```
 
 - `default`: transparent until hovered, for quiet actions.
@@ -28,8 +31,11 @@ effect off clears active overlays immediately. A quick press/release still plays
 the remaining expansion and fade to completion.
 
 The neutral ink follows the theme. `effectOptions` accepts `color` (normalized
-RGBA), `duration`, `centerMotion` and `seed`. Color's alpha controls ink strength;
-white sparkles retain Flutter's original appearance. Effects never intercept
+RGBA), `sparkleColor` (independent normalized RGBA), `duration`, `centerMotion`
+and `seed`. Color's alpha controls ink strength; sparkleColor's alpha controls
+sparkle strength and zero hides only the sparkles. Button defaults to white
+sparkles with alpha `0.5`; an explicit `effectOptions.sparkleColor` overrides
+that default. Effects never intercept
 input, resize the button, scale with the label, or cover its text and icons.
 Expanded ink stops drawing; completed overlays release their GPU resources.
 Caller event handlers remain active, and preventing default on pointer/key down

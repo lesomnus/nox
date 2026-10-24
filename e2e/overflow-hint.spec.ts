@@ -1,5 +1,38 @@
 import { expect, test } from "@playwright/test";
 
+for (const [name, placement] of [
+  ["default", "top-start"],
+  ["bottom-end", "bottom-end"],
+]) {
+  test(`direct OverflowHint ${placement} aligns to the abbreviated text`, async ({
+    page,
+  }) => {
+    await page.goto(
+      `/iframe.html?id=components-overflowhint--${name}&viewMode=story`,
+    );
+    const anchor = page.locator('[tabindex="0"]');
+    await anchor.focus();
+    const hint = page.getByRole("tooltip");
+    await expect(hint).toBeVisible();
+    await expect(hint).toHaveAttribute("data-placement", placement);
+    const source = (await anchor.boundingBox())!,
+      box = (await hint.boundingBox())!;
+    if (placement === "top-start") {
+      expect(box.x).toBeCloseTo(source.x, 1);
+      expect(source.y - box.y - box.height).toBeCloseTo(8, 1);
+    } else {
+      expect(box.x + box.width).toBeCloseTo(source.x + source.width, 1);
+      expect(box.y - source.y - source.height).toBeCloseTo(8, 1);
+    }
+    expect(
+      await hint.evaluate((el) => el.parentElement === document.body),
+    ).toBe(true);
+    await anchor.press("Escape");
+    await expect(hint).toHaveCount(0);
+    await expect(anchor).toBeFocused();
+  });
+}
+
 for (const scale of [1, 1.25, 1.5, 2]) {
   test.describe(`in-place hint at device scale ${scale}`, () => {
     test.use({ deviceScaleFactor: scale });

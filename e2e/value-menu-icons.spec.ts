@@ -3,9 +3,7 @@ import { expect, test } from "@playwright/test";
 test("section title icons are decorative and do not dismiss the menu", async ({
   page,
 }) => {
-  await page.goto(
-    "/iframe.html?id=components-valuemenu--title-icons&viewMode=story",
-  );
+  await page.goto("/iframe.html?id=menus-features--title-icons&viewMode=story");
   const trigger = page.getByRole("combobox", { name: "Effort" });
   await expect(trigger.locator("svg")).toHaveCount(0);
   await trigger.click();
@@ -26,9 +24,7 @@ test("section title icons are decorative and do not dismiss the menu", async ({
 test("value icons stay aligned with the selected trigger and follow selection", async ({
   page,
 }) => {
-  await page.goto(
-    "/iframe.html?id=components-valuemenu--value-icons&viewMode=story",
-  );
+  await page.goto("/iframe.html?id=menus-features--value-icons&viewMode=story");
   const trigger = page.getByRole("combobox", { name: "Effort" });
   const anchorText = (await trigger.locator(".meta-value").boundingBox())!;
   const anchorIcon = (await trigger.locator("svg").boundingBox())!;
@@ -56,7 +52,7 @@ test("search retains the current icon without shifting text or affecting matchin
   page,
 }) => {
   await page.goto(
-    "/iframe.html?id=components-valuemenu--searchable-icons&viewMode=story",
+    "/iframe.html?id=menus-features--searchable-icons&viewMode=story",
   );
   const trigger = page.getByRole("combobox", { name: "Effort", exact: true });
   const anchor = (await trigger.locator(".meta-value").boundingBox())!;

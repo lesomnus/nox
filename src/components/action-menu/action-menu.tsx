@@ -1,6 +1,7 @@
 import styles from "./action-menu.module.css";
 import dialogStyles from "../dialog-surface/dialog-surface.module.css";
 import {
+  Fragment,
   useEffect,
   useId,
   useLayoutEffect,
@@ -8,8 +9,15 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import { createPortal } from "react-dom";
 import { Button } from "../button/button";
+import { MenuSurface } from "../menu-surface/menu-surface";
+import { MenuScrollArea } from "../menu-surface/menu-scroll-area";
+import { useUI } from "../../providers/ui-provider";
+import {
+  MenuDivider,
+  MenuGroupLabel,
+  MenuItem,
+} from "../menu-surface/menu-item";
 
 export type MenuMotionDirection =
   | "left"
@@ -69,6 +77,7 @@ export function ActionMenu({
   disabledReason?: string;
   triggerClassName?: string;
 }) {
+  const { t } = useUI();
   const reveal = typeof motion === "object" && motion.effect === "reveal";
   const direction =
     typeof motion === "object"
@@ -79,6 +88,7 @@ export function ActionMenu({
   const [open, setOpen] = useState(false);
   const trigger = useRef<HTMLDivElement>(null);
   const menu = useRef<HTMLDivElement>(null);
+  const viewport = useRef<HTMLDivElement>(null);
   const id = useId();
   useEffect(() => {
     if (disabled) setOpen(false);
@@ -99,16 +109,34 @@ export function ActionMenu({
           ? requestedGap(button)
           : requestedGap;
       const inset = 8;
+      const style = getComputedStyle(popup);
+      const chrome =
+        parseFloat(style.paddingTop) +
+        parseFloat(style.paddingBottom) +
+        parseFloat(style.borderTopWidth) +
+        parseFloat(style.borderBottomWidth);
+      const maxViewport =
+        parseFloat(style.getPropertyValue("--ui-menu-scroll-max-height")) ||
+        window.innerHeight;
+      const preferredHeight =
+        Math.min(viewport.current?.scrollHeight ?? 0, maxViewport) + chrome;
+      const constrainHeight = (available: number) => {
+        popup.style.maxHeight = `${Math.max(0, available)}px`;
+        popup.style.setProperty(
+          "--menu-scroll-max-height",
+          `${Math.max(0, available - chrome)}px`,
+        );
+      };
       popup.style.bottom = "auto";
       if (customPosition) {
         const origin = customPosition(bounds);
-        popup.style.maxHeight = `${window.innerHeight - 8}px`;
+        constrainHeight(window.innerHeight - 8);
         popup.style.left = `${Math.max(4, Math.min(origin.left, window.innerWidth - popup.offsetWidth - 4))}px`;
         popup.style.top = `${Math.max(4, Math.min(origin.top, window.innerHeight - popup.offsetHeight - 4))}px`;
         return;
       }
       if (placement === "right") {
-        popup.style.maxHeight = `${window.innerHeight - 2 * inset}px`;
+        constrainHeight(window.innerHeight - 2 * inset);
         popup.style.left = `${Math.max(inset, Math.min(bounds.right + gap, window.innerWidth - popup.offsetWidth - inset))}px`;
         popup.style.top = `${Math.max(inset, Math.min(bounds.bottom - popup.offsetHeight, window.innerHeight - popup.offsetHeight - inset))}px`;
         return;
@@ -120,9 +148,9 @@ export function ActionMenu({
       );
       const upward =
         placement === "above"
-          ? above >= popup.scrollHeight || above > below
-          : below < popup.scrollHeight && above > below;
-      popup.style.maxHeight = `${Math.min(window.innerHeight / 2, upward ? above : below)}px`;
+          ? above >= preferredHeight || above > below
+          : below < preferredHeight && above > below;
+      constrainHeight(Math.min(window.innerHeight / 2, upward ? above : below));
       // Anchor the near edge directly: content/font changes must not alter the gap.
       popup.style.top = upward ? "auto" : `${bounds.bottom + gap}px`;
       popup.style.bottom = upward
@@ -139,10 +167,13 @@ export function ActionMenu({
       ?.focus({ preventScroll: true });
     const resize = new ResizeObserver(position);
     resize.observe(popup);
-    window.addEventListener("scroll", position, true);
+    const scrolled = (event: Event) => {
+      if (!popup.contains(event.target as Node)) position();
+    };
+    window.addEventListener("scroll", scrolled, true);
     return () => {
       resize.disconnect();
-      window.removeEventListener("scroll", position, true);
+      window.removeEventListener("scroll", scrolled, true);
     };
   }, [open, placement, requestedGap, customPosition]);
   useEffect(() => {
@@ -195,115 +226,123 @@ export function ActionMenu({
           </svg>
         )}
       </Button>
-      {open &&
-        createPortal(
+      {open && (
+        <MenuSurface
+          anchor={trigger.current?.querySelector("button")}
+          className={`${styles.action_menu_popup} ${motion ? dialogStyles.entrance : ""} action-menu-popup`}
+          data-placement={placement}
+          data-enter-from={direction}
+          data-enter-effect={reveal ? "reveal-frame" : undefined}
+          ref={menu}
+          id={id}
+          role="menu"
+          aria-label={label}
+          onBlur={(event) => {
+            const target = event.relatedTarget as Node | null;
+            if (
+              !event.currentTarget.contains(target) &&
+              !trigger.current?.contains(target)
+            )
+              close();
+          }}
+          onKeyDown={(event) => {
+            if (event.defaultPrevented) return;
+            if (event.key === "Escape") {
+              event.preventDefault();
+              event.stopPropagation();
+              close(true);
+            }
+            if (["ArrowDown", "ArrowUp", "Home", "End"].includes(event.key)) {
+              event.preventDefault();
+              const buttons = [
+                ...event.currentTarget.querySelectorAll<HTMLButtonElement>(
+                  "button:not(:disabled)",
+                ),
+              ];
+              const current = buttons.indexOf(
+                document.activeElement as HTMLButtonElement,
+              );
+              const next =
+                event.key === "Home"
+                  ? 0
+                  : event.key === "End"
+                    ? buttons.length - 1
+                    : (current +
+                        (event.key === "ArrowUp" ? -1 : 1) +
+                        buttons.length) %
+                      buttons.length;
+              buttons[next]?.focus({ preventScroll: true });
+              buttons[next]?.scrollIntoView({ block: "nearest" });
+            }
+          }}
+        >
           <div
-            className={`${styles.action_menu_popup} ${motion ? dialogStyles.entrance : ""} action-menu-popup`}
-            data-placement={placement}
+            className={reveal ? dialogStyles.entrance : undefined}
             data-enter-from={direction}
-            data-enter-effect={reveal ? "reveal-frame" : undefined}
-            ref={menu}
-            id={id}
-            role="menu"
-            aria-label={label}
-            onBlur={(event) => {
-              const target = event.relatedTarget as Node | null;
-              if (
-                !event.currentTarget.contains(target) &&
-                !trigger.current?.contains(target)
-              )
-                close();
-            }}
-            onKeyDown={(event) => {
-              if (event.key === "Escape") {
-                event.preventDefault();
-                event.stopPropagation();
-                close(true);
-              }
-              if (["ArrowDown", "ArrowUp", "Home", "End"].includes(event.key)) {
-                event.preventDefault();
-                const buttons = [
-                  ...event.currentTarget.querySelectorAll<HTMLButtonElement>(
-                    "button:not(:disabled)",
-                  ),
-                ];
-                const current = buttons.indexOf(
-                  document.activeElement as HTMLButtonElement,
-                );
-                const next =
-                  event.key === "Home"
-                    ? 0
-                    : event.key === "End"
-                      ? buttons.length - 1
-                      : (current +
-                          (event.key === "ArrowUp" ? -1 : 1) +
-                          buttons.length) %
-                        buttons.length;
-                buttons[next]?.focus();
-              }
-            }}
+            data-enter-effect={reveal ? "reveal" : undefined}
           >
-            <div
-              className={reveal ? dialogStyles.entrance : undefined}
-              data-enter-from={direction}
-              data-enter-effect={reveal ? "reveal" : undefined}
+            <MenuScrollArea
+              viewportRef={viewport}
+              scrollbarLabel={t("Scroll {label}", { label })}
             >
-              {(groups ?? [{ label: "", items }]).map((group) => (
-                <div
-                  className="action-menu-group"
-                  key={group.label}
-                  role="group"
-                  aria-label={group.label || undefined}
-                >
-                  {group.label && (
-                    <span
-                      className="action-menu-group-title"
-                      aria-hidden="true"
-                    >
-                      {group.label}
-                    </span>
-                  )}
-                  {group.items.map((item) => (
-                    <Button
-                      key={item.label}
-                      type="button"
-                      role={
-                        item.checked === undefined
-                          ? "menuitem"
-                          : "menuitemcheckbox"
-                      }
-                      aria-checked={item.checked}
-                      aria-label={item.label}
-                      disabled={item.disabled}
-                      data-danger={item.danger}
-                      onClick={(event) => {
-                        close(true);
-                        item.run(event.currentTarget);
-                      }}
-                    >
-                      <span className="action-menu-item-label">
-                        {item.icon}
+              {(groups ?? [{ label: "", items }]).map((group, index) => (
+                <Fragment key={group.label}>
+                  {index > 0 && <MenuDivider />}
+                  <div
+                    className="action-menu-group"
+                    role="group"
+                    aria-label={group.label || undefined}
+                  >
+                    {group.label && (
+                      <MenuGroupLabel
+                        className="action-menu-group-title"
+                        aria-hidden="true"
+                      >
+                        {group.label}
+                      </MenuGroupLabel>
+                    )}
+                    {group.items.map((item) => (
+                      <MenuItem
+                        key={item.label}
+                        type="button"
+                        role={
+                          item.checked === undefined
+                            ? "menuitem"
+                            : "menuitemcheckbox"
+                        }
+                        aria-checked={item.checked}
+                        aria-label={item.label}
+                        disabled={item.disabled}
+                        data-danger={item.danger}
+                        icon={item.icon}
+                        trailing={
+                          item.shortcut && (
+                            <span className={styles.shortcut}>
+                              {(typeof item.shortcut === "string"
+                                ? [item.shortcut]
+                                : item.shortcut
+                              ).map((key, index) => (
+                                <kbd key={index}>{key}</kbd>
+                              ))}
+                            </span>
+                          )
+                        }
+                        onClick={(event) => {
+                          close(true);
+                          item.run(event.currentTarget);
+                        }}
+                      >
                         <span>{item.label}</span>
-                      </span>
-                      {item.shortcut && (
-                        <span className={styles.shortcut}>
-                          {(typeof item.shortcut === "string"
-                            ? [item.shortcut]
-                            : item.shortcut
-                          ).map((key, index) => (
-                            <kbd key={index}>{key}</kbd>
-                          ))}
-                        </span>
-                      )}
-                    </Button>
-                  ))}
-                </div>
+                      </MenuItem>
+                    ))}
+                  </div>
+                </Fragment>
               ))}
               {status && <small role="status">{status}</small>}
-            </div>
-          </div>,
-          document.body,
-        )}
+            </MenuScrollArea>
+          </div>
+        </MenuSurface>
+      )}
     </div>
   );
 }

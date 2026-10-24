@@ -3,7 +3,7 @@ import type { Meta, StoryObj } from "@storybook/react-vite";
 import { Button, PageToolbar, ValueMenu } from "@lesomnus/nox";
 
 const meta = {
-  title: "Components/PageToolbar",
+  title: "Layout/PageToolbar",
   component: PageToolbar,
   tags: ["autodocs"],
   parameters: {

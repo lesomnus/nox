@@ -1,0 +1,56 @@
+.progress,
+.progress * {
+  box-sizing: border-box;
+}
+
+.progress {
+  --progress-inset: var(--ui-progress-padding, var(--ui-control-inline-inset));
+  --progress-border-width: 0px;
+  --progress-bar-radius: var(--ui-progress-bar-radius, var(--ui-control-inset));
+  display: block;
+  width: 100%;
+  min-width: 0;
+  padding: var(--progress-inset);
+  border: var(--progress-border-width) solid
+    var(--ui-progress-border-color, var(--ui-shade-60));
+  border-radius: calc(
+    var(--progress-bar-radius) + var(--progress-inset) +
+      var(--progress-border-width)
+  );
+  background: var(--ui-progress-background, var(--ui-shade-24));
+}
+
+.progress[data-variant="bordered"] {
+  --progress-inset: var(--ui-progress-padding, var(--ui-control-inset));
+  --progress-border-width: 1px;
+}
+
+.rail {
+  height: var(--ui-progress-bar-height, 8px);
+  overflow: hidden;
+  border-radius: var(--progress-bar-radius);
+  background: var(--ui-progress-rail-color, var(--ui-shade-43));
+}
+
+.fill {
+  position: relative;
+  height: 100%;
+  overflow: hidden;
+  border-radius: inherit;
+  background: var(--ui-progress-fill-color, var(--ui-shade-160));
+}
+
+.progress[data-animated] .fill {
+  transition: width var(--ui-progress-transition-duration, 180ms) ease-out;
+}
+
+.sparkle {
+  position: absolute;
+  inset: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .progress[data-animated] .fill {
+    transition: none;
+  }
+}

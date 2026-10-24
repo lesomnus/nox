@@ -3,7 +3,7 @@ import type { Meta, StoryObj } from "@storybook/react-vite";
 import { ResizeHandle } from "@lesomnus/nox";
 
 const meta = {
-  title: "Components/ResizeHandle",
+  title: "Layout/ResizeHandle",
   component: ResizeHandle,
   args: { value: 240, min: 120, max: 400, onChange: () => {} },
   tags: ["autodocs"],
