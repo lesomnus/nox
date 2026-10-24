@@ -73,6 +73,7 @@ try {
     import { PinInput, type PinInputProps, SplitLayout, type SplitNode, setSplitRatio, PrefixValueMenu, type PrefixValueMenuProps, IconValueMenu, AuroraGlow, type AuroraGlowProps, type AuroraPalette, InkSparkle, type InkSparkleProps, Button, Checkbox, DateTime, DescriptionList, IdentifierValue, MenuSurface, type MenuSurfaceProps, MenuScrollArea, MenuItem, type MenuItemProps, MenuIcon, MenuGroupLabel, MenuDivider, NavigationPanel, StippleBackground, clusterMotion, workMotion, withPointerBurst, UIProvider } from "@lesomnus/nox";
     import { Table, TableHeader, TableBody, TableFooter, TableRow, TableHead, TableCell, TableCaption, TableScrollArea, type TableProps, type TableRowProps } from "@lesomnus/nox";
     import { LinkButton, Skeleton, SkeletonGroup, type LinkButtonProps, type SkeletonProps, type SkeletonGroupProps } from "@lesomnus/nox";
+    import { RgbColorInput, type RgbColor, type RgbColorInputProps } from "@lesomnus/nox";
     import { TerminalWorkbench } from "@lesomnus/nox/terminal";
     import "@lesomnus/nox/styles.css";
     void TerminalWorkbench;
@@ -81,6 +82,8 @@ try {
     const link: LinkButtonProps = { href: "#record", trailing: null, ref: node => { void node?.href; } };
     const skeleton: SkeletonProps = { variant: "circle", width: 32, animated: false, ref: node => { void node?.offsetWidth; } };
     const skeletonGroup: SkeletonGroupProps = { animated: false, sparkleOptions: { duration: 2000, seed: 7, color: [1, 1, 1, 0.1], origin: [-40, -40] }, ref: node => { void node?.clientWidth; } };
+    const rgb: RgbColor = { r: 217, g: 255, b: 48 };
+    const colorInput: RgbColorInputProps = { label: "Accent", defaultValue: rgb, onChange: next => { void next.r; }, ref: node => { void node?.elements.length; } };
     const progress: ProgressProps = { value: 42, variant: "bordered", animated: false, sparkleOptions: { duration: 2000 } };
     const pin: PinInputProps = { label: "Device code", groups: [4,4], mode: "alphanumeric", name: "device_code" };
     void MenuSurface;
@@ -112,6 +115,7 @@ try {
         <div style={{height:80}}><InkSparkle {...sparkle} /></div>
         <Checkbox aria-label="Select record" />
         <LinkButton {...link}>Record</LinkButton>
+        <RgbColorInput {...colorInput} />
         <SkeletonGroup {...skeletonGroup}><Skeleton {...skeleton} /><Skeleton width="60%" /></SkeletonGroup>
         <TableScrollArea style={{height:120}} scrollbarLabel="Scroll records" horizontalScrollbarLabel="Scroll record columns">
           <Table {...table}>

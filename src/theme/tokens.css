@@ -96,6 +96,12 @@
     transparent
   );
   --ui-space: 4px;
+  --ui-color-input-background: transparent;
+  --ui-color-input-border: var(--ui-shade-48);
+  --ui-color-input-focus-border: var(--ui-shade-115);
+  --ui-color-input-hover-background: var(--ui-hover);
+  --ui-color-input-error-border: var(--ui-pin-input-error-color);
+  --ui-color-input-preview-size: 26px;
   --ui-table-background: transparent;
   --ui-link-button-height: 32px;
   --ui-link-button-border: var(--ui-shade-48);

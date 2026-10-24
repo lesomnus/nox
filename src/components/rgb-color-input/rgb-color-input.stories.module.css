@@ -1,0 +1,33 @@
+.example {
+  display: grid;
+  justify-items: start;
+  gap: 12px;
+}
+.example output {
+  color: var(--ui-muted);
+  font: 11px/1.5 var(--ui-font-mono);
+}
+.hint {
+  margin: 0;
+  color: var(--ui-muted);
+  font-size: 11px;
+}
+.buttons {
+  display: flex;
+  gap: var(--ui-space);
+}
+.preview {
+  display: grid;
+  place-items: center;
+  width: 260px;
+  height: 100px;
+  border: 1px solid var(--ui-shade-48);
+  border-radius: calc(2 * var(--ui-space));
+}
+.preview span {
+  padding: 4px 8px;
+  background: var(--ui-shade-20);
+  color: var(--ui-text-value);
+  border-radius: var(--ui-space);
+  font-size: 11px;
+}

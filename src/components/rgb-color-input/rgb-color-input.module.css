@@ -1,0 +1,75 @@
+.control,
+.control * {
+  box-sizing: border-box;
+}
+.control {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--ui-control-inset);
+  min-width: 0;
+  margin: 0;
+  padding: var(--ui-control-inset);
+  border: 1px solid var(--ui-color-input-border);
+  border-radius: calc(var(--ui-space) + var(--ui-control-inset));
+  background: var(--ui-color-input-background);
+  color: var(--ui-text-value);
+  font: 11px/1.4 var(--ui-font-mono);
+}
+.control:focus-within {
+  border-color: var(--ui-color-input-focus-border);
+}
+.preview {
+  flex: none;
+  width: var(--ui-color-input-preview-size);
+  height: var(--ui-color-input-preview-size);
+  border: 1px solid var(--ui-color-input-border);
+  border-radius: var(--ui-space);
+}
+.channel {
+  display: flex;
+  align-items: center;
+  gap: var(--ui-space);
+  min-width: 0;
+  min-height: var(--ui-color-input-preview-size);
+  padding: 0 var(--ui-control-inline-inset);
+  border-radius: var(--ui-space);
+}
+.control:not(:disabled, [data-readonly]) .channel:hover {
+  background: var(--ui-color-input-hover-background);
+}
+.channel:has(input:focus-visible) {
+  outline: 1px solid var(--ui-color-input-focus-border);
+  outline-offset: -1px;
+}
+.prefix {
+  color: var(--ui-text-separator);
+  font-size: 10px;
+  user-select: none;
+}
+.channel input {
+  appearance: textfield;
+  width: 3.5ch;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+.channel input::-webkit-inner-spin-button,
+.channel input::-webkit-outer-spin-button {
+  appearance: none;
+  margin: 0;
+}
+.control:disabled {
+  opacity: 0.4;
+}
+.control[data-readonly] .prefix {
+  color: var(--ui-text-leading);
+}
+.control[data-invalid] {
+  border-color: var(--ui-color-input-error-border);
+}
