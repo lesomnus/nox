@@ -53,6 +53,10 @@
   --line-color: var(--ui-muted);
 }
 .junction {
+  /* Paint the gutter with a stroke overlap; keep the larger hit area separate. */
+  --bridge-inset: calc(
+    50% - var(--ui-resize-handle-size) / 2 - var(--ui-split-line-size)
+  );
   --vertical-size: var(--ui-split-line-size);
   --horizontal-size: var(--ui-split-line-size);
   --vertical-color: var(--ui-shade-54);
@@ -93,7 +97,21 @@
   --vertical-size: var(--ui-split-line-hover-size);
   --vertical-color: var(--ui-muted);
 }
+.junction:is(:hover, :focus-visible, [data-highlight-vertical])::before {
+  z-index: 1;
+}
 .junction:is(:hover, :focus-visible, [data-highlight-horizontal]) {
   --horizontal-size: var(--ui-split-line-hover-size);
   --horizontal-color: var(--ui-muted);
+}
+.junction:is(:hover, :focus-visible, [data-highlight-horizontal])::after {
+  z-index: 1;
+}
+.junction:is(
+  :hover,
+  :focus-visible,
+  [data-highlight-vertical],
+  [data-highlight-horizontal]
+) {
+  z-index: 2;
 }

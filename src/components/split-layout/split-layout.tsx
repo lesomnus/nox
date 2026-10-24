@@ -544,10 +544,18 @@ export function SplitLayout({
             {
               left: `${junction.x}%`,
               top: `${junction.y}%`,
-              "--line-left": junction.left ? "0%" : "50%",
-              "--line-right": junction.right ? "0%" : "50%",
-              "--line-top": junction.top ? "0%" : "50%",
-              "--line-bottom": junction.bottom ? "0%" : "50%",
+              "--line-left": junction.left
+                ? "var(--bridge-inset)"
+                : "calc(50% - var(--vertical-size) / 2)",
+              "--line-right": junction.right
+                ? "var(--bridge-inset)"
+                : "calc(50% - var(--vertical-size) / 2)",
+              "--line-top": junction.top
+                ? "var(--bridge-inset)"
+                : "calc(50% - var(--horizontal-size) / 2)",
+              "--line-bottom": junction.bottom
+                ? "var(--bridge-inset)"
+                : "calc(50% - var(--horizontal-size) / 2)",
             } as CSSProperties
           }
           role="button"
