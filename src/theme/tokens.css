@@ -103,9 +103,14 @@
   --ui-link-button-color: var(--ui-muted);
   --ui-link-button-hover-background: var(--ui-hover);
   --ui-skeleton-background: var(--ui-shade-36);
+  --ui-skeleton-ink-color: color-mix(
+    in srgb,
+    var(--ui-shade-255) 8%,
+    transparent
+  );
   --ui-skeleton-highlight: color-mix(
     in srgb,
-    var(--ui-shade-136) 18%,
+    var(--ui-shade-255) 35%,
     transparent
   );
   --ui-skeleton-radius: var(--ui-space);

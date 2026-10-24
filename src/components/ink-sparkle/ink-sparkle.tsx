@@ -180,10 +180,14 @@ export function InkSparkle({
       canvas.removeEventListener("webglcontextlost", lost);
       canvas.removeEventListener("webglcontextrestored", initialize);
       renderer?.dispose();
-      canvas
-        .getContext("webgl2")
-        ?.getExtension("WEBGL_lose_context")
-        ?.loseContext();
+      // Prop changes and StrictMode reuse the mounted canvas. Lose the context
+      // only after removal; an intentionally lost context cannot be recreated
+      // synchronously by the next effect setup.
+      if (!canvas.isConnected)
+        canvas
+          .getContext("webgl2")
+          ?.getExtension("WEBGL_lose_context")
+          ?.loseContext();
     };
   }, [
     red,

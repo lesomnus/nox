@@ -5,6 +5,7 @@ import {
   EditableValue,
   LinkButton,
   Skeleton,
+  SkeletonGroup,
   Table,
   TableHeader,
   TableBody,
@@ -295,34 +296,36 @@ export const Empty: Story = {
 
 export const Loading: Story = {
   render: (args) => (
-    <Table {...args} className={styles.table} aria-label="Sessions" aria-busy>
-      <TableCaption className={styles.srOnly}>
-        <span role="status">Loading sessions…</span>
-      </TableCaption>
-      <Columns />
-      <TableHeader>
-        <TableRow>
-          <Headings />
-        </TableRow>
-      </TableHeader>
-      <TableBody>
-        {Array.from({ length: 5 }, (_, index) => (
-          <TableRow key={index}>
-            <TableCell>
-              <Skeleton width={index % 2 ? "78%" : "60%"} />
-            </TableCell>
-            <TableCell>
-              <Skeleton width="70%" />
-            </TableCell>
-            <TableCell>
-              <Skeleton width={index % 2 ? "85%" : "50%"} />
-            </TableCell>
-            <TableCell>
-              <Skeleton width="30%" style={{ marginLeft: "auto" }} />
-            </TableCell>
+    <SkeletonGroup>
+      <Table {...args} className={styles.table} aria-label="Sessions" aria-busy>
+        <TableCaption className={styles.srOnly}>
+          <span role="status">Loading sessions…</span>
+        </TableCaption>
+        <Columns />
+        <TableHeader>
+          <TableRow>
+            <Headings />
           </TableRow>
-        ))}
-      </TableBody>
-    </Table>
+        </TableHeader>
+        <TableBody>
+          {Array.from({ length: 5 }, (_, index) => (
+            <TableRow key={index}>
+              <TableCell>
+                <Skeleton width={index % 2 ? "78%" : "60%"} />
+              </TableCell>
+              <TableCell>
+                <Skeleton width="70%" />
+              </TableCell>
+              <TableCell>
+                <Skeleton width={index % 2 ? "85%" : "50%"} />
+              </TableCell>
+              <TableCell>
+                <Skeleton width="30%" style={{ marginLeft: "auto" }} />
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+    </SkeletonGroup>
   ),
 };
