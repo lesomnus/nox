@@ -207,3 +207,153 @@ test("touch selection and caller-owned replacements update the marker and gradie
   await page.getByRole("button", { name: "Use blue" }).click();
   await expect(page.getByLabel("RGB value")).toHaveText("rgb(32 128 255 / 1)");
 });
+
+test("composed horizontal parts share RGB state and native horizontal range behavior", async ({
+  page,
+}) => {
+  await page.goto(story("horizontal"));
+  const plane = page.locator('[data-color-picker="plane"]');
+  const area = (await plane.boundingBox())!;
+  const hue = page.getByRole("slider", { name: "Hue", exact: true });
+  const alpha = page.getByRole("slider", { name: "Opacity", exact: true });
+  for (const rail of [hue, alpha]) {
+    await expect(rail).toHaveAttribute("aria-orientation", "horizontal");
+    const box = (await rail.boundingBox())!;
+    expect(box.y).toBeGreaterThan(area.y + area.height);
+    expect(box.width).toBeGreaterThan(box.height);
+    expect(box.width).toBeCloseTo(area.width, 0);
+    await page.mouse.click(box.x + 1, box.y + box.height / 2);
+    await expect(rail).toHaveValue("0");
+    await page.mouse.click(box.x + box.width - 1, box.y + box.height / 2);
+    await expect(rail).toHaveValue((await rail.getAttribute("max"))!);
+    await rail.press("Home");
+    await rail.press("ArrowRight");
+    expect(Number(await rail.inputValue())).toBeGreaterThan(0);
+    await rail.press("ArrowLeft");
+    await expect(rail).toHaveValue("0");
+  }
+  await alpha.press("End");
+  await plane.focus();
+  await plane.press("Home");
+  await plane.press("Shift+ArrowRight");
+  await expect(page.getByLabel("RGB value")).toHaveText("rgb(255 230 230 / 1)");
+});
+
+test("caller can reorder parts through wrappers or omit rails while keeping independent roots", async ({
+  page,
+}) => {
+  await page.goto(story("custom-layout"));
+  const hue = page.getByRole("slider", { name: "Hue", exact: true });
+  const alpha = page.getByRole("slider", { name: "Opacity", exact: true });
+  const plane = page.locator('[data-color-picker="plane"]');
+  const area = (await plane.boundingBox())!;
+  const left = (await hue.boundingBox())!;
+  const bottom = (await alpha.boundingBox())!;
+  expect(left.x + left.width).toBeLessThan(area.x);
+  expect(bottom.y).toBeGreaterThan(area.y + area.height);
+  expect(bottom.x).toBeCloseTo(area.x, 0);
+  expect(area.height).toBe(180);
+  expect(left.height).toBe(area.height);
+  await page.getByRole("button", { name: "Use blue" }).click();
+  await expect(alpha).toHaveValue("0.4");
+  await expect(page.getByLabel("RGB value")).toHaveText(
+    "rgb(32 128 255 / 0.4)",
+  );
+  await plane.press("End");
+  await hue.press("Home");
+  await plane.press("Home");
+  await plane.press("Shift+ArrowRight");
+  await expect(page.getByLabel("RGB value")).toHaveText(
+    "rgb(255 230 230 / 0.4)",
+  );
+
+  await page.goto(story("area-only"));
+  await expect(
+    page.getByRole("slider", { name: "Hue", exact: true }),
+  ).toHaveCount(0);
+  await expect(
+    page.getByRole("slider", { name: "Opacity", exact: true }),
+  ).toHaveCount(0);
+  await page.locator('[data-color-picker="plane"]').press("Home");
+  await expect(
+    page.getByRole("slider", { name: "Saturation", exact: true }),
+  ).toHaveValue("0");
+
+  await page.goto(story("independent-roots"));
+  const first = page.getByRole("group", { name: "First color", exact: true });
+  const second = page.getByRole("group", { name: "Second color", exact: true });
+  const secondHue = second.getByRole("slider", { name: "Hue", exact: true });
+  const before = await secondHue.inputValue();
+  await paste(first.locator('[data-color-picker="plane"]'), "#ff000080");
+  await expect(
+    first.getByRole("slider", { name: "Hue", exact: true }),
+  ).toHaveValue("0");
+  await expect(secondHue).toHaveValue(before);
+  await expect(
+    second.getByRole("slider", { name: "Opacity", exact: true }),
+  ).toHaveValue("0.4");
+  const ids = await page
+    .locator('[data-color-picker="plane"]')
+    .evaluateAll((nodes) =>
+      nodes.map((node) => node.getAttribute("aria-describedby")),
+    );
+  expect(ids[0]).not.toBe(ids[1]);
+});
+
+test("composed root owns form channels, reset and shared disabled/read-only state", async ({
+  page,
+}) => {
+  await page.goto(story("composed-form"));
+  const plane = page.locator('[data-color-picker="plane"]');
+  const hue = page.getByRole("slider", { name: "Hue", exact: true });
+  const alpha = page.getByRole("slider", { name: "Opacity", exact: true });
+  await expect(
+    page.locator('input[type="hidden"][name^="accent."]'),
+  ).toHaveCount(4);
+  await paste(plane, "#33669980");
+  await page.getByRole("button", { name: "Submit", exact: true }).click();
+  await expect(page.getByLabel("Submitted channels")).toHaveText(
+    JSON.stringify({
+      "accent.r": "51",
+      "accent.g": "102",
+      "accent.b": "153",
+      "accent.a": String(128 / 255),
+    }),
+  );
+  await page.getByRole("button", { name: "Toggle read only" }).click();
+  const before = await hue.inputValue();
+  await hue.press("End");
+  await expect(hue).toHaveValue(before);
+  await plane.press("Home");
+  await paste(plane, "#000");
+  // The native range snaps its displayed value to step=.001; submitted alpha remains exact.
+  await expect(alpha).toHaveValue("0.502");
+  await page.getByRole("button", { name: "Submit", exact: true }).click();
+  await expect(page.getByLabel("Submitted channels")).toHaveText(
+    JSON.stringify({
+      "accent.r": "51",
+      "accent.g": "102",
+      "accent.b": "153",
+      "accent.a": String(128 / 255),
+    }),
+  );
+  await page.getByRole("button", { name: "Toggle disabled" }).click();
+  await expect(hue).toBeDisabled();
+  await expect(alpha).toBeDisabled();
+  await expect(plane).toHaveAttribute("tabindex", "-1");
+  await page.getByRole("button", { name: "Submit", exact: true }).click();
+  await expect(page.getByLabel("Submitted channels")).toHaveText("{}");
+  await page.getByRole("button", { name: "Toggle disabled" }).click();
+  await page.getByRole("button", { name: "Toggle read only" }).click();
+  await page.getByRole("button", { name: "Reset", exact: true }).click();
+  await expect(alpha).toHaveValue("0.75");
+  await page.getByRole("button", { name: "Submit", exact: true }).click();
+  await expect(page.getByLabel("Submitted channels")).toHaveText(
+    JSON.stringify({
+      "accent.r": "217",
+      "accent.g": "255",
+      "accent.b": "48",
+      "accent.a": "0.75",
+    }),
+  );
+});

@@ -74,7 +74,7 @@ try {
     import { PinInput, type PinInputProps, SplitLayout, type SplitNode, setSplitRatio, PrefixValueMenu, type PrefixValueMenuProps, IconValueMenu, AuroraGlow, type AuroraGlowProps, type AuroraPalette, InkSparkle, type InkSparkleProps, Button, Checkbox, DateTime, DescriptionList, IdentifierValue, MenuSurface, type MenuSurfaceProps, MenuScrollArea, MenuItem, type MenuItemProps, MenuIcon, MenuGroupLabel, MenuDivider, NavigationPanel, StippleBackground, clusterMotion, workMotion, withPointerBurst, UIProvider } from "@lesomnus/nox";
     import { Table, TableHeader, TableBody, TableFooter, TableRow, TableHead, TableCell, TableCaption, TableScrollArea, type TableProps, type TableRowProps } from "@lesomnus/nox";
     import { LinkButton, Skeleton, SkeletonGroup, type LinkButtonProps, type SkeletonProps, type SkeletonGroupProps } from "@lesomnus/nox";
-    import { ColorPicker, type RgbColor, type ColorPickerProps } from "@lesomnus/nox";
+    import { ColorPicker, ColorPickerRoot, ColorPickerArea, ColorPickerHue, ColorPickerOpacity, type RgbColor, type ColorPickerProps, type ColorPickerRootProps, type ColorPickerAreaProps, type ColorPickerHueProps, type ColorPickerOpacityProps } from "@lesomnus/nox";
     import { TerminalWorkbench } from "@lesomnus/nox/terminal";
     import "@lesomnus/nox/styles.css";
     void TerminalWorkbench;
@@ -85,6 +85,10 @@ try {
     const skeletonGroup: SkeletonGroupProps = { animated: false, sparkleOptions: { duration: 2000, seed: 7, color: [1, 1, 1, 0.1], origin: [-40, -40] }, ref: node => { void node?.clientWidth; } };
     const rgb: RgbColor = { r: 217, g: 255, b: 48 };
     const colorInput: ColorPickerProps = { label: "Accent", defaultValue: rgb, onChange: next => { void next.a; }, ref: node => { void node?.elements.length; } };
+    const pickerRoot: ColorPickerRootProps = { label: "Custom color", defaultValue: rgb, name: "custom", style: { width: 240, display: "grid", gap: 12 }, ref: node => { void node?.elements.length; } };
+    const pickerArea: ColorPickerAreaProps = { style: { height: 180 }, ref: node => { void node?.getBoundingClientRect(); }, onKeyDown: event => { if (event.key === "x") event.preventDefault(); } };
+    const pickerHue: ColorPickerHueProps = { orientation: "vertical", ref: node => { void node?.valueAsNumber; } };
+    const pickerOpacity: ColorPickerOpacityProps = { orientation: "horizontal", ref: node => { void node?.valueAsNumber; } };
     const progress: ProgressProps = { value: 42, variant: "bordered", animated: false, sparkleOptions: { duration: 2000 } };
     const datePicker: DatePickerProps = { label: "Date", defaultValue: "2026-10-24", min: "2026-01-01", max: "2026-12-31", name: "date", locale: "en-US", weekStartsOn: 1, onChange: value => { void value; }, ref: node => { void node?.focus(); } };
     const pin: PinInputProps = { label: "Device code", groups: [4,4], mode: "alphanumeric", name: "device_code" };
@@ -119,6 +123,11 @@ try {
         <Checkbox aria-label="Select record" />
         <LinkButton {...link}>Record</LinkButton>
         <ColorPicker {...colorInput} />
+        <ColorPickerRoot {...pickerRoot}>
+          <div><ColorPickerHue {...pickerHue} /></div>
+          <ColorPickerArea {...pickerArea} />
+          <ColorPickerOpacity {...pickerOpacity} />
+        </ColorPickerRoot>
         <SkeletonGroup {...skeletonGroup}><Skeleton {...skeleton} /><Skeleton width="60%" /></SkeletonGroup>
         <TableScrollArea style={{height:120}} scrollbarLabel="Scroll records" horizontalScrollbarLabel="Scroll record columns">
           <Table {...table}>
