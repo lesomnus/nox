@@ -105,6 +105,11 @@ for device codes. Typing advances the visible caret; paste, autofill, native for
 submission and keyboard editing work with one unformatted value. See
 [PIN and device codes](docs/pin-input.md) and **Components/PinInput**.
 
+`Progress` provides a boxed progress rail with optional InkSparkle animation
+from a fixed center outside its left edge. The bordered variant uses the shared
+narrow control inset. Value, timing and animation state belong to the host.
+See [progress indicators](docs/progress.md) and **Components/Progress**.
+
 `PrefixValueMenu` combines leading text, an icon or another React node with a
 compact `ValueMenu` and a shared hover, focus and open background. Its `prefix`
 stays outside the trigger and popup; `label` supplies the accessible selector name.
