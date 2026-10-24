@@ -136,6 +136,7 @@
   font: inherit;
   font-variant-numeric: tabular-nums;
   color: var(--ui-shade-221);
+  transition: none;
 }
 .day[data-outside] {
   color: var(--ui-shade-119);
