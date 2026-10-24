@@ -51,9 +51,11 @@ those using Dialog parts as in the Async Action and Failure And Retry stories;
 no specialized confirmation component is needed in the library. cxz's existing
 confirmation policy now lives in `ts/src/shared/components/confirmation-dialog.tsx`.
 
-`DialogCard` / `DialogActions` remain available for existing visual card consumers;
-`DialogSurface` remains the shared appearance/motion layer. They are not required
-when using the new Dialog, which includes its own card and surface.
+`Card` / `CardActions` provide the same visual surface for inline content,
+anchored dialogs and drawers. Dialog shares the Card surface styles while
+retaining its freely composed Header/Body/Footer and native modal behavior;
+there is no need to nest an extra Card inside Dialog. See [Card](card.md).
+`DialogSurface` remains the shared appearance/motion layer.
 
 Storybook includes information, custom footer actions, forms, caller-owned async
 actions with retry, long content and a dialog without a footer.

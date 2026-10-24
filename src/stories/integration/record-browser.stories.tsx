@@ -4,7 +4,7 @@ import {
   Checkbox,
   DateTime,
   DescriptionList,
-  DialogCard,
+  Card,
   EditableValue,
   IdentifierValue,
   NavigationPanel,
@@ -58,7 +58,7 @@ export const Default: Story = {
             </PanelItem>
           ))}
         </NavigationPanel>
-        <DialogCard title="Information">
+        <Card title="Information">
           <DescriptionList
             columns={1}
             rows={[
@@ -102,7 +102,7 @@ export const Default: Story = {
               },
             ]}
           />
-        </DialogCard>
+        </Card>
       </div>
     );
   },
