@@ -3,7 +3,7 @@ import type { Meta, StoryObj } from "@storybook/react-vite";
 import {
   Button,
   Drawer,
-  DrawerCard,
+  Card,
   ScrollArea,
   StippleBackground,
   type DrawerProps,
@@ -83,18 +83,20 @@ function Example({
         {plain ? (
           <section className={styles.plain}>
             <h2>Custom content</h2>
-            <p>Drawer does not require DrawerCard or impose a card surface.</p>
+            <p>Drawer does not require Card or impose a card surface.</p>
             <Button onClick={() => setOpen(false)}>Close drawer</Button>
           </section>
         ) : (
-          <DrawerCard
+          <Card
+            fill
+            bodyPadding="var(--ui-space)"
             title="Tasks · 3"
             close={() => setOpen(false)}
             closeLabel="Close drawer"
             footer={<Button onClick={() => setOpen(false)}>Done</Button>}
           >
             {content}
-          </DrawerCard>
+          </Card>
         )}
       </Drawer>
     </>
@@ -123,7 +125,7 @@ const meta = {
     docs: {
       description: {
         component:
-          "A controlled modal drawer with independent direction, width, height, cross-axis alignment and inset. Container bounds only the visible overlay. Compose DrawerCard for the cxz task-detail card, or supply any other surface. Escape/backdrop request onClose; focus returns after exit. Provide aria-label or aria-labelledby.",
+          "A controlled modal drawer with independent direction, width, height, cross-axis alignment and inset. Container bounds only the visible overlay. Compose Card for the cxz task-detail card, or supply any other surface. Escape/backdrop request onClose; focus returns after exit. Provide aria-label or aria-labelledby.",
       },
     },
   },

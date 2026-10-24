@@ -171,7 +171,7 @@ test("exit completes once and StrictMode replay does not report a close", async 
   );
 });
 
-test("Drawer accepts a custom surface without inserting DrawerCard", async ({
+test("Drawer accepts a custom surface without inserting Card", async ({
   page,
 }) => {
   const { drawer } = await open(page, "without-card");

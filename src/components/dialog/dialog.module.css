@@ -8,6 +8,7 @@
 }
 .content {
   composes: floating_card from "../floating-card/floating-card.module.css";
+  composes: card from "../card/card.module.css";
 }
 .content.content {
   width: 100%;
@@ -42,38 +43,9 @@
   min-height: 0;
   overflow: auto;
   overscroll-behavior: contain;
-  margin: 0 var(--ui-control-inset);
-  padding: calc(2 * var(--ui-dialog-padding))
-    max(0px, calc(var(--ui-dialog-padding) - var(--ui-control-inset)));
-  border-radius: max(
-    0px,
-    calc(
-      var(--card-radius) - var(--card-border-width) - var(--ui-control-inset)
-    )
-  );
-  background: var(--ui-dialog-body-background);
 }
 .body.body:last-child {
   margin-bottom: var(--ui-control-inset);
-}
-.body
-  :where(
-    input:not([type="checkbox"], [type="radio"], [type="range"]),
-    textarea,
-    select
-  ) {
-  background: var(--ui-dialog-input-background);
-}
-.body :global(.value-menu) {
-  --value-background: var(--ui-dialog-input-background);
-}
-.body > :first-child,
-.body > :first-child > :first-child {
-  margin-top: 0;
-}
-.body > :last-child,
-.body > :last-child > :last-child {
-  margin-bottom: 0;
 }
 .footer.footer {
   display: flex;

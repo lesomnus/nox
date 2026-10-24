@@ -42,7 +42,7 @@ const meta = {
     docs: {
       description: {
         component:
-          "Fixed header and rounded, inset scroll body. Header actions share DialogCard footer spacing; the body uses the tighter control inset and the same color/radius tokens. No router, resource model or provider required. Supply bounded height.",
+          "Fixed header and rounded, inset scroll body. Header actions share Card footer spacing; the body uses the tighter control inset and the same color/radius tokens. No router, resource model or provider required. Supply bounded height.",
       },
     },
   },

@@ -121,10 +121,14 @@ from a fixed center outside its left edge. The bordered variant uses the shared
 narrow control inset. Value, timing and animation state belong to the host.
 See [progress indicators](docs/progress.md) and **Components/Progress**.
 
+`Card` provides the shared heading, inset body and footer for inline content,
+dialogs and drawers. `fill` and `bodyPadding` adapt it to a bounded container.
+See [cards](docs/card.md) and **Components/Card**.
+
 `Drawer` places an independently sized surface near any viewport or container
-edge. Compose `DrawerCard` for the rounded cxz task-detail card, or supply a
+edge. Compose `Card` for the rounded cxz task-detail card, or supply a
 different surface. See [drawers](docs/drawer.md), **Components/Drawer** and
-**Components/DrawerCard**.
+**Components/Card**.
 
 `PrefixValueMenu` combines leading text, an icon or another React node with a
 compact `ValueMenu` and a shared hover, focus and open background. Its `prefix`

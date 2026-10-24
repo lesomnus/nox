@@ -75,7 +75,7 @@ import { DateTime, DescriptionList, IdentifierValue } from "@lesomnus/nox";
 `NavigationPanel` composes a fixed header, optional right-aligned `actions` and
 an inset `ScrollArea`. The header remains outside the scroll viewport. Hovering
 the header does not reveal the body handle. The panel shares body/radius tokens
-with `DialogCard`, and header actions share its footer spacing token. The body
+with `Card`, and header actions share its footer spacing token. The body
 uses the tighter control inset, keeping external whitespace compact.
 
 Give the panel a bounded height, directly or through its parent layout.
