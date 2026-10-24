@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { useState } from "react";
-import { ConfirmationDialog } from "@lesomnus/nox";
-import { Button } from "@lesomnus/nox";
+import { Button, ConfirmationDialog, ScrollArea } from "@lesomnus/nox";
+import styles from "./confirmation-dialog.stories.module.css";
 
 const meta = {
   title: "Components/ConfirmationDialog",
@@ -80,7 +80,11 @@ export const LongContent: Story = {
     title: "Purge session",
     confirmLabel: "Purge permanently",
     children: (
-      <>
+      <ScrollArea
+        className={styles.longContent}
+        contentClassName={styles.longContentText}
+        scrollbarLabel="Scroll resources"
+      >
         <p>Permanently deletes this session and its stored data.</p>
         {Array.from({ length: 16 }, (_, index) => (
           <p key={index}>
@@ -89,8 +93,16 @@ export const LongContent: Story = {
             retained.
           </p>
         ))}
-      </>
+      </ScrollArea>
     ),
+  },
+  parameters: {
+    docs: {
+      description: {
+        story:
+          "The long resource list uses Nox ScrollArea with a custom handle and edge fades. Its height follows the available viewport space; the title and action buttons remain outside the scroll area. Try wheel scrolling or dragging the handle.",
+      },
+    },
   },
 };
 

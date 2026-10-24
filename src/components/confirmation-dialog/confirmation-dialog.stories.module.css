@@ -1,0 +1,14 @@
+.longContent.longContent {
+  --ui-scroll-area-background: var(--ui-dialog-body-background);
+  /* Leave room for the dialog heading, body padding, actions and viewport gap. */
+  height: clamp(0px, calc(100dvh - 12rem), 360px);
+  background: transparent;
+}
+
+.longContentText > :first-child {
+  margin-top: 0;
+}
+
+.longContentText > :last-child {
+  margin-bottom: 0;
+}
