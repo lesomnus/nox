@@ -30,6 +30,12 @@
 .input::placeholder {
   color: transparent;
 }
+
+/* Native reveal controls overlap the slots and cannot reveal their masked text. */
+.input::-ms-reveal {
+  display: none;
+}
+
 .input::selection {
   background: transparent;
   color: transparent;
