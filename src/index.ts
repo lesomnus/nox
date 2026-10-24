@@ -44,5 +44,6 @@ export * from "./components/identifier-value/identifier-value";
 export * from "./components/date-time/date-time";
 export * from "./components/field-label/field-label";
 export * from "./components/description-list/description-list";
+export * from "./components/table/table";
 export * from "./components/navigation-panel/navigation-panel";
 export * from "./components/stipple-background/stipple-background";

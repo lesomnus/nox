@@ -70,9 +70,12 @@ try {
     `
     import { createRoot } from "react-dom/client";
     import { PinInput, type PinInputProps, SplitLayout, type SplitNode, setSplitRatio, PrefixValueMenu, type PrefixValueMenuProps, IconValueMenu, AuroraGlow, type AuroraGlowProps, type AuroraPalette, InkSparkle, type InkSparkleProps, Button, Checkbox, DateTime, DescriptionList, IdentifierValue, MenuSurface, type MenuSurfaceProps, MenuScrollArea, MenuItem, type MenuItemProps, MenuIcon, MenuGroupLabel, MenuDivider, NavigationPanel, StippleBackground, clusterMotion, workMotion, withPointerBurst, UIProvider } from "@lesomnus/nox";
+    import { Table, TableHeader, TableBody, TableFooter, TableRow, TableHead, TableCell, TableCaption, TableScrollArea, type TableProps, type TableRowProps } from "@lesomnus/nox";
     import { TerminalWorkbench } from "@lesomnus/nox/terminal";
     import "@lesomnus/nox/styles.css";
     void TerminalWorkbench;
+    const table: TableProps = { "aria-label": "Records", stickyHeader: true, ref: node => { void node?.rows.length; } };
+    const selectedRow: TableRowProps = { selected: true };
     const pin: PinInputProps = { label: "Device code", groups: [4,4], mode: "alphanumeric", name: "device_code" };
     void MenuSurface;
     void MenuIcon;
@@ -101,6 +104,14 @@ try {
         <Button effect="sparkle" effectOptions={{color:[1,1,1,0.06],sparkleColor:[1,1,1,0.2],duration:1200,centerMotion:"fixed",seed:1}}>Custom ink</Button>
         <div style={{height:80}}><InkSparkle {...sparkle} /></div>
         <Checkbox aria-label="Select record" />
+        <TableScrollArea style={{height:120}} scrollbarLabel="Scroll records">
+          <Table {...table}>
+            <TableCaption>Records</TableCaption>
+            <TableHeader><TableRow><TableHead>Name</TableHead><TableHead align="right">Count</TableHead></TableRow></TableHeader>
+            <TableBody><TableRow {...selectedRow}><TableHead scope="row">Example</TableHead><TableCell align="right">1</TableCell></TableRow></TableBody>
+            <TableFooter><TableRow><TableCell colSpan={2}>Total: 1</TableCell></TableRow></TableFooter>
+          </Table>
+        </TableScrollArea>
         <StippleBackground paused pattern="diamond" colorBlend="dither" palette={["#abc", "#123456", "#fedcba", "#84a59d"]} motion={(t, {aspect}) => [{x: 0.5, y: 0.5, radius: 0.2 + Math.sin(t) * 0.02, scale: [aspect, 1], rotation: t}]} style={{height: 100}} />
         <StippleBackground motion={clusterMotion} edgeFade={0.75} edgeFadeSteps={3} seed={7} paused style={{height: 100}} />
         <StippleBackground motion={workMotion} active={false} style={{height: 100}} />

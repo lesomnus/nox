@@ -1,0 +1,65 @@
+.table {
+  min-width: 500px;
+  table-layout: fixed;
+}
+.selection {
+  width: 40px;
+}
+.name {
+  width: 34%;
+}
+.account {
+  width: 24%;
+}
+.state {
+  width: 26%;
+}
+.number {
+  width: 16%;
+  font-variant-numeric: tabular-nums;
+}
+.muted {
+  color: var(--ui-muted);
+}
+.accountLink {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--ui-space);
+  min-height: calc(var(--ui-table-row-height) - 2 * var(--ui-control-inset));
+  padding: 0 var(--ui-control-inline-inset);
+  border: 1px solid var(--ui-shade-48);
+  border-radius: var(--ui-space);
+  color: var(--ui-muted);
+  text-decoration: none;
+}
+.accountLink:hover {
+  background: var(--ui-hover);
+  color: var(--ui-text-value);
+}
+.accountLink:focus-visible {
+  outline: 1px solid var(--ui-muted);
+  outline-offset: 1px;
+}
+.accountLink span:first-child {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: calc(2 * var(--ui-space));
+  font-size: 12px;
+}
+.empty {
+  height: 120px;
+  color: var(--ui-muted);
+}
+.scroll {
+  height: 260px;
+}
+.horizontal {
+  max-width: 320px;
+}

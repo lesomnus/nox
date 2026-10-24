@@ -96,6 +96,17 @@
     transparent
   );
   --ui-space: 4px;
+  --ui-table-background: var(--ui-shade-24);
+  --ui-table-header-color: var(--ui-muted);
+  --ui-table-row-border: var(--ui-shade-36);
+  --ui-table-hover-background: var(--ui-shade-32);
+  --ui-table-selected-background: var(--ui-selected);
+  --ui-table-selected-hover-background: var(--ui-shade-51);
+  --ui-table-font-size: 11px;
+  --ui-table-header-height: 28px;
+  --ui-table-row-height: 44px;
+  --ui-table-row-gap: var(--ui-control-inset);
+  --ui-table-cell-padding: var(--ui-space);
   --ui-pin-input-slot-width: 32px;
   --ui-pin-input-slot-height: 40px;
   --ui-pin-input-gap: var(--ui-space);
