@@ -665,6 +665,11 @@ export function DatePicker(options: DatePickerProps) {
                               date === selected.value.end);
                       const inGroup =
                         !!date && !!proposed && !!previewDates?.includes(date);
+                      const previewEndpoint =
+                        !!date &&
+                        !!previewRange &&
+                        (date === previewRange.start ||
+                          date === previewRange.end);
                       const marker =
                         details.marker === undefined
                           ? details.label
@@ -702,7 +707,9 @@ export function DatePicker(options: DatePickerProps) {
                                 monthOf(date) !== month || undefined
                               }
                               data-selected={endpoint || undefined}
-                              data-preview={inGroup || undefined}
+                              data-preview={
+                                inGroup || previewEndpoint || undefined
+                              }
                               aria-disabled={!candidate(date) || undefined}
                               aria-current={date === today ? "date" : undefined}
                               aria-label={[
