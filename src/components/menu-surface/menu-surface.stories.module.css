@@ -1,0 +1,30 @@
+.example {
+  display: grid;
+  gap: calc(4 * var(--ui-space));
+}
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: calc(4 * var(--ui-space));
+}
+.row > :global(.value-menu) {
+  flex: 0 1 140px;
+}
+.hint,
+.feedback {
+  margin: 0;
+  font-size: 12px;
+  color: var(--ui-muted);
+}
+.feedback {
+  min-height: 1.4em;
+  font-family: var(--ui-font-mono);
+}
+.mono {
+  font-family: var(--ui-font-mono);
+}
+.placement {
+  min-height: 320px;
+  align-content: center;
+}

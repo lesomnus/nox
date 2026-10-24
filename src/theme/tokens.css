@@ -43,6 +43,7 @@
 }
 :root[data-ui-theme="light"],
 :root[data-theme="light"] {
+  --ui-aurora-strength: 0.3;
   --ui-shade-0: #ffffff;
   --ui-shade-16: #fcfcfc;
   --ui-shade-17: #fbfbfb;
@@ -95,8 +96,77 @@
     transparent
   );
   --ui-space: 4px;
+  --ui-sliding-pages-duration: 360ms;
+  --ui-sliding-pages-easing: cubic-bezier(0.22, 0.61, 0.36, 1);
+  --ui-date-picker-trigger-width: 180px;
+  --ui-date-picker-width: 268px;
+  --ui-date-picker-day-size: 32px;
+  --ui-date-picker-font-size: 12px;
+  --ui-date-picker-range-trigger-width: 280px;
+  --ui-date-picker-range-background: var(--ui-shade-36);
+  --ui-date-picker-preview-background: var(--ui-shade-32);
+  --ui-date-picker-marker-size: 8px;
+  --ui-color-input-background: transparent;
+  --ui-color-input-border: var(--ui-shade-48);
+  --ui-color-input-focus-border: var(--ui-shade-115);
+  --ui-color-input-hover-background: var(--ui-hover);
+  --ui-color-input-error-border: var(--ui-pin-input-error-color);
+  --ui-color-input-preview-size: 26px;
+  --ui-color-picker-width: 240px;
+  --ui-color-picker-plane-height: 160px;
+  --ui-color-picker-handle-size: 12px;
+  --ui-color-picker-checker-light: var(--ui-shade-72);
+  --ui-color-picker-checker-dark: var(--ui-shade-36);
+  --ui-table-background: transparent;
+  --ui-link-button-height: 32px;
+  --ui-link-button-border: var(--ui-shade-48);
+  --ui-link-button-hover-border: var(--ui-shade-72);
+  --ui-link-button-color: var(--ui-muted);
+  --ui-link-button-hover-background: var(--ui-hover);
+  --ui-skeleton-background: var(--ui-shade-36);
+  --ui-skeleton-ink-color: color-mix(
+    in srgb,
+    var(--ui-shade-255) 8%,
+    transparent
+  );
+  --ui-skeleton-highlight: color-mix(
+    in srgb,
+    var(--ui-shade-255) 35%,
+    transparent
+  );
+  --ui-skeleton-radius: var(--ui-space);
+  --ui-skeleton-duration: 1600ms;
+  --ui-table-header-color: var(--ui-muted);
+  --ui-table-row-border: var(--ui-shade-36);
+  --ui-table-hover-background: var(--ui-shade-32);
+  --ui-table-selected-background: var(--ui-selected);
+  --ui-table-selected-hover-background: var(--ui-shade-51);
+  --ui-table-font-size: 11px;
+  --ui-table-header-height: 28px;
+  --ui-table-row-height: 44px;
+  --ui-table-row-gap: var(--ui-control-inset);
+  --ui-table-cell-padding: var(--ui-space);
+  --ui-pin-input-slot-width: 32px;
+  --ui-pin-input-slot-height: 40px;
+  --ui-pin-input-gap: var(--ui-space);
+  --ui-pin-input-radius: calc(1.5 * var(--ui-space));
+  --ui-pin-input-error-color: #db7070;
   --ui-icon-size: 20px;
   --ui-icon-size-small: 14px;
+  --ui-aurora-color-1: #23b04a;
+  --ui-aurora-color-2: #2596e9;
+  --ui-aurora-color-3: #b14ccd;
+  --ui-aurora-strength: 0.5;
+  --ui-aurora-blur: 8px;
+  --ui-aurora-envelope-duration: 3200ms;
+  --ui-aurora-drift-duration: 24s;
+  --ui-aurora-form-duration: 20s;
+  --ui-aurora-focus-duration: 17s;
+  --ui-aurora-orbit-radius: 26%;
+  --ui-aurora-orbit-rise: 34%;
+  --ui-menu-item-padding-block: 6px;
+  --ui-menu-item-padding-inline: 10px;
+  --ui-menu-scroll-max-height: 240px;
   --ui-checkbox-size: 18px;
   --ui-overflow-hint-background: var(--ui-shade-51);
   --ui-scroll-area-background: var(--ui-shade-24);
@@ -168,6 +238,12 @@
   --ui-toolbar-button-width: 48px;
   --ui-terminal-toolbar-height: 28px;
   --ui-resize-handle-size: 5px;
+  --ui-split-line-size: 1px;
+  --ui-split-line-hover-size: var(--ui-resize-handle-size);
+  --ui-split-snap-distance: 10px;
+  --ui-split-snap-release-distance: 16px;
+  --ui-split-double-click-delay: 500ms;
+  --ui-split-click-tolerance: 4px;
   --ui-confirm-button-background: #3b1b1b;
   --ui-confirm-button-color: #f1dada;
 }

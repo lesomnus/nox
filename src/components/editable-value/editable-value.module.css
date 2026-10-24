@@ -9,9 +9,10 @@
 }
 .editable_value_trigger {
   display: block;
-  width: 100%;
+  /* Keep the text in normal flow; the padded hit area extends around it. */
+  width: calc(100% + 2 * var(--ui-control-inline-inset));
   min-height: 0;
-  margin: 0;
+  margin: calc(-1 * var(--ui-space)) calc(-1 * var(--ui-control-inline-inset));
   padding: var(--ui-space) var(--ui-control-inline-inset);
   text-align: left;
 }
@@ -25,6 +26,7 @@
   font-family: var(--ui-font-mono);
 }
 .editable_value_dialog {
+  --ui-dialog-trigger-opacity: 1;
   position: fixed;
   max-width: none;
   max-height: none;

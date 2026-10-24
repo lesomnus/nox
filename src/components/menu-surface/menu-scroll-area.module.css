@@ -1,0 +1,19 @@
+.area.area {
+  --ui-scroll-area-background: var(--ui-dropdown-background);
+  --ui-scroll-area-content-inset: 0px;
+  flex: 0 1 auto;
+  background: transparent;
+}
+.area .viewport {
+  height: auto;
+  max-height: min(
+    var(--ui-menu-scroll-max-height),
+    var(--menu-scroll-max-height, var(--ui-menu-scroll-max-height))
+  );
+}
+.area:has([role="scrollbar"]) button {
+  padding-right: max(
+    var(--menu-item-padding-inline, var(--ui-menu-item-padding-inline)),
+    calc(var(--ui-scroll-area-hit-size) / 2)
+  );
+}

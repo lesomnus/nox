@@ -3,9 +3,7 @@ import { expect, test } from "@playwright/test";
 test("section titles and item dividers do not interrupt selection or anchor alignment", async ({
   page,
 }) => {
-  await page.goto(
-    "/iframe.html?id=components-valuemenu--sections&viewMode=story",
-  );
+  await page.goto("/iframe.html?id=menus-features--sections&viewMode=story");
   const trigger = page.getByRole("combobox", { name: "Effort" });
   await expect(trigger).toHaveText("Medium");
   const anchor = (await trigger.locator(".meta-value").boundingBox())!;
@@ -37,9 +35,7 @@ test("upward sections count header/divider heights and keep keyboard choices in 
   page,
 }) => {
   await page.setViewportSize({ width: 600, height: 240 });
-  await page.goto(
-    "/iframe.html?id=components-valuemenu--sections&viewMode=story",
-  );
+  await page.goto("/iframe.html?id=menus-features--sections&viewMode=story");
   await page.getByRole("combobox", { name: "Effort" }).click();
   const menu = page.getByRole("listbox", { name: "Effort choices" });
   await expect(menu).toHaveClass(/opens-up/);
@@ -60,7 +56,7 @@ test("search hides empty sections and orphan dividers before selecting a result"
   page,
 }) => {
   await page.goto(
-    "/iframe.html?id=components-valuemenu--searchable-sections&viewMode=story",
+    "/iframe.html?id=menus-features--searchable-sections&viewMode=story",
   );
   const trigger = page.getByRole("combobox", { name: "Effort", exact: true });
   await trigger.click();

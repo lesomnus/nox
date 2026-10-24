@@ -1,0 +1,70 @@
+.viewport,
+.page {
+  box-sizing: border-box;
+  min-width: 0;
+  min-height: 0;
+}
+.viewport {
+  position: relative;
+  width: 100%;
+  max-width: 100%;
+  overflow: clip;
+  transition:
+    width var(--ui-sliding-pages-duration) var(--ui-sliding-pages-easing),
+    height var(--ui-sliding-pages-duration) var(--ui-sliding-pages-easing);
+}
+.viewport:not([data-resize="none"]) {
+  height: var(--sliding-pages-height, auto);
+}
+.viewport[data-resize="both"] {
+  width: var(--sliding-pages-width, max-content);
+}
+.page {
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: flow-root;
+  width: 100%;
+  visibility: hidden;
+  transform: translateX(
+    calc(
+      var(--sliding-page-offset) * max(100%, var(--sliding-pages-width, 100%))
+    )
+  );
+  transition:
+    transform var(--ui-sliding-pages-duration) var(--ui-sliding-pages-easing),
+    visibility 0s linear var(--ui-sliding-pages-duration);
+}
+.page[data-active] {
+  position: relative;
+  visibility: visible;
+  transition-delay: 0s, 0s;
+}
+.viewport[data-resize="none"] > .page {
+  height: 100%;
+}
+.viewport[data-resize="both"] > .page {
+  width: max-content;
+  max-width: var(--sliding-pages-available-width, 100%);
+}
+.viewport:dir(rtl)[data-orientation="horizontal"] > .page {
+  transform: translateX(
+    calc(
+      -1 * var(--sliding-page-offset) *
+        max(100%, var(--sliding-pages-width, 100%))
+    )
+  );
+}
+.viewport[data-orientation="vertical"] > .page {
+  transform: translateY(
+    calc(
+      var(--sliding-page-offset) * max(100%, var(--sliding-pages-height, 100%))
+    )
+  );
+}
+@media (prefers-reduced-motion: reduce) {
+  .viewport,
+  .page {
+    transition: none;
+  }
+}

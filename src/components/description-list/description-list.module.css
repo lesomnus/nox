@@ -8,7 +8,7 @@
   margin: var(--ui-space) 0;
   font: 12px/1.5 var(--ui-font-mono);
 }
-.fields > div {
+.row {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
   align-content: start;
@@ -16,12 +16,12 @@
   padding: var(--ui-control-inset) var(--ui-control-inline-inset);
   min-width: 0;
 }
-.fields dt {
+.term {
   font-size: 10px;
   color: var(--ui-muted);
   overflow-wrap: anywhere;
 }
-.fields dd {
+.details {
   display: flex;
   align-items: center;
   min-width: 0;

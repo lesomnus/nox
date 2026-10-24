@@ -11,9 +11,14 @@ import {
   type KeyboardEvent,
   type ReactNode,
 } from "react";
-import { createPortal } from "react-dom";
-import { Button } from "../button/button";
-import { ScrollArea } from "../scroll-area/scroll-area";
+import { MenuSurface } from "../menu-surface/menu-surface";
+import {
+  MenuDivider,
+  MenuGroupLabel,
+  MenuIcon,
+  MenuItem,
+} from "../menu-surface/menu-item";
+import { MenuScrollArea } from "../menu-surface/menu-scroll-area";
 import { useUI } from "../../providers/ui-provider";
 
 export type ValueOption = {
@@ -122,26 +127,11 @@ export function ValueMenu({
     const position = () => {
       if (!root.current || !menu.current) return;
       const rect = root.current.getBoundingClientRect();
-      const inset = parseFloat(
-        getComputedStyle(root.current).getPropertyValue("--ui-control-inset"),
-      );
-      const chrome = rect.height + 2 * inset + 13;
       const popup = menu.current;
-      // The portal leaves the trigger's typography context, including numeric
-      // variants that can also change the width of punctuation such as '-'.
-      const typography = getComputedStyle(trigger() ?? root.current);
-      for (const property of [
-        "fontFamily",
-        "fontSize",
-        "fontWeight",
-        "fontStyle",
-        "fontVariant",
-        "fontFeatureSettings",
-        "fontVariationSettings",
-        "letterSpacing",
-      ] as const) {
-        popup.style[property] = typography[property];
-      }
+      const style = getComputedStyle(popup);
+      const inset =
+        parseFloat(style.paddingLeft) + parseFloat(style.borderLeftWidth);
+      const chrome = rect.height + 2 * inset + 13;
       const valueText = trigger()?.querySelector(".meta-value");
       if (valueText) {
         popup.style.setProperty(
@@ -167,7 +157,7 @@ export function ValueMenu({
         : "auto";
       popup.style.setProperty(
         "--options-height",
-        `${Math.max(rect.height, Math.min(240, (upwards ? rect.bottom : window.innerHeight - rect.top) - chrome))}px`,
+        `${Math.max(rect.height, (upwards ? rect.bottom : window.innerHeight - rect.top) - chrome)}px`,
       );
       const anchor = trigger()?.querySelector(".button-content");
       const current = popup.querySelector(
@@ -293,9 +283,10 @@ export function ValueMenu({
           close();
       }}
     >
-      <Button
+      <MenuItem
         type="button"
         className="setting-trigger"
+        icon={selected?.icon}
         data-muted={!!isMuted}
         role="combobox"
         aria-label={label}
@@ -306,163 +297,147 @@ export function ValueMenu({
         title={disabled ? disabledReason : text}
         onClick={() => (open ? close() : openMenu())}
       >
-        <ValueIcon icon={selected?.icon} />
         <span className="meta-value">{text}</span>
-      </Button>
-      {open &&
-        createPortal(
-          <div
-            ref={menu}
-            id={id}
-            data-variant={variant}
-            data-searchable={searchable}
-            className={`${styles.setting_menu} ${dialogStyles.entrance} setting-menu ${up ? "opens-up" : ""}`}
-            data-enter-effect="fade"
-            onPointerDownCapture={(event) => {
-              // Non-interactive rows must not blur the focused option/search field.
-              if (
-                event.target instanceof Element &&
-                (event.target.closest("button:disabled") ||
-                  event.target.getAttribute("role") === "separator" ||
-                  event.target.closest(`.${styles.groupTitle}`))
-              )
-                event.preventDefault();
-            }}
-            onKeyDown={(e) => {
-              e.stopPropagation();
-              key(e);
-            }}
-            onBlur={(e) => {
-              if (
-                !root.current?.contains(e.relatedTarget as Node | null) &&
-                !e.currentTarget.contains(e.relatedTarget as Node | null)
-              )
-                close();
-            }}
-            role={searchable ? "group" : "listbox"}
-            tabIndex={-1}
-            aria-label={t("{label} choices", { label })}
-          >
-            {searchable ? (
-              <div className="setting-current setting-search-row">
-                <ValueIcon icon={selected?.icon} />
-                <input
-                  ref={search}
-                  className="setting-search"
-                  aria-label={t("Search {label}", { label })}
-                  role="combobox"
-                  aria-expanded="true"
-                  aria-autocomplete="list"
-                  aria-controls={`${id}-results`}
-                  value={query}
-                  onChange={(e) => {
-                    setQuery(e.target.value);
-                    setQueryEdited(true);
-                  }}
-                />
-              </div>
-            ) : (
-              <Button
-                type="button"
-                className="setting-current"
-                data-option-value={value}
-                data-muted={!!isMuted}
-                role="option"
-                tabIndex={-1}
-                aria-selected="true"
-                disabled={selected?.disabled}
-                onClick={() => close(true)}
-              >
-                <ValueIcon icon={selected?.icon} />
-                <span className="meta-value">{text}</span>
-              </Button>
-            )}
-            <div className={`${styles.choices} ${dialogStyles.entrance}`}>
-              <div className="setting-divider" role="separator" />
-              <ScrollArea
-                className={styles.optionsArea}
-                viewportClassName="setting-options"
-                scrollbarLabel={t("Scroll {label} choices", { label })}
-                id={`${id}-results`}
-                role={searchable ? "listbox" : undefined}
-                aria-label={
-                  searchable ? t("{label} choices", { label }) : undefined
-                }
-              >
-                {searchable && options.length === 0 && (
-                  <p className={styles.emptyState} role="status">
-                    {t("No matches")}
-                  </p>
-                )}
-                {visibleSections.map((section, sectionIndex) => (
-                  <Fragment key={section.index}>
-                    {sectionIndex > 0 && (
-                      <div className="setting-divider" role="separator" />
-                    )}
-                    <div
-                      role="group"
-                      aria-labelledby={
-                        section.label
-                          ? `${id}-group-${section.index}`
-                          : undefined
-                      }
-                    >
-                      {section.label && (
-                        <span
-                          id={`${id}-group-${section.index}`}
-                          className={styles.groupTitle}
-                        >
-                          <ValueIcon icon={section.icon} />
-                          <span className={styles.groupTitleText}>
-                            {section.label}
-                          </span>
-                        </span>
-                      )}
-                      {section.items.map((choice, itemIndex) => (
-                        <Fragment key={choice.value}>
-                          {choice.separatorBefore && itemIndex > 0 && (
-                            <div className="setting-divider" role="separator" />
-                          )}
-                          <Button
-                            data-option-value={choice.value}
-                            type="button"
-                            role="option"
-                            tabIndex={-1}
-                            aria-selected={choice.value === value}
-                            disabled={choice.disabled}
-                            title={choice.label}
-                            data-muted={!!choice.muted}
-                            onClick={() => {
-                              close(true);
-                              choose(choice.value);
-                            }}
-                          >
-                            <ValueIcon icon={choice.icon} />
-                            <ValueLabel
-                              option={choice}
-                              query={searchable && queryEdited ? query : ""}
-                            />
-                          </Button>
-                        </Fragment>
-                      ))}
-                    </div>
-                  </Fragment>
-                ))}
-              </ScrollArea>
+      </MenuItem>
+      {open && (
+        <MenuSurface
+          anchor={trigger()}
+          ref={menu}
+          id={id}
+          data-variant={variant}
+          data-searchable={searchable}
+          className={`${styles.setting_menu} ${dialogStyles.entrance} setting-menu ${up ? "opens-up" : ""}`}
+          data-enter-effect="fade"
+          onPointerDownCapture={(event) => {
+            // Non-interactive rows must not blur the focused option/search field.
+            if (
+              event.target instanceof Element &&
+              (event.target.closest("button:disabled") ||
+                event.target.getAttribute("role") === "separator" ||
+                event.target.closest("[data-menu-group-label]"))
+            )
+              event.preventDefault();
+          }}
+          onKeyDown={(e) => {
+            e.stopPropagation();
+            key(e);
+          }}
+          onBlur={(e) => {
+            if (
+              !root.current?.contains(e.relatedTarget as Node | null) &&
+              !e.currentTarget.contains(e.relatedTarget as Node | null)
+            )
+              close();
+          }}
+          role={searchable ? "group" : "listbox"}
+          tabIndex={-1}
+          aria-label={t("{label} choices", { label })}
+        >
+          {searchable ? (
+            <div className="setting-current setting-search-row">
+              <MenuIcon icon={selected?.icon} />
+              <input
+                ref={search}
+                className="setting-search"
+                aria-label={t("Search {label}", { label })}
+                role="combobox"
+                aria-expanded="true"
+                aria-autocomplete="list"
+                aria-controls={`${id}-results`}
+                value={query}
+                onChange={(e) => {
+                  setQuery(e.target.value);
+                  setQueryEdited(true);
+                }}
+              />
             </div>
-          </div>,
-          root.current?.closest("dialog[open]") ?? document.body,
-        )}
+          ) : (
+            <MenuItem
+              type="button"
+              className="setting-current"
+              icon={selected?.icon}
+              data-option-value={value}
+              data-muted={!!isMuted}
+              role="option"
+              tabIndex={-1}
+              aria-selected="true"
+              disabled={selected?.disabled}
+              onClick={() => close(true)}
+            >
+              <span className="meta-value">{text}</span>
+            </MenuItem>
+          )}
+          <div className={`${styles.choices} ${dialogStyles.entrance}`}>
+            <MenuDivider className="setting-divider" />
+            <MenuScrollArea
+              viewportClassName="setting-options"
+              scrollbarLabel={t("Scroll {label} choices", { label })}
+              id={`${id}-results`}
+              role={searchable ? "listbox" : undefined}
+              aria-label={
+                searchable ? t("{label} choices", { label }) : undefined
+              }
+            >
+              {searchable && options.length === 0 && (
+                <p className={styles.emptyState} role="status">
+                  {t("No matches")}
+                </p>
+              )}
+              {visibleSections.map((section, sectionIndex) => (
+                <Fragment key={section.index}>
+                  {sectionIndex > 0 && (
+                    <MenuDivider className="setting-divider" />
+                  )}
+                  <div
+                    role="group"
+                    aria-labelledby={
+                      section.label ? `${id}-group-${section.index}` : undefined
+                    }
+                  >
+                    {section.label && (
+                      <MenuGroupLabel
+                        id={`${id}-group-${section.index}`}
+                        icon={section.icon}
+                      >
+                        {section.label}
+                      </MenuGroupLabel>
+                    )}
+                    {section.items.map((choice, itemIndex) => (
+                      <Fragment key={choice.value}>
+                        {choice.separatorBefore && itemIndex > 0 && (
+                          <MenuDivider className="setting-divider" />
+                        )}
+                        <MenuItem
+                          data-option-value={choice.value}
+                          type="button"
+                          role="option"
+                          tabIndex={-1}
+                          aria-selected={choice.value === value}
+                          disabled={choice.disabled}
+                          title={choice.label}
+                          icon={choice.icon}
+                          data-muted={!!choice.muted}
+                          onClick={() => {
+                            close(true);
+                            choose(choice.value);
+                          }}
+                        >
+                          <ValueLabel
+                            option={choice}
+                            query={searchable && queryEdited ? query : ""}
+                          />
+                        </MenuItem>
+                      </Fragment>
+                    ))}
+                  </div>
+                </Fragment>
+              ))}
+            </MenuScrollArea>
+          </div>
+        </MenuSurface>
+      )}
     </div>
   );
-}
-
-function ValueIcon({ icon }: { icon?: ReactNode }) {
-  return icon ? (
-    <span className={styles.icon} aria-hidden="true">
-      {icon}
-    </span>
-  ) : null;
 }
 
 function ValueLabel({ option, query }: { option: ValueOption; query: string }) {

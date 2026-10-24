@@ -12,6 +12,13 @@ this repository. The original cxz workspace was left in place.
 
 ## Subsequent syncs
 
+- 2026-10-24: adapted cxz's `ComposerAurora` and its toolbar aurora CSS from
+  commit `5f082de68b1d23c7be1a30c4c8cc61aa7dacc0df` into `AuroraGlow`. The
+  drifting clusters, orbiting palette, morphing orbs and wandering hotspots now
+  have standalone CSS Modules and theme tokens, with public lifecycle and
+  palette/motion controls. Session state and the surrounding composer remain in
+  cxz; glass/foreground composition belongs to the consumer.
+
 - 2026-10-14: imported the three `dialog-card` files from cxz commit
   `794ac755337d4703e9b1181a473bf3a0607de719`. Dialog bodies now use the control
   inset on both sides while preserving heading/text alignment and nested radii.

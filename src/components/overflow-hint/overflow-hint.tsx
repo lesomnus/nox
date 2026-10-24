@@ -9,16 +9,23 @@ import {
 } from "react";
 import { createPortal } from "react-dom";
 import styles from "./overflow-hint.module.css";
+import { hintPosition, type OverflowHintPosition } from "./hint-position";
+
+export type { OverflowHintPosition } from "./hint-position";
+export type OverflowHintPlacement =
+  | OverflowHintPosition
+  | "adjacent"
+  | "in-place";
 
 // Fixed portal placement keeps a hint clear of a card or scroll area's clipping.
 export function OverflowHint({
   content,
   children,
-  placement = "adjacent",
+  placement = "top-start",
 }: {
   content: string;
   children: ReactNode;
-  placement?: "adjacent" | "in-place";
+  placement?: OverflowHintPlacement;
 }) {
   const id = useId();
   const anchor = useRef<HTMLSpanElement>(null);
@@ -68,6 +75,18 @@ export function OverflowHint({
     const box = hint.current.getBoundingClientRect();
     const gap =
       parseFloat(getComputedStyle(hint.current).paddingInlineStart) || 0;
+    if (placement !== "adjacent" && placement !== "in-place") {
+      setPosition(
+        hintPosition(
+          rect,
+          box,
+          placement,
+          { width: innerWidth, height: innerHeight },
+          gap,
+        ),
+      );
+      return;
+    }
     const left = Math.max(
       gap,
       Math.min(innerWidth - box.width - gap, rect.left),

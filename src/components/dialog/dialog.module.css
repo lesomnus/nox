@@ -1,0 +1,61 @@
+.dialog {
+  width: min(480px, calc(100vw - 4 * var(--ui-space)));
+  max-height: calc(100dvh - 4 * var(--ui-space));
+}
+.dialog,
+.dialog * {
+  box-sizing: border-box;
+}
+.content {
+  composes: floating_card from "../floating-card/floating-card.module.css";
+  composes: card from "../card/card.module.css";
+}
+.content.content {
+  width: 100%;
+  max-height: inherit;
+}
+.content > form {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  max-height: inherit;
+}
+.header.header {
+  display: flex;
+  align-items: center;
+  gap: calc(2 * var(--ui-space));
+  flex-shrink: 0;
+  min-height: 32px;
+  padding: var(--ui-dialog-padding);
+  font-size: 12px;
+}
+.title {
+  margin: 0;
+  min-width: 0;
+  font: inherit;
+  font-weight: 600;
+}
+.description {
+  margin: 0;
+  color: var(--ui-muted);
+}
+.body.body {
+  min-height: 0;
+  overflow: auto;
+  overscroll-behavior: contain;
+}
+.body.body:last-child {
+  margin-bottom: var(--ui-control-inset);
+}
+.footer.footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--ui-space);
+  flex-shrink: 0;
+  padding: var(--ui-space);
+}
+.footer :where(button) {
+  min-width: var(--ui-dialog-action-min-width);
+}

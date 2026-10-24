@@ -1,21 +1,29 @@
 import { useUI } from "../../providers/ui-provider";
-import { OverflowHint } from "../overflow-hint/overflow-hint";
+import {
+  OverflowHint,
+  type OverflowHintPosition,
+} from "../overflow-hint/overflow-hint";
 import styles from "./field-label.module.css";
+
+export type FieldLabelProps = {
+  label: string;
+  description?: string;
+  /** Help tooltip side/alignment. Defaults to its bottom-left above the icon. */
+  helpPlacement?: OverflowHintPosition;
+};
 
 export function FieldLabel({
   label,
   description,
-}: {
-  label: string;
-  description?: string;
-}) {
+  helpPlacement = "top-start",
+}: FieldLabelProps) {
   const { t } = useUI();
   return (
     <span className={styles.label}>
       <span>{label}</span>
       {description && (
         <span className={styles.help}>
-          <OverflowHint content={description}>
+          <OverflowHint content={description} placement={helpPlacement}>
             <svg
               viewBox="0 0 24 24"
               fill="none"

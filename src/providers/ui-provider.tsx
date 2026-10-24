@@ -1,8 +1,20 @@
 import { createContext, useContext, useMemo, type ReactNode } from "react";
 
 export type UIMessage =
+  | "Choose date"
+  | "Calendar for {label}"
+  | "Previous month"
+  | "Next month"
+  | "Today"
+  | "Clear date"
+  | "Done"
+  | "{count} selected"
+  | "Choose a start date"
+  | "Choose an end date"
+  | "This selection is unavailable."
   | "Search {label}"
   | "Scroll {label} choices"
+  | "Scroll {label}"
   | "No matches"
   | "Cancel"
   | "Confirm"

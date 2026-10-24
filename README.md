@@ -75,8 +75,11 @@ values. `monospaceFont()` resolves the same CSS token for canvas terminals and
 editor defaults; explicit editor font settings still take precedence. The
 stylesheet defines only namespaced tokens and styles for library component
 classes; it does not reset the host's body, buttons or form fields. Dark is the
-default palette. Set `data-ui-theme="light"` on the document root for the light
-palette. Root-level `--ui-*` overrides also reach portaled menus and dialogs. Keep
+default palette. `ThemeProvider` adds light/dark/system controls and a reactive
+`useTheme()` hook. Persistence defaults to localStorage (`nox.theme`), with an
+injectable synchronous or asynchronous storage backend. See [themes](docs/theme.md).
+Set `data-ui-theme="light"` on the document root for CSS-only use.
+Root-level `--ui-*` overrides also reach portaled menus and dialogs. Keep
 token values in CSS rather than duplicating design measurements in documentation.
 
 Formatted text shares three color roles across `ElapsedTime`, `CompactNumber`,
@@ -90,17 +93,63 @@ The roles reference the theme palette, so they follow dark/light changes. Overri
 them on the document root or a component container to customize these displays
 together. General labels and descriptions continue to use `--ui-muted`.
 
+Storybook's **Layout** category groups `PageToolbar`, `NavigationPanel`,
+`SplitLayout`, `ResizeHandle` and `ScrollArea`: page headers, bounded panels,
+split panes, resize boundaries and scrolling regions. They compose arbitrary
+content and leave routing, data and application state to the caller.
+
 `PageToolbar` provides a persistent page header with leading content and optional
 trailing `actions`. Put a selector, breadcrumbs or title in its children and keep
 scrolling content in a sibling below it. It has no routing or resource dependency.
 
-`IconValueMenu` combines a decorative icon and compact `ValueMenu` with a shared
-hover, focus and open background. The icon stays outside the trigger and popup;
-the selected value retains its text position when the menu opens.
+`PinInput` presents one native input as configurable code slots. Use `length={6}`
+for a numeric verification code or `groups={[4, 4]}` with `mode="alphanumeric"`
+for device codes. Typing advances the visible caret; paste, autofill, native form
+submission and keyboard editing work with one unformatted value. See
+[PIN and device codes](docs/pin-input.md) and **Components/PinInput**.
+
+`DatePicker` selects single dates, multiple dates or continuous date ranges from
+an anchored Gregorian calendar. It exchanges date-only `YYYY-MM-DD` values,
+supports controlled/uncontrolled state, native form values/reset, bounds and
+unavailable dates, and localizes labels without shifting dates across time zones.
+`getDateInfo` adds holidays, descriptions, markers and styles; `getSelectionDates`
+maps a click to an atomic date group. The `dateWindowSelection` and
+`dateWeekSelection` presets work with multiple/range modes. It shares menu and
+scroll components, including inside dialogs. See
+[date selection](docs/date-picker.md) and **Components/DatePicker** for examples
+and keyboard controls.
+
+`Progress` provides a boxed progress rail with optional InkSparkle animation
+from a fixed center outside its left edge. The bordered variant uses the shared
+narrow control inset. Value, timing and animation state belong to the host.
+See [progress indicators](docs/progress.md) and **Components/Progress**.
+
+`SlidingPages` and `SlidingPage` keep a multi-step form inside one clipped
+viewport. Control the active value, preserve page drafts and choose fixed size,
+animated height or animated width and height. They support directional slides,
+RTL, focus transfer and reduced motion without a routing or animation dependency.
+See [sliding pages](docs/sliding-pages.md) and **Components/SlidingPages**.
+
+`Card` provides the shared heading, inset body and footer for inline content,
+dialogs and drawers. `fill` and `bodyPadding` adapt it to a bounded container.
+See [cards](docs/card.md) and **Components/Card**.
+
+`Drawer` places an independently sized surface near any viewport or container
+edge. Compose `Card` for the rounded cxz task-detail card, or supply a
+different surface. See [drawers](docs/drawer.md), **Components/Drawer** and
+**Components/Card**.
+
+`PrefixValueMenu` combines leading text, an icon or another React node with a
+compact `ValueMenu` and a shared hover, focus and open background. Its `prefix`
+stays outside the trigger and popup; `label` supplies the accessible selector name.
+The selected value retains its text position when the menu opens.
 `--ui-icon-size` and `--ui-icon-size-small` define regular and compact glyph
-sizes; the icon field scopes its glyphs to the compact token. Value menus share
+sizes; the prefix slot scopes its SVG glyphs to the compact token. Value menus share
 the dialog entrance motion while their selected row stays in place. Reduced
 motion disables the entrance animations.
+
+`IconValueMenu` is a deprecated compatibility wrapper: `icon` maps to `prefix`
+and `iconClassName` maps to `prefixClassName`, using the same implementation.
 
 `DialogTrigger` requires `adjacent` to show a disabled visual copy above a modal
 backdrop. Use it only when the dialog actually sits beside its source. Centered
@@ -130,7 +179,24 @@ The component has no application dependencies or idle animation loop. See
 [SVG effects on HTML](https://developer.mozilla.org/en-US/docs/Web/SVG/Guides/Applying_SVG_effects_to_HTML_content)
 describes the underlying mask mechanism.
 
-The public core entry exports Button/ButtonContent, BadgedIcon, ConfirmButton, ActionMenu, ValueMenu, SegmentedControl, Switch, ConfirmationDialog, EditableValue, FloatingCard, SettingField, SettingSlider, ElapsedTime, CompactNumber, DurationDisplay, DialogReveal, SplitLayout, ResizeHandle, ScrollArea and UIProvider. Button's `toolbar` variant provides the compact rectangular shape. Button defaults to `effect="sparkle"`; use `effect="none"` to opt out or `effectOptions` to customize ink color/timing. Callbacks and selected values belong to the consuming application; Application adapters handle persistence and session operations separately.
+The public core entry exports Button/ButtonContent, BadgedIcon, ConfirmButton, ActionMenu, ValueMenu, SegmentedControl, Switch, Dialog/DialogHeader/DialogTitle/DialogDescription/DialogBody/DialogFooter, EditableValue, FloatingCard, SettingField, SettingSlider, ElapsedTime, CompactNumber, DurationDisplay, DialogReveal, SplitLayout, ResizeHandle, ScrollArea and UIProvider. Button's `toolbar` variant provides the compact rectangular shape. Button defaults to `effect="sparkle"`; use `effect="none"` to opt out or `effectOptions` to customize ink color/timing. Callbacks and selected values belong to the consuming application; Application adapters handle persistence and session operations separately.
+
+`Dialog` provides the modal lifecycle and focus boundary; compose its header,
+body and footer freely. Confirmation buttons, async execution and failure policy
+belong to the consumer. See [composable dialogs](docs/dialog.md), including the
+migration from the former `ConfirmationDialog` export.
+
+`ActionMenu` and `ValueMenu` share the exported `MenuSurface` for portaling,
+themed foreground/background, blur, frame and trigger typography. Their rows,
+icon slots, group labels and dividers use the same exported `MenuItem`,
+`MenuIcon`, `MenuGroupLabel` and `MenuDivider` parts. Both use `MenuScrollArea`
+for the same scrollbar, rail, edge fades and item clearance. Selection,
+actions, placement and keyboard behavior belong to each menu. The top-level
+**Menus** Storybook gallery collects shared appearance and feature examples.
+**Menus/Features** compares both menus side by side using the same items;
+**Components/ActionMenu**, **ValueMenu** and **PrefixValueMenu** keep their basic API
+controls and component-specific cases. See [menu overlays](docs/menu-surface.md)
+for the capability table.
 
 `Checkbox`, `Radio`, `CopyButton`, `IdentifierValue`, `DateTime`, `FieldLabel`,
 `DescriptionList` and `NavigationPanel` provide native selection, clipboard
@@ -139,7 +205,34 @@ They share the existing tokens, work without application CSS or services, and
 have independent Storybook examples. See [navigation and record details](docs/resource-components.md)
 and **Integration/RecordBrowser** for their composition and accessibility contracts.
 
-`SplitLayout` takes a controlled `SplitNode` tree, a `renderPane` callback, and `onResize`. `setSplitRatio` applies a bounded ratio update to that tree. Separators support pointer dragging, arrow keys, Home/End and double click to equalize; the host supplies the accessible separator label. It owns no workspace connections or tabs, so it can lay out arbitrary content in other applications. When moving expensive stateful content between panes, keep its instance outside the changing tree and attach a stable portal host to pane slots, as the terminal integration does.
+`SplitLayout` takes a controlled `SplitNode` tree, a `renderPane` callback, and
+`onChange={setTree}`. The callback receives the complete next tree. Dividers
+connect at their centerlines. Drag a junction to resize both axes together.
+Aligned opposing segments share hover and drag behavior, including at size limits.
+Dragging an offset segment near its opposite snaps it into alignment; releasing
+joins the line for subsequent drags. A wider release zone prevents snap jitter.
+Double-click then drag, or drag on the second press, to detach just one segment
+without snapping back. These joins follow the controlled tree's geometry rather
+than adding hidden layout metadata. At an aligned four-way crossing, detaching
+a continuous ancestor boundary rotates the split tree so either half can move
+independently. Pane IDs and their initial positions are retained. Cancellation
+restores the original tree and positions. An unsplit pane at a T junction cannot
+be divided this way.
+Separators support pointer dragging, arrow keys, Home/End and double click to
+equalize a standalone split. Junctions accept all four arrow keys and Enter/Space
+to equalize the connected splits. `separatorLabel` and `junctionLabel` name the controls.
+The legacy `onResize` alternative supports ratio updates but cannot restructure
+the tree to detach a continuous ancestor boundary. Use functional state updates
+with that callback because one gesture can update multiple IDs:
+`setTree(current => setSplitRatio(current, id, ratio))`.
+See **Layout/SplitLayout** for nested, transposed, crossing and offset examples.
+Line thickness and hover thickness share `--ui-split-line-size` and
+`--ui-split-line-hover-size`. Snap entry/release distances and double-click timing
+use the `--ui-split-*` tokens in `src/theme/tokens.css`.
+It owns no workspace connections or tabs, so it can lay out arbitrary content in
+other applications. When moving expensive stateful content between panes, keep
+its instance outside the changing tree and attach a stable portal host to pane
+slots, as the terminal integration does.
 
 `ResizeHandle` controls one neighboring pane in pixels. Supply `value`, responsive
 `min`/`max` limits and `onChange`; `axis` selects horizontal or vertical resizing.
@@ -170,12 +263,20 @@ receives its scroll events. `viewportClassName`, `contentClassName` and
 `classNames` customize slots. Override `--ui-scroll-area-background` to match
 the containing surface and its fades; rail geometry, handle appearance and
 fade limits use the other `--ui-scroll-area-*` CSS tokens. Defaults live in
-`src/theme/tokens.css`. See **Components/ScrollArea** for short overflow, long
+`src/theme/tokens.css`. See **Layout/ScrollArea** for short overflow, long
 lists, growing content and no-overflow examples. Content fetching and
 virtualization belong to the caller. An application's elastic transcript
 scrollbar remains specialized; it is not part of this primitive.
 
 ## Animated backgrounds
+
+`AuroraGlow` is a clipped CSS-gradient layer adapted from cxz's composer toolbar.
+Drifting clusters contain orbiting colors, changing orb shapes and moving bright
+centers. Control activation, pausing, palette, strength and motion speed without
+application state or WebGL. It blooms when work starts and contracts while
+continuing to move when work ends. The host owns its size, glass and controls;
+hidden/offscreen motion pauses and reduced-motion preferences stay still. See
+[aurora glow](docs/aurora-glow.md) and **Effects/AuroraGlow** in Storybook.
 
 `StippleBackground` provides a WebGL2 metaball background with five stipple
 patterns, a configurable cluster palette and controlled motion. Only dots are
@@ -308,3 +409,9 @@ once by default and supports `onComplete` for overlay cleanup. See
 [InkSparkle](docs/ink-sparkle.md) and **Effects/InkSparkle** in Storybook. Switch
 uses the same public effect with a slower 2000ms burst and a fixed center outside
 the rail.
+
+`color` controls the ink, while `sparkleColor` independently controls the
+normalized RGBA color of sparkling pixels. Its alpha softens or hides the
+sparkles without fading the ink. Both props are also available through
+`Button.effectOptions`. InkSparkle keeps the original white sparkles by default;
+Button defaults to white sparkles with alpha `0.5`.

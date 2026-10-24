@@ -3,9 +3,7 @@ import { expect, test } from "@playwright/test";
 test("ValueMenu uses ScrollArea for wheel, drag and independent scrollbar keyboard navigation", async ({
   page,
 }) => {
-  await page.goto(
-    "/iframe.html?id=components-valuemenu--scrolling&viewMode=story",
-  );
+  await page.goto("/iframe.html?id=menus-features--scrolling&viewMode=story");
   const trigger = page.getByRole("combobox", { name: "Preset", exact: true });
   await trigger.click();
   const menu = page.getByRole("listbox", { name: "Preset choices" });
@@ -82,7 +80,7 @@ test("filtering shrinks ScrollArea and removes its thumb when choices fit", asyn
   page,
 }) => {
   await page.goto(
-    "/iframe.html?id=components-valuemenu--searchable-scrolling&viewMode=story",
+    "/iframe.html?id=menus-features--searchable-scrolling&viewMode=story",
   );
   await page.getByRole("combobox", { name: "Preset", exact: true }).click();
   const search = page.getByRole("combobox", { name: "Search Preset" });

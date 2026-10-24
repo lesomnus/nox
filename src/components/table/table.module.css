@@ -1,0 +1,79 @@
+.table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  background: var(--ui-table-background);
+  color: var(--ui-text-value);
+  font-size: var(--ui-table-font-size);
+}
+.table,
+.table * {
+  box-sizing: border-box;
+}
+.header {
+  background: var(--ui-table-background);
+}
+.table[data-sticky-header] > .header {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  backdrop-filter: blur(16px);
+}
+.head {
+  height: var(--ui-table-header-height);
+  padding: 0 var(--ui-table-cell-padding);
+  color: var(--ui-table-header-color);
+  text-align: left;
+  font-weight: 400;
+}
+.cell,
+.body .head {
+  height: calc(var(--ui-table-row-height) + var(--ui-table-row-gap));
+  padding: 0 var(--ui-table-cell-padding)
+    max(0px, calc(var(--ui-table-row-gap) - 1px));
+  border-bottom: 1px solid transparent;
+  vertical-align: middle;
+}
+.body .head {
+  color: inherit;
+}
+.body > .row:not(:last-child) > :is(.cell, .head) {
+  border-bottom-color: var(--ui-table-row-border);
+}
+.body > .row[data-selected] {
+  background: var(--ui-table-selected-background);
+}
+.body > .row:hover {
+  background: var(--ui-table-hover-background);
+}
+.body > .row[data-selected]:hover {
+  background: var(--ui-table-selected-hover-background);
+}
+.head[align="center"],
+.cell[align="center"] {
+  text-align: center;
+}
+.head[align="right"],
+.cell[align="right"] {
+  text-align: right;
+}
+.footer {
+  color: var(--ui-table-header-color);
+}
+.footer :is(.cell, .head) {
+  border-top: 1px solid var(--ui-table-row-border);
+}
+.caption {
+  padding: calc(2 * var(--ui-space)) var(--ui-table-cell-padding);
+  color: var(--ui-table-header-color);
+  text-align: left;
+}
+.scroll {
+  --ui-scroll-area-background: var(--ui-table-background);
+  --ui-scroll-area-content-inset: 0px;
+  flex: none;
+  height: var(--ui-table-viewport-height, 360px);
+}
+.scroll:has(.table[data-sticky-header] > .header) .topFade {
+  top: var(--ui-table-header-height);
+}
