@@ -10,7 +10,7 @@ const meta = {
     docs: {
       description: {
         component:
-          "A menu beside its trigger, used for commands and checked choices. Supports groups, item icons, shortcut labels, disabled and dangerous actions. Defaults to an ellipsis button; triggerContent can supply text or an icon. See the top-level Menus gallery for shared overlay features and comparisons with ValueMenu.",
+          "A menu beside its trigger, used for commands and checked choices. This page keeps the basic API and an action-driven trigger example. Shared feature comparisons live under Menus/Features; placement, motion, shortcut labels and dangerous actions are demonstrated in the top-level Menus gallery.",
       },
     },
   },
@@ -50,11 +50,4 @@ export const Language: Story = {
       </div>
     ),
   ],
-};
-export const Disabled: Story = {
-  args: { disabled: true, disabledReason: "Unavailable while working" },
-};
-
-export const RevealFromTopLeft: Story = {
-  args: { placement: "right", motion: { from: "top-left", effect: "reveal" } },
 };

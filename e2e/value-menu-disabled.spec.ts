@@ -6,7 +6,7 @@ for (const height of [720, 240]) {
   }) => {
     await page.setViewportSize({ width: 600, height });
     await page.goto(
-      "/iframe.html?id=components-valuemenu--disabled-options&viewMode=story",
+      "/iframe.html?id=menus-features--disabled-options&viewMode=story",
     );
     const trigger = page.getByRole("combobox", { name: "Effort" });
     await trigger.click();
@@ -57,7 +57,7 @@ test("search Enter selects the first enabled match and keeps disabled-only resul
   page,
 }) => {
   await page.goto(
-    "/iframe.html?id=components-valuemenu--searchable-disabled-options&viewMode=story",
+    "/iframe.html?id=menus-features--searchable-disabled-options&viewMode=story",
   );
   const trigger = page.getByRole("combobox", { name: "Effort", exact: true });
   await trigger.click();
@@ -87,7 +87,7 @@ test("a disabled current value still allows choosing an available option", async
 }) => {
   await page.setViewportSize({ width: 600, height: 240 });
   await page.goto(
-    "/iframe.html?id=components-valuemenu--disabled-options&viewMode=story&args=value:maximum",
+    "/iframe.html?id=menus-features--disabled-options&viewMode=story&args=value:maximum",
   );
   const trigger = page.getByRole("combobox", { name: "Effort" });
   await expect(trigger).toBeEnabled();

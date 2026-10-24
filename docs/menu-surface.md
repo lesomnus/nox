@@ -1,9 +1,18 @@
 # Menu overlays
 
 Use Storybook's top-level **Menus** gallery to explore menu overlays together.
-Its Docs page uses this guide directly. Component-specific API controls remain
-under **Components/ActionMenu**, **Components/ValueMenu** and
-**Components/IconValueMenu**.
+Its Docs page uses this guide directly. **Menus/Features** collects the detailed
+feature cases, showing ActionMenu and ValueMenu side by side from the same data.
+The component pages keep their basic API controls and specific behavior:
+
+- **Components/ActionMenu**: basic commands and an action-driven language trigger.
+- **Components/ValueMenu**: the basic selector, item dividers, empty search results
+  and selected-only/empty groups.
+- **Components/IconValueMenu**: the icon wrapper's basic API.
+
+Shared feature examples belong under Menus rather than being repeated on one
+component page. Value-only controls in a comparison affect only ValueMenu; the
+capability table below identifies those differences.
 
 `ActionMenu` runs commands or toggles checked choices in a popup beside its
 trigger. `ValueMenu` selects a value, aligning its current row with the trigger's
@@ -94,6 +103,13 @@ The example's icons and action handlers come from the consuming application.
 - **Backdrop And Typography** exposes the shared blur over a dot pattern.
   Switch the Storybook theme to compare dark and light appearances.
 - **Inside Dialog** shows both menus remaining interactive in a native dialog.
+
+**Features** provides focused cases for disabled triggers, compact typography,
+the animated Stipple backdrop, groups, disabled items, group/item icons and long
+lists, including their searchable variants. Both menus use the same item labels,
+icons, availability and selected value. Choosing an action or value updates both.
+This keeps the common examples symmetric without implying that search or
+group-title icons exist in ActionMenu.
 
 ## Custom overlays
 

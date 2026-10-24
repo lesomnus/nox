@@ -25,3 +25,12 @@
   width: min(100%, 280px);
   margin-inline: auto;
 }
+
+.comparison {
+  display: flex;
+  align-items: center;
+  gap: calc(4 * var(--ui-space));
+}
+.comparison > :global(.value-menu) {
+  flex: 0 1 160px;
+}

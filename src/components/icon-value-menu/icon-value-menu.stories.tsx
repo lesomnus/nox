@@ -10,7 +10,7 @@ const meta = {
     docs: {
       description: {
         component:
-          "A decorative icon beside ValueMenu. Hovering or keyboard-focusing the value, or opening its menu, reveals one muted background behind the icon and value together. The icon stays inert and the current-value overlay remains aligned with the trigger text.",
+          "A decorative icon beside ValueMenu. Hovering or keyboard-focusing the value, or opening its menu, reveals one muted background behind the icon and value together. The icon stays inert and the current-value overlay remains aligned with the trigger text. Use this basic story's Controls for the wrapper API; shared disabled and search examples live under Menus/Features.",
       },
     },
   },
@@ -45,7 +45,3 @@ const meta = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 export const Default: Story = {};
-export const Disabled: Story = {
-  args: { disabled: true, disabledReason: "Settings require an idle session" },
-};
-export const Searchable: Story = { args: { searchable: true } };
