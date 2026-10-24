@@ -4,9 +4,25 @@
 }
 
 .interactive,
-.states {
+.states,
+.customColors {
   display: grid;
   gap: calc(4 * var(--ui-space));
+}
+
+.colorExample {
+  display: grid;
+  gap: calc(2 * var(--ui-space));
+  font-size: 12px;
+  color: var(--ui-muted);
+}
+
+.lightBar {
+  --ui-progress-fill-color: #d7e2ef;
+}
+
+.darkBar {
+  --ui-progress-fill-color: #27364a;
 }
 
 .valueControl {

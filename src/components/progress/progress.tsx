@@ -17,6 +17,7 @@ export type ProgressProps = Omit<
   animated?: boolean;
   /** Bordered uses the shared narrow control inset. */
   variant?: "default" | "bordered";
+  /** Ink/sparkle colors use normalized RGBA (0–1); alpha controls strength. */
   sparkleOptions?: ProgressSparkleOptions;
 };
 
@@ -69,8 +70,8 @@ export function Progress({
           {sparkling && height > 0 && (
             <InkSparkle
               className={styles.sparkle}
-              color={[0, 0, 0, 0.24]}
-              sparkleColor={[0, 0, 0, 0.8]}
+              color={[0, 0, 0, 0.4]}
+              sparkleColor={[0, 0, 0, 1]}
               duration={2000}
               {...sparkleOptions}
               origin={[-2 * height, height / 2]}
