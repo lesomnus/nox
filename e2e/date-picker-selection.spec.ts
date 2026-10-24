@@ -10,7 +10,7 @@ async function open(page: Page, story: string) {
 }
 const popup = (page: Page) => page.getByRole("dialog");
 const day = (page: Page, date: string) =>
-  popup(page).locator(`[data-date="${date}"]`);
+  popup(page).locator(`[data-sliding-page][data-active] [data-date="${date}"]`);
 const values = (page: Page, name = "dates") =>
   page
     .locator(`input[name="${name}"]`)
@@ -74,7 +74,9 @@ test("multiple selection toggles days, stays open, clears and returns keyboard f
   await expect(
     popup(page).getByRole("gridcell", { selected: true }),
   ).toHaveCount(0);
-  await expect(popup(page).locator("[data-date]:focus")).toHaveCount(1);
+  await expect(
+    popup(page).locator("[data-sliding-page][data-active] [data-date]:focus"),
+  ).toHaveCount(1);
   await popup(page).getByRole("button", { name: "Done", exact: true }).click();
   await expect(trigger).toContainText("Choose date");
 });
@@ -93,9 +95,17 @@ test("range selection previews reverse and cross-month intervals, preserving a p
     "Choose an end date",
   );
   await day(page, "2026-10-24").hover();
-  await expect(popup(page).locator('[data-band="preview"]')).toHaveCount(4);
+  await expect(
+    popup(page).locator(
+      '[data-sliding-page][data-active] [data-band="preview"]',
+    ),
+  ).toHaveCount(4);
   await day(page, "2026-10-19").hover();
-  await expect(popup(page).locator('[data-band="preview"]')).toHaveCount(3);
+  await expect(
+    popup(page).locator(
+      '[data-sliding-page][data-active] [data-band="preview"]',
+    ),
+  ).toHaveCount(3);
   await day(page, "2026-10-19").click();
   await expect(popup(page)).toHaveCount(0);
   expect(await values(page, "period.start")).toEqual(["2026-10-19"]);
@@ -105,7 +115,9 @@ test("range selection previews reverse and cross-month intervals, preserving a p
   await expect(
     popup(page).getByRole("gridcell", { selected: true }),
   ).toHaveCount(3);
-  await expect(popup(page).locator("[data-selected]")).toHaveCount(2);
+  await expect(
+    popup(page).locator("[data-sliding-page][data-active] [data-selected]"),
+  ).toHaveCount(2);
   await day(page, "2026-10-25").click();
   await page.keyboard.press("Escape");
   await trigger.click();
@@ -137,7 +149,9 @@ test("custom date windows preview and toggle whole groups while rejecting holida
 }) => {
   await open(page, "three-day-selection");
   await day(page, "2026-10-23").hover();
-  await expect(popup(page).locator("[data-preview]")).toHaveCount(3);
+  await expect(
+    popup(page).locator("[data-sliding-page][data-active] [data-preview]"),
+  ).toHaveCount(3);
   expect(await values(page)).toEqual([]);
   await day(page, "2026-10-23").click();
   expect(await values(page)).toEqual([
@@ -171,7 +185,11 @@ test("one week resolver produces either a complete range or independently toggle
 }) => {
   await open(page, "week-selection");
   await day(page, "2026-10-24").hover();
-  await expect(popup(page).locator('[data-band="preview"]')).toHaveCount(7);
+  await expect(
+    popup(page).locator(
+      '[data-sliding-page][data-active] [data-band="preview"]',
+    ),
+  ).toHaveCount(7);
   await day(page, "2026-10-24").click();
   await expect(popup(page)).toHaveCount(0);
   expect(await values(page, "week.start")).toEqual(["2026-10-19"]);
@@ -199,7 +217,9 @@ test("a custom resolver can replace the clicked weekend with the week's workdays
 }) => {
   await open(page, "custom-selection");
   await day(page, "2026-10-24").hover();
-  await expect(popup(page).locator("[data-preview]")).toHaveCount(5);
+  await expect(
+    popup(page).locator("[data-sliding-page][data-active] [data-preview]"),
+  ).toHaveCount(5);
   await day(page, "2026-10-24").click();
   expect(await values(page)).toEqual([
     "2026-10-19",

@@ -41,7 +41,9 @@ test("the four-digit year boundaries keep all week rows and do not wrap into inv
     }, value);
     await expect(page.locator('input[name="date"]')).toHaveValue(value);
     await trigger(page).click();
-    await expect(popup.locator(`[data-date="${value}"]`)).toBeFocused();
+    await expect(
+      popup.locator(`[data-sliding-page][data-active] [data-date="${value}"]`),
+    ).toBeFocused();
     await expect(
       popup.getByRole("button", {
         name: value.startsWith("0001") ? "Previous month" : "Next month",
@@ -51,7 +53,9 @@ test("the four-digit year boundaries keep all week rows and do not wrap into inv
     await page.keyboard.press(
       value.startsWith("0001") ? "ArrowLeft" : "ArrowRight",
     );
-    await expect(popup.locator(`[data-date="${value}"]`)).toBeFocused();
+    await expect(
+      popup.locator(`[data-sliding-page][data-active] [data-date="${value}"]`),
+    ).toBeFocused();
     await page.keyboard.press("Escape");
   }
 });
@@ -66,12 +70,16 @@ test("date selection, clearing, Today and Escape use date-only values and restor
   await expect(field).toHaveValue("2026-10-24");
   await trigger(page).click();
   await expect(
-    calendar(page).locator('[data-date="2026-10-24"]'),
+    calendar(page).locator(
+      '[data-sliding-page][data-active] [data-date="2026-10-24"]',
+    ),
   ).toBeFocused();
   await expect(
     calendar(page).getByRole("gridcell", { selected: true }),
   ).toContainText("24");
-  await calendar(page).locator('[data-date="2026-10-28"]').click();
+  await calendar(page)
+    .locator('[data-sliding-page][data-active] [data-date="2026-10-28"]')
+    .click();
   await expect(field).toHaveValue("2026-10-28");
   await expect(calendar(page)).toHaveCount(0);
   await expect(trigger(page)).toBeFocused();
@@ -111,17 +119,29 @@ test("calendar keyboard navigation crosses weeks, months and years with a stable
   await expect(grid.getByRole("row")).toHaveCount(7);
   const height = (await popup.boundingBox())!.height;
   await page.keyboard.press("Home");
-  await expect(popup.locator('[data-date="2026-10-18"]')).toBeFocused();
+  await expect(
+    popup.locator('[data-sliding-page][data-active] [data-date="2026-10-18"]'),
+  ).toBeFocused();
   await page.keyboard.press("End");
-  await expect(popup.locator('[data-date="2026-10-24"]')).toBeFocused();
+  await expect(
+    popup.locator('[data-sliding-page][data-active] [data-date="2026-10-24"]'),
+  ).toBeFocused();
   await page.keyboard.press("ArrowDown");
-  await expect(popup.locator('[data-date="2026-10-31"]')).toBeFocused();
+  await expect(
+    popup.locator('[data-sliding-page][data-active] [data-date="2026-10-31"]'),
+  ).toBeFocused();
   await page.keyboard.press("ArrowRight");
-  await expect(popup.locator('[data-date="2026-11-01"]')).toBeFocused();
+  await expect(
+    popup.locator('[data-sliding-page][data-active] [data-date="2026-11-01"]'),
+  ).toBeFocused();
   await page.keyboard.press("PageDown");
-  await expect(popup.locator('[data-date="2026-12-01"]')).toBeFocused();
+  await expect(
+    popup.locator('[data-sliding-page][data-active] [data-date="2026-12-01"]'),
+  ).toBeFocused();
   await page.keyboard.press("Shift+PageUp");
-  await expect(popup.locator('[data-date="2025-12-01"]')).toBeFocused();
+  await expect(
+    popup.locator('[data-sliding-page][data-active] [data-date="2025-12-01"]'),
+  ).toBeFocused();
   expect((await popup.boundingBox())!.height).toBe(height);
   await page.evaluate(() => {
     document.documentElement.dataset.uiTheme = "light";
@@ -140,20 +160,28 @@ test("bounds and unavailable dates cannot be chosen by mouse or keyboard", async
   await expect(
     popup.getByRole("button", { name: "Previous month" }),
   ).toBeDisabled();
-  const weekend = popup.locator('[data-date="2026-10-24"]');
+  const weekend = popup.locator(
+    '[data-sliding-page][data-active] [data-date="2026-10-24"]',
+  );
   await expect(weekend).toHaveAttribute("aria-disabled", "true");
   await weekend.click({ force: true });
   await expect(popup).toBeVisible();
   await weekend.press("Enter");
   await expect(page.locator('input[name="date"]')).toHaveValue("2026-10-21");
-  await popup.locator('[data-date="2026-10-11"]').click({ force: true });
+  await popup
+    .locator('[data-sliding-page][data-active] [data-date="2026-10-11"]')
+    .click({ force: true });
   await expect(page.locator('input[name="date"]')).toHaveValue("2026-10-21");
   await popup.getByRole("button", { name: "Next month" }).click();
-  await expect(popup.locator('[data-date="2026-11-01"]')).toBeFocused();
+  await expect(
+    popup.locator('[data-sliding-page][data-active] [data-date="2026-11-01"]'),
+  ).toBeFocused();
   await expect(
     popup.getByRole("button", { name: "Next month" }),
   ).toBeDisabled();
-  await popup.locator('[data-date="2026-11-06"]').click();
+  await popup
+    .locator('[data-sliding-page][data-active] [data-date="2026-11-06"]')
+    .click();
   await expect(page.locator('input[name="date"]')).toHaveValue("2026-11-06");
 });
 
@@ -162,7 +190,9 @@ test("native form submit/reset and controlled updates retain their separate owne
 }) => {
   await open(page, "form");
   await trigger(page).click();
-  await calendar(page).locator('[data-date="2026-10-29"]').click();
+  await calendar(page)
+    .locator('[data-sliding-page][data-active] [data-date="2026-10-29"]')
+    .click();
   await page.getByRole("button", { name: "Submit", exact: true }).click();
   await expect(page.getByLabel("Submitted date")).toHaveText("2026-10-29");
   await page.getByRole("button", { name: "Reset form", exact: true }).click();
@@ -172,9 +202,13 @@ test("native form submit/reset and controlled updates retain their separate owne
   await expect(page.getByLabel("Selected date")).toHaveText("2027-01-15");
   await trigger(page).click();
   await expect(
-    calendar(page).locator('[data-date="2027-01-15"]'),
+    calendar(page).locator(
+      '[data-sliding-page][data-active] [data-date="2027-01-15"]',
+    ),
   ).toBeFocused();
-  await calendar(page).locator('[data-date="2027-01-18"]').click();
+  await calendar(page)
+    .locator('[data-sliding-page][data-active] [data-date="2027-01-18"]')
+    .click();
   await expect(page.getByLabel("Selected date")).toHaveText("2027-01-18");
   await page
     .getByRole("button", { name: "Reset selection", exact: true })
@@ -198,7 +232,9 @@ test("the calendar portals inside an enclosing dialog and Escape closes only the
   ).toBeVisible();
   await expect(trigger(page)).toBeFocused();
   await trigger(page).click();
-  await calendar(page).locator('[data-date="2026-10-25"]').click();
+  await calendar(page)
+    .locator('[data-sliding-page][data-active] [data-date="2026-10-25"]')
+    .click();
   await expect(
     page.getByRole("dialog", { name: "Schedule", exact: true }),
   ).toBeVisible();
@@ -280,7 +316,7 @@ test("a portaled calendar rejects changes when its trigger's ancestor fieldset b
     fieldset.disabled = true;
   });
   await calendar(page)
-    .locator('[data-date="2026-10-28"]')
+    .locator('[data-sliding-page][data-active] [data-date="2026-10-28"]')
     .click({ force: true });
   await expect(page.locator('input[name="date"]')).toHaveValue("2026-10-24");
   await expect(calendar(page)).toBeVisible();

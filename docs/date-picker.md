@@ -181,6 +181,13 @@ ScrollArea handles short viewports. Calendar rows and metadata/status areas
 reserve their space. The CSS Module and `--ui-date-picker-*`, shared spacing,
 menu and motion tokens in src/theme/tokens.css are the style source of truth.
 
+Month changes slide the date grid with SlidingPages/SlidingPage in both the
+popup and inline Calendar. Weekdays, month navigation and footer stay in place.
+Only the current and outgoing month are mounted; only the current month can
+receive focus. Keyboard month/year jumps, quick reversals and reduced motion
+use the same behavior as other SlidingPages consumers. Shared sliding duration
+and easing tokens control the transition.
+
 Storybook **Components/DatePicker** includes single, empty, restricted, localized,
 states, controlled/form, inside-dialog and viewport examples, plus Date
 Information, Multiple, Range, Restricted Range, Three Day Selection, Week

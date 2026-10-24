@@ -14,6 +14,7 @@ import {
   type ReactNode,
 } from "react";
 import { Button, type ButtonProps } from "../button/button";
+import { SlidingPages, SlidingPage } from "../sliding-pages/sliding-pages";
 import { useUI } from "../../providers/ui-provider";
 import {
   addDays,
@@ -374,9 +375,11 @@ function useCalendarModel(options: CalendarRootProps) {
   }, [selectionKey, lower, upper]);
   useLayoutEffect(() => {
     if (!focusDay.current || disabled) return;
-    const day = root.current?.querySelector<HTMLElement>(
-      `[data-date="${focused}"]`,
-    );
+    const day = [
+      ...(root.current?.querySelectorAll<HTMLElement>(
+        `[data-date="${focused}"]`,
+      ) ?? []),
+    ].find((element) => !element.closest("[inert]"));
     if (day) {
       day.focus({ preventScroll: true });
       day.scrollIntoView({ block: "nearest", inline: "nearest" });
@@ -580,12 +583,86 @@ export function CalendarGrid({ className = "", ...props }: CalendarGridProps) {
   const {
     monthLabel,
     mode,
-    id,
     gridKeys,
     setHovered,
     weekStartsOn,
     formatters,
-    days,
+    month,
+  } = useCalendar();
+  const [window, setWindow] = useState({
+    current: month,
+    previous: null as string | null,
+  });
+  if (window.current !== month)
+    setWindow({ current: month, previous: window.current });
+  const months = [
+    ...new Set(
+      [window.previous, window.current].filter(
+        (value): value is string => !!value,
+      ),
+    ),
+  ].sort();
+  return (
+    <div
+      {...props}
+      role="grid"
+      aria-multiselectable={mode !== "single" || undefined}
+      aria-label={props["aria-label"] ?? monthLabel}
+      className={`${styles.grid} ${className}`}
+      onKeyDown={(event) => {
+        props.onKeyDown?.(event);
+        if (!event.defaultPrevented) gridKeys(event);
+      }}
+      dir="ltr"
+      onPointerLeave={(event) => {
+        props.onPointerLeave?.(event);
+        if (!event.defaultPrevented) setHovered(null);
+      }}
+      onBlur={(event) => {
+        props.onBlur?.(event);
+        if (!event.currentTarget.contains(event.relatedTarget as Node | null))
+          setHovered(null);
+      }}
+    >
+      <div role="row" className={styles.week}>
+        {Array.from({ length: 7 }, (_, i) => {
+          const day = readDate(addDays("2024-01-07", (i + weekStartsOn) % 7)!)!;
+          return (
+            <span
+              key={i}
+              role="columnheader"
+              className={styles.weekday}
+              aria-label={formatters.weekdayFull.format(day)}
+            >
+              {formatters.weekday.format(day)}
+            </span>
+          );
+        })}
+      </div>
+      <SlidingPages value={month} focusOnChange={false} role="presentation">
+        {months.map((value) => (
+          <SlidingPage
+            key={value}
+            value={value}
+            role="rowgroup"
+            className={styles.monthPage}
+          >
+            <CalendarMonthRows month={value} active={value === month} />
+          </SlidingPage>
+        ))}
+      </SlidingPages>
+    </div>
+  );
+}
+
+function CalendarMonthRows({
+  month,
+  active,
+}: {
+  month: string;
+  active: boolean;
+}) {
+  const {
     info,
     selected,
     previewRange,
@@ -593,7 +670,9 @@ export function CalendarGrid({ className = "", ...props }: CalendarGridProps) {
     proposed,
     previewDates,
     focused,
-    month,
+    weekStartsOn,
+    formatters,
+    setHovered,
     candidate,
     today,
     setError,
@@ -601,152 +680,112 @@ export function CalendarGrid({ className = "", ...props }: CalendarGridProps) {
     choose,
     disabled,
   } = useCalendar();
+  const days = useMemo(
+    () => monthDays(month, weekStartsOn),
+    [month, weekStartsOn],
+  );
   return (
     <>
-      <div
-        {...props}
-        role="grid"
-        aria-multiselectable={mode !== "single" || undefined}
-        aria-label={props["aria-label"] ?? monthLabel}
-        className={`${styles.grid} ${className}`}
-        onKeyDown={(event) => {
-          props.onKeyDown?.(event);
-          if (!event.defaultPrevented) gridKeys(event);
-        }}
-        dir="ltr"
-        onPointerLeave={(event) => {
-          props.onPointerLeave?.(event);
-          if (!event.defaultPrevented) setHovered(null);
-        }}
-        onBlur={(event) => {
-          props.onBlur?.(event);
-          if (!event.currentTarget.contains(event.relatedTarget as Node | null))
-            setHovered(null);
-        }}
-      >
-        <div role="row" className={styles.week}>
-          {Array.from({ length: 7 }, (_, i) => {
-            const day = readDate(
-              addDays("2024-01-07", (i + weekStartsOn) % 7)!,
-            )!;
+      {Array.from({ length: 6 }, (_, row) => (
+        <div role="row" className={styles.week} key={row}>
+          {days.slice(row * 7, row * 7 + 7).map((date, index) => {
+            const details = date ? info(date) : {};
+            const title = [details.label, details.description]
+              .filter(Boolean)
+              .join(" · ");
+            const isSelected = !!date && containsDate(selected, date);
+            const inPreview =
+              !!date &&
+              !!previewRange?.end &&
+              date >= previewRange.start &&
+              date <= previewRange.end;
+            const inRange =
+              !!date &&
+              !!actualRange?.end &&
+              date >= actualRange.start &&
+              date <= actualRange.end;
+            const band = inPreview
+              ? previewRange
+              : inRange
+                ? actualRange
+                : null;
+            const endpoint =
+              selected.mode !== "range"
+                ? isSelected
+                : !!date &&
+                  !!selected.value &&
+                  (date === selected.value.start ||
+                    date === selected.value.end);
+            const inGroup =
+              !!date && !!proposed && !!previewDates?.includes(date);
+            const previewEndpoint =
+              !!date &&
+              !!previewRange &&
+              (date === previewRange.start || date === previewRange.end);
+            const marker =
+              details.marker === undefined
+                ? details.label
+                  ? "•"
+                  : null
+                : details.marker;
             return (
-              <span
-                key={i}
-                role="columnheader"
-                className={styles.weekday}
-                aria-label={formatters.weekdayFull.format(day)}
+              <div
+                role="gridcell"
+                className={styles.cell}
+                aria-selected={isSelected}
+                data-band={
+                  band ? (inPreview ? "preview" : "selected") : undefined
+                }
+                data-band-start={(!!date && band?.start === date) || undefined}
+                data-band-end={(!!date && band?.end === date) || undefined}
+                key={date ?? index}
               >
-                {formatters.weekday.format(day)}
-              </span>
+                {date && (
+                  <Button
+                    type="button"
+                    className={`${styles.day} ${details.className ?? ""}`}
+                    style={details.style}
+                    disabled={disabled}
+                    tabIndex={active && !disabled && date === focused ? 0 : -1}
+                    data-date={date}
+                    data-outside={monthOf(date) !== month || undefined}
+                    data-selected={endpoint || undefined}
+                    data-preview={inGroup || previewEndpoint || undefined}
+                    aria-disabled={!candidate(date) || undefined}
+                    aria-current={date === today ? "date" : undefined}
+                    aria-label={[formatters.full.format(readDate(date)), title]
+                      .filter(Boolean)
+                      .join(" · ")}
+                    title={title || undefined}
+                    onPointerEnter={(event) => {
+                      if (event.pointerType !== "touch") {
+                        setHovered(date);
+                        setError("");
+                      }
+                    }}
+                    onFocus={() => {
+                      setFocused(date);
+                      setHovered(date);
+                    }}
+                    onClick={() => choose(date)}
+                  >
+                    <span className={styles.dayContent}>
+                      <span>
+                        {formatters.day.format(readDate(date)!.getUTCDate())}
+                      </span>
+                      {marker != null && (
+                        <span className={styles.marker} aria-hidden="true">
+                          {marker}
+                        </span>
+                      )}
+                    </span>
+                  </Button>
+                )}
+              </div>
             );
           })}
         </div>
-        {Array.from({ length: 6 }, (_, row) => (
-          <div role="row" className={styles.week} key={row}>
-            {days.slice(row * 7, row * 7 + 7).map((date, index) => {
-              const details = date ? info(date) : {};
-              const title = [details.label, details.description]
-                .filter(Boolean)
-                .join(" · ");
-              const isSelected = !!date && containsDate(selected, date);
-              const inPreview =
-                !!date &&
-                !!previewRange?.end &&
-                date >= previewRange.start &&
-                date <= previewRange.end;
-              const inRange =
-                !!date &&
-                !!actualRange?.end &&
-                date >= actualRange.start &&
-                date <= actualRange.end;
-              const band = inPreview
-                ? previewRange
-                : inRange
-                  ? actualRange
-                  : null;
-              const endpoint =
-                selected.mode !== "range"
-                  ? isSelected
-                  : !!date &&
-                    !!selected.value &&
-                    (date === selected.value.start ||
-                      date === selected.value.end);
-              const inGroup =
-                !!date && !!proposed && !!previewDates?.includes(date);
-              const previewEndpoint =
-                !!date &&
-                !!previewRange &&
-                (date === previewRange.start || date === previewRange.end);
-              const marker =
-                details.marker === undefined
-                  ? details.label
-                    ? "•"
-                    : null
-                  : details.marker;
-              return (
-                <div
-                  role="gridcell"
-                  className={styles.cell}
-                  aria-selected={isSelected}
-                  data-band={
-                    band ? (inPreview ? "preview" : "selected") : undefined
-                  }
-                  data-band-start={
-                    (!!date && band?.start === date) || undefined
-                  }
-                  data-band-end={(!!date && band?.end === date) || undefined}
-                  key={date ?? index}
-                >
-                  {date && (
-                    <Button
-                      type="button"
-                      className={`${styles.day} ${details.className ?? ""}`}
-                      style={details.style}
-                      disabled={disabled}
-                      tabIndex={!disabled && date === focused ? 0 : -1}
-                      data-date={date}
-                      data-outside={monthOf(date) !== month || undefined}
-                      data-selected={endpoint || undefined}
-                      data-preview={inGroup || previewEndpoint || undefined}
-                      aria-disabled={!candidate(date) || undefined}
-                      aria-current={date === today ? "date" : undefined}
-                      aria-label={[
-                        formatters.full.format(readDate(date)),
-                        title,
-                      ]
-                        .filter(Boolean)
-                        .join(" · ")}
-                      title={title || undefined}
-                      onPointerEnter={(event) => {
-                        if (event.pointerType !== "touch") {
-                          setHovered(date);
-                          setError("");
-                        }
-                      }}
-                      onFocus={() => {
-                        setFocused(date);
-                        setHovered(date);
-                      }}
-                      onClick={() => choose(date)}
-                    >
-                      <span className={styles.dayContent}>
-                        <span>
-                          {formatters.day.format(readDate(date)!.getUTCDate())}
-                        </span>
-                        {marker != null && (
-                          <span className={styles.marker} aria-hidden="true">
-                            {marker}
-                          </span>
-                        )}
-                      </span>
-                    </Button>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        ))}
-      </div>
+      ))}
     </>
   );
 }

@@ -32,6 +32,7 @@ export type SlidingPagesProps = Omit<ComponentProps<"div">, "children"> & {
 };
 type PagesContext = {
   value: string;
+  previousValue: string;
   order: string[];
   register: (value: string, node: HTMLDivElement | null) => void;
 };
@@ -111,10 +112,27 @@ export function SlidingPages({
           `${available}px`,
         );
       }
-      const bounds = page.getBoundingClientRect();
+      const pageStyle = getComputedStyle(page);
+      const contentBox = pageStyle.boxSizing !== "border-box";
+      const pageWidth =
+        number(pageStyle.width) +
+        (contentBox
+          ? number(pageStyle.paddingLeft) +
+            number(pageStyle.paddingRight) +
+            number(pageStyle.borderLeftWidth) +
+            number(pageStyle.borderRightWidth)
+          : 0);
+      const pageHeight =
+        number(pageStyle.height) +
+        (contentBox
+          ? number(pageStyle.paddingTop) +
+            number(pageStyle.paddingBottom) +
+            number(pageStyle.borderTopWidth) +
+            number(pageStyle.borderBottomWidth)
+          : 0);
       const next = {
-        width: bounds.width + chromeWidth,
-        height: bounds.height + chromeHeight,
+        width: pageWidth + chromeWidth,
+        height: pageHeight + chromeHeight,
       };
       setSize((current) =>
         current &&
@@ -157,7 +175,9 @@ export function SlidingPages({
   }, [value, focusOnChange, signature]);
 
   return (
-    <Context.Provider value={{ value, order, register }}>
+    <Context.Provider
+      value={{ value, previousValue: previous.current, order, register }}
+    >
       <div
         {...props}
         ref={root}
@@ -220,6 +240,20 @@ export function SlidingPage({
     },
     [register, value],
   );
+  useLayoutEffect(() => {
+    if (!active || context.previousValue === value) return;
+    const element = node.current!;
+    const oldIndex = order.indexOf(context.previousValue);
+    const direction =
+      oldIndex < 0 ? 1 : Math.sign(order.indexOf(value) - oldIndex);
+    const transition = element.style.transition;
+    element.style.transition = "none";
+    element.style.setProperty("--sliding-page-offset", String(direction));
+    // A newly added target has no previous offscreen layout to transition from.
+    element.getBoundingClientRect();
+    element.style.transition = transition;
+    element.style.setProperty("--sliding-page-offset", "0");
+  }, []);
   return (
     <div
       {...props}

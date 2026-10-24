@@ -46,12 +46,17 @@ measured with ResizeObserver. Put page spacing on SlidingPage rather than on
 the viewport. SlidingPages supplies no card, background, radius or navigation;
 compose those with the host's existing surface. Its ref points to the viewport;
 a SlidingPage ref points to that page's div.
+Measurements use layout dimensions, so a containing dialog's entrance scale
+does not distort the viewport's target size.
 
 Both size and position use the same duration/easing. Override
 `--ui-sliding-pages-duration` and `--ui-sliding-pages-easing` in the host's CSS.
 Their defaults live in src/theme/tokens.css. Initial mounting does not slide,
 rapid navigation retargets the existing transitions, and reduced-motion removes
 both sliding and size animation. No timers or animation library are needed.
+Pages added together with a value change enter from the corresponding side too.
+Retain the outgoing page during that transition if its exit should remain visible;
+Calendar uses this pattern to keep its mounted month history bounded.
 
 ## Forms, state and accessibility
 

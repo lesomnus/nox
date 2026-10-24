@@ -66,6 +66,10 @@
   display: grid;
   gap: var(--ui-control-inset);
 }
+.monthPage.monthPage {
+  display: grid;
+  gap: var(--ui-control-inset);
+}
 .week {
   display: grid;
   grid-template-columns: repeat(7, minmax(0, 1fr));

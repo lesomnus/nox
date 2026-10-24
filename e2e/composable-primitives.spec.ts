@@ -109,11 +109,15 @@ test("standalone Calendar selects and navigates inline without a dialog or focus
   expect(
     await root.evaluate((node) => node.contains(document.activeElement)),
   ).toBe(false);
-  await root.locator('[data-date="2026-10-28"]').click();
+  await root
+    .locator('[data-sliding-page][data-active] [data-date="2026-10-28"]')
+    .click();
   await expect(page.locator('input[name="date"]')).toHaveValue("2026-10-28");
   await expect(root).toBeVisible();
   await page.keyboard.press("PageDown");
-  await expect(root.locator('[data-date="2026-11-28"]')).toBeFocused();
+  await expect(
+    root.locator('[data-sliding-page][data-active] [data-date="2026-11-28"]'),
+  ).toBeFocused();
   await page.keyboard.press("Enter");
   await expect(page.locator('input[name="date"]')).toHaveValue("2026-11-28");
   await root.getByRole("button", { name: "Clear date" }).click();
@@ -122,9 +126,9 @@ test("standalone Calendar selects and navigates inline without a dialog or focus
   await page.getByRole("button", { name: "Set date" }).click();
   await expect(page.getByRole("grid")).toHaveAccessibleName("January 2027");
   await expect(page.getByRole("button", { name: "Set date" })).toBeFocused();
-  await expect(page.locator('[data-date="2027-01-15"]')).toHaveAttribute(
-    "data-selected",
-  );
+  await expect(
+    page.locator('[data-sliding-page][data-active] [data-date="2027-01-15"]'),
+  ).toHaveAttribute("data-selected");
 });
 
 test("composed Calendar uses custom navigation/footer, metadata, atomic ranges and grid-only labels", async ({
@@ -135,13 +139,19 @@ test("composed Calendar uses custom navigation/footer, metadata, atomic ranges a
     name: "Custom schedule",
     exact: true,
   });
-  await root.locator('[data-date="2026-10-26"]').hover();
+  await root
+    .locator('[data-sliding-page][data-active] [data-date="2026-10-26"]')
+    .hover();
   await expect(root.getByText("Office closed", { exact: true })).toBeVisible();
-  await root.locator('[data-date="2026-10-28"]').click();
+  await root
+    .locator('[data-sliding-page][data-active] [data-date="2026-10-28"]')
+    .click();
   await expect(root.getByRole("status")).toHaveText(
     "This selection is unavailable.",
   );
-  await root.locator('[data-date="2026-10-24"]').click();
+  await root
+    .locator('[data-sliding-page][data-active] [data-date="2026-10-24"]')
+    .click();
   await expect(page.getByLabel("Selected range")).toHaveText(
     '{"start":"2026-10-21","end":"2026-10-24"}',
   );
@@ -152,7 +162,9 @@ test("composed Calendar uses custom navigation/footer, metadata, atomic ranges a
   await story(page, "components-calendar--grid-only");
   await expect(page.getByRole("grid")).toHaveAccessibleName("October 2026");
   await expect(page.getByRole("button", { name: "Next month" })).toHaveCount(0);
-  await page.locator('[data-date="2026-10-24"]').press("PageDown");
+  await page
+    .locator('[data-sliding-page][data-active] [data-date="2026-10-24"]')
+    .press("PageDown");
   await expect(page.getByRole("grid")).toHaveAccessibleName("November 2026");
 });
 
@@ -160,8 +172,12 @@ test("inline Calendar form reset and disabled/read-only states preserve their ow
   page,
 }) => {
   await story(page, "components-calendar--form");
-  await page.locator('[data-date="2026-10-28"]').click();
-  await page.locator('[data-date="2026-10-30"]').click();
+  await page
+    .locator('[data-sliding-page][data-active] [data-date="2026-10-28"]')
+    .click();
+  await page
+    .locator('[data-sliding-page][data-active] [data-date="2026-10-30"]')
+    .click();
   await page.getByRole("button", { name: "Submit", exact: true }).click();
   await expect(page.getByLabel("Submitted period")).toHaveText(
     '{"period.start":"2026-10-28","period.end":"2026-10-30"}',
@@ -174,10 +190,14 @@ test("inline Calendar form reset and disabled/read-only states preserve their ow
     "2026-10-24",
   );
   await story(page, "components-calendar--disabled");
-  await expect(page.locator('[data-date="2026-10-24"]')).toBeDisabled();
+  await expect(
+    page.locator('[data-sliding-page][data-active] [data-date="2026-10-24"]'),
+  ).toBeDisabled();
   await expect(page.getByRole("button", { name: "Clear date" })).toBeDisabled();
   await story(page, "components-calendar--read-only");
-  await page.locator('[data-date="2026-10-28"]').click({ force: true });
+  await page
+    .locator('[data-sliding-page][data-active] [data-date="2026-10-28"]')
+    .click({ force: true });
   await expect(page.locator('input[name="date"]')).toHaveValue("2026-10-24");
   await expect(page.getByRole("button", { name: "Clear date" })).toBeDisabled();
 });
@@ -187,12 +207,13 @@ test("inline Calendar clamps its initial month to bounds and refocuses a reselec
 }) => {
   await story(page, "components-calendar--default");
   await page.getByRole("button", { name: "Today", exact: true }).click();
-  await expect(page.locator('[data-date="2026-10-24"]')).toBeFocused();
+  await expect(
+    page.locator('[data-sliding-page][data-active] [data-date="2026-10-24"]'),
+  ).toBeFocused();
   await story(page, "components-calendar--bounded");
   await expect(page.getByRole("grid")).toHaveAccessibleName("December 2026");
   await expect(page.getByRole("button", { name: "Next month" })).toBeDisabled();
-  await expect(page.locator('[data-date="2026-12-31"]')).toHaveAttribute(
-    "tabindex",
-    "0",
-  );
+  await expect(
+    page.locator('[data-sliding-page][data-active] [data-date="2026-12-31"]'),
+  ).toHaveAttribute("tabindex", "0");
 });
