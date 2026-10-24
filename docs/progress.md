@@ -22,7 +22,8 @@ and `aria-valuemin`, `aria-valuemax`, `aria-valuenow`. Provide `aria-label` or
 caller owns progress updates, polling and completion behavior.
 
 `animated` defaults to true. It enables fill-width transitions and loops the
-existing `InkSparkle` effect, clipped inside the fill. Its center stays fixed two
+existing `InkSparkle` effect, clipped inside the fill. Dark ink and sparkles give
+contrast against the solid bar. Its center stays fixed two
 bar heights outside the left edge, vertically centered on the bar. Resizing or
 changing the bar height keeps that origin outside the bar. `sparkleOptions`
 customizes `color`, `sparkleColor`, `duration` and `seed`; the default burst takes
