@@ -28,6 +28,7 @@ export * from "./components/elapsed-time/elapsed-time";
 export * from "./components/animated-text/animated-text";
 export * from "./components/compact-number/compact-number";
 export * from "./components/switch/switch";
+export * from "./components/pin-input/pin-input";
 export * from "./components/ink-sparkle/ink-sparkle";
 export * from "./components/split-layout/split-layout";
 export * from "./components/resize-handle/resize-handle";
