@@ -45,6 +45,18 @@ test("one group wave reaches A before B and the mask excludes the gap", async ({
   const canvas = group.locator("canvas[data-ink-sparkle]");
   await expect(canvas).toHaveCount(1);
   await expect(canvas).toHaveAttribute("data-renderer", "webgl2");
+  expect(
+    await canvas.evaluate((node) => {
+      const gl = (node as HTMLCanvasElement).getContext("webgl2")!;
+      const program = gl.getParameter(gl.CURRENT_PROGRAM) as WebGLProgram;
+      return Array.from(
+        gl.getUniform(
+          program,
+          gl.getUniformLocation(program, "u_center")!,
+        ) as Float32Array,
+      );
+    }),
+  ).toEqual([-8, -8]);
   await page.clock.runFor(500);
   expect(
     await inkAlpha(canvas, group.locator('[data-panel="a"]')),
@@ -75,6 +87,31 @@ test("one group wave reaches A before B and the mask excludes the gap", async ({
       };
     });
   expect(mask).toEqual({ a: 255, gap: 0, b: 255, corner: 0 });
+});
+
+test("custom origin coordinates update the same active group canvas", async ({
+  page,
+}) => {
+  await page.goto(story("grouped-origin"));
+  const canvas = page.locator("canvas[data-ink-sparkle]");
+  await expect(canvas).toHaveAttribute("data-renderer", "webgl2");
+  const center = () =>
+    canvas.evaluate((node) => {
+      const gl = (node as HTMLCanvasElement).getContext("webgl2")!;
+      const program = gl.getParameter(gl.CURRENT_PROGRAM) as WebGLProgram;
+      return Array.from(
+        gl.getUniform(
+          program,
+          gl.getUniformLocation(program, "u_center")!,
+        ) as Float32Array,
+      );
+    });
+  await expect.poll(center).toEqual([-40, -40]);
+  await page.getByRole("spinbutton", { name: "Origin X" }).fill("200");
+  await page.getByRole("spinbutton", { name: "Origin Y" }).fill("40");
+  await expect.poll(center).toEqual([200, 40]);
+  await expect(canvas).toHaveAttribute("data-renderer", "webgl2");
+  await expect(canvas).toHaveCount(1);
 });
 
 test("membership and layout changes update the shared mask without adding a canvas", async ({

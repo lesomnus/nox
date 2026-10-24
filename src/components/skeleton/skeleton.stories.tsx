@@ -63,6 +63,51 @@ export const GroupedStatic: Story = {
   args: { animated: false },
 };
 
+export const GroupedOrigin: Story = {
+  render: function Example({ animated, sparkleOptions }) {
+    const [x, setX] = useState(-40);
+    const [y, setY] = useState(-40);
+    return (
+      <section style={{ width: 400, maxWidth: "100%" }}>
+        <div
+          style={{ display: "flex", gap: 16, marginBottom: 16, fontSize: 12 }}
+        >
+          <label>
+            Origin X{" "}
+            <input
+              aria-label="Origin X"
+              type="number"
+              value={x}
+              onChange={(event) => setX(event.currentTarget.valueAsNumber || 0)}
+              style={{ width: 64 }}
+            />
+          </label>
+          <label>
+            Origin Y{" "}
+            <input
+              aria-label="Origin Y"
+              type="number"
+              value={y}
+              onChange={(event) => setY(event.currentTarget.valueAsNumber || 0)}
+              style={{ width: 64 }}
+            />
+          </label>
+        </div>
+        <SkeletonGroup
+          animated={animated}
+          sparkleOptions={{ duration: 2400, ...sparkleOptions, origin: [x, y] }}
+          role="status"
+          aria-label="Loading panels"
+          style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}
+        >
+          <Skeleton variant="rect" height={80} />
+          <Skeleton variant="rect" height={80} />
+        </SkeletonGroup>
+      </section>
+    );
+  },
+};
+
 export const SeparateGroups: Story = {
   render: () => (
     <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 24 }}>

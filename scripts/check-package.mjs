@@ -80,7 +80,7 @@ try {
     const selectedRow: TableRowProps = { selected: true };
     const link: LinkButtonProps = { href: "#record", trailing: null, ref: node => { void node?.href; } };
     const skeleton: SkeletonProps = { variant: "circle", width: 32, animated: false, ref: node => { void node?.offsetWidth; } };
-    const skeletonGroup: SkeletonGroupProps = { animated: false, sparkleOptions: { duration: 2000, seed: 7, color: [1, 1, 1, 0.1] }, ref: node => { void node?.clientWidth; } };
+    const skeletonGroup: SkeletonGroupProps = { animated: false, sparkleOptions: { duration: 2000, seed: 7, color: [1, 1, 1, 0.1], origin: [-40, -40] }, ref: node => { void node?.clientWidth; } };
     const progress: ProgressProps = { value: 42, variant: "bordered", animated: false, sparkleOptions: { duration: 2000 } };
     const pin: PinInputProps = { label: "Device code", groups: [4,4], mode: "alphanumeric", name: "device_code" };
     void MenuSurface;

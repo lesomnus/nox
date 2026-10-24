@@ -4,7 +4,7 @@ import styles from "./skeleton.module.css";
 
 export type SkeletonSparkleOptions = Pick<
   InkSparkleProps,
-  "color" | "sparkleColor" | "duration" | "seed"
+  "color" | "sparkleColor" | "duration" | "seed" | "origin"
 >;
 
 export function createSkeletonRegistry() {
@@ -269,10 +269,18 @@ export function SkeletonSurface({
             sparkleColor={view.sparkleColor}
             duration={view.duration}
             {...sparkleOptions}
-            origin={[
-              -Math.min(2 * view.height, view.width * 0.1),
-              view.height / 2,
-            ]}
+            origin={
+              sparkleOptions?.origin ??
+              (registry
+                ? [
+                    -0.1 * Math.min(view.width, view.height),
+                    -0.1 * Math.min(view.width, view.height),
+                  ]
+                : [
+                    -Math.min(2 * view.height, view.width * 0.1),
+                    view.height / 2,
+                  ])
+            }
             centerMotion="fixed"
             loop
           />

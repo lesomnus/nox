@@ -29,7 +29,7 @@ The effect uses `InkSparkle` rather than a CSS shimmer. Override
 `--ui-skeleton-background`, `--ui-skeleton-ink-color`, `--ui-skeleton-highlight`,
 `--ui-skeleton-radius` or `--ui-skeleton-duration` (1600ms) on an instance or
 ancestor. Colors follow the dark/light theme. `sparkleOptions` accepts the same
-normalized RGBA `color`/`sparkleColor`, millisecond `duration` and `seed` as
+normalized RGBA `color`/`sparkleColor`, millisecond `duration`, `seed` and `origin` as
 InkSparkle, overriding these defaults.
 
 ## A continuous group
@@ -49,10 +49,17 @@ import { Skeleton, SkeletonGroup } from "@lesomnus/nox";
 `SkeletonGroup` renders a relative `div` and accepts native div props and ref.
 It does not choose a layout; use normal flex, grid or block styles. Descendant
 Skeletons share **one canvas and one animation clock**. An InkSparkle wave
-expands from just outside the group's left edge and passes through the whole
+expands from diagonally outside the group's top-left corner and passes through the whole
 surface. Rounded SVG masks expose it only inside the placeholders, so it
 crosses A, disappears in the gap, and continues into B instead of restarting
 inside each box. The effect never changes placeholder dimensions.
+
+Set `sparkleOptions={{ origin: [-40, -40] }}` to choose its fixed center.
+Coordinates are local CSS pixels: `[0, 0]` is the group's top-left corner;
+negative X/Y values place the center outside. The default is `[-d, -d]`, where
+`d` is 10% of the group's shorter side, recalculated when the group resizes.
+Custom coordinates remain fixed pixel values on resize. A standalone Skeleton
+keeps its default outside-left center and also accepts an explicit origin.
 
 Registration follows the nearest group, including across ordinary nested
 wrappers. Shapes and masks update on membership, resize, layout changes and
@@ -68,5 +75,6 @@ reduced motion and document visibility. If WebGL2 is unavailable, the base
 placeholders remain visible.
 
 See **Components/Skeleton → Grouped** for A→B continuity, **SeparateGroups** for
-independent surfaces and **DynamicGroup** for membership/resizing. Profile and
+independent surfaces, **GroupedOrigin** for editable X/Y coordinates and
+**DynamicGroup** for membership/resizing. Profile and
 **Components/Table → Loading** also use one shared group.
