@@ -27,6 +27,14 @@ typography instead of inheriting the host document's font. It owns its foregroun
 color, so a host page cannot make dark menus unreadable. Shade and dropdown
 tokens are the source of truth for appearance.
 
+ActionMenu and ValueMenu also render their rows with the same `MenuItem`,
+`MenuIcon`, `MenuGroupLabel` and `MenuDivider` components. This includes value
+triggers, current rows and search-row icons. SVG and image icons fill a shared
+decorative slot sized by `--ui-icon-size-small`, including SVGs without explicit
+dimensions. Row spacing uses the menu-item padding tokens; compact ValueMenu
+supplies its compact spacing to the same parts. Group typography and dividers
+also share one implementation.
+
 Sharing the surface does not make the interaction APIs interchangeable. Each
 menu owns its placement, focus, keyboard navigation, dismissal and roles.
 IconValueMenu supports the same choices and search behavior as ValueMenu.
@@ -115,13 +123,15 @@ monospace font. Switch the Storybook theme to compare dark and light surfaces.
 
 ## Custom overlays
 
-`MenuSurface` is also exported for custom menus. Supply an `anchor` element,
+`MenuSurface` and the row parts are exported for custom menus. Supply an `anchor` element,
 position the surface with its div props/ref, and implement the appropriate
 accessibility, focus and dismissal behavior. It portals into the anchor's
 nearest open native dialog, or the document body otherwise, so menus remain in
 the dialog's top layer. Inline typography styles can override the copied trigger
-styles. Groups, icons, filtering and keyboard behavior are supplied by the
-consumer when using this primitive directly.
+styles. Compose `MenuItem` with an `icon` and optional `trailing` content,
+`MenuGroupLabel` for a section title and `MenuDivider` between groups. MenuItem
+forwards Button props, refs and native events. These parts provide appearance;
+the consumer supplies filtering, roles, keyboard behavior and selection.
 
 Entrance transforms should release their animation state on completion. Check
 settled menu edges using rendered pixels at fractional zoom as well as DOM

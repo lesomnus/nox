@@ -1,6 +1,7 @@
 import styles from "./action-menu.module.css";
 import dialogStyles from "../dialog-surface/dialog-surface.module.css";
 import {
+  Fragment,
   useEffect,
   useId,
   useLayoutEffect,
@@ -10,6 +11,11 @@ import {
 } from "react";
 import { Button } from "../button/button";
 import { MenuSurface } from "../menu-surface/menu-surface";
+import {
+  MenuDivider,
+  MenuGroupLabel,
+  MenuItem,
+} from "../menu-surface/menu-item";
 
 export type MenuMotionDirection =
   | "left"
@@ -248,53 +254,58 @@ export function ActionMenu({
             data-enter-from={direction}
             data-enter-effect={reveal ? "reveal" : undefined}
           >
-            {(groups ?? [{ label: "", items }]).map((group) => (
-              <div
-                className="action-menu-group"
-                key={group.label}
-                role="group"
-                aria-label={group.label || undefined}
-              >
-                {group.label && (
-                  <span className="action-menu-group-title" aria-hidden="true">
-                    {group.label}
-                  </span>
-                )}
-                {group.items.map((item) => (
-                  <Button
-                    key={item.label}
-                    type="button"
-                    role={
-                      item.checked === undefined
-                        ? "menuitem"
-                        : "menuitemcheckbox"
-                    }
-                    aria-checked={item.checked}
-                    aria-label={item.label}
-                    disabled={item.disabled}
-                    data-danger={item.danger}
-                    onClick={(event) => {
-                      close(true);
-                      item.run(event.currentTarget);
-                    }}
-                  >
-                    <span className="action-menu-item-label">
-                      {item.icon}
+            {(groups ?? [{ label: "", items }]).map((group, index) => (
+              <Fragment key={group.label}>
+                {index > 0 && <MenuDivider />}
+                <div
+                  className="action-menu-group"
+                  role="group"
+                  aria-label={group.label || undefined}
+                >
+                  {group.label && (
+                    <MenuGroupLabel
+                      className="action-menu-group-title"
+                      aria-hidden="true"
+                    >
+                      {group.label}
+                    </MenuGroupLabel>
+                  )}
+                  {group.items.map((item) => (
+                    <MenuItem
+                      key={item.label}
+                      type="button"
+                      role={
+                        item.checked === undefined
+                          ? "menuitem"
+                          : "menuitemcheckbox"
+                      }
+                      aria-checked={item.checked}
+                      aria-label={item.label}
+                      disabled={item.disabled}
+                      data-danger={item.danger}
+                      icon={item.icon}
+                      trailing={
+                        item.shortcut && (
+                          <span className={styles.shortcut}>
+                            {(typeof item.shortcut === "string"
+                              ? [item.shortcut]
+                              : item.shortcut
+                            ).map((key, index) => (
+                              <kbd key={index}>{key}</kbd>
+                            ))}
+                          </span>
+                        )
+                      }
+                      onClick={(event) => {
+                        close(true);
+                        item.run(event.currentTarget);
+                      }}
+                    >
                       <span>{item.label}</span>
-                    </span>
-                    {item.shortcut && (
-                      <span className={styles.shortcut}>
-                        {(typeof item.shortcut === "string"
-                          ? [item.shortcut]
-                          : item.shortcut
-                        ).map((key, index) => (
-                          <kbd key={index}>{key}</kbd>
-                        ))}
-                      </span>
-                    )}
-                  </Button>
-                ))}
-              </div>
+                    </MenuItem>
+                  ))}
+                </div>
+              </Fragment>
             ))}
             {status && <small role="status">{status}</small>}
           </div>

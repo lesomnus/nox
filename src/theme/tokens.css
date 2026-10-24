@@ -97,6 +97,8 @@
   --ui-space: 4px;
   --ui-icon-size: 20px;
   --ui-icon-size-small: 14px;
+  --ui-menu-item-padding-block: 6px;
+  --ui-menu-item-padding-inline: 10px;
   --ui-checkbox-size: 18px;
   --ui-overflow-hint-background: var(--ui-shade-51);
   --ui-scroll-area-background: var(--ui-shade-24);

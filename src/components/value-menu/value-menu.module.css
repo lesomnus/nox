@@ -2,15 +2,12 @@
 :is(.value_menu, .setting_menu) * {
   box-sizing: border-box;
 }
-.value_menu {
-  --value-padding-block: 6px;
-  --value-padding-inline: 10px;
+:is(.value_menu, .setting_menu) {
+  --value-padding-block: var(--ui-menu-item-padding-block);
+  --value-padding-inline: var(--ui-menu-item-padding-inline);
   --value-row-height: calc(20px + 2 * var(--value-padding-block));
-}
-.setting_menu {
-  --value-padding-block: 6px;
-  --value-padding-inline: 10px;
-  --value-row-height: calc(20px + 2 * var(--value-padding-block));
+  --menu-item-padding-block: var(--value-padding-block);
+  --menu-item-padding-inline: var(--value-padding-inline);
 }
 .value_menu[data-variant="compact"] {
   --value-padding-block: var(--ui-control-inset);
@@ -33,7 +30,6 @@
 :is(.value_menu, .setting_menu) :global(.setting-trigger) {
   background: var(--value-background);
   display: block;
-  padding: var(--value-padding-block) var(--value-padding-inline);
   min-height: var(--value-row-height);
   height: var(--value-row-height);
   width: 100%;
@@ -98,12 +94,6 @@
   width: var(--value-text-width, auto);
   max-width: calc(var(--value-width) - 2 * var(--value-padding-inline));
 }
-:is(.value_menu, .setting_menu) :global(.setting-divider) {
-  height: 1px;
-  flex-shrink: 0;
-  margin: 6px 0;
-  background: var(--ui-shade-60);
-}
 .optionsArea.optionsArea {
   --ui-scroll-area-background: var(--ui-dropdown-background);
   --ui-scroll-area-content-inset: 0px;
@@ -123,10 +113,6 @@
 .setting_menu button {
   display: block;
   min-height: var(--value-row-height);
-  padding: var(--value-padding-block) var(--value-padding-inline);
-  width: 100%;
-  text-align: left;
-  font-size: inherit;
   line-height: 20px;
 }
 .setting_menu :global(.button-content) {
@@ -135,10 +121,6 @@
   white-space: nowrap;
   text-overflow: ellipsis;
   transform-origin: left center;
-}
-:global(.setting-trigger):not(:disabled):hover,
-.setting_menu button:not(:disabled):hover {
-  color: var(--ui-shade-255);
 }
 :is(.value_menu, .setting_menu) :global(.setting-trigger)[data-muted="true"] {
   color: var(--ui-muted);
@@ -193,35 +175,4 @@
   color: var(--ui-muted);
   font-size: min(1em, 12px);
   line-height: 20px;
-}
-
-.groupTitle {
-  display: flex;
-  align-items: center;
-  gap: var(--ui-space);
-  padding: var(--ui-control-inset) var(--value-padding-inline);
-  color: var(--ui-muted);
-  font-size: 10px;
-  line-height: 18px;
-}
-
-.groupTitleText {
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.icon {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  width: var(--ui-icon-size-small);
-  height: var(--ui-icon-size-small);
-}
-
-.icon > :is(svg, img) {
-  width: 100%;
-  height: 100%;
 }

@@ -133,7 +133,9 @@ describes the underlying mask mechanism.
 The public core entry exports Button/ButtonContent, BadgedIcon, ConfirmButton, ActionMenu, ValueMenu, SegmentedControl, Switch, ConfirmationDialog, EditableValue, FloatingCard, SettingField, SettingSlider, ElapsedTime, CompactNumber, DurationDisplay, DialogReveal, SplitLayout, ResizeHandle, ScrollArea and UIProvider. Button's `toolbar` variant provides the compact rectangular shape. Button defaults to `effect="sparkle"`; use `effect="none"` to opt out or `effectOptions` to customize ink color/timing. Callbacks and selected values belong to the consuming application; Application adapters handle persistence and session operations separately.
 
 `ActionMenu` and `ValueMenu` share the exported `MenuSurface` for portaling,
-themed foreground/background, blur, frame and trigger typography. Selection,
+themed foreground/background, blur, frame and trigger typography. Their rows,
+icon slots, group labels and dividers use the same exported `MenuItem`,
+`MenuIcon`, `MenuGroupLabel` and `MenuDivider` parts. Selection,
 actions, placement and keyboard behavior belong to each menu. The top-level
 **Menus** Storybook gallery collects shared appearance and feature examples.
 **Menus/Features** compares both menus side by side using the same items;

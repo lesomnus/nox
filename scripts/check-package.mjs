@@ -69,17 +69,24 @@ try {
     join(temporary, "main.tsx"),
     `
     import { createRoot } from "react-dom/client";
-    import { InkSparkle, type InkSparkleProps, Button, Checkbox, DateTime, DescriptionList, IdentifierValue, MenuSurface, type MenuSurfaceProps, NavigationPanel, StippleBackground, clusterMotion, workMotion, withPointerBurst, UIProvider } from "@lesomnus/nox";
+    import { InkSparkle, type InkSparkleProps, Button, Checkbox, DateTime, DescriptionList, IdentifierValue, MenuSurface, type MenuSurfaceProps, MenuItem, type MenuItemProps, MenuIcon, MenuGroupLabel, MenuDivider, NavigationPanel, StippleBackground, clusterMotion, workMotion, withPointerBurst, UIProvider } from "@lesomnus/nox";
     import { TerminalWorkbench } from "@lesomnus/nox/terminal";
     import "@lesomnus/nox/styles.css";
     void TerminalWorkbench;
     void MenuSurface;
+    void MenuIcon;
     const menuSurface: MenuSurfaceProps = { anchor: null, role: "menu", style: { left: 0, top: 0 } };
     void menuSurface;
+    const menuItem: MenuItemProps = { role: "menuitem", icon: <svg viewBox="0 0 24 24"><path d="M4 12h16" /></svg>, trailing: "Open", onClick: (event) => event.currentTarget.focus() };
     const sparkle: InkSparkleProps = { duration: 2000, origin: [-8, 40], centerMotion: "fixed", loop: true, sparkleColor: [0.25, 0.5, 0.75, 0.2] };
     createRoot(document.getElementById("root")!).render(
       <UIProvider>
         <Button>Save</Button>
+        <div role="menu" aria-label="Custom actions">
+          <MenuGroupLabel icon={<svg viewBox="0 0 24 24"><path d="M4 12h16" /></svg>}>Commands</MenuGroupLabel>
+          <MenuItem {...menuItem}>Details</MenuItem>
+          <MenuDivider />
+        </div>
         <Button effect="none">No ink</Button>
         <Button effect="sparkle" effectOptions={{color:[1,1,1,0.06],sparkleColor:[1,1,1,0.2],duration:1200,centerMotion:"fixed",seed:1}}>Custom ink</Button>
         <div style={{height:80}}><InkSparkle {...sparkle} /></div>

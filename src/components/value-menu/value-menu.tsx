@@ -11,8 +11,13 @@ import {
   type KeyboardEvent,
   type ReactNode,
 } from "react";
-import { Button } from "../button/button";
 import { MenuSurface } from "../menu-surface/menu-surface";
+import {
+  MenuDivider,
+  MenuGroupLabel,
+  MenuIcon,
+  MenuItem,
+} from "../menu-surface/menu-item";
 import { ScrollArea } from "../scroll-area/scroll-area";
 import { useUI } from "../../providers/ui-provider";
 
@@ -278,9 +283,10 @@ export function ValueMenu({
           close();
       }}
     >
-      <Button
+      <MenuItem
         type="button"
         className="setting-trigger"
+        icon={selected?.icon}
         data-muted={!!isMuted}
         role="combobox"
         aria-label={label}
@@ -291,9 +297,8 @@ export function ValueMenu({
         title={disabled ? disabledReason : text}
         onClick={() => (open ? close() : openMenu())}
       >
-        <ValueIcon icon={selected?.icon} />
         <span className="meta-value">{text}</span>
-      </Button>
+      </MenuItem>
       {open && (
         <MenuSurface
           anchor={trigger()}
@@ -309,7 +314,7 @@ export function ValueMenu({
               event.target instanceof Element &&
               (event.target.closest("button:disabled") ||
                 event.target.getAttribute("role") === "separator" ||
-                event.target.closest(`.${styles.groupTitle}`))
+                event.target.closest("[data-menu-group-label]"))
             )
               event.preventDefault();
           }}
@@ -330,7 +335,7 @@ export function ValueMenu({
         >
           {searchable ? (
             <div className="setting-current setting-search-row">
-              <ValueIcon icon={selected?.icon} />
+              <MenuIcon icon={selected?.icon} />
               <input
                 ref={search}
                 className="setting-search"
@@ -347,9 +352,10 @@ export function ValueMenu({
               />
             </div>
           ) : (
-            <Button
+            <MenuItem
               type="button"
               className="setting-current"
+              icon={selected?.icon}
               data-option-value={value}
               data-muted={!!isMuted}
               role="option"
@@ -358,12 +364,11 @@ export function ValueMenu({
               disabled={selected?.disabled}
               onClick={() => close(true)}
             >
-              <ValueIcon icon={selected?.icon} />
               <span className="meta-value">{text}</span>
-            </Button>
+            </MenuItem>
           )}
           <div className={`${styles.choices} ${dialogStyles.entrance}`}>
-            <div className="setting-divider" role="separator" />
+            <MenuDivider className="setting-divider" />
             <ScrollArea
               className={styles.optionsArea}
               viewportClassName="setting-options"
@@ -382,7 +387,7 @@ export function ValueMenu({
               {visibleSections.map((section, sectionIndex) => (
                 <Fragment key={section.index}>
                   {sectionIndex > 0 && (
-                    <div className="setting-divider" role="separator" />
+                    <MenuDivider className="setting-divider" />
                   )}
                   <div
                     role="group"
@@ -391,22 +396,19 @@ export function ValueMenu({
                     }
                   >
                     {section.label && (
-                      <span
+                      <MenuGroupLabel
                         id={`${id}-group-${section.index}`}
-                        className={styles.groupTitle}
+                        icon={section.icon}
                       >
-                        <ValueIcon icon={section.icon} />
-                        <span className={styles.groupTitleText}>
-                          {section.label}
-                        </span>
-                      </span>
+                        {section.label}
+                      </MenuGroupLabel>
                     )}
                     {section.items.map((choice, itemIndex) => (
                       <Fragment key={choice.value}>
                         {choice.separatorBefore && itemIndex > 0 && (
-                          <div className="setting-divider" role="separator" />
+                          <MenuDivider className="setting-divider" />
                         )}
-                        <Button
+                        <MenuItem
                           data-option-value={choice.value}
                           type="button"
                           role="option"
@@ -414,18 +416,18 @@ export function ValueMenu({
                           aria-selected={choice.value === value}
                           disabled={choice.disabled}
                           title={choice.label}
+                          icon={choice.icon}
                           data-muted={!!choice.muted}
                           onClick={() => {
                             close(true);
                             choose(choice.value);
                           }}
                         >
-                          <ValueIcon icon={choice.icon} />
                           <ValueLabel
                             option={choice}
                             query={searchable && queryEdited ? query : ""}
                           />
-                        </Button>
+                        </MenuItem>
                       </Fragment>
                     ))}
                   </div>
@@ -437,14 +439,6 @@ export function ValueMenu({
       )}
     </div>
   );
-}
-
-function ValueIcon({ icon }: { icon?: ReactNode }) {
-  return icon ? (
-    <span className={styles.icon} aria-hidden="true">
-      {icon}
-    </span>
-  ) : null;
 }
 
 function ValueLabel({ option, query }: { option: ValueOption; query: string }) {
