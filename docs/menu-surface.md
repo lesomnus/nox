@@ -17,5 +17,9 @@ accessibility and dismissal behavior. It portals into the anchor's nearest open
 native dialog, or the document body otherwise, so menus remain in the dialog's
 top layer. Inline typography styles can override the copied trigger styles.
 
+Entrance transforms should release their animation state on completion. Check
+settled menu edges using rendered pixels at fractional zoom as well as DOM
+bounds: equal layout gaps can still paint differently in a retained animation.
+
 Storybook **ActionMenu → Shared Surface** compares both menus using the same
 surface and trigger font in dark and light themes.

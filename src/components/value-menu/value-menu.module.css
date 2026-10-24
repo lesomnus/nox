@@ -82,6 +82,10 @@
   min-height: 0;
   transform-origin: top left;
 }
+.setting_menu .choices {
+  /* Release the entrance transform so fractional widths use the menu's paint grid. */
+  animation-fill-mode: backwards;
+}
 .setting_menu:global(.opens-up) .choices {
   --enter-y: calc(-1 * var(--ui-dialog-enter-offset));
   flex-direction: column-reverse;
