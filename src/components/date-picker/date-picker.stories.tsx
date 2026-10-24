@@ -9,6 +9,9 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
+  dateWeekSelection,
+  dateWindowSelection,
+  type DatePickerRange,
 } from "@lesomnus/nox";
 
 const meta = {
@@ -60,6 +63,8 @@ export const States: Story = {
 export const Controlled: Story = {
   render: function Example(args) {
     const [value, setValue] = useState<string | null>("2026-10-24");
+    if (args.mode === "multiple" || args.mode === "range")
+      return <DatePicker {...args} />;
     return (
       <div style={{ display: "grid", gap: 12 }}>
         <DatePicker {...args} value={value} onChange={setValue} />
@@ -127,4 +132,166 @@ export const NearViewportEdge: Story = {
 };
 export const Unavailable: Story = {
   args: { isDateDisabled: () => true, defaultValue: null },
+};
+
+const companyDates = (date: string) =>
+  date === "2026-10-26"
+    ? {
+        disabled: true,
+        label: "Company holiday",
+        description: "The office is closed. Choose another date.",
+      }
+    : date === "2026-10-30"
+      ? {
+          label: "Release day",
+          description: "A selectable event with a custom marker.",
+          marker: "◆",
+          style: { color: "var(--ui-shade-255)" },
+        }
+      : undefined;
+
+export const DateInformation: Story = {
+  args: { getDateInfo: companyDates },
+};
+export const Multiple: Story = {
+  args: {
+    mode: "multiple",
+    label: "Dates",
+    name: "dates",
+    defaultValue: ["2026-10-21", "2026-10-24"],
+    getDateInfo: companyDates,
+  },
+};
+export const Range: Story = {
+  args: { mode: "range", label: "Period", name: "period", defaultValue: null },
+};
+export const RestrictedRange: Story = {
+  args: {
+    mode: "range",
+    label: "Period",
+    name: "period",
+    defaultValue: null,
+    min: "2026-10-01",
+    max: "2026-11-30",
+    getDateInfo: companyDates,
+  },
+};
+export const ThreeDaySelection: Story = {
+  args: {
+    mode: "multiple",
+    label: "Three-day windows",
+    name: "dates",
+    defaultValue: [],
+    getSelectionDates: dateWindowSelection(),
+    getDateInfo: companyDates,
+    min: "2026-10-01",
+    max: "2026-10-31",
+  },
+};
+export const WeekSelection: Story = {
+  args: {
+    mode: "range",
+    label: "Week",
+    name: "week",
+    defaultValue: null,
+    weekStartsOn: 1,
+    getSelectionDates: dateWeekSelection,
+  },
+};
+export const ToggleWeeks: Story = {
+  args: {
+    mode: "multiple",
+    label: "Weeks",
+    name: "dates",
+    defaultValue: [],
+    weekStartsOn: 1,
+    getSelectionDates: dateWeekSelection,
+  },
+};
+export const CustomSelection: Story = {
+  args: {
+    mode: "multiple",
+    label: "Workdays",
+    name: "dates",
+    defaultValue: [],
+    weekStartsOn: 1,
+    getSelectionDates: (date, context) =>
+      dateWeekSelection(date, context)?.filter(
+        (value) => ![0, 6].includes(new Date(`${value}T00:00:00Z`).getUTCDay()),
+      ) ?? null,
+  },
+};
+export const MultipleForm: Story = {
+  args: {
+    mode: "multiple",
+    label: "Dates",
+    name: "dates",
+    defaultValue: ["2026-10-21"],
+  },
+  render: function Example(args) {
+    const [submitted, setSubmitted] = useState<string[]>([]);
+    return (
+      <form
+        style={{ display: "grid", gap: 12 }}
+        onSubmit={(event) => {
+          event.preventDefault();
+          setSubmitted(
+            new FormData(event.currentTarget).getAll("dates").map(String),
+          );
+        }}
+      >
+        <DatePicker {...args} />
+        <div className="buttons">
+          <Button type="submit">Submit</Button>
+          <Button type="reset">Reset form</Button>
+        </div>
+        <output aria-label="Submitted dates">
+          {JSON.stringify(submitted)}
+        </output>
+      </form>
+    );
+  },
+};
+export const ControlledRange: Story = {
+  args: {
+    mode: "range",
+    label: "Period",
+    name: "period",
+    defaultValue: null,
+    closeOnSelect: false,
+  },
+  render: function Example(args) {
+    const [value, setValue] = useState<DatePickerRange | null>(null);
+    const [submitted, setSubmitted] = useState("");
+    if (args.mode !== "range") return <DatePicker {...args} />;
+    return (
+      <form
+        style={{ display: "grid", gap: 12 }}
+        onSubmit={(event) => {
+          event.preventDefault();
+          setSubmitted(
+            JSON.stringify(
+              Object.fromEntries(new FormData(event.currentTarget)),
+            ),
+          );
+        }}
+      >
+        <DatePicker {...args} value={value} onChange={setValue} />
+        <output aria-label="Selected range">{JSON.stringify(value)}</output>
+        <div className="buttons">
+          <Button type="submit">Submit</Button>
+          <Button
+            type="button"
+            onClick={() => setValue({ start: "2026-11-02", end: "2026-11-06" })}
+          >
+            Set range
+          </Button>
+          <Button type="button" onClick={() => setValue(null)}>
+            Reset selection
+          </Button>
+        </div>
+        <output aria-label="Submitted range">{submitted}</output>
+      </form>
+    );
+  },
 };

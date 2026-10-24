@@ -70,7 +70,7 @@ try {
     `
     import { createRoot } from "react-dom/client";
     import { Progress, type ProgressProps } from "@lesomnus/nox";
-    import { DatePicker, type DatePickerProps } from "@lesomnus/nox";
+    import { DatePicker, dateWindowSelection, dateWeekSelection, type DatePickerProps, type DatePickerDateInfo, type DatePickerRange, type DatePickerSelectionResolver } from "@lesomnus/nox";
     import { PinInput, type PinInputProps, SplitLayout, type SplitNode, setSplitRatio, PrefixValueMenu, type PrefixValueMenuProps, IconValueMenu, AuroraGlow, type AuroraGlowProps, type AuroraPalette, InkSparkle, type InkSparkleProps, Button, Checkbox, DateTime, DescriptionList, IdentifierValue, MenuSurface, type MenuSurfaceProps, MenuScrollArea, MenuItem, type MenuItemProps, MenuIcon, MenuGroupLabel, MenuDivider, NavigationPanel, StippleBackground, clusterMotion, workMotion, withPointerBurst, UIProvider } from "@lesomnus/nox";
     import { Table, TableHeader, TableBody, TableFooter, TableRow, TableHead, TableCell, TableCaption, TableScrollArea, type TableProps, type TableRowProps } from "@lesomnus/nox";
     import { LinkButton, Skeleton, SkeletonGroup, type LinkButtonProps, type SkeletonProps, type SkeletonGroupProps } from "@lesomnus/nox";
@@ -91,6 +91,14 @@ try {
     const pickerOpacity: ColorPickerOpacityProps = { orientation: "horizontal", ref: node => { void node?.valueAsNumber; } };
     const progress: ProgressProps = { value: 42, variant: "bordered", animated: false, sparkleOptions: { duration: 2000 } };
     const datePicker: DatePickerProps = { label: "Date", defaultValue: "2026-10-24", min: "2026-01-01", max: "2026-12-31", name: "date", locale: "en-US", weekStartsOn: 1, onChange: value => { void value; }, ref: node => { void node?.focus(); } };
+    const holiday: DatePickerDateInfo = { disabled: true, label: "Holiday", description: "Closed", marker: "•", style: { color: "currentColor" } };
+    const windowSelection: DatePickerSelectionResolver = dateWindowSelection({ before: 1, after: 1 });
+    const multipleDates: DatePickerProps = { mode: "multiple", label: "Dates", defaultValue: [], getDateInfo: () => holiday, getSelectionDates: windowSelection, onChange: dates => { void dates.join(","); } };
+    const interval: DatePickerRange = { start: "2026-10-21", end: null };
+    const dateRange: DatePickerProps = { mode: "range", label: "Period", defaultValue: interval, getSelectionDates: dateWeekSelection, onChange: range => { void range?.end; } };
+    // @ts-expect-error Selection modes require their matching value shapes.
+    const invalidDateMode: DatePickerProps = { mode: "multiple", label: "Invalid", value: "2026-10-21" };
+    void invalidDateMode;
     const pin: PinInputProps = { label: "Device code", groups: [4,4], mode: "alphanumeric", name: "device_code" };
     void MenuSurface;
     void MenuIcon;
@@ -111,6 +119,7 @@ try {
         <Button>Save</Button>
         <Progress {...progress} aria-label="Build progress" />
         <DatePicker {...datePicker} />
+        <DatePicker {...multipleDates} /><DatePicker {...dateRange} />
         <PinInput {...pin} />
         <MenuScrollArea role="menu" aria-label="Custom actions" scrollbarLabel="Scroll actions">
           <MenuGroupLabel icon={<svg viewBox="0 0 24 24"><path d="M4 12h16" /></svg>}>Commands</MenuGroupLabel>

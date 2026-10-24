@@ -15,6 +15,9 @@
   white-space: nowrap;
   font-variant-numeric: tabular-nums;
 }
+.trigger[data-mode="range"] {
+  width: var(--ui-date-picker-range-trigger-width);
+}
 .icon {
   flex: none;
   width: var(--ui-icon-size-small);
@@ -77,6 +80,55 @@
 .week > [role="gridcell"] {
   min-height: var(--ui-date-picker-day-size);
 }
+.cell {
+  position: relative;
+  min-width: 0;
+}
+.cell[data-band]::before {
+  content: "";
+  position: absolute;
+  inset: 0 calc(-1 * var(--ui-control-inset) / 2);
+  background: var(--ui-date-picker-range-background);
+  pointer-events: none;
+}
+.cell[data-band="preview"]::before {
+  background: var(--ui-date-picker-preview-background);
+}
+.cell:first-child::before {
+  left: 0;
+}
+.cell:last-child::before {
+  right: 0;
+}
+.cell[data-band-start]::before {
+  left: 50%;
+}
+.cell[data-band-end]::before {
+  right: 50%;
+}
+.dayContent {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  min-height: calc(
+    var(--ui-date-picker-day-size) - 2 * var(--ui-control-inset)
+  );
+}
+.marker {
+  position: absolute;
+  bottom: calc(-1 * var(--ui-control-inset));
+  left: 50%;
+  translate: -50% 0;
+  max-width: 100%;
+  font-size: var(--ui-date-picker-marker-size);
+  line-height: 1;
+}
+.marker svg {
+  width: 1em;
+  height: 1em;
+}
 .day.day {
   width: 100%;
   min-height: var(--ui-date-picker-day-size);
@@ -101,6 +153,34 @@
 .day[data-selected] {
   background: var(--ui-selected);
   color: var(--ui-shade-255);
+}
+.day[data-preview] {
+  background: var(--ui-date-picker-preview-background);
+}
+.day[data-preview][data-selected] {
+  background: var(--ui-selected);
+}
+.dateInfo,
+.status {
+  color: var(--ui-muted);
+  font-size: 11px;
+  line-height: 1.5;
+  min-width: 0;
+  padding-inline: var(--ui-space);
+}
+.dateInfo {
+  display: grid;
+}
+.dateInfo > *,
+.status {
+  min-height: 1.5em;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.dateInfo small {
+  font-size: inherit;
+  color: var(--ui-text-separator);
 }
 .footer {
   display: flex;

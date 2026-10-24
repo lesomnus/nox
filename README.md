@@ -105,12 +105,16 @@ for device codes. Typing advances the visible caret; paste, autofill, native for
 submission and keyboard editing work with one unformatted value. See
 [PIN and device codes](docs/pin-input.md) and **Components/PinInput**.
 
-`DatePicker` selects one Gregorian date from an anchored calendar. It exchanges
-date-only `YYYY-MM-DD` strings (or `null`), supports controlled/uncontrolled state,
-native form values/reset, date bounds and unavailable dates, and localizes labels
-without shifting dates across time zones. It shares the menu surface and scroll
-components, including inside dialogs. See [date selection](docs/date-picker.md)
-and **Components/DatePicker** for examples and keyboard controls.
+`DatePicker` selects single dates, multiple dates or continuous date ranges from
+an anchored Gregorian calendar. It exchanges date-only `YYYY-MM-DD` values,
+supports controlled/uncontrolled state, native form values/reset, bounds and
+unavailable dates, and localizes labels without shifting dates across time zones.
+`getDateInfo` adds holidays, descriptions, markers and styles; `getSelectionDates`
+maps a click to an atomic date group. The `dateWindowSelection` and
+`dateWeekSelection` presets work with multiple/range modes. It shares menu and
+scroll components, including inside dialogs. See
+[date selection](docs/date-picker.md) and **Components/DatePicker** for examples
+and keyboard controls.
 
 `Progress` provides a boxed progress rail with optional InkSparkle animation
 from a fixed center outside its left edge. The bordered variant uses the shared

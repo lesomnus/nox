@@ -100,6 +100,10 @@
   --ui-date-picker-width: 268px;
   --ui-date-picker-day-size: 32px;
   --ui-date-picker-font-size: 12px;
+  --ui-date-picker-range-trigger-width: 280px;
+  --ui-date-picker-range-background: var(--ui-shade-36);
+  --ui-date-picker-preview-background: var(--ui-shade-32);
+  --ui-date-picker-marker-size: 8px;
   --ui-color-input-background: transparent;
   --ui-color-input-border: var(--ui-shade-48);
   --ui-color-input-focus-border: var(--ui-shade-115);
