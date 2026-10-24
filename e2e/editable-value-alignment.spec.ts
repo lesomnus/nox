@@ -53,7 +53,32 @@ for (const { theme, customSpacing } of [
     expect(metrics.control.y).toBeLessThan(metrics.editable.y);
 
     const trigger = page.getByRole("button", { name: "Edit Name" });
+    const label = list.locator("dt").first();
+    const labelBox = (await label.boundingBox())!;
+    const labelStyle = await label.evaluate((el) => ({
+      color: getComputedStyle(el).color,
+      font: getComputedStyle(el).font,
+    }));
     await trigger.click();
+    const foreground = page.locator(
+      '.editable-value-dialog [data-dialog-trigger="true"]',
+    );
+    const foregroundLabel = foreground.locator("dt");
+    await expect(label).toHaveCSS("visibility", "hidden");
+    await expect(foreground).toHaveAttribute("aria-hidden", "true");
+    await expect(foreground).toHaveCSS("opacity", "1");
+    await expect(foregroundLabel).toHaveText("Name");
+    await expect(foregroundLabel).toHaveCSS("color", labelStyle.color);
+    await expect(foregroundLabel).toHaveCSS("font", labelStyle.font);
+    await expect
+      .poll(async () => {
+        const box = (await foreground.boundingBox())!;
+        return Math.max(
+          Math.abs(box.x - labelBox.x),
+          Math.abs(box.y - labelBox.y),
+        );
+      })
+      .toBeLessThan(0.1);
     const input = page.getByRole("textbox", { name: "Name", exact: true });
     const inputBox = (await input.boundingBox())!;
     for (const key of ["x", "y", "width", "height"] as const)
@@ -64,13 +89,47 @@ for (const { theme, customSpacing } of [
     }));
     expect(inputBox.x + padding.left).toBeCloseTo(metrics.content.x, 2);
     expect(inputBox.y + padding.top).toBeCloseTo(metrics.content.y, 2);
+    await foreground.click();
+    await expect(input).toBeFocused();
+    await page.setViewportSize({ width: 760, height: 520 });
+    await expect
+      .poll(async () => {
+        const source = await label.evaluate((el) => ({
+          x: el.getBoundingClientRect().x,
+          y: el.getBoundingClientRect().y,
+        }));
+        const box = (await foreground.boundingBox())!;
+        return Math.max(Math.abs(box.x - source.x), Math.abs(box.y - source.y));
+      })
+      .toBeLessThan(0.1);
     await input.fill("Updated workspace");
     await input.press("Enter");
     await expect(trigger).toHaveText("Updated workspace");
+    await expect(label).toBeVisible();
+    await expect(foreground).toHaveCount(0);
     await trigger.click();
     await input.fill("Discarded change");
     await input.press("Escape");
     await expect(trigger).toHaveText("Updated workspace");
+    await expect(label).toBeVisible();
+    await expect(foreground).toHaveCount(0);
     await expect(trigger).toBeFocused();
   });
 }
+
+test("standalone editing does not add a foreground label when there is no visible field label", async ({
+  page,
+}) => {
+  await page.goto(
+    "/iframe.html?id=integration-standalone--editable&viewMode=story",
+  );
+  const trigger = page.getByRole("button", { name: "Edit Name" });
+  await trigger.click();
+  await expect(
+    page.locator('.editable-value-dialog [data-dialog-trigger="true"]'),
+  ).toHaveCount(0);
+  const input = page.getByRole("textbox", { name: "Name", exact: true });
+  await expect(input).toBeFocused();
+  await input.press("Escape");
+  await expect(trigger).toBeFocused();
+});
