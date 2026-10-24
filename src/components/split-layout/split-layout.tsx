@@ -267,7 +267,7 @@ export function SplitLayout({
     drag.current = undefined;
     setDragging([]);
     setSnapped([]);
-    if (!cancel) setHovered(group(origin.targets.map((target) => target.id)));
+    setHovered([]);
     if (root.current?.hasPointerCapture(origin.pointer))
       root.current.releasePointerCapture(origin.pointer);
   }
@@ -376,6 +376,7 @@ export function SplitLayout({
       event.preventDefault();
       event.stopPropagation();
       event.currentTarget.focus({ preventScroll: true });
+      setFocused([]);
       drag.current = {
         pointer: event.pointerId,
         x: event.clientX,
@@ -447,6 +448,7 @@ export function SplitLayout({
       finish(event, true);
     },
     key: (event, ids) => {
+      setFocused(group(ids));
       const entries = targets(group(ids));
       if (["Enter", " "].includes(event.key) && ids.length > 1) {
         event.preventDefault();
@@ -561,9 +563,12 @@ export function SplitLayout({
           role="button"
           tabIndex={0}
           aria-label={junctionLabel}
-          onFocus={() => {
+          onFocus={(event) => {
             pinned.current = { id: junction.id, ids: junction.ids };
-            controls.focus(junction.ids, true);
+            controls.focus(
+              junction.ids,
+              event.currentTarget.matches(":focus-visible"),
+            );
           }}
           onBlur={() => {
             if (!drag.current) pinned.current = undefined;

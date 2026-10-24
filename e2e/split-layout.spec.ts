@@ -581,3 +581,125 @@ test("standalone double-click still equalizes without responding to pane double-
   await outer.dblclick({ position: { x: box.width / 2, y: box.height / 4 } });
   await expect(outer).toHaveAttribute("aria-valuenow", "50");
 });
+
+for (const story of ["nested", "crossing", "transposed-crossing"]) {
+  test(`${story}: junction highlight follows pointer after a joint drag without blurring it`, async ({
+    page,
+  }) => {
+    await open(page, story);
+    const joint = junction(page);
+    const start = await center(joint);
+    const baseSize = await joint.evaluate((node) =>
+      parseFloat(
+        getComputedStyle(node).getPropertyValue("--ui-split-line-size"),
+      ),
+    );
+    await page.mouse.move(start.x, start.y);
+    await page.mouse.down();
+    await page.mouse.move(start.x + 30, start.y + 25, { steps: 4 });
+    await page.mouse.up();
+    await expect(joint).toBeFocused();
+    await expect(joint).toHaveAttribute("data-highlight-vertical", "true");
+    await expect(joint).toHaveAttribute("data-highlight-horizontal", "true");
+    await page.mouse.move(30, 30);
+    await expect(
+      page.locator(
+        "[data-highlighted], [data-highlight-vertical], [data-highlight-horizontal], [data-dragging]",
+      ),
+    ).toHaveCount(0);
+    await expect
+      .poll(() =>
+        joint.evaluate((node) =>
+          parseFloat(getComputedStyle(node, "::before").width),
+        ),
+      )
+      .toBe(baseSize);
+    const sizes = await page.locator("[data-split-id]").evaluateAll((nodes) =>
+      nodes.map((node) => {
+        const style = getComputedStyle(node, "::before");
+        return parseFloat(
+          (node as HTMLElement).dataset.axis === "horizontal"
+            ? style.width
+            : style.height,
+        );
+      }),
+    );
+    expect(sizes.every((size) => size === baseSize)).toBe(true);
+    await joint.hover();
+    await expect(joint).toHaveAttribute("data-highlight-vertical", "true");
+    await expect(joint).toHaveAttribute("data-highlight-horizontal", "true");
+    await page.mouse.move(30, 30);
+    await expect(
+      page.locator(
+        "[data-highlighted], [data-highlight-vertical], [data-highlight-horizontal]",
+      ),
+    ).toHaveCount(0);
+  });
+}
+
+test("releasing a clamped joint drag outside the layout does not preserve a hover", async ({
+  page,
+}) => {
+  await open(page, "crossing");
+  const start = await center(junction(page));
+  await page.mouse.move(start.x, start.y);
+  await page.mouse.down();
+  await page.mouse.move(1000, 650, { steps: 4 });
+  await page.mouse.up();
+  await expect(
+    page.locator(
+      "[data-highlighted], [data-highlight-vertical], [data-highlight-horizontal], [data-dragging]",
+    ),
+  ).toHaveCount(0);
+});
+
+test("keyboard focus still highlights a junction and clears when tabbing away", async ({
+  page,
+}) => {
+  await open(page, "crossing");
+  await page.keyboard.press("Tab");
+  for (
+    let i = 0;
+    i < 4 &&
+    !(await junction(page).evaluate((node) => node === document.activeElement));
+    i++
+  )
+    await page.keyboard.press("Tab");
+  await expect(junction(page)).toBeFocused();
+  await expect(junction(page)).toHaveAttribute(
+    "data-highlight-vertical",
+    "true",
+  );
+  await expect(junction(page)).toHaveAttribute(
+    "data-highlight-horizontal",
+    "true",
+  );
+  await page.keyboard.press("ArrowRight");
+  await expect(split(page, "outer")).toHaveAttribute("aria-valuenow", "52");
+  const start = await center(junction(page));
+  await page.mouse.move(start.x, start.y);
+  await page.mouse.down();
+  await page.mouse.move(start.x + 25, start.y + 20, { steps: 3 });
+  await page.mouse.up();
+  await page.mouse.move(30, 30);
+  await expect(
+    page.locator(
+      "[data-highlighted], [data-highlight-vertical], [data-highlight-horizontal]",
+    ),
+  ).toHaveCount(0);
+  await page.keyboard.press("ArrowLeft");
+  await expect(junction(page)).toHaveAttribute(
+    "data-highlight-vertical",
+    "true",
+  );
+  await expect(junction(page)).toHaveAttribute(
+    "data-highlight-horizontal",
+    "true",
+  );
+  await page.keyboard.press("Tab");
+  await expect(
+    page.locator(
+      "[data-highlighted], [data-highlight-vertical], [data-highlight-horizontal]",
+    ),
+  ).toHaveCount(0);
+});
