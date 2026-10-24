@@ -2,6 +2,7 @@ import "./theme/tokens.css";
 export { BRAND_COLOR } from "./theme/colors";
 export { monospaceFont, MONOSPACE_FONT_FALLBACK } from "./theme/fonts";
 export * from "./providers/ui-provider";
+export * from "./providers/theme-provider";
 export * from "./components/button/button";
 export * from "./components/link-button/link-button";
 export * from "./components/skeleton/skeleton";

@@ -75,8 +75,11 @@ values. `monospaceFont()` resolves the same CSS token for canvas terminals and
 editor defaults; explicit editor font settings still take precedence. The
 stylesheet defines only namespaced tokens and styles for library component
 classes; it does not reset the host's body, buttons or form fields. Dark is the
-default palette. Set `data-ui-theme="light"` on the document root for the light
-palette. Root-level `--ui-*` overrides also reach portaled menus and dialogs. Keep
+default palette. `ThemeProvider` adds light/dark/system controls and a reactive
+`useTheme()` hook. Persistence defaults to localStorage (`nox.theme`), with an
+injectable synchronous or asynchronous storage backend. See [themes](docs/theme.md).
+Set `data-ui-theme="light"` on the document root for CSS-only use.
+Root-level `--ui-*` overrides also reach portaled menus and dialogs. Keep
 token values in CSS rather than duplicating design measurements in documentation.
 
 Formatted text shares three color roles across `ElapsedTime`, `CompactNumber`,

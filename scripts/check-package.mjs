@@ -70,6 +70,7 @@ try {
     `
     import { createRoot } from "react-dom/client";
     import { Progress, type ProgressProps } from "@lesomnus/nox";
+    import { ThemeProvider, useTheme, createLocalStorageThemeStorage, type ThemeStorage, type ThemePreference } from "@lesomnus/nox";
     import { SlidingPages, SlidingPage, type SlidingPagesProps, type SlidingPageProps } from "@lesomnus/nox";
 
     import { Drawer, Card, CardActions, type CardProps, type DrawerProps, type DrawerSide } from "@lesomnus/nox";
@@ -85,6 +86,9 @@ try {
     import { TerminalWorkbench } from "@lesomnus/nox/terminal";
     import "@lesomnus/nox/styles.css";
     void TerminalWorkbench;
+    const themeStorage: ThemeStorage = { read: async () => "system", write: async (preference: ThemePreference) => { void preference; }, subscribe: () => () => {} };
+    void createLocalStorageThemeStorage("consumer.theme");
+    function ThemeConsumer() { const { theme, preference, setPreference, ready, saving, error } = useTheme(); void setPreference; void ready; void saving; void error; return <span>{theme}/{preference}</span>; }
     const drawerSide: DrawerSide = "bottom";
     const slidingPage: SlidingPageProps = { value: "profile", "aria-label": "Profile", ref: node => { void node?.clientHeight; } };
     const slidingPages: SlidingPagesProps = { value: "profile", resize: "both", orientation: "horizontal", focusOnChange: true, children: <SlidingPage {...slidingPage} />, ref: node => { void node?.clientWidth; } };
@@ -142,6 +146,7 @@ try {
         <IconValueMenu label="Legacy effort" icon="Effort" value="medium" options={[{value:"medium",label:"Medium"}]} choose={() => {}} />
         <Button>Save</Button>
         <Progress {...progress} aria-label="Build progress" />
+        <ThemeProvider storage={themeStorage} defaultPreference="system"><ThemeConsumer /></ThemeProvider>
         <SlidingPages {...slidingPages} />
 
         <Drawer {...drawer} aria-label="Details"><Card {...card}>Custom content</Card></Drawer>
