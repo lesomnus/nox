@@ -28,6 +28,70 @@ export function setSplitRatio(
   };
 }
 
+export function findSplit(
+  node: SplitNode,
+  id: string,
+): Extract<SplitNode, { kind: "split" }> | undefined {
+  if (node.kind === "pane") return undefined;
+  return node.id === id
+    ? node
+    : (findSplit(node.first, id) ?? findSplit(node.second, id));
+}
+
+/** Rotate an aligned four-pane crossing without changing or duplicating any pane. */
+export function detachCrossing(
+  node: SplitNode,
+  id: string,
+  secondId: string,
+  tolerance = 1e-6,
+): { node: SplitNode; first: string; second: string } | undefined {
+  const split = findSplit(node, id);
+  if (
+    !split ||
+    split.first.kind !== "split" ||
+    split.second.kind !== "split" ||
+    split.first.axis === split.axis ||
+    split.second.axis !== split.first.axis ||
+    Math.abs(split.first.ratio - split.second.ratio) > tolerance
+  )
+    return undefined;
+  const first = split.first,
+    second = split.second;
+  const rotated: SplitNode = {
+    kind: "split",
+    id: first.id,
+    axis: first.axis,
+    ratio: (first.ratio + second.ratio) / 2,
+    first: {
+      kind: "split",
+      id: split.id,
+      axis: split.axis,
+      ratio: split.ratio,
+      first: first.first,
+      second: second.first,
+    },
+    second: {
+      kind: "split",
+      id: secondId,
+      axis: split.axis,
+      ratio: split.ratio,
+      first: first.second,
+      second: second.second,
+    },
+  };
+  const replace = (current: SplitNode): SplitNode =>
+    current.id === id
+      ? rotated
+      : current.kind === "pane"
+        ? current
+        : {
+            ...current,
+            first: replace(current.first),
+            second: replace(current.second),
+          };
+  return { node: replace(node), first: split.id, second: secondId };
+}
+
 type Rect = Pick<DOMRect, "left" | "top" | "width" | "height">;
 export type MeasuredSplit = {
   node: Extract<SplitNode, { kind: "split" }>;

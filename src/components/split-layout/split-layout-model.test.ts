@@ -5,6 +5,8 @@ import {
   snapSplitMove,
   splitPeers,
   splitJunctions,
+  detachCrossing,
+  type SplitNode,
   type MeasuredSplit,
 } from "./split-layout-model";
 
@@ -144,6 +146,105 @@ const horizontal = measured("right", "vertical", {
   top: 197.5,
   width: 247.5,
   height: 5,
+});
+
+describe("detaching a continuous crossing boundary", () => {
+  const pane = (id: string): SplitNode => ({ kind: "pane", id });
+  const crossing = (axis: "horizontal" | "vertical"): SplitNode => ({
+    kind: "split",
+    id: "outer",
+    axis,
+    ratio: 0.37,
+    first: {
+      kind: "split",
+      id: "first",
+      axis: axis === "horizontal" ? "vertical" : "horizontal",
+      ratio: 0.61,
+      first: pane("a"),
+      second: pane("b"),
+    },
+    second: {
+      kind: "split",
+      id: "second",
+      axis: axis === "horizontal" ? "vertical" : "horizontal",
+      ratio: 0.61,
+      first: pane("c"),
+      second: pane("d"),
+    },
+  });
+  function panes(
+    node: SplitNode,
+    bounds = { x: 0, y: 0, width: 1, height: 1 },
+  ): Record<string, typeof bounds> {
+    if (node.kind === "pane") return { [node.id]: bounds };
+    const horizontal = node.axis === "horizontal";
+    return {
+      ...panes(node.first, {
+        ...bounds,
+        width: horizontal ? bounds.width * node.ratio : bounds.width,
+        height: horizontal ? bounds.height : bounds.height * node.ratio,
+      }),
+      ...panes(node.second, {
+        x: bounds.x + (horizontal ? bounds.width * node.ratio : 0),
+        y: bounds.y + (horizontal ? 0 : bounds.height * node.ratio),
+        width: horizontal ? bounds.width * (1 - node.ratio) : bounds.width,
+        height: horizontal ? bounds.height : bounds.height * (1 - node.ratio),
+      }),
+    };
+  }
+  for (const axis of ["horizontal", "vertical"] as const) {
+    it(`preserves every pane and its geometry when rotating the ${axis} ancestor`, () => {
+      const original = crossing(axis);
+      const snapshot = structuredClone(original);
+      const result = detachCrossing(original, "outer", "new-half")!;
+      expect(result.first).toBe("outer");
+      expect(result.second).toBe("new-half");
+      const before = panes(original),
+        after = panes(result.node);
+      expect(Object.keys(after).sort()).toEqual(["a", "b", "c", "d"]);
+      for (const id of Object.keys(before))
+        for (const field of ["x", "y", "width", "height"] as const)
+          expect(after[id][field]).toBeCloseTo(before[id][field]);
+      expect(original).toEqual(snapshot);
+    });
+  }
+  it("rotates a nested crossing without changing its neighboring pane", () => {
+    const neighbor = pane("neighbor");
+    const tree: SplitNode = {
+      kind: "split",
+      id: "container",
+      axis: "vertical",
+      ratio: 0.4,
+      first: neighbor,
+      second: crossing("horizontal"),
+    };
+    const result = detachCrossing(tree, "outer", "new-half")!.node;
+    expect(result.kind === "split" && result.first).toBe(neighbor);
+    expect(panes(result)).toEqual(panes(tree));
+  });
+  it("rejects missing, T-shaped, offset and parallel child boundaries", () => {
+    const tree = crossing("horizontal");
+    if (tree.kind !== "split" || tree.second.kind !== "split")
+      throw Error("fixture");
+    expect(detachCrossing(tree, "missing", "new")).toBeUndefined();
+    expect(
+      detachCrossing({ ...tree, first: pane("a") }, "outer", "new"),
+    ).toBeUndefined();
+    expect(
+      detachCrossing(
+        { ...tree, second: { ...tree.second, ratio: 0.7 } },
+        "outer",
+        "new",
+      ),
+    ).toBeUndefined();
+    expect(
+      detachCrossing(
+        { ...tree, second: { ...tree.second, axis: "horizontal" } },
+        "outer",
+        "new",
+      ),
+    ).toBeUndefined();
+  });
 });
 
 describe("split junctions", () => {

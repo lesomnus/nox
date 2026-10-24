@@ -24,7 +24,7 @@ const meta = {
   args: {
     node: nested,
     renderPane: (id: string) => id,
-    onResize: () => {},
+    onChange: () => {},
   },
   tags: ["autodocs"],
   parameters: {
@@ -32,7 +32,7 @@ const meta = {
     docs: {
       description: {
         component:
-          "Controlled split panes with connected horizontal/vertical dividers. Aligned opposing segments hover and move as one line. Drag an offset segment near its opposite to snap; release to join them. Double-click then drag, or drag on the second press, to detach one side without snapping back. Drag a junction to resize both axes. Arrow keys and Home/End resize connected lines; Enter/Space or double-click on a junction equalizes its splits. Double-clicking a standalone separator still equalizes it. Use functional state updates in onResize because one gesture can update multiple IDs. Pane content and tab docking belong to the caller.",
+          "Controlled split panes with connected horizontal/vertical dividers. Pass onChange to store the complete tree, including topology changes when a continuous boundary is detached at an aligned four-way crossing. Aligned opposing segments hover and move as one line. Drag an offset segment near its opposite to snap; release to join them. Double-click then drag, or drag on the second press, to detach one side without snapping back. Drag a junction to resize both axes. Arrow keys and Home/End resize connected lines; Enter/Space or double-click on a junction equalizes its splits. Double-clicking a standalone separator still equalizes it; releasing a double-click drag keeps its position. The legacy onResize callback supports ratio changes without topology changes. Pane content and tab docking belong to the caller.",
       },
     },
   },
@@ -44,9 +44,7 @@ const meta = {
         <SplitLayout
           {...args}
           node={node}
-          onResize={(id, ratio) =>
-            setNode((current) => setSplitRatio(current, id, ratio))
-          }
+          onChange={setNode}
           renderPane={(id) => (
             <div
               style={{
@@ -114,7 +112,41 @@ export const Crossing: StoryObj<typeof meta> = {
     docs: {
       description: {
         story:
-          "Hover or drag either horizontal half: both halves act as one line. Double-click a half to arm detachment, then drag it separately; dragging on the second press also works. The center junction continues to resize both axes.",
+          "Hover or drag either horizontal half: both halves act as one line. Double-click any half, horizontal or vertical, to detach it; dragging on the second press also works. Detaching a continuous vertical boundary rearranges the split tree while keeping the panes in place. The center junction continues to resize both axes.",
+      },
+    },
+  },
+};
+export const TransposedCrossing: StoryObj<typeof meta> = {
+  args: {
+    node: {
+      kind: "split",
+      id: "outer",
+      axis: "vertical",
+      ratio: 0.5,
+      first: {
+        kind: "split",
+        id: "top",
+        axis: "horizontal",
+        ratio: 0.5,
+        first: { kind: "pane", id: "Top left" },
+        second: { kind: "pane", id: "Top right" },
+      },
+      second: {
+        kind: "split",
+        id: "bottom",
+        axis: "horizontal",
+        ratio: 0.5,
+        first: { kind: "pane", id: "Bottom left" },
+        second: { kind: "pane", id: "Bottom right" },
+      },
+    },
+  },
+  parameters: {
+    docs: {
+      description: {
+        story:
+          "The same crossing with the tree axes reversed. Detach either horizontal half or vertical half; the gesture and release behavior is independent of the tree orientation.",
       },
     },
   },

@@ -172,19 +172,25 @@ have independent Storybook examples. See [navigation and record details](docs/re
 and **Integration/RecordBrowser** for their composition and accessibility contracts.
 
 `SplitLayout` takes a controlled `SplitNode` tree, a `renderPane` callback, and
-`onResize`. `setSplitRatio` applies a bounded ratio update to that tree. Dividers
+`onChange={setTree}`. The callback receives the complete next tree. Dividers
 connect at their centerlines. Drag a junction to resize both axes together.
 Aligned opposing segments share hover and drag behavior, including at size limits.
 Dragging an offset segment near its opposite snaps it into alignment; releasing
 joins the line for subsequent drags. A wider release zone prevents snap jitter.
 Double-click then drag, or drag on the second press, to detach just one segment
 without snapping back. These joins follow the controlled tree's geometry rather
-than adding hidden layout metadata.
+than adding hidden layout metadata. At an aligned four-way crossing, detaching
+a continuous ancestor boundary rotates the split tree so either half can move
+independently. Pane IDs and their initial positions are retained. Cancellation
+restores the original tree and positions. An unsplit pane at a T junction cannot
+be divided this way.
 Separators support pointer dragging, arrow keys, Home/End and double click to
 equalize a standalone split. Junctions accept all four arrow keys and Enter/Space
 to equalize the connected splits. `separatorLabel` and `junctionLabel` name the controls.
-Use functional state updates in `onResize`, since one junction gesture updates
-multiple split IDs: `setTree(current => setSplitRatio(current, id, ratio))`.
+The legacy `onResize` alternative supports ratio updates but cannot restructure
+the tree to detach a continuous ancestor boundary. Use functional state updates
+with that callback because one gesture can update multiple IDs:
+`setTree(current => setSplitRatio(current, id, ratio))`.
 See **Layout/SplitLayout** for nested, transposed, crossing and offset examples.
 Line thickness and hover thickness share `--ui-split-line-size` and
 `--ui-split-line-hover-size`. Snap entry/release distances and double-click timing

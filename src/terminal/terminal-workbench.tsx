@@ -11,10 +11,7 @@ import {
   type Ref,
 } from "react";
 import { Button } from "../components/button/button";
-import {
-  SplitLayout,
-  setSplitRatio,
-} from "../components/split-layout/split-layout";
+import { SplitLayout } from "../components/split-layout/split-layout";
 import { useUI } from "../providers/ui-provider";
 import {
   addTerminal,
@@ -483,13 +480,7 @@ export function TerminalWorkbench({
           node={layout.tree}
           renderPane={renderGroup}
           separatorLabel={t("Resize panes")}
-          onResize={(id, ratio) =>
-            setLayout((current) =>
-              current.tree
-                ? { ...current, tree: setSplitRatio(current.tree, id, ratio) }
-                : current,
-            )
-          }
+          onChange={(tree) => setLayout((current) => ({ ...current, tree }))}
         />
       )}
       {sessions.map((session) => (

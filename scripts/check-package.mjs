@@ -87,7 +87,7 @@ try {
     createRoot(document.getElementById("root")!).render(
       <UIProvider>
         <div style={{position:"relative",height:40}}><AuroraGlow {...aurora} /></div>
-        <div style={{height:100}}><SplitLayout node={splitTree} renderPane={id => id} junctionLabel="Resize both axes" onResize={(id,ratio) => {void setSplitRatio(splitTree,id,ratio);}} /></div>
+        <div style={{height:100}}><SplitLayout node={splitTree} renderPane={id => id} junctionLabel="Resize both axes" onResize={(id,ratio) => {void setSplitRatio(splitTree,id,ratio);}} /><SplitLayout node={splitTree} renderPane={id => id} onChange={tree => {void tree;}} /></div>
         <PrefixValueMenu {...prefixMenu} />
         <IconValueMenu label="Legacy effort" icon="Effort" value="medium" options={[{value:"medium",label:"Medium"}]} choose={() => {}} />
         <Button>Save</Button>

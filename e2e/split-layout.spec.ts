@@ -435,3 +435,149 @@ test("vertical opposing segments also snap and join across a horizontal gutter",
   expect((await center(top)).x - target.x).toBeCloseTo(25, 0);
   expect((await center(bottom)).x - target.x).toBeCloseTo(25, 0);
 });
+
+for (const id of ["outer", "inner"]) {
+  test(`double-click drag of standalone ${id} stays where it is released`, async ({
+    page,
+  }) => {
+    await open(page, "nested");
+    const handle = split(page, id);
+    const box = (await handle.boundingBox())!;
+    const vertical = id === "outer";
+    const start = {
+      x: box.x + box.width / 2,
+      y: vertical ? box.y + box.height / 4 : box.y + box.height / 2,
+    };
+    await page.mouse.click(start.x, start.y);
+    await page.mouse.down({ clickCount: 2 });
+    await page.mouse.move(
+      start.x + (vertical ? 45 : 0),
+      start.y + (vertical ? 0 : 45),
+      { steps: 5 },
+    );
+    const held = await center(handle);
+    await page.mouse.up({ clickCount: 2 });
+    const released = await center(handle);
+    expect(released.x).toBeCloseTo(held.x, 0);
+    expect(released.y).toBeCloseTo(held.y, 0);
+    expect(vertical ? released.x - start.x : released.y - start.y).toBeCloseTo(
+      45,
+      0,
+    );
+  });
+}
+
+for (const story of ["crossing", "transposed-crossing"]) {
+  for (const second of [false, true]) {
+    for (const heldSecondPress of [false, true]) {
+      test(`${story}: detach ${second ? "second" : "first"} half with ${heldSecondPress ? "held second press" : "double click then drag"}`, async ({
+        page,
+      }) => {
+        const errors: string[] = [];
+        page.on("pageerror", (error) => errors.push(error.message));
+        await open(page, story);
+        const vertical = story === "crossing";
+        const handle = split(page, "outer");
+        const box = (await handle.boundingBox())!;
+        const start = {
+          x: box.x + box.width * (vertical ? 0.5 : second ? 0.75 : 0.25),
+          y: box.y + box.height * (vertical ? (second ? 0.75 : 0.25) : 0.5),
+        };
+        const pane = (name: string) => page.getByText(name, { exact: true });
+        const names = ["Top left", "Top right", "Bottom left", "Bottom right"];
+        const before = await Promise.all(
+          names.map((name) => pane(name).boundingBox()),
+        );
+        const position = { x: start.x - box.x, y: start.y - box.y };
+        if (heldSecondPress) {
+          await handle.click({ position });
+          await page.mouse.down({ clickCount: 2 });
+        } else {
+          await handle.dblclick({ position });
+          await page.mouse.down();
+        }
+        await page.mouse.move(
+          start.x + (vertical ? 35 : 0),
+          start.y + (vertical ? 0 : 35),
+          { steps: 5 },
+        );
+        const held = await Promise.all(
+          names.map((name) => pane(name).boundingBox()),
+        );
+        await page.mouse.up(heldSecondPress ? { clickCount: 2 } : {});
+        const after = await Promise.all(
+          names.map((name) => pane(name).boundingBox()),
+        );
+        for (let i = 0; i < names.length; i++) {
+          expect(await pane(names[i]).count()).toBe(1);
+          for (const field of ["x", "y", "width", "height"] as const)
+            expect(after[i]![field]).toBeCloseTo(held[i]![field], 0);
+          const moves = vertical ? i >= 2 === second : (i % 2 === 1) === second;
+          const dimension = vertical ? "width" : "height";
+          const negativeSide = vertical ? i % 2 === 0 : i < 2;
+          expect(after[i]![dimension] - before[i]![dimension]).toBeCloseTo(
+            moves ? (negativeSide ? 35 : -35) : 0,
+            0,
+          );
+        }
+        await expect(junction(page)).toHaveCount(2);
+        expect(errors).toEqual([]);
+        if (vertical && second && heldSecondPress)
+          await page
+            .locator("[data-split-layout]")
+            .screenshot({ path: "/tmp/nox-split-vertical-detached.png" });
+      });
+    }
+  }
+}
+
+test("canceling a continuous-boundary detachment restores the original tree", async ({
+  page,
+}) => {
+  await open(page, "crossing");
+  const root = page.locator("[data-split-layout]");
+  await root.evaluate((node) =>
+    node.addEventListener("pointerdown", (event) =>
+      node.setAttribute(
+        "data-pointer",
+        String((event as PointerEvent).pointerId),
+      ),
+    ),
+  );
+  const handle = split(page, "outer");
+  const box = (await handle.boundingBox())!;
+  const start = { x: box.x + box.width / 2, y: box.y + box.height / 4 };
+  await handle.click({ position: { x: box.width / 2, y: box.height / 4 } });
+  await page.mouse.down({ clickCount: 2 });
+  await page.mouse.move(start.x + 35, start.y, { steps: 3 });
+  await expect(junction(page)).toHaveCount(2);
+  await root.dispatchEvent("pointercancel", {
+    pointerId: Number(await root.getAttribute("data-pointer")),
+  });
+  await page.mouse.up({ clickCount: 2 });
+  for (const id of ["outer", "left", "right"])
+    await expect(split(page, id)).toHaveAttribute("aria-valuenow", "50");
+  await expect(junction(page)).toHaveCount(1);
+  await expect(page.locator("[data-dragging]")).toHaveCount(0);
+  await page.waitForTimeout(550);
+  await page.mouse.move(start.x, start.y);
+  await page.mouse.down();
+  await page.mouse.move(start.x + 20, start.y, { steps: 3 });
+  await page.mouse.up();
+  expect((await center(split(page, "outer"))).x - start.x).toBeCloseTo(20, 0);
+  await expect(split(page, "left")).toHaveAttribute("aria-valuenow", "50");
+  await expect(split(page, "right")).toHaveAttribute("aria-valuenow", "50");
+});
+
+test("standalone double-click still equalizes without responding to pane double-clicks", async ({
+  page,
+}) => {
+  await open(page, "nested");
+  const outer = split(page, "outer");
+  await outer.press("Home");
+  await page.getByText("Left", { exact: true }).dblclick();
+  await expect(outer).toHaveAttribute("aria-valuenow", "15");
+  const box = (await outer.boundingBox())!;
+  await outer.dblclick({ position: { x: box.width / 2, y: box.height / 4 } });
+  await expect(outer).toHaveAttribute("aria-valuenow", "50");
+});
