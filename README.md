@@ -121,6 +121,11 @@ from a fixed center outside its left edge. The bordered variant uses the shared
 narrow control inset. Value, timing and animation state belong to the host.
 See [progress indicators](docs/progress.md) and **Components/Progress**.
 
+`Drawer` places an independently sized surface near any viewport or container
+edge. Compose `DrawerCard` for the rounded cxz task-detail card, or supply a
+different surface. See [drawers](docs/drawer.md), **Components/Drawer** and
+**Components/DrawerCard**.
+
 `PrefixValueMenu` combines leading text, an icon or another React node with a
 compact `ValueMenu` and a shared hover, focus and open background. Its `prefix`
 stays outside the trigger and popup; `label` supplies the accessible selector name.
