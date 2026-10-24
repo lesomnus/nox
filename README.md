@@ -318,4 +318,4 @@ the rail.
 normalized RGBA color of sparkling pixels. Its alpha softens or hides the
 sparkles without fading the ink. Both props are also available through
 `Button.effectOptions`. InkSparkle keeps the original white sparkles by default;
-Button defaults to white sparkles with alpha `0.25`.
+Button defaults to white sparkles with alpha `0.5`.

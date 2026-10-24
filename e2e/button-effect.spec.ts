@@ -46,7 +46,7 @@ test("default ink preserves native click cancellation, form submission, callback
         ) as Float32Array,
       );
     }),
-  ).toEqual([1, 1, 1, 0.25]);
+  ).toEqual([1, 1, 1, 0.5]);
   await expect(status).toHaveText(
     "Clicks: 0; submits: 0; pointer downs: 1; keys: 0",
   );

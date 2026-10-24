@@ -137,7 +137,7 @@ export function useButtonSparkle(
             key={id}
             duration={options?.duration ?? 1200}
             color={options?.color ?? color}
-            sparkleColor={options?.sparkleColor ?? [1, 1, 1, 0.25]}
+            sparkleColor={options?.sparkleColor ?? [1, 1, 1, 0.5]}
             origin={origin}
             pressed={pressed}
             className={styles.button_ink}

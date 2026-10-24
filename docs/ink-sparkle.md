@@ -60,7 +60,7 @@ See **Effects/InkSparkle/Original**, **Slow**, **OutsideCenter**,
 Use RGB to choose a darker or colored sparkle and alpha to soften it. Lowering
 `color`'s alpha only changes the ink; lowering `sparkleColor`'s alpha only changes
 the sparkle contribution. Omitted `sparkleColor` on InkSparkle preserves the
-original output. Button uses softer white sparkles with alpha `0.25` by default;
+original output. Button uses softer white sparkles with alpha `0.5` by default;
 `effectOptions.sparkleColor` overrides that default.
 ButtonClick uses the shared Button's default `effect="sparkle"` and passes
 `effectOptions` for its custom ink:

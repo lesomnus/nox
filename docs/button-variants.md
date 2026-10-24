@@ -34,7 +34,7 @@ The neutral ink follows the theme. `effectOptions` accepts `color` (normalized
 RGBA), `sparkleColor` (independent normalized RGBA), `duration`, `centerMotion`
 and `seed`. Color's alpha controls ink strength; sparkleColor's alpha controls
 sparkle strength and zero hides only the sparkles. Button defaults to white
-sparkles with alpha `0.25`; an explicit `effectOptions.sparkleColor` overrides
+sparkles with alpha `0.5`; an explicit `effectOptions.sparkleColor` overrides
 that default. Effects never intercept
 input, resize the button, scale with the label, or cover its text and icons.
 Expanded ink stops drawing; completed overlays release their GPU resources.
