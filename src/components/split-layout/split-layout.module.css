@@ -1,3 +1,4 @@
+.layout,
 .pane,
 .split,
 .part {
@@ -8,6 +9,10 @@
   min-height: 0;
   overflow: hidden;
 }
+.layout {
+  position: relative;
+  isolation: isolate;
+}
 .pane,
 .part {
   flex-direction: column;
@@ -16,11 +21,12 @@
   flex-direction: column;
 }
 .separator {
-  flex: 0 0 5px;
+  flex: 0 0 var(--ui-resize-handle-size);
   position: relative;
   cursor: col-resize;
   touch-action: none;
   outline: none;
+  user-select: none;
 }
 .split[data-axis="vertical"] > .separator {
   cursor: row-resize;
@@ -28,15 +34,56 @@
 .separator::before {
   content: "";
   position: absolute;
-  inset: 0 2px;
+  inset: 0 calc((var(--ui-resize-handle-size) - 1px) / 2);
   background: var(--ui-shade-54);
 }
 .split[data-axis="vertical"] > .separator::before {
-  inset: 2px 0;
+  inset: calc((var(--ui-resize-handle-size) - 1px) / 2) 0;
 }
 .separator:hover::before,
 .separator:focus-visible::before,
+.separator[data-dragging]::before,
 .separator:active::before {
   inset: 0;
+  background: var(--ui-muted);
+}
+.junction {
+  position: absolute;
+  z-index: 1;
+  width: calc(var(--ui-resize-handle-size) * 3);
+  height: calc(var(--ui-resize-handle-size) * 3);
+  translate: -50% -50%;
+  cursor: move;
+  touch-action: none;
+  user-select: none;
+  outline: none;
+}
+.junction::before,
+.junction::after {
+  content: "";
+  position: absolute;
+  background: var(--ui-shade-54);
+  pointer-events: none;
+}
+.junction::before {
+  left: 50%;
+  top: var(--line-top);
+  bottom: var(--line-bottom);
+  width: 1px;
+  translate: -50% 0;
+}
+.junction::after {
+  top: 50%;
+  left: var(--line-left);
+  right: var(--line-right);
+  height: 1px;
+  translate: 0 -50%;
+}
+.junction:is(:hover, :focus-visible, [data-dragging])::before {
+  width: var(--ui-resize-handle-size);
+  background: var(--ui-muted);
+}
+.junction:is(:hover, :focus-visible, [data-dragging])::after {
+  height: var(--ui-resize-handle-size);
   background: var(--ui-muted);
 }

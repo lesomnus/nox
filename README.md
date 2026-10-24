@@ -160,7 +160,20 @@ They share the existing tokens, work without application CSS or services, and
 have independent Storybook examples. See [navigation and record details](docs/resource-components.md)
 and **Integration/RecordBrowser** for their composition and accessibility contracts.
 
-`SplitLayout` takes a controlled `SplitNode` tree, a `renderPane` callback, and `onResize`. `setSplitRatio` applies a bounded ratio update to that tree. Separators support pointer dragging, arrow keys, Home/End and double click to equalize; the host supplies the accessible separator label. It owns no workspace connections or tabs, so it can lay out arbitrary content in other applications. When moving expensive stateful content between panes, keep its instance outside the changing tree and attach a stable portal host to pane slots, as the terminal integration does.
+`SplitLayout` takes a controlled `SplitNode` tree, a `renderPane` callback, and
+`onResize`. `setSplitRatio` applies a bounded ratio update to that tree. Dividers
+connect at their centerlines. Drag a junction to resize both axes together;
+aligned branches at a four-way crossing stay together, including at size limits.
+Separators support pointer dragging, arrow keys, Home/End and double click to
+equalize. Junctions accept all four arrow keys and Enter/Space to equalize the
+connected splits. `separatorLabel` and `junctionLabel` name the controls.
+Use functional state updates in `onResize`, since one junction gesture updates
+multiple split IDs: `setTree(current => setSplitRatio(current, id, ratio))`.
+See **Layout/SplitLayout** for nested, transposed, crossing and offset examples.
+It owns no workspace connections or tabs, so it can lay out arbitrary content in
+other applications. When moving expensive stateful content between panes, keep
+its instance outside the changing tree and attach a stable portal host to pane
+slots, as the terminal integration does.
 
 `ResizeHandle` controls one neighboring pane in pixels. Supply `value`, responsive
 `min`/`max` limits and `onChange`; `axis` selects horizontal or vertical resizing.
