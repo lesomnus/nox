@@ -46,6 +46,7 @@ export * from "./components/radio/radio";
 export * from "./components/copy-button/copy-button";
 export * from "./components/identifier-value/identifier-value";
 export * from "./components/date-time/date-time";
+export * from "./components/date-picker/date-picker";
 export * from "./components/field-label/field-label";
 export * from "./components/description-list/description-list";
 export * from "./components/table/table";

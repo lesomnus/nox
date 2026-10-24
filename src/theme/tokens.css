@@ -96,6 +96,10 @@
     transparent
   );
   --ui-space: 4px;
+  --ui-date-picker-trigger-width: 180px;
+  --ui-date-picker-width: 268px;
+  --ui-date-picker-day-size: 32px;
+  --ui-date-picker-font-size: 12px;
   --ui-color-input-background: transparent;
   --ui-color-input-border: var(--ui-shade-48);
   --ui-color-input-focus-border: var(--ui-shade-115);

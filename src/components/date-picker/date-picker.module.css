@@ -1,0 +1,114 @@
+.trigger.trigger {
+  width: var(--ui-date-picker-trigger-width);
+  max-width: 100%;
+  padding-inline: calc(2 * var(--ui-space));
+  background: var(--ui-shade-27);
+  color: var(--ui-text-value);
+  box-shadow: inset 0 0 0 1px var(--ui-shade-48);
+}
+.value {
+  flex: 1;
+  min-width: 0;
+  text-align: start;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+.icon {
+  flex: none;
+  width: var(--ui-icon-size-small);
+  height: var(--ui-icon-size-small);
+  color: var(--ui-muted);
+}
+.trigger[data-empty] .value {
+  color: var(--ui-muted);
+}
+.popup.popup {
+  width: var(--ui-date-picker-width);
+  max-width: calc(100vw - 4 * var(--ui-space));
+}
+.scroll.scroll {
+  --ui-scroll-area-content-inset: 0px;
+  --ui-scroll-area-background: var(--ui-dropdown-background);
+  background: transparent;
+}
+.scroll .viewport {
+  height: auto;
+  max-height: var(--date-picker-max-height);
+}
+.content {
+  padding: var(--ui-space);
+  display: grid;
+  gap: var(--ui-space);
+}
+.header {
+  display: grid;
+  grid-template-columns: var(--ui-date-picker-day-size) minmax(0, 1fr) var(
+      --ui-date-picker-day-size
+    );
+  gap: var(--ui-control-inset);
+  align-items: center;
+}
+.month {
+  text-align: center;
+  font-weight: 500;
+}
+.navigation.navigation {
+  width: 100%;
+  min-height: var(--ui-date-picker-day-size);
+  padding: 0;
+}
+.grid {
+  display: grid;
+  gap: var(--ui-control-inset);
+}
+.week {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: var(--ui-control-inset);
+}
+.weekday {
+  padding-block: var(--ui-space);
+  color: var(--ui-muted);
+  font-size: 10px;
+  text-align: center;
+}
+.week > [role="gridcell"] {
+  min-height: var(--ui-date-picker-day-size);
+}
+.day.day {
+  width: 100%;
+  min-height: var(--ui-date-picker-day-size);
+  padding: var(--ui-control-inset);
+  font: inherit;
+  font-variant-numeric: tabular-nums;
+  color: var(--ui-shade-221);
+}
+.day[data-outside] {
+  color: var(--ui-shade-119);
+}
+.day[aria-disabled="true"] {
+  color: var(--ui-shade-72);
+  cursor: default;
+  --button-hover-background: transparent;
+}
+.day[aria-current="date"] {
+  text-decoration: underline;
+  text-decoration-color: var(--ui-muted);
+  text-underline-offset: var(--ui-space);
+}
+.day[data-selected] {
+  background: var(--ui-selected);
+  color: var(--ui-shade-255);
+}
+.footer {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--ui-space);
+}
+.footer button {
+  font-size: inherit;
+  color: var(--ui-muted);
+  padding-block: var(--ui-space);
+}

@@ -70,6 +70,7 @@ try {
     `
     import { createRoot } from "react-dom/client";
     import { Progress, type ProgressProps } from "@lesomnus/nox";
+    import { DatePicker, type DatePickerProps } from "@lesomnus/nox";
     import { PinInput, type PinInputProps, SplitLayout, type SplitNode, setSplitRatio, PrefixValueMenu, type PrefixValueMenuProps, IconValueMenu, AuroraGlow, type AuroraGlowProps, type AuroraPalette, InkSparkle, type InkSparkleProps, Button, Checkbox, DateTime, DescriptionList, IdentifierValue, MenuSurface, type MenuSurfaceProps, MenuScrollArea, MenuItem, type MenuItemProps, MenuIcon, MenuGroupLabel, MenuDivider, NavigationPanel, StippleBackground, clusterMotion, workMotion, withPointerBurst, UIProvider } from "@lesomnus/nox";
     import { Table, TableHeader, TableBody, TableFooter, TableRow, TableHead, TableCell, TableCaption, TableScrollArea, type TableProps, type TableRowProps } from "@lesomnus/nox";
     import { LinkButton, Skeleton, SkeletonGroup, type LinkButtonProps, type SkeletonProps, type SkeletonGroupProps } from "@lesomnus/nox";
@@ -85,6 +86,7 @@ try {
     const rgb: RgbColor = { r: 217, g: 255, b: 48 };
     const colorInput: ColorPickerProps = { label: "Accent", defaultValue: rgb, onChange: next => { void next.a; }, ref: node => { void node?.elements.length; } };
     const progress: ProgressProps = { value: 42, variant: "bordered", animated: false, sparkleOptions: { duration: 2000 } };
+    const datePicker: DatePickerProps = { label: "Date", defaultValue: "2026-10-24", min: "2026-01-01", max: "2026-12-31", name: "date", locale: "en-US", weekStartsOn: 1, onChange: value => { void value; }, ref: node => { void node?.focus(); } };
     const pin: PinInputProps = { label: "Device code", groups: [4,4], mode: "alphanumeric", name: "device_code" };
     void MenuSurface;
     void MenuIcon;
@@ -104,6 +106,7 @@ try {
         <IconValueMenu label="Legacy effort" icon="Effort" value="medium" options={[{value:"medium",label:"Medium"}]} choose={() => {}} />
         <Button>Save</Button>
         <Progress {...progress} aria-label="Build progress" />
+        <DatePicker {...datePicker} />
         <PinInput {...pin} />
         <MenuScrollArea role="menu" aria-label="Custom actions" scrollbarLabel="Scroll actions">
           <MenuGroupLabel icon={<svg viewBox="0 0 24 24"><path d="M4 12h16" /></svg>}>Commands</MenuGroupLabel>
