@@ -3,7 +3,7 @@ import type { Meta, StoryObj } from "@storybook/react-vite";
 import { SplitLayout, setSplitRatio, type SplitNode } from "@lesomnus/nox";
 
 const meta = {
-  title: "Components/SplitLayout",
+  title: "Layout/SplitLayout",
   component: SplitLayout,
   args: {
     node: { kind: "pane", id: "Preview" } as SplitNode,
