@@ -102,6 +102,11 @@
   --ui-color-input-hover-background: var(--ui-hover);
   --ui-color-input-error-border: var(--ui-pin-input-error-color);
   --ui-color-input-preview-size: 26px;
+  --ui-color-picker-width: 240px;
+  --ui-color-picker-plane-height: 160px;
+  --ui-color-picker-handle-size: 12px;
+  --ui-color-picker-checker-light: var(--ui-shade-72);
+  --ui-color-picker-checker-dark: var(--ui-shade-36);
   --ui-table-background: transparent;
   --ui-link-button-height: 32px;
   --ui-link-button-border: var(--ui-shade-48);

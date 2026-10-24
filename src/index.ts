@@ -31,7 +31,7 @@ export * from "./components/animated-text/animated-text";
 export * from "./components/compact-number/compact-number";
 export * from "./components/switch/switch";
 export * from "./components/pin-input/pin-input";
-export * from "./components/rgb-color-input/rgb-color-input";
+export * from "./components/color-picker/color-picker";
 export * from "./components/ink-sparkle/ink-sparkle";
 export * from "./components/progress/progress";
 export * from "./components/split-layout/split-layout";
