@@ -43,6 +43,7 @@
 }
 :root[data-ui-theme="light"],
 :root[data-theme="light"] {
+  --ui-aurora-strength: 0.3;
   --ui-shade-0: #ffffff;
   --ui-shade-16: #fcfcfc;
   --ui-shade-17: #fbfbfb;
@@ -97,6 +98,17 @@
   --ui-space: 4px;
   --ui-icon-size: 20px;
   --ui-icon-size-small: 14px;
+  --ui-aurora-color-1: #23b04a;
+  --ui-aurora-color-2: #2596e9;
+  --ui-aurora-color-3: #b14ccd;
+  --ui-aurora-strength: 0.5;
+  --ui-aurora-blur: 8px;
+  --ui-aurora-envelope-duration: 3200ms;
+  --ui-aurora-drift-duration: 24s;
+  --ui-aurora-form-duration: 20s;
+  --ui-aurora-focus-duration: 17s;
+  --ui-aurora-orbit-radius: 26%;
+  --ui-aurora-orbit-rise: 34%;
   --ui-menu-item-padding-block: 6px;
   --ui-menu-item-padding-inline: 10px;
   --ui-menu-scroll-max-height: 240px;

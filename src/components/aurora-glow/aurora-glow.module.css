@@ -1,0 +1,185 @@
+.root {
+  position: absolute;
+  inset: 0;
+  overflow: clip;
+  contain: paint;
+  pointer-events: none;
+  border-radius: inherit;
+}
+.field {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0;
+  filter: blur(var(--ui-aurora-blur));
+  transition: opacity var(--ui-aurora-envelope-duration) ease-in-out;
+}
+.root[data-active="true"] .field {
+  opacity: var(--ui-aurora-strength);
+}
+.cluster {
+  position: absolute;
+  top: 0;
+  left: -4%;
+  width: 44%;
+  height: 100%;
+}
+.cluster:nth-child(2) {
+  left: 25%;
+  width: 50%;
+}
+.cluster:nth-child(3) {
+  left: 60%;
+}
+.envelope {
+  position: absolute;
+  inset: 0;
+  transform: scale(0.025);
+  transform-origin: center;
+  transition: transform var(--ui-aurora-envelope-duration) ease-in-out;
+}
+.root[data-active="true"] .envelope {
+  transform: scale(1);
+}
+.envelope::before {
+  content: "";
+  position: absolute;
+  inset: -48px -8%;
+  border-radius: 50%;
+  opacity: 0.08;
+  background:
+    radial-gradient(
+      ellipse at 25% 50%,
+      var(--ui-aurora-color-1),
+      transparent 75%
+    ),
+    radial-gradient(
+      ellipse at 50% 50%,
+      var(--ui-aurora-color-2),
+      transparent 80%
+    ),
+    radial-gradient(
+      ellipse at 75% 50%,
+      var(--ui-aurora-color-3),
+      transparent 75%
+    );
+}
+.orbit {
+  position: absolute;
+  inset: 0;
+  transform: translate(var(--ui-aurora-orbit-radius), 0);
+  animation: aurora-orbit 16s ease-in-out -7s infinite;
+  animation-play-state: paused;
+}
+.orbit:nth-child(2) {
+  transform: translate(0, 0);
+  animation-duration: 21s;
+  animation-delay: -31s;
+  animation-direction: reverse;
+}
+.orbit:nth-child(3) {
+  transform: translate(calc(-1 * var(--ui-aurora-orbit-radius)), 0);
+  animation-duration: 27s;
+  animation-delay: -53s;
+}
+.cluster:nth-child(2) .orbit {
+  animation-duration: 19s;
+  animation-delay: -27s;
+}
+.cluster:nth-child(2) .orbit:nth-child(2) {
+  animation-duration: 25s;
+  animation-delay: -57s;
+}
+.cluster:nth-child(2) .orbit:nth-child(3) {
+  animation-duration: 31s;
+  animation-delay: -11s;
+}
+.cluster:nth-child(3) .orbit {
+  animation-duration: 23s;
+  animation-delay: -44s;
+}
+.cluster:nth-child(3) .orbit:nth-child(2) {
+  animation-duration: 29s;
+  animation-delay: -15s;
+}
+.cluster:nth-child(3) .orbit:nth-child(3) {
+  animation-duration: 37s;
+  animation-delay: -83s;
+}
+.root[data-running="true"] .orbit {
+  animation-play-state: running;
+}
+.orb {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 60%;
+  height: 350%;
+  translate: -50% -50%;
+  border-radius: 50%;
+  opacity: 0.7;
+  background: radial-gradient(
+    ellipse,
+    color-mix(in srgb, var(--orb-color) 90%, transparent),
+    transparent 72%
+  );
+}
+.hotspot {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    ellipse,
+    var(--orb-color),
+    color-mix(in srgb, var(--orb-color) 35%, transparent) 4%,
+    transparent 18%
+  );
+}
+@keyframes aurora-orbit {
+  0%,
+  100% {
+    transform: translate(var(--ui-aurora-orbit-radius), 0);
+  }
+  12.5% {
+    transform: translate(
+      calc(var(--ui-aurora-orbit-radius) * 0.707),
+      calc(var(--ui-aurora-orbit-rise) * 0.707)
+    );
+  }
+  25% {
+    transform: translate(0, var(--ui-aurora-orbit-rise));
+  }
+  37.5% {
+    transform: translate(
+      calc(var(--ui-aurora-orbit-radius) * -0.707),
+      calc(var(--ui-aurora-orbit-rise) * 0.707)
+    );
+  }
+  50% {
+    transform: translate(calc(var(--ui-aurora-orbit-radius) * -1), 0);
+  }
+  62.5% {
+    transform: translate(
+      calc(var(--ui-aurora-orbit-radius) * -0.707),
+      calc(var(--ui-aurora-orbit-rise) * -0.707)
+    );
+  }
+  75% {
+    transform: translate(0, calc(var(--ui-aurora-orbit-rise) * -1));
+  }
+  87.5% {
+    transform: translate(
+      calc(var(--ui-aurora-orbit-radius) * 0.707),
+      calc(var(--ui-aurora-orbit-rise) * -0.707)
+    );
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .field,
+  .envelope {
+    transition: none;
+  }
+  .root[data-running] .orbit {
+    animation: none;
+  }
+}

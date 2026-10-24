@@ -189,6 +189,14 @@ scrollbar remains specialized; it is not part of this primitive.
 
 ## Animated backgrounds
 
+`AuroraGlow` is a clipped CSS-gradient layer adapted from cxz's composer toolbar.
+Drifting clusters contain orbiting colors, changing orb shapes and moving bright
+centers. Control activation, pausing, palette, strength and motion speed without
+application state or WebGL. It blooms when work starts and contracts while
+continuing to move when work ends. The host owns its size, glass and controls;
+hidden/offscreen motion pauses and reduced-motion preferences stay still. See
+[aurora glow](docs/aurora-glow.md) and **Effects/AuroraGlow** in Storybook.
+
 `StippleBackground` provides a WebGL2 metaball background with five stipple
 patterns, a configurable cluster palette and controlled motion. Only dots are
 drawn, including where clusters grow and disappear inside the viewport. Each
