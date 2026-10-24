@@ -216,3 +216,222 @@ test("an ordinary separator drag preserves the grab offset and only its own axis
   await separator.press("Home");
   await expect(separator).toHaveAttribute("aria-valuenow", "15");
 });
+
+test("hover thickness is the same for both orientations and follows one token", async ({
+  page,
+}) => {
+  await open(page, "nested");
+  const vertical = split(page, "outer"),
+    horizontal = split(page, "inner");
+  const v = (await vertical.boundingBox())!,
+    h = (await horizontal.boundingBox())!;
+  const thickness = (target: Locator, dimension: "width" | "height") =>
+    target.evaluate(
+      (node, dimension) =>
+        parseFloat(getComputedStyle(node, "::before")[dimension]),
+      dimension,
+    );
+  await page.mouse.move(v.x + v.width / 2, v.y + 20);
+  const verticalSize = await thickness(vertical, "width");
+  await page.mouse.move(h.x + h.width - 20, h.y + h.height / 2);
+  expect(await thickness(horizontal, "height")).toBe(verticalSize);
+  await page.addStyleTag({
+    content: ":root { --ui-split-line-hover-size: 3px; }",
+  });
+  await expect.poll(() => thickness(horizontal, "height")).toBe(3);
+  await page.mouse.move(v.x + v.width / 2, v.y + 20);
+  await expect.poll(() => thickness(vertical, "width")).toBe(3);
+});
+
+test("a joined divider hovers and drags as one continuous line", async ({
+  page,
+}) => {
+  await open(page, "crossing");
+  const left = split(page, "left"),
+    right = split(page, "right");
+  const start = await center(left),
+    other = await center(right);
+  await page.mouse.move(start.x, start.y);
+  const color = await left.evaluate(
+    (node) => getComputedStyle(node, "::before").backgroundColor,
+  );
+  await expect
+    .poll(() =>
+      right.evaluate(
+        (node) => getComputedStyle(node, "::before").backgroundColor,
+      ),
+    )
+    .toBe(color);
+  await expect
+    .poll(() =>
+      junction(page).evaluate(
+        (node) => getComputedStyle(node, "::after").backgroundColor,
+      ),
+    )
+    .toBe(color);
+  await expect
+    .poll(() =>
+      junction(page).evaluate(
+        (node) => getComputedStyle(node, "::after").height,
+      ),
+    )
+    .toBe("5px");
+  await page
+    .locator("[data-split-layout]")
+    .screenshot({ path: "/tmp/nox-split-linked-hover.png" });
+  await page.mouse.down();
+  await page.mouse.move(start.x, start.y + 40, { steps: 5 });
+  await page.mouse.up();
+  expect((await center(left)).y - start.y).toBeCloseTo(40, 0);
+  expect((await center(right)).y - other.y).toBeCloseTo(40, 0);
+  await expect(split(page, "outer")).toHaveAttribute("aria-valuenow", "50");
+});
+
+test("snapping holds through jitter and joins the segments after release", async ({
+  page,
+}) => {
+  await open(page, "offset-junctions");
+  const left = split(page, "left"),
+    right = split(page, "right");
+  const start = await center(left),
+    target = await center(right);
+  await page.mouse.move(start.x, start.y);
+  await page.mouse.down();
+  await page.mouse.move(start.x, target.y - 6, { steps: 6 });
+  expect(Math.abs((await center(left)).y - target.y)).toBeLessThan(0.5);
+  await page.mouse.move(start.x, target.y + 12);
+  expect(Math.abs((await center(left)).y - target.y)).toBeLessThan(0.5);
+  await page.mouse.up();
+  await expect(junction(page)).toHaveCount(1);
+  const joined = await center(right);
+  await page.mouse.move(joined.x, joined.y);
+  await page.mouse.down();
+  await page.mouse.move(joined.x, joined.y + 30, { steps: 4 });
+  await page.mouse.up();
+  expect((await center(left)).y - target.y).toBeCloseTo(30, 0);
+  expect((await center(right)).y - target.y).toBeCloseTo(30, 0);
+});
+
+test("double-click arms a separate drag without immediately snapping back", async ({
+  page,
+}) => {
+  await open(page, "crossing");
+  const left = split(page, "left"),
+    right = split(page, "right");
+  const before = await center(left),
+    other = await center(right);
+  await left.dblclick();
+  await expect(left).toHaveAttribute("data-detached", "true");
+  await page.mouse.move(before.x, before.y);
+  await page.mouse.down();
+  await page.mouse.move(before.x, before.y + 7, { steps: 3 });
+  await page.mouse.up();
+  expect((await center(left)).y - before.y).toBeCloseTo(7, 0);
+  expect((await center(right)).y - other.y).toBeCloseTo(0, 0);
+  await expect(junction(page)).toHaveCount(2);
+});
+
+test("holding the second press detaches one segment without a reset on release", async ({
+  page,
+}) => {
+  await open(page, "crossing");
+  const left = split(page, "left"),
+    right = split(page, "right");
+  const before = await center(left),
+    other = await center(right);
+  await left.click();
+  await page.mouse.down({ clickCount: 2 });
+  await page.mouse.move(before.x, before.y + 35, { steps: 5 });
+  await page.mouse.up({ clickCount: 2 });
+  expect((await center(left)).y - before.y).toBeCloseTo(35, 0);
+  expect((await center(right)).y - other.y).toBeCloseTo(0, 0);
+});
+
+test("canceling a snap restores the original separate positions", async ({
+  page,
+}) => {
+  await open(page, "offset-junctions");
+  const left = split(page, "left"),
+    right = split(page, "right");
+  const before = await center(left),
+    other = await center(right);
+  await left.evaluate((node) =>
+    node.addEventListener(
+      "pointerdown",
+      (event) =>
+        node.setAttribute(
+          "data-pointer",
+          String((event as PointerEvent).pointerId),
+        ),
+      { once: true },
+    ),
+  );
+  await page.mouse.move(before.x, before.y);
+  await page.mouse.down();
+  await page.mouse.move(before.x, other.y - 5);
+  expect(Math.abs((await center(left)).y - other.y)).toBeLessThan(0.5);
+  await left.dispatchEvent("pointercancel", {
+    pointerId: Number(await left.getAttribute("data-pointer")),
+  });
+  await page.mouse.up();
+  expect((await center(left)).y - before.y).toBeCloseTo(0, 0);
+  expect((await center(right)).y - other.y).toBeCloseTo(0, 0);
+  await expect(junction(page)).toHaveCount(2);
+});
+
+test("vertical opposing segments also snap and join across a horizontal gutter", async ({
+  page,
+}) => {
+  await open(page, "offset-junctions");
+  await page.evaluate(() => {
+    const row = (id: string, ratio: number) => ({
+      kind: "split",
+      id,
+      axis: "horizontal",
+      ratio,
+      first: { kind: "pane", id: `${id} a` },
+      second: { kind: "pane", id: `${id} b` },
+    });
+    const channel = (
+      window as unknown as {
+        __STORYBOOK_ADDONS_CHANNEL__: {
+          emit: (name: string, data: unknown) => void;
+        };
+      }
+    ).__STORYBOOK_ADDONS_CHANNEL__;
+    channel.emit("updateStoryArgs", {
+      storyId: "layout-splitlayout--offset-junctions",
+      updatedArgs: {
+        node: {
+          kind: "split",
+          id: "outer",
+          axis: "vertical",
+          ratio: 0.5,
+          first: row("top", 0.35),
+          second: row("bottom", 0.65),
+        },
+      },
+    });
+  });
+  await expect(split(page, "outer")).toHaveAttribute(
+    "aria-orientation",
+    "horizontal",
+  );
+  const top = split(page, "top"),
+    bottom = split(page, "bottom");
+  const start = await center(top),
+    target = await center(bottom);
+  await page.mouse.move(start.x, start.y);
+  await page.mouse.down();
+  await page.mouse.move(target.x - 5, start.y, { steps: 6 });
+  expect(Math.abs((await center(top)).x - target.x)).toBeLessThan(0.5);
+  await page.mouse.up();
+  await expect(junction(page)).toHaveCount(1);
+  const joined = await center(bottom);
+  await page.mouse.move(joined.x, joined.y);
+  await page.mouse.down();
+  await page.mouse.move(joined.x + 25, joined.y, { steps: 4 });
+  await page.mouse.up();
+  expect((await center(top)).x - target.x).toBeCloseTo(25, 0);
+  expect((await center(bottom)).x - target.x).toBeCloseTo(25, 0);
+});

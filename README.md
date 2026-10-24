@@ -173,14 +173,22 @@ and **Integration/RecordBrowser** for their composition and accessibility contra
 
 `SplitLayout` takes a controlled `SplitNode` tree, a `renderPane` callback, and
 `onResize`. `setSplitRatio` applies a bounded ratio update to that tree. Dividers
-connect at their centerlines. Drag a junction to resize both axes together;
-aligned branches at a four-way crossing stay together, including at size limits.
+connect at their centerlines. Drag a junction to resize both axes together.
+Aligned opposing segments share hover and drag behavior, including at size limits.
+Dragging an offset segment near its opposite snaps it into alignment; releasing
+joins the line for subsequent drags. A wider release zone prevents snap jitter.
+Double-click then drag, or drag on the second press, to detach just one segment
+without snapping back. These joins follow the controlled tree's geometry rather
+than adding hidden layout metadata.
 Separators support pointer dragging, arrow keys, Home/End and double click to
-equalize. Junctions accept all four arrow keys and Enter/Space to equalize the
-connected splits. `separatorLabel` and `junctionLabel` name the controls.
+equalize a standalone split. Junctions accept all four arrow keys and Enter/Space
+to equalize the connected splits. `separatorLabel` and `junctionLabel` name the controls.
 Use functional state updates in `onResize`, since one junction gesture updates
 multiple split IDs: `setTree(current => setSplitRatio(current, id, ratio))`.
 See **Layout/SplitLayout** for nested, transposed, crossing and offset examples.
+Line thickness and hover thickness share `--ui-split-line-size` and
+`--ui-split-line-hover-size`. Snap entry/release distances and double-click timing
+use the `--ui-split-*` tokens in `src/theme/tokens.css`.
 It owns no workspace connections or tabs, so it can lay out arbitrary content in
 other applications. When moving expensive stateful content between panes, keep
 its instance outside the changing tree and attach a stable portal host to pane

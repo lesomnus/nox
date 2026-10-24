@@ -107,6 +107,155 @@ export type SplitDrag = {
   size: number;
 };
 
+export type SplitPeer = {
+  axis: SplitDrag["axis"];
+  a: string;
+  b: string;
+  aPosition: number;
+  bPosition: number;
+};
+
+/** Parallel segments ending on opposite sides of the same perpendicular gutter. */
+export function splitPeers(splits: MeasuredSplit[]): SplitPeer[] {
+  const peers: SplitPeer[] = [];
+  for (let i = 0; i < splits.length; i++) {
+    const a = splits[i];
+    for (const b of splits.slice(i + 1)) {
+      if (a.node.axis !== b.node.axis) continue;
+      const vertical = a.node.axis === "horizontal";
+      const aPosition = vertical
+        ? a.handle.left + a.handle.width / 2
+        : a.handle.top + a.handle.height / 2;
+      const bPosition = vertical
+        ? b.handle.left + b.handle.width / 2
+        : b.handle.top + b.handle.height / 2;
+      const aStart = vertical ? a.handle.top : a.handle.left;
+      const bStart = vertical ? b.handle.top : b.handle.left;
+      const aEnd = aStart + (vertical ? a.handle.height : a.handle.width);
+      const bEnd = bStart + (vertical ? b.handle.height : b.handle.width);
+      const opposite = splits.some((wall) => {
+        if (wall.node.axis === a.node.axis) return false;
+        const start = vertical ? wall.handle.top : wall.handle.left;
+        const end = start + (vertical ? wall.handle.height : wall.handle.width);
+        const low = vertical ? wall.handle.left : wall.handle.top;
+        const high = low + (vertical ? wall.handle.width : wall.handle.height);
+        return (
+          ((Math.abs(aEnd - start) < 0.5 && Math.abs(bStart - end) < 0.5) ||
+            (Math.abs(bEnd - start) < 0.5 && Math.abs(aStart - end) < 0.5)) &&
+          aPosition >= low - 0.5 &&
+          aPosition <= high + 0.5 &&
+          bPosition >= low - 0.5 &&
+          bPosition <= high + 0.5
+        );
+      });
+      if (opposite)
+        peers.push({
+          axis: a.node.axis,
+          a: a.node.id,
+          b: b.node.id,
+          aPosition,
+          bPosition,
+        });
+    }
+  }
+  return peers;
+}
+
+export function alignedSplitIds(
+  ids: string[],
+  peers: SplitPeer[],
+  detached: ReadonlySet<string> = new Set(),
+): string[] {
+  const group = new Set(ids);
+  let changed = true;
+  while (changed) {
+    changed = false;
+    for (const peer of peers) {
+      if (
+        Math.abs(peer.aPosition - peer.bPosition) >= 0.5 ||
+        detached.has(peer.a) ||
+        detached.has(peer.b)
+      )
+        continue;
+      if (group.has(peer.a) === group.has(peer.b)) continue;
+      group.add(peer.a);
+      group.add(peer.b);
+      changed = true;
+    }
+  }
+  return [...group].sort();
+}
+
+type SnapLock = { a: string; b: string; delta: number };
+export type SplitSnaps = Partial<Record<SplitDrag["axis"], SnapLock>>;
+
+/** Snap the displacement, not the pointer, and hold it through a wider release zone. */
+export function snapSplitMove(
+  targets: SplitDrag[],
+  peers: SplitPeer[],
+  dx: number,
+  dy: number,
+  distance: number,
+  releaseDistance: number,
+  previous: SplitSnaps = {},
+) {
+  const movement = { horizontal: dx, vertical: dy };
+  const snaps: SplitSnaps = {};
+  const moving = new Set(targets.map((target) => target.id));
+  if (distance > 0)
+    for (const axis of ["horizontal", "vertical"] as const) {
+      const group = targets.filter(
+        (target) => target.axis === axis && target.size > 0,
+      );
+      if (!group.length) continue;
+      const delta = movement[axis];
+      const candidates = peers
+        .filter(
+          (peer) =>
+            peer.axis === axis && moving.has(peer.a) !== moving.has(peer.b),
+        )
+        .map((peer) => ({
+          a: peer.a,
+          b: peer.b,
+          delta: moving.has(peer.a)
+            ? peer.bPosition - peer.aPosition
+            : peer.aPosition - peer.bPosition,
+        }))
+        .filter((candidate) =>
+          group.every((target) => {
+            const ratio = target.ratio + candidate.delta / target.size;
+            return ratio >= minRatio - 1e-9 && ratio <= maxRatio + 1e-9;
+          }),
+        );
+      const last = previous[axis];
+      const held =
+        last &&
+        candidates.find(
+          (candidate) =>
+            candidate.a === last.a &&
+            candidate.b === last.b &&
+            Math.abs(candidate.delta - delta) <=
+              Math.max(distance, releaseDistance),
+        );
+      const closest =
+        held ??
+        candidates
+          .filter((candidate) => Math.abs(candidate.delta - delta) <= distance)
+          .sort(
+            (a, b) => Math.abs(a.delta - delta) - Math.abs(b.delta - delta),
+          )[0];
+      if (closest) {
+        snaps[axis] = closest;
+        movement[axis] = closest.delta;
+      }
+    }
+  return {
+    changes: moveSplits(targets, movement.horizontal, movement.vertical),
+    snaps,
+    ids: [...new Set(Object.values(snaps).flatMap((snap) => [snap.a, snap.b]))],
+  };
+}
+
 /** A shared pixel delta keeps aligned branches together, including at limits. */
 export function moveSplits(targets: SplitDrag[], dx: number, dy: number) {
   const movement = { horizontal: dx, vertical: dy };

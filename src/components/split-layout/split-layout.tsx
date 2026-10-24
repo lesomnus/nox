@@ -13,11 +13,16 @@ import {
   maxRatio,
   minRatio,
   moveSplits,
+  alignedSplitIds,
+  snapSplitMove,
+  splitPeers,
   splitJunctions,
   type Junction,
   type MeasuredSplit,
   type SplitDrag,
   type SplitNode,
+  type SplitPeer,
+  type SplitSnaps,
 } from "./split-layout-model";
 import styles from "./split-layout.module.css";
 
@@ -26,15 +31,36 @@ export type { SplitNode } from "./split-layout-model";
 
 type Split = Extract<SplitNode, { kind: "split" }>;
 type Elements = { node: Split; handle: HTMLDivElement };
-type Drag = { pointer: number; x: number; y: number; targets: SplitDrag[] };
+type Drag = {
+  pointer: number;
+  x: number;
+  y: number;
+  dx: number;
+  dy: number;
+  targets: SplitDrag[];
+  peers: SplitPeer[];
+  snaps: SplitSnaps;
+  primary?: string;
+  detached: boolean;
+  distance: number;
+  releaseDistance: number;
+  tolerance: number;
+};
 type Controls = {
   register: (node: Split, handle: HTMLDivElement | null) => void;
   start: (event: PointerEvent<HTMLDivElement>, ids: string[]) => void;
   move: (event: PointerEvent<HTMLDivElement>) => void;
   end: (event: PointerEvent<HTMLDivElement>) => void;
+  cancel: (event: PointerEvent<HTMLDivElement>) => void;
   key: (event: KeyboardEvent<HTMLDivElement>, ids: string[]) => void;
   reset: (ids: string[]) => void;
   dragging: readonly string[];
+  highlighted: ReadonlySet<string>;
+  detached: ReadonlySet<string>;
+  hover: (ids: string[]) => void;
+  focus: (ids: string[], visible: boolean) => void;
+  blur: () => void;
+  double: (id: string) => void;
 };
 
 /** A controlled split tree with continuous, jointly draggable divider junctions. */
@@ -55,9 +81,19 @@ export function SplitLayout({
   const elements = useRef(new Map<string, Elements>());
   const observer = useRef<ResizeObserver | undefined>(undefined);
   const drag = useRef<Drag | undefined>(undefined);
+  const peers = useRef<SplitPeer[]>([]);
+  const detached = useRef(new Set<string>());
+  const lastClick = useRef<
+    { id: string; x: number; y: number; time: number } | undefined
+  >(undefined);
+  const detachedClick = useRef<string | undefined>(undefined);
   const pinned = useRef<{ id: string; ids: string[] } | undefined>(undefined);
   const [dragging, setDragging] = useState<string[]>([]);
   const [junctions, setJunctions] = useState<Junction[]>([]);
+  const [hovered, setHovered] = useState<string[]>([]);
+  const [focused, setFocused] = useState<string[]>([]);
+  const [snapped, setSnapped] = useState<string[]>([]);
+  const [armed, setArmed] = useState<string[]>([]);
   const register = useCallback((node: Split, handle: HTMLDivElement | null) => {
     const previous = elements.current.get(node.id);
     if (previous) observer.current?.unobserve(previous.handle);
@@ -75,6 +111,7 @@ export function SplitLayout({
       }),
     );
     const next = splitJunctions(splits, root.current.getBoundingClientRect());
+    peers.current = splitPeers(splits);
     // Preserve the focused/captured element when T junctions merge into a cross.
     const anchor = pinned.current;
     const active =
@@ -86,12 +123,20 @@ export function SplitLayout({
     );
   }, []);
   useLayoutEffect(() => {
+    let pruned = false;
+    for (const id of detached.current)
+      if (!elements.current.has(id)) {
+        detached.current.delete(id);
+        pruned = true;
+      }
+    if (pruned) setArmed([...detached.current]);
     if (
       drag.current?.targets.some((target) => !elements.current.has(target.id))
     ) {
       drag.current = undefined;
       pinned.current = undefined;
       setDragging([]);
+      setSnapped([]);
     }
     measure();
   }, [node, measure]);
@@ -128,15 +173,91 @@ export function SplitLayout({
   }
   function apply(changes: { id: string; ratio: number }[]) {
     for (const change of changes)
-      if (elements.current.get(change.id)?.node.ratio !== change.ratio)
+      if (
+        elements.current.has(change.id) &&
+        elements.current.get(change.id)!.node.ratio !== change.ratio
+      )
         onResize(change.id, change.ratio);
+  }
+  function group(ids: string[]) {
+    return alignedSplitIds(ids, peers.current, detached.current);
+  }
+  function arm(id: string) {
+    detached.current.add(id);
+    setArmed([...detached.current]);
+    setHovered([id]);
+    setFocused((current) => (current.length ? [id] : current));
+  }
+  function finish(event: PointerEvent<HTMLDivElement>, cancel = false) {
+    const origin = drag.current;
+    if (!origin || origin.pointer !== event.pointerId) return;
+    if (cancel) apply(origin.targets.map(({ id, ratio }) => ({ id, ratio })));
+    const moved = Math.hypot(origin.dx, origin.dy);
+    lastClick.current =
+      !cancel && origin.primary && moved <= origin.tolerance
+        ? {
+            id: origin.primary,
+            x: origin.x,
+            y: origin.y,
+            time: performance.now(),
+          }
+        : undefined;
+    if (origin.primary && origin.detached && (cancel || moved > 0.5)) {
+      if (!cancel) detachedClick.current = origin.primary;
+      detached.current.delete(origin.primary);
+      setArmed([...detached.current]);
+    }
+    drag.current = undefined;
+    setDragging([]);
+    setSnapped([]);
+    if (!cancel) setHovered(group(origin.targets.map((target) => target.id)));
+    if (event.currentTarget.hasPointerCapture(event.pointerId))
+      event.currentTarget.releasePointerCapture(event.pointerId);
   }
   const controls: Controls = {
     register,
     dragging,
-    reset: (ids) => apply(ids.map((id) => ({ id, ratio: 0.5 }))),
+    highlighted: new Set([...hovered, ...focused, ...dragging, ...snapped]),
+    detached: new Set(armed),
+    hover: (ids) => setHovered(group(ids)),
+    focus: (ids, visible) => setFocused(visible ? group(ids) : []),
+    blur: () => setFocused([]),
+    double: (id) => {
+      if (detachedClick.current === id) {
+        detachedClick.current = undefined;
+        return;
+      }
+      if (detached.current.has(id) || group([id]).length > 1) arm(id);
+      else controls.reset([id]);
+    },
+    reset: (ids) => apply(group(ids).map((id) => ({ id, ratio: 0.5 }))),
     start: (event, ids) => {
-      if (event.button !== 0 || drag.current) return;
+      if (event.button !== 0 || drag.current || !root.current) return;
+      detachedClick.current = undefined;
+      const style = getComputedStyle(root.current);
+      const token = (name: string, time = false) => {
+        const value = style.getPropertyValue(name).trim();
+        const number =
+          parseFloat(value) *
+          (time && value.endsWith("s") && !value.endsWith("ms") ? 1000 : 1);
+        return Number.isFinite(number) ? Math.max(0, number) : 0;
+      };
+      const tolerance = token("--ui-split-click-tolerance");
+      const delay = token("--ui-split-double-click-delay", true);
+      const primary = ids.length === 1 ? ids[0] : undefined;
+      const previous = lastClick.current;
+      const repeated =
+        primary &&
+        previous?.id === primary &&
+        performance.now() - previous.time <= delay &&
+        Math.hypot(event.clientX - previous.x, event.clientY - previous.y) <=
+          tolerance;
+      const separate =
+        !!primary &&
+        (detached.current.has(primary) ||
+          (!!repeated && group(ids).length > 1));
+      if (separate) arm(primary!);
+      const joined = separate ? ids : group(ids);
       event.preventDefault();
       event.stopPropagation();
       event.currentTarget.focus({ preventScroll: true });
@@ -144,10 +265,19 @@ export function SplitLayout({
         pointer: event.pointerId,
         x: event.clientX,
         y: event.clientY,
-        targets: targets(ids),
+        dx: 0,
+        dy: 0,
+        primary,
+        detached: separate,
+        targets: targets(joined),
+        peers: peers.current,
+        snaps: {},
+        distance: separate ? 0 : token("--ui-split-snap-distance"),
+        releaseDistance: token("--ui-split-snap-release-distance"),
+        tolerance,
       };
       event.currentTarget.setPointerCapture(event.pointerId);
-      setDragging(ids);
+      setDragging(joined);
     },
     move: (event) => {
       const origin = drag.current;
@@ -157,23 +287,27 @@ export function SplitLayout({
         !event.currentTarget.hasPointerCapture(event.pointerId)
       )
         return;
-      apply(
-        moveSplits(
-          origin.targets,
-          event.clientX - origin.x,
-          event.clientY - origin.y,
-        ),
+      origin.dx = event.clientX - origin.x;
+      origin.dy = event.clientY - origin.y;
+      const next = snapSplitMove(
+        origin.targets,
+        origin.peers,
+        origin.dx,
+        origin.dy,
+        origin.distance,
+        origin.releaseDistance,
+        origin.snaps,
       );
+      origin.snaps = next.snaps;
+      setSnapped((current) =>
+        current.join("\0") === next.ids.join("\0") ? current : next.ids,
+      );
+      apply(next.changes);
     },
-    end: (event) => {
-      if (drag.current?.pointer !== event.pointerId) return;
-      drag.current = undefined;
-      setDragging([]);
-      if (event.currentTarget.hasPointerCapture(event.pointerId))
-        event.currentTarget.releasePointerCapture(event.pointerId);
-    },
+    end: (event) => finish(event),
+    cancel: (event) => finish(event, true),
     key: (event, ids) => {
-      const entries = targets(ids);
+      const entries = targets(group(ids));
       if (["Enter", " "].includes(event.key) && ids.length > 1) {
         event.preventDefault();
         controls.reset(ids);
@@ -224,6 +358,20 @@ export function SplitLayout({
           data-dragging={
             dragging.some((id) => junction.ids.includes(id)) || undefined
           }
+          data-highlight-vertical={
+            junction.ids.some(
+              (id) =>
+                controls.highlighted.has(id) &&
+                elements.current.get(id)?.node.axis === "horizontal",
+            ) || undefined
+          }
+          data-highlight-horizontal={
+            junction.ids.some(
+              (id) =>
+                controls.highlighted.has(id) &&
+                elements.current.get(id)?.node.axis === "vertical",
+            ) || undefined
+          }
           style={
             {
               left: `${junction.x}%`,
@@ -239,16 +387,20 @@ export function SplitLayout({
           aria-label={junctionLabel}
           onFocus={() => {
             pinned.current = { id: junction.id, ids: junction.ids };
+            controls.focus(junction.ids, true);
           }}
           onBlur={() => {
             if (!drag.current) pinned.current = undefined;
+            controls.blur();
           }}
+          onPointerEnter={() => controls.hover(junction.ids)}
+          onPointerLeave={() => controls.hover([])}
           onDoubleClick={() => controls.reset(junction.ids)}
           onPointerDown={(event) => controls.start(event, junction.ids)}
           onPointerMove={controls.move}
           onPointerUp={controls.end}
-          onPointerCancel={controls.end}
-          onLostPointerCapture={controls.end}
+          onPointerCancel={controls.cancel}
+          onLostPointerCapture={controls.cancel}
           onKeyDown={(event) => controls.key(event, junction.ids)}
         />
       ))}
@@ -283,7 +435,10 @@ function SplitBranch({
         ref={(element) => controls.register(node, element)}
         className={styles.separator}
         data-split-id={node.id}
+        data-axis={node.axis}
         data-dragging={controls.dragging.includes(node.id) || undefined}
+        data-highlighted={controls.highlighted.has(node.id) || undefined}
+        data-detached={controls.detached.has(node.id) || undefined}
         role="separator"
         tabIndex={0}
         aria-label={separatorLabel}
@@ -293,12 +448,21 @@ function SplitBranch({
         aria-valuemin={minRatio * 100}
         aria-valuemax={maxRatio * 100}
         aria-valuenow={Math.round(boundRatio(node.ratio) * 100)}
-        onDoubleClick={() => controls.reset([node.id])}
+        onDoubleClick={() => controls.double(node.id)}
+        onPointerEnter={() => controls.hover([node.id])}
+        onPointerLeave={() => controls.hover([])}
+        onFocus={(event) =>
+          controls.focus(
+            [node.id],
+            event.currentTarget.matches(":focus-visible"),
+          )
+        }
+        onBlur={controls.blur}
         onPointerDown={(event) => controls.start(event, [node.id])}
         onPointerMove={controls.move}
         onPointerUp={controls.end}
-        onPointerCancel={controls.end}
-        onLostPointerCapture={controls.end}
+        onPointerCancel={controls.cancel}
+        onLostPointerCapture={controls.cancel}
         onKeyDown={(event) => controls.key(event, [node.id])}
       />
       <div className={styles.part} style={{ flex: `${1 - node.ratio} 1 0%` }}>

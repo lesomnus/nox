@@ -32,7 +32,7 @@ const meta = {
     docs: {
       description: {
         component:
-          "Controlled split panes with connected horizontal/vertical dividers. Drag a junction to resize both axes; aligned branches at a four-way crossing stay together. Junctions also accept all four arrow keys, Home/End and Enter/Space to equalize. Separators retain their own axis-specific keys and double-click reset. Use functional state updates in onResize because a junction updates multiple split IDs. Pane content and tab docking are supplied by the caller.",
+          "Controlled split panes with connected horizontal/vertical dividers. Aligned opposing segments hover and move as one line. Drag an offset segment near its opposite to snap; release to join them. Double-click then drag, or drag on the second press, to detach one side without snapping back. Drag a junction to resize both axes. Arrow keys and Home/End resize connected lines; Enter/Space or double-click on a junction equalizes its splits. Double-clicking a standalone separator still equalizes it. Use functional state updates in onResize because one gesture can update multiple IDs. Pane content and tab docking belong to the caller.",
       },
     },
   },
@@ -108,9 +108,27 @@ const crossing: SplitNode = {
     second: { kind: "pane", id: "Bottom right" },
   },
 };
-export const Crossing: StoryObj<typeof meta> = { args: { node: crossing } };
+export const Crossing: StoryObj<typeof meta> = {
+  args: { node: crossing },
+  parameters: {
+    docs: {
+      description: {
+        story:
+          "Hover or drag either horizontal half: both halves act as one line. Double-click a half to arm detachment, then drag it separately; dragging on the second press also works. The center junction continues to resize both axes.",
+      },
+    },
+  },
+};
 export const OffsetJunctions: StoryObj<typeof meta> = {
   args: {
     node: setSplitRatio(setSplitRatio(crossing, "left", 0.35), "right", 0.65),
+  },
+  parameters: {
+    docs: {
+      description: {
+        story:
+          "Drag either horizontal segment toward the opposite segment. It snaps into alignment near the other line and stays there through small pointer movements. Pull farther to release the snap, or release the pointer to join the two segments for subsequent drags. Double-click and drag one side to separate it again.",
+      },
+    },
   },
 };

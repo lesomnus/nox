@@ -21,6 +21,8 @@
   flex-direction: column;
 }
 .separator {
+  --line-size: var(--ui-split-line-size);
+  --line-color: var(--ui-shade-54);
   flex: 0 0 var(--ui-resize-handle-size);
   position: relative;
   cursor: col-resize;
@@ -28,26 +30,33 @@
   outline: none;
   user-select: none;
 }
-.split[data-axis="vertical"] > .separator {
+.separator[data-axis="vertical"] {
   cursor: row-resize;
 }
 .separator::before {
   content: "";
   position: absolute;
-  inset: 0 calc((var(--ui-resize-handle-size) - 1px) / 2);
-  background: var(--ui-shade-54);
+  inset: 0 calc((var(--ui-resize-handle-size) - var(--line-size)) / 2);
+  background: var(--line-color);
 }
-.split[data-axis="vertical"] > .separator::before {
-  inset: calc((var(--ui-resize-handle-size) - 1px) / 2) 0;
+.separator[data-axis="vertical"]::before {
+  inset: calc((var(--ui-resize-handle-size) - var(--line-size)) / 2) 0;
 }
-.separator:hover::before,
-.separator:focus-visible::before,
-.separator[data-dragging]::before,
-.separator:active::before {
-  inset: 0;
-  background: var(--ui-muted);
+.separator:is(
+  :hover,
+  :focus-visible,
+  :active,
+  [data-highlighted],
+  [data-dragging]
+) {
+  --line-size: var(--ui-split-line-hover-size);
+  --line-color: var(--ui-muted);
 }
 .junction {
+  --vertical-size: var(--ui-split-line-size);
+  --horizontal-size: var(--ui-split-line-size);
+  --vertical-color: var(--ui-shade-54);
+  --horizontal-color: var(--ui-shade-54);
   position: absolute;
   z-index: 1;
   width: calc(var(--ui-resize-handle-size) * 3);
@@ -62,28 +71,29 @@
 .junction::after {
   content: "";
   position: absolute;
-  background: var(--ui-shade-54);
   pointer-events: none;
 }
 .junction::before {
   left: 50%;
   top: var(--line-top);
   bottom: var(--line-bottom);
-  width: 1px;
+  width: var(--vertical-size);
+  background: var(--vertical-color);
   translate: -50% 0;
 }
 .junction::after {
   top: 50%;
   left: var(--line-left);
   right: var(--line-right);
-  height: 1px;
+  height: var(--horizontal-size);
+  background: var(--horizontal-color);
   translate: 0 -50%;
 }
-.junction:is(:hover, :focus-visible, [data-dragging])::before {
-  width: var(--ui-resize-handle-size);
-  background: var(--ui-muted);
+.junction:is(:hover, :focus-visible, [data-highlight-vertical]) {
+  --vertical-size: var(--ui-split-line-hover-size);
+  --vertical-color: var(--ui-muted);
 }
-.junction:is(:hover, :focus-visible, [data-dragging])::after {
-  height: var(--ui-resize-handle-size);
-  background: var(--ui-muted);
+.junction:is(:hover, :focus-visible, [data-highlight-horizontal]) {
+  --horizontal-size: var(--ui-split-line-hover-size);
+  --horizontal-color: var(--ui-muted);
 }

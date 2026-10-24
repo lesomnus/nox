@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
 import {
   moveSplits,
+  alignedSplitIds,
+  snapSplitMove,
+  splitPeers,
   splitJunctions,
   type MeasuredSplit,
 } from "./split-layout-model";
@@ -20,6 +23,115 @@ const measured = (
     second: { kind: "pane", id: "b" },
   },
   handle,
+});
+
+describe("opposing dividers", () => {
+  const left = measured("left", "vertical", {
+    left: 100,
+    top: 197.5,
+    width: 247.5,
+    height: 5,
+  });
+  it("groups aligned opposing segments but leaves a detached side independent", () => {
+    const peers = splitPeers([vertical, horizontal, left]);
+    expect(peers).toHaveLength(1);
+    expect(alignedSplitIds(["left"], peers)).toEqual(["left", "right"]);
+    expect(alignedSplitIds(["outer"], peers)).toEqual(["outer"]);
+    expect(alignedSplitIds(["left"], peers, new Set(["left"]))).toEqual([
+      "left",
+    ]);
+    expect(splitPeers([horizontal, left])).toEqual([]);
+  });
+  it("does not group offset or merely nearby parallel dividers", () => {
+    const offset = { ...left, handle: { ...left.handle, top: 190 } };
+    const peers = splitPeers([vertical, horizontal, offset]);
+    expect(peers).toHaveLength(1);
+    expect(alignedSplitIds(["left"], peers)).toEqual(["left"]);
+    expect(
+      splitPeers([
+        vertical,
+        horizontal,
+        { ...left, handle: { ...left.handle, width: 230 } },
+      ]),
+    ).toEqual([]);
+  });
+  it("discovers the same grouping with vertical segments across a horizontal gutter", () => {
+    const wall = measured("wall", "vertical", {
+      left: 100,
+      top: 197.5,
+      width: 500,
+      height: 5,
+    });
+    const a = measured("a", "horizontal", {
+      left: 347.5,
+      top: 50,
+      width: 5,
+      height: 147.5,
+    });
+    const b = measured("b", "horizontal", {
+      left: 347.5,
+      top: 202.5,
+      width: 5,
+      height: 147.5,
+    });
+    expect(alignedSplitIds(["a"], splitPeers([wall, a, b]))).toEqual([
+      "a",
+      "b",
+    ]);
+  });
+});
+
+describe("snap displacement", () => {
+  const targets = [
+    { id: "left", axis: "vertical" as const, ratio: 0.35, size: 500 },
+  ];
+  const peers = [
+    {
+      axis: "vertical" as const,
+      a: "left",
+      b: "right",
+      aPosition: 175,
+      bPosition: 325,
+    },
+  ];
+  it("enters nearby, holds through jitter and releases further away", () => {
+    const entered = snapSplitMove(targets, peers, 0, 143, 10, 16);
+    expect(entered.changes[0].ratio).toBeCloseTo(0.65);
+    expect(entered.ids).toEqual(["left", "right"]);
+    expect(
+      snapSplitMove(targets, peers, 0, 161, 10, 16, entered.snaps).changes[0]
+        .ratio,
+    ).toBeCloseTo(0.65);
+    expect(
+      snapSplitMove(targets, peers, 0, 167, 10, 16, entered.snaps).changes[0]
+        .ratio,
+    ).toBeCloseTo(0.684);
+    expect(snapSplitMove(targets, peers, 0, 161, 10, 16).ids).toEqual([]);
+  });
+  it("does not snap to an unreachable target or a moving peer", () => {
+    const outside = [{ ...peers[0], bPosition: 427.5 }];
+    expect(
+      snapSplitMove(targets, outside, 0, 245, 10, 16).changes[0].ratio,
+    ).toBeCloseTo(0.84);
+    const nearLimit = [{ ...peers[0], bPosition: 420 }];
+    expect(snapSplitMove(targets, nearLimit, 0, 1000, 10, 16).ids).toEqual([]);
+    expect(
+      snapSplitMove(
+        [...targets, { id: "right", axis: "vertical", ratio: 0.65, size: 500 }],
+        peers,
+        0,
+        143,
+        10,
+        16,
+      ).ids,
+    ).toEqual([]);
+  });
+  it("can disable snapping for detachment without affecting movement", () => {
+    expect(
+      snapSplitMove(targets, peers, 0, 143, 0, 16).changes[0].ratio,
+    ).toBeCloseTo(0.636);
+    expect(snapSplitMove(targets, peers, 0, 143, 0, 16).ids).toEqual([]);
+  });
 });
 const vertical = measured("outer", "horizontal", {
   left: 347.5,

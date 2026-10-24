@@ -188,6 +188,12 @@
   --ui-toolbar-button-width: 48px;
   --ui-terminal-toolbar-height: 28px;
   --ui-resize-handle-size: 5px;
+  --ui-split-line-size: 1px;
+  --ui-split-line-hover-size: var(--ui-resize-handle-size);
+  --ui-split-snap-distance: 10px;
+  --ui-split-snap-release-distance: 16px;
+  --ui-split-double-click-delay: 500ms;
+  --ui-split-click-tolerance: 4px;
   --ui-confirm-button-background: #3b1b1b;
   --ui-confirm-button-color: #f1dada;
 }
