@@ -69,8 +69,8 @@ export function Progress({
           {sparkling && height > 0 && (
             <InkSparkle
               className={styles.sparkle}
-              color={[1, 1, 1, 0.12]}
-              sparkleColor={[1, 1, 1, 0.5]}
+              color={[0, 0, 0, 0.24]}
+              sparkleColor={[0, 0, 0, 0.8]}
               duration={2000}
               {...sparkleOptions}
               origin={[-2 * height, height / 2]}
