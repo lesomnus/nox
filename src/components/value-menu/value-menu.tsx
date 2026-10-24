@@ -122,11 +122,11 @@ export function ValueMenu({
     const position = () => {
       if (!root.current || !menu.current) return;
       const rect = root.current.getBoundingClientRect();
-      const inset = parseFloat(
-        getComputedStyle(root.current).getPropertyValue("--ui-control-inset"),
-      );
-      const chrome = rect.height + 2 * inset + 13;
       const popup = menu.current;
+      const style = getComputedStyle(popup);
+      const inset =
+        parseFloat(style.paddingLeft) + parseFloat(style.borderLeftWidth);
+      const chrome = rect.height + 2 * inset + 13;
       const valueText = trigger()?.querySelector(".meta-value");
       if (valueText) {
         popup.style.setProperty(

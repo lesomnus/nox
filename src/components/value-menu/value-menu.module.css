@@ -102,8 +102,15 @@
 }
 .optionsArea.optionsArea {
   --ui-scroll-area-background: var(--ui-dropdown-background);
+  --ui-scroll-area-content-inset: 0px;
   flex: 0 1 auto;
   background: transparent;
+}
+.optionsArea:has([role="scrollbar"]) button {
+  padding-right: max(
+    var(--value-padding-inline),
+    calc(var(--ui-scroll-area-hit-size) / 2)
+  );
 }
 .setting_menu :global(.setting-options) {
   height: auto;
