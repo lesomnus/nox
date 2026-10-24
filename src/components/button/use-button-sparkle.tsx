@@ -10,7 +10,7 @@ import styles from "./button.module.css";
 
 export type ButtonEffectOptions = Pick<
   InkSparkleProps,
-  "color" | "duration" | "centerMotion" | "seed"
+  "color" | "sparkleColor" | "duration" | "centerMotion" | "seed"
 >;
 type Burst = {
   id: number;
@@ -137,6 +137,7 @@ export function useButtonSparkle(
             key={id}
             duration={options?.duration ?? 1200}
             color={options?.color ?? color}
+            sparkleColor={options?.sparkleColor ?? [1, 1, 1, 0.25]}
             origin={origin}
             pressed={pressed}
             className={styles.button_ink}

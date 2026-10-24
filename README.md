@@ -313,3 +313,9 @@ once by default and supports `onComplete` for overlay cleanup. See
 [InkSparkle](docs/ink-sparkle.md) and **Effects/InkSparkle** in Storybook. Switch
 uses the same public effect with a slower 2000ms burst and a fixed center outside
 the rail.
+
+`color` controls the ink, while `sparkleColor` independently controls the
+normalized RGBA color of sparkling pixels. Its alpha softens or hides the
+sparkles without fading the ink. Both props are also available through
+`Button.effectOptions`. InkSparkle keeps the original white sparkles by default;
+Button defaults to white sparkles with alpha `0.25`.

@@ -35,6 +35,18 @@ test("default ink preserves native click cancellation, form submission, callback
   );
   await page.mouse.down();
   await expect(ink).toHaveAttribute("data-renderer", "webgl2");
+  expect(
+    await ink.evaluate((node: HTMLCanvasElement) => {
+      const gl = node.getContext("webgl2")!;
+      const program = gl.getParameter(gl.CURRENT_PROGRAM) as WebGLProgram;
+      return Array.from(
+        gl.getUniform(
+          program,
+          gl.getUniformLocation(program, "u_sparkle_color")!,
+        ) as Float32Array,
+      );
+    }),
+  ).toEqual([1, 1, 1, 0.25]);
   await expect(status).toHaveText(
     "Clicks: 0; submits: 0; pointer downs: 1; keys: 0",
   );

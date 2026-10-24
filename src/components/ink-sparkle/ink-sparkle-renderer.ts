@@ -4,8 +4,8 @@ import {
   type InkSparkleCenterMotion,
 } from "./ink-sparkle-model";
 
-// Keep the upstream shader verbatim. Only adapt Flutter's runtime bindings to
-// WebGL2, including top-left logical fragment coordinates and uniform aliases.
+// Keep the vendored file unchanged. Adapt Flutter's bindings to WebGL2 and
+// replace its final white sparkle tint with an optional color/strength uniform.
 export const inkSparkleFragmentShader = flutterShader
   .replace("#version 320 es", "#version 300 es")
   .replace(
@@ -13,12 +13,17 @@ export const inkSparkleFragmentShader = flutterShader
     `
 uniform float u_device_pixel_ratio;
 uniform float u_viewport_height;
+uniform vec4 u_sparkle_color;
 vec2 FlutterFragCoord() {
   return vec2(gl_FragCoord.x, u_viewport_height - gl_FragCoord.y) / u_device_pixel_ratio;
 }`,
   )
   .replace(/layout\(location = \d+\) /g, "")
-  .replace(/float (u_\w+) = (u_composite_1\.\w);/g, "#define $1 $2");
+  .replace(/float (u_\w+) = (u_composite_1\.\w);/g, "#define $1 $2")
+  .replace(
+    "mix(wave_color, vec4(1.0), sparkle)",
+    "mix(wave_color, vec4(u_sparkle_color.rgb, 1.0), sparkle * u_sparkle_color.a)",
+  );
 
 const vertexShader = `#version 300 es
 in vec2 position;
@@ -82,6 +87,7 @@ export function createInkSparkleRenderer(canvas: HTMLCanvasElement) {
     gl.vertexAttribPointer(position, 2, gl.FLOAT, false, 0, 0);
     const names = [
       "u_color",
+      "u_sparkle_color",
       "u_composite_1",
       "u_center",
       "u_max_radius",
@@ -110,6 +116,7 @@ export function createInkSparkleRenderer(canvas: HTMLCanvasElement) {
         origin: readonly [number, number],
         color: readonly [number, number, number, number],
         centerMotion: InkSparkleCenterMotion = "to-center",
+        sparkleColor: readonly [number, number, number, number] = [1, 1, 1, 1],
       ) {
         const rasterWidth = Math.max(1, Math.round(width * ratio));
         const rasterHeight = Math.max(1, Math.round(height * ratio));
@@ -128,6 +135,7 @@ export function createInkSparkleRenderer(canvas: HTMLCanvasElement) {
         gl.useProgram(program);
         gl.viewport(0, 0, canvas.width, canvas.height);
         gl.uniform4f(uniform.u_color, ...color);
+        gl.uniform4f(uniform.u_sparkle_color, ...sparkleColor);
         gl.uniform4f(
           uniform.u_composite_1,
           frame.alpha,
