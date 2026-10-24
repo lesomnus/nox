@@ -30,6 +30,7 @@ export * from "./components/compact-number/compact-number";
 export * from "./components/switch/switch";
 export * from "./components/pin-input/pin-input";
 export * from "./components/ink-sparkle/ink-sparkle";
+export * from "./components/progress/progress";
 export * from "./components/split-layout/split-layout";
 export * from "./components/resize-handle/resize-handle";
 export * from "./components/audio-waveform/audio-waveform";
