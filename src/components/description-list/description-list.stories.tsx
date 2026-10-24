@@ -2,6 +2,11 @@ import type { Meta, StoryObj } from "@storybook/react-vite";
 import {
   DateTime,
   DescriptionList,
+  DescriptionListRoot,
+  DescriptionListRow,
+  DescriptionListTerm,
+  DescriptionListDetails,
+  FieldLabel,
   EditableValue,
   IdentifierValue,
 } from "@lesomnus/nox";
@@ -59,6 +64,39 @@ export const Editable: Story = {
           { label: "State", value: "Ready" },
         ]}
       />
+    );
+  },
+};
+
+export const Composed: Story = {
+  render: function Example() {
+    const [name, setName] = useState("My workspace");
+    return (
+      <DescriptionListRoot columns={1} aria-label="Workspace details">
+        <DescriptionListRow>
+          <DescriptionListTerm>
+            <FieldLabel label="Name" description="Visible workspace name" />
+          </DescriptionListTerm>
+          <DescriptionListDetails>
+            <EditableValue
+              label="Name"
+              value={name}
+              save={async (value) => setName(value)}
+            />
+          </DescriptionListDetails>
+        </DescriptionListRow>
+        <DescriptionListRow>
+          <DescriptionListTerm>Maintainers</DescriptionListTerm>
+          <DescriptionListDetails>Alice</DescriptionListDetails>
+          <DescriptionListDetails>Bob</DescriptionListDetails>
+        </DescriptionListRow>
+        <DescriptionListRow>
+          <DescriptionListTerm>
+            <strong>Custom label</strong>
+          </DescriptionListTerm>
+          <DescriptionListDetails>Caller-owned content</DescriptionListDetails>
+        </DescriptionListRow>
+      </DescriptionListRoot>
     );
   },
 };

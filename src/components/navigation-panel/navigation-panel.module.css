@@ -53,3 +53,16 @@
 .content.content {
   padding: var(--ui-control-inset);
 }
+
+.plainBody {
+  flex: 1 1 auto;
+  min-height: 0;
+}
+.footer {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: var(--ui-space);
+  padding: calc(2 * var(--ui-space));
+  border-right: var(--panel-border-width) solid var(--panel-border-color);
+}

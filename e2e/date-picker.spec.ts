@@ -267,3 +267,24 @@ test("outside click and Tab dismiss without stealing focus; a short viewport sta
   await page.keyboard.press("Escape");
   await expect(trigger(page)).toBeFocused();
 });
+
+test("a portaled calendar rejects changes when its trigger's ancestor fieldset becomes disabled", async ({
+  page,
+}) => {
+  await open(page);
+  await trigger(page).click();
+  await trigger(page).evaluate((node) => {
+    const fieldset = document.createElement("fieldset");
+    node.before(fieldset);
+    fieldset.append(node);
+    fieldset.disabled = true;
+  });
+  await calendar(page)
+    .locator('[data-date="2026-10-28"]')
+    .click({ force: true });
+  await expect(page.locator('input[name="date"]')).toHaveValue("2026-10-24");
+  await expect(calendar(page)).toBeVisible();
+  await calendar(page).getByRole("button", { name: "Clear date" }).click();
+  await expect(page.locator('input[name="date"]')).toHaveValue("2026-10-24");
+  await expect(calendar(page)).toBeVisible();
+});

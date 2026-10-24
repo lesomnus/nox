@@ -193,3 +193,15 @@
   color: var(--ui-muted);
   padding-block: var(--ui-space);
 }
+
+.calendarRoot {
+  font-size: var(--ui-date-picker-font-size);
+  position: relative;
+  min-width: 0;
+}
+.calendar {
+  box-sizing: border-box;
+  width: var(--ui-date-picker-width);
+  max-width: 100%;
+  font-size: var(--ui-date-picker-font-size);
+}

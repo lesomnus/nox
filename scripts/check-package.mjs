@@ -75,6 +75,10 @@ try {
     import { Table, TableHeader, TableBody, TableFooter, TableRow, TableHead, TableCell, TableCaption, TableScrollArea, type TableProps, type TableRowProps } from "@lesomnus/nox";
     import { LinkButton, Skeleton, SkeletonGroup, type LinkButtonProps, type SkeletonProps, type SkeletonGroupProps } from "@lesomnus/nox";
     import { ColorPicker, ColorPickerRoot, ColorPickerArea, ColorPickerHue, ColorPickerOpacity, type RgbColor, type ColorPickerProps, type ColorPickerRootProps, type ColorPickerAreaProps, type ColorPickerHueProps, type ColorPickerOpacityProps } from "@lesomnus/nox";
+    import { Slider, SliderRoot, SliderControl, SliderValue, SliderTicks, SliderTick, type SliderProps, type SliderRootProps } from "@lesomnus/nox";
+    import { DescriptionListRoot, DescriptionListRow, DescriptionListTerm, DescriptionListDetails, type DescriptionListRootProps, type DescriptionListRowProps } from "@lesomnus/nox";
+    import { NavigationPanelRoot, NavigationPanelHeader, NavigationPanelTitle, NavigationPanelActions, NavigationPanelBody, NavigationPanelScrollBody, NavigationPanelFooter, type NavigationPanelRootProps } from "@lesomnus/nox";
+    import { Calendar, CalendarRoot, CalendarHeader, CalendarMonth, CalendarPreviousMonth, CalendarNextMonth, CalendarGrid, CalendarDetails, CalendarStatus, CalendarFooter, CalendarToday, CalendarClear, CalendarDone, type CalendarProps, type CalendarRootProps, type CalendarDateInfo } from "@lesomnus/nox";
     import { TerminalWorkbench } from "@lesomnus/nox/terminal";
     import "@lesomnus/nox/styles.css";
     void TerminalWorkbench;
@@ -89,6 +93,18 @@ try {
     const pickerArea: ColorPickerAreaProps = { style: { height: 180 }, ref: node => { void node?.getBoundingClientRect(); }, onKeyDown: event => { if (event.key === "x") event.preventDefault(); } };
     const pickerHue: ColorPickerHueProps = { orientation: "vertical", ref: node => { void node?.valueAsNumber; } };
     const pickerOpacity: ColorPickerOpacityProps = { orientation: "horizontal", ref: node => { void node?.valueAsNumber; } };
+    const slider: SliderProps = { label: "Gain", min: -10, max: 10, step: 0.5, defaultValue: 2.5, name: "gain", onChange: value => { void value.toFixed(1); } };
+    const sliderRoot: SliderRootProps = { ...slider, ref: node => { void node?.elements.length; } };
+    const listRoot: DescriptionListRootProps = { columns: 1, ref: node => { void node?.children.length; } };
+    const listRow: DescriptionListRowProps = { ref: node => { void node?.clientWidth; } };
+    const legacyRow: import("@lesomnus/nox").DescriptionListRow = { label: "Legacy row", value: 1 };
+    void legacyRow;
+    const panelRoot: NavigationPanelRootProps = { "aria-label": "Custom panel", style: { height: 160 }, ref: node => { void node?.clientHeight; } };
+    const calendar: CalendarProps = { mode: "range", label: "Inline period", defaultValue: { start: "2026-10-21", end: null }, getSelectionDates: dateWeekSelection, onChange: value => { void value?.end; }, ref: node => { void node?.querySelector("button"); } };
+    const calendarRoot: CalendarRootProps = { mode: "multiple", label: "Custom inline dates", defaultValue: [], getDateInfo: (): CalendarDateInfo => ({ label: "Available" }), onChange: dates => { void dates.join(","); } };
+    // @ts-expect-error Calendar preserves the DatePicker selection discriminant.
+    const invalidCalendar: CalendarProps = { mode: "range", label: "Invalid", value: [] };
+    void invalidCalendar;
     const progress: ProgressProps = { value: 42, variant: "bordered", animated: false, sparkleOptions: { duration: 2000 } };
     const datePicker: DatePickerProps = { label: "Date", defaultValue: "2026-10-24", min: "2026-01-01", max: "2026-12-31", name: "date", locale: "en-US", weekStartsOn: 1, onChange: value => { void value; }, ref: node => { void node?.focus(); } };
     const holiday: DatePickerDateInfo = { disabled: true, label: "Holiday", description: "Closed", marker: "•", style: { color: "currentColor" } };
@@ -131,6 +147,12 @@ try {
         <div style={{height:80}}><InkSparkle {...sparkle} /></div>
         <Checkbox aria-label="Select record" />
         <LinkButton {...link}>Record</LinkButton>
+        <Slider {...slider} orientation="vertical" />
+        <SliderRoot {...sliderRoot}><SliderValue /><SliderControl ref={node => { void node?.valueAsNumber; }} /><SliderTicks><SliderTick value={-10}>Low</SliderTick><SliderTick value={10}>High</SliderTick></SliderTicks></SliderRoot>
+        <DescriptionListRoot {...listRoot}><DescriptionListRow {...listRow}><DescriptionListTerm>Name</DescriptionListTerm><DescriptionListDetails>Example</DescriptionListDetails><DescriptionListDetails>Second value</DescriptionListDetails></DescriptionListRow></DescriptionListRoot>
+        <NavigationPanelRoot {...panelRoot}><NavigationPanelHeader><NavigationPanelTitle>Panel</NavigationPanelTitle><NavigationPanelActions><Button>Add</Button></NavigationPanelActions></NavigationPanelHeader><NavigationPanelBody>Body</NavigationPanelBody><NavigationPanelScrollBody>Scrolling body</NavigationPanelScrollBody><NavigationPanelFooter>Footer</NavigationPanelFooter></NavigationPanelRoot>
+        <Calendar {...calendar} />
+        <CalendarRoot {...calendarRoot}><CalendarHeader><CalendarMonth /><CalendarPreviousMonth /><CalendarNextMonth /></CalendarHeader><CalendarGrid /><CalendarDetails /><CalendarStatus /><CalendarFooter><CalendarToday /><CalendarClear /><CalendarDone /></CalendarFooter></CalendarRoot>
         <ColorPicker {...colorInput} />
         <ColorPickerRoot {...pickerRoot}>
           <div><ColorPickerHue {...pickerHue} /></div>

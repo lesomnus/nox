@@ -1,0 +1,126 @@
+.root,
+.root * {
+  box-sizing: border-box;
+}
+.root {
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+.control {
+  font: inherit;
+  color: inherit;
+}
+.control {
+  appearance: none;
+  width: 100%;
+  min-width: 0;
+  padding: 0;
+  margin: 0;
+  height: 20px;
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+}
+.control::-webkit-slider-runnable-track {
+  height: 4px;
+  border: 0;
+  border-radius: 2px;
+  background: linear-gradient(
+    var(--slider-direction, to right),
+    var(--ui-shade-237) var(--slider-progress),
+    var(--ui-shade-60) var(--slider-progress)
+  );
+  box-shadow: none;
+}
+.control::-moz-range-track {
+  height: 4px;
+  border: 0;
+  border-radius: 2px;
+  background: var(--ui-shade-60);
+  box-shadow: none;
+}
+.control::-moz-range-progress {
+  height: 4px;
+  border: 0;
+  border-radius: 2px;
+  background: var(--ui-shade-237);
+}
+.control::-webkit-slider-thumb {
+  appearance: none;
+  width: 12px;
+  height: 12px;
+  margin-top: -4px;
+  border: 0;
+  border-radius: 50%;
+  background: var(--ui-shade-237);
+  box-shadow: none;
+}
+.control::-moz-range-thumb {
+  width: 12px;
+  height: 12px;
+  border: 0;
+  border-radius: 50%;
+  background: var(--ui-shade-237);
+  box-shadow: none;
+}
+.control:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.control:focus-visible {
+  outline: 1px solid var(--ui-control-focus-border, var(--ui-shade-136));
+  outline-offset: 2px;
+}
+.control[readonly] {
+  cursor: default;
+}
+.control:where([data-orientation="vertical"]) {
+  writing-mode: vertical-lr;
+  direction: rtl;
+  width: 20px;
+  height: 160px;
+  --slider-direction: to top;
+}
+.control:where([data-orientation="vertical"])::-webkit-slider-runnable-track {
+  width: 4px;
+  height: 100%;
+}
+.control:where([data-orientation="vertical"])::-webkit-slider-thumb {
+  margin-top: 0;
+  margin-left: -4px;
+}
+.control:where([data-orientation="vertical"])::-moz-range-track,
+.control:where([data-orientation="vertical"])::-moz-range-progress {
+  width: 4px;
+  height: 100%;
+}
+.value {
+  font-variant-numeric: tabular-nums;
+}
+.ticks {
+  position: relative;
+  height: 1.5em;
+  margin-inline: 6px;
+  font-size: 10px;
+  color: var(--ui-muted);
+  user-select: none;
+}
+.tick {
+  position: absolute;
+  left: var(--slider-tick-position);
+  translate: -50% 0;
+  white-space: nowrap;
+}
+.ticks:where([data-orientation="vertical"]) {
+  width: 2em;
+  height: 148px;
+  margin: 6px 0;
+}
+.ticks:where([data-orientation="vertical"]) > .tick {
+  left: 0;
+  bottom: var(--slider-tick-position);
+  translate: 0 50%;
+}

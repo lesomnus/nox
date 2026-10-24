@@ -185,3 +185,10 @@ Storybook **Components/DatePicker** includes single, empty, restricted, localize
 states, controlled/form, inside-dialog and viewport examples, plus Date
 Information, Multiple, Range, Restricted Range, Three Day Selection, Week
 Selection, Toggle Weeks, Custom Selection, Multiple Form and Controlled Range.
+
+## Inline calendar and custom composition
+
+DatePicker now composes the public `Calendar` for its date-selection surface.
+Use `Calendar` without a trigger/popup, or `CalendarRoot` and its Header/Grid/
+Details/Status/Footer parts for a custom layout. The selection models and
+metadata rules described above are shared. See [composition guide](component-composition.md#calendar).

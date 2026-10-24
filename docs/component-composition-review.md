@@ -1,27 +1,28 @@
 # Component composition review
 
-Reviewed 2026-10-24 against the Nox component sources. This is a list of
-candidates, not an implementation commitment. Only ColorPicker was refactored
-in this change. DatePicker is being expanded concurrently; reconcile a future
-extraction with that session's final selection and metadata API.
+Reviewed 2026-10-24. The four strongest candidates below have now been
+implemented, alongside ColorPicker. Their public APIs and usage examples are
+in the [composition guide](component-composition.md). Conditional candidates
+remain review findings, not implemented commitments. Calendar was extracted
+from the completed DatePicker multiple/range/metadata implementation.
 
 The useful boundary is an element that consumers need to arrange, omit or
 replace while retaining shared behavior. Exporting every decorative span would
 increase the public API without adding meaningful composition.
 
-## Strong candidates
+## Extracted components
 
-| Component                                                                  | Proposed boundary                                                                                                    | Consumer benefit                                                                                               | Behavior that must remain shared                                                                                                                                                        |
-| -------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| [DatePicker](../src/components/date-picker/date-picker.tsx)                | Standalone `Calendar`, optionally with Header/MonthGrid/Day parts; DatePicker composes a trigger and popup around it | Inline calendar in a page/dialog, custom month navigation, multi-month display, without a forced trigger/popup | Selection model, min/max and disabled dates, locale, date metadata, focus and keyboard navigation. Avoid extracting before the ongoing multiple/range work stabilizes.                  |
-| [SettingSlider](../src/components/setting-slider/setting-slider.tsx)       | General native `Slider` plus optional Value/Ticks; keep SettingSlider as the inherited-setting preset                | Reuse the range UI for opacity, volume or arbitrary numeric ranges; move or omit ticks/output                  | Generic slider owns min/max/step/value and native accessibility. SettingSlider alone owns the current 0=inherited and 1–8 semantics. ColorPicker rails still own their color gradients. |
-| [DescriptionList](../src/components/description-list/description-list.tsx) | Root/List, Row, Term and Details; preserve `rows` as a convenience renderer                                          | Multiple values for one term, caller-owned labels, conditionally inserted rows and custom row layouts          | Native dl/dt/dd semantics and layout styles. Preserve dt/dd adjacency used by EditableValue; avoid hard-wiring FieldLabel into every term.                                              |
-| [NavigationPanel](../src/components/navigation-panel/navigation-panel.tsx) | Root, Header, Title, Actions, Body and optional Footer                                                               | Search/filter below title, pinned footer, alternate header layout or body without forced scrolling             | Accessible panel labeling and optional ScrollArea composition. Title registration must preserve labels when header children are reordered.                                              |
+| Component                                                                  | Extracted boundary                                                                                                                                | Consumer benefit                                                                                      | Behavior that must remain shared                                                                                                                                                        |
+| -------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [DatePicker](../src/components/date-picker/date-picker.tsx)                | Standalone `Calendar` and Root/Header/Month/navigation/Grid/Details/Status/Footer/action parts; DatePicker composes a trigger and popup around it | Inline calendar in a page/dialog, custom month navigation without a forced trigger/popup              | Selection model, min/max and disabled dates, locale, date metadata, focus and keyboard navigation. The completed multiple/range behavior is retained by both Calendar and DatePicker.   |
+| [SettingSlider](../src/components/setting-slider/setting-slider.tsx)       | General native `Slider` plus optional Value/Ticks; keep SettingSlider as the inherited-setting preset                                             | Reuse the range UI for opacity, volume or arbitrary numeric ranges; move or omit ticks/output         | Generic slider owns min/max/step/value and native accessibility. SettingSlider alone owns the current 0=inherited and 1–8 semantics. ColorPicker rails still own their color gradients. |
+| [DescriptionList](../src/components/description-list/description-list.tsx) | Root, Row, Term and Details; preserve `rows` as a convenience renderer                                                                            | Multiple values for one term, caller-owned labels, conditionally inserted rows and custom row layouts | Native dl/dt/dd semantics and layout styles. Preserve dt/dd adjacency used by EditableValue; avoid hard-wiring FieldLabel into every term.                                              |
+| [NavigationPanel](../src/components/navigation-panel/navigation-panel.tsx) | Root, Header, Title, Actions, Body and optional Footer                                                                                            | Search/filter below title, pinned footer, alternate header layout or body without forced scrolling    | Accessible panel labeling and optional ScrollArea composition. Title registration must preserve labels when header children are reordered.                                              |
 
-Recommended order: general Slider and DescriptionList first because the
-boundaries are small and useful; standalone Calendar has high value but needs
-coordination with current DatePicker work. NavigationPanel follows when custom
-header/footer layouts are needed.
+Implemented APIs: SliderRoot/Control/Value/Ticks/Tick; DescriptionListRoot/Row/
+Term/Details; NavigationPanelRoot/Header/Title/Actions/Body/ScrollBody/Footer;
+CalendarRoot/Header/Month/PreviousMonth/NextMonth/Grid/Details/Status/Footer/
+Today/Clear/Done. Original default components compose the same parts.
 
 ## Candidates requiring a concrete use case
 
