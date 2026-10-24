@@ -1,8 +1,8 @@
 # ColorPicker
 
 A graphical RGB(A) picker with a saturation/brightness gradient box, a rainbow
-hue slider and an opacity slider. Click, touch or drag inside the box to select
-its shade; there are no numeric channel inputs.
+hue slider and an opacity slider arranged vertically to its right. Click, touch
+or drag inside the box to select its shade; there are no numeric channel inputs.
 
 ```tsx
 import { ColorPicker, type RgbColor } from "@lesomnus/nox";
@@ -25,21 +25,25 @@ the selected color family.
 
 Use `value`/`onChange` for a controlled picker, or `defaultValue` for internal
 state (opaque black by default). Hue and opacity can be changed independently;
-fully transparent colors retain their RGB channels. The opacity rail and
-preview use a checkerboard so transparency remains visible.
+fully transparent colors retain their RGB channels. The opacity rail uses a
+checkerboard so transparency remains visible.
+The component only renders the color field and these two sliders. It has no
+visible titles, color swatch, HEX value or opacity readout. Compose a preview
+or value display outside the picker using `value` and `onChange` when needed.
 
 The color field is one keyboard tab stop: Left/Right adjust saturation,
 Up/Down adjust brightness, Shift increases the step, Home selects white and
 End selects black. Hue and opacity are native range controls with native
-keyboard support. Hidden saturation/brightness range controls expose both
-axes separately to assistive technology. Pointer capture and touch-action
+keyboard support: Up increases the value, Down decreases it; the minimum
+is at the bottom and the maximum is at the top. Hidden saturation/brightness
+range controls expose both axes separately to assistive technology. Pointer capture and touch-action
 allow dragging beyond the field's bounds without scrolling the page.
 
 The native `fieldset` supports disabled/readOnly states, class/style/ref,
 `aria-invalid`, `aria-describedby`, and other fieldset attributes. `label`
 names the group. Override `labels` to localize area/hue/alpha/saturation/
-brightness/instructions text. The selected HEX(A) and opacity are readouts,
-not text inputs.
+brightness/instructions text. These names and instructions are available
+to assistive technology without visible labels.
 
 With `name="accent"`, hidden inputs submit `accent.r`, `accent.g`, `accent.b`
 and `accent.a`; `form` can associate them with an external form. Uncontrolled
@@ -53,9 +57,9 @@ numbers. Pasting a color without alpha uses full opacity.
 Appearance uses the shared `--ui-color-input-*` border/background/error tokens,
 plus `--ui-color-picker-width` (240px), `--ui-color-picker-plane-height` (160px),
 `--ui-color-picker-handle-size` (12px) and checker-light/checker-dark tokens.
-The color gradients use real color values in both themes. Display text uses
-shared value/separator roles.
+The color gradients use real color values in both themes.
 
 Storybook **Components/ColorPicker** includes default, uncontrolled, translucent,
 gray, black, preview/presets, form, disabled/readOnly, invalid and localized
-examples.
+examples. The Preview story adds its own preview, preset buttons and RGB
+readout; those elements are not provided by ColorPicker.

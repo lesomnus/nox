@@ -23,7 +23,6 @@ const meta = {
             updateArgs({ value });
           }}
         />
-        <output aria-label="RGB value">{css(args.value ?? initial)}</output>
       </div>
     );
   },
@@ -75,6 +74,14 @@ export const Uncontrolled: Story = {
   ),
 };
 export const Preview: Story = {
+  parameters: {
+    docs: {
+      description: {
+        story:
+          "The preview, preset buttons and RGB readout are composed by the caller, outside ColorPicker.",
+      },
+    },
+  },
   render: function Example(args) {
     const [value, setValue] = useState(initial);
     return (

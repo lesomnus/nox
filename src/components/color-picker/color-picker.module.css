@@ -3,7 +3,9 @@
   box-sizing: border-box;
 }
 .control {
+  position: relative;
   display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
   gap: calc(3 * var(--ui-space));
   width: var(--ui-color-picker-width);
   max-width: 100%;
@@ -46,25 +48,19 @@
   pointer-events: none;
 }
 .sliders {
-  display: grid;
+  display: flex;
   gap: calc(2 * var(--ui-space));
-}
-.sliderRow {
-  display: grid;
-  grid-template-columns: 52px minmax(0, 1fr);
-  align-items: center;
-  gap: var(--ui-space);
-}
-.sliderLabel {
-  color: var(--ui-text-separator);
-  font-size: 10px;
+  height: var(--ui-color-picker-plane-height);
 }
 .slider {
   appearance: none;
   display: block;
-  width: 100%;
-  min-width: 0;
-  height: 12px;
+  flex: none;
+  writing-mode: vertical-lr;
+  direction: rtl;
+  width: 12px;
+  min-height: 0;
+  height: 100%;
   margin: 0;
   padding: 0;
   border: 0;
@@ -74,7 +70,7 @@
 }
 .hue {
   background: linear-gradient(
-    to right,
+    to top,
     #f00 0%,
     #ff0 16.667%,
     #0f0 33.333%,
@@ -84,18 +80,10 @@
     #f00 100%
   );
 }
-.alpha,
-.preview {
-  background-image: repeating-conic-gradient(
-    var(--ui-color-picker-checker-light) 0% 25%,
-    var(--ui-color-picker-checker-dark) 0% 50%
-  );
-  background-size: 8px 8px;
-}
 .alpha {
   background-image:
     linear-gradient(
-      to right,
+      to top,
       var(--color-picker-transparent),
       var(--color-picker-opaque)
     ),
@@ -109,16 +97,16 @@
 }
 .slider::-webkit-slider-thumb {
   appearance: none;
-  width: 12px;
-  height: 16px;
+  width: 16px;
+  height: 12px;
   border: 2px solid #fff;
   border-radius: 4px;
   background: transparent;
   box-shadow: 0 0 0 1px rgb(0 0 0 / 55%);
 }
 .slider::-moz-range-thumb {
-  width: 8px;
-  height: 12px;
+  width: 12px;
+  height: 8px;
   border: 2px solid #fff;
   border-radius: 4px;
   background: transparent;
@@ -127,35 +115,6 @@
 .slider:focus-visible {
   outline: 1px solid var(--ui-color-input-focus-border);
   outline-offset: 4px;
-}
-.summary {
-  display: flex;
-  align-items: center;
-  gap: calc(2 * var(--ui-space));
-  min-width: 0;
-}
-.preview {
-  flex: none;
-  display: block;
-  width: var(--ui-color-input-preview-size);
-  height: var(--ui-color-input-preview-size);
-  overflow: hidden;
-  border: 1px solid var(--ui-color-input-border);
-  border-radius: var(--ui-space);
-}
-.preview > span {
-  display: block;
-  width: 100%;
-  height: 100%;
-}
-.value {
-  flex: 1;
-  min-width: 0;
-  user-select: text;
-}
-.opacity {
-  color: var(--ui-text-separator);
-  font-variant-numeric: tabular-nums;
 }
 .control:disabled {
   opacity: 0.4;

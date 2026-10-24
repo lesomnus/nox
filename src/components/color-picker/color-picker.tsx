@@ -14,7 +14,6 @@ import {
   parseRgb,
   rgbChannels,
   rgbCss,
-  rgbHex,
   rgbToHsv,
   sameRgb,
   sameRgbChannels,
@@ -280,60 +279,42 @@ export function ColorPicker({
         {percent(selection.v)}
       </output>
       <div className={styles.sliders}>
-        <label className={styles.sliderRow}>
-          <span className={styles.sliderLabel}>{labels.hue}</span>
-          <input
-            {...rangeProps}
-            className={`${styles.slider} ${styles.hue}`}
-            type="range"
-            min={0}
-            max={360}
-            step={1}
-            value={selection.h}
-            aria-label={labels.hue}
-            aria-valuetext={`${Math.round(selection.h)}°`}
-            onChange={(event) =>
-              select({ ...selection, h: Number(event.currentTarget.value) })
-            }
-          />
-        </label>
-        <label className={styles.sliderRow}>
-          <span className={styles.sliderLabel}>{labels.alpha}</span>
-          <input
-            {...rangeProps}
-            className={`${styles.slider} ${styles.alpha}`}
-            type="range"
-            min={0}
-            max={1}
-            step={0.001}
-            value={color.a}
-            aria-label={labels.alpha}
-            aria-valuetext={percent(color.a)}
-            style={
-              {
-                "--color-picker-opaque": rgbCss({ ...color, a: 1 }),
-                "--color-picker-transparent": rgbCss({ ...color, a: 0 }),
-              } as CSSProperties
-            }
-            onChange={(event) =>
-              publish({ ...color, a: Number(event.currentTarget.value) })
-            }
-          />
-        </label>
-      </div>
-      <div className={styles.summary}>
-        <span className={styles.preview} aria-hidden="true">
-          <span
-            style={{ backgroundColor: rgbCss(color) }}
-            data-color-picker="preview"
-          />
-        </span>
-        <output className={styles.value} aria-label={label}>
-          {rgbHex(color)}
-        </output>
-        <span className={styles.opacity} aria-hidden="true">
-          {percent(color.a)}
-        </span>
+        <input
+          {...rangeProps}
+          className={`${styles.slider} ${styles.hue}`}
+          type="range"
+          aria-orientation="vertical"
+          min={0}
+          max={360}
+          step={1}
+          value={selection.h}
+          aria-label={labels.hue}
+          aria-valuetext={`${Math.round(selection.h)}°`}
+          onChange={(event) =>
+            select({ ...selection, h: Number(event.currentTarget.value) })
+          }
+        />
+        <input
+          {...rangeProps}
+          className={`${styles.slider} ${styles.alpha}`}
+          type="range"
+          aria-orientation="vertical"
+          min={0}
+          max={1}
+          step={0.001}
+          value={color.a}
+          aria-label={labels.alpha}
+          aria-valuetext={percent(color.a)}
+          style={
+            {
+              "--color-picker-opaque": rgbCss({ ...color, a: 1 }),
+              "--color-picker-transparent": rgbCss({ ...color, a: 0 }),
+            } as CSSProperties
+          }
+          onChange={(event) =>
+            publish({ ...color, a: Number(event.currentTarget.value) })
+          }
+        />
       </div>
       {name &&
         [...rgbChannels, "a" as const].map((channel) => (

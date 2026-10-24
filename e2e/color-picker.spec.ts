@@ -15,10 +15,49 @@ async function paste(target: Locator, text: string) {
   }, text);
 }
 
-test("gradient clicks select a shade with no numeric channel inputs", async ({
+test("bare picker has two vertical rails on the right without visible labels or a swatch", async ({
   page,
 }) => {
   await page.goto(story("default"));
+  const root = page.getByRole("group", { name: "Color", exact: true });
+  const plane = page.locator('[data-color-picker="plane"]');
+  const hue = page.getByRole("slider", { name: "Hue", exact: true });
+  const alpha = page.getByRole("slider", { name: "Opacity", exact: true });
+  await expect(root.getByText("Hue", { exact: true })).toHaveCount(0);
+  await expect(root.getByText("Opacity", { exact: true })).toHaveCount(0);
+  await expect(root.locator('[data-color-picker="preview"]')).toHaveCount(0);
+  await expect(page.getByLabel("RGB value")).toHaveCount(0);
+  // Exercise endpoint updates with the synchronous caller-owned value example.
+  await page.goto(story("preview"));
+  const box = (await plane.boundingBox())!;
+  let previousRight = box.x + box.width;
+  for (const rail of [hue, alpha]) {
+    await expect(rail).toHaveAttribute("aria-orientation", "vertical");
+    const track = (await rail.boundingBox())!;
+    expect(track.x).toBeGreaterThan(previousRight);
+    expect(track.y).toBeCloseTo(box.y, 0);
+    expect(track.height).toBeCloseTo(box.height, 0);
+    expect(track.width).toBeLessThan(track.height);
+    previousRight = track.x + track.width;
+    const max = (await rail.getAttribute("max"))!;
+    await page.mouse.click(track.x + track.width / 2, track.y + 1);
+    await expect(rail).toHaveValue(max);
+    await page.mouse.click(
+      track.x + track.width / 2,
+      track.y + track.height - 1,
+    );
+    await expect(rail).toHaveValue("0");
+    await rail.press("ArrowUp");
+    expect(Number(await rail.inputValue())).toBeGreaterThan(0);
+    await rail.press("ArrowDown");
+    await expect(rail).toHaveValue("0");
+  }
+});
+
+test("gradient clicks select a shade with no numeric channel inputs", async ({
+  page,
+}) => {
+  await page.goto(story("preview"));
   await expect(page.getByRole("spinbutton")).toHaveCount(0);
   const hue = page.getByRole("slider", { name: "Hue", exact: true });
   await hue.focus();
@@ -27,10 +66,6 @@ test("gradient clicks select a shade with no numeric channel inputs", async ({
   const box = (await plane.boundingBox())!;
   await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2);
   await expect(page.getByLabel("RGB value")).toHaveText("rgb(128 64 64 / 1)");
-  await expect(page.locator('[data-color-picker="preview"]')).toHaveCSS(
-    "background-color",
-    "rgb(128, 64, 64)",
-  );
   await expect(
     page.getByRole("slider", { name: "Saturation", exact: true }),
   ).toHaveValue("0.5");
@@ -42,7 +77,7 @@ test("gradient clicks select a shade with no numeric channel inputs", async ({
 test("captured dragging clamps at the edges and hue survives white and black", async ({
   page,
 }) => {
-  await page.goto(story("default"));
+  await page.goto(story("preview"));
   const plane = page.locator('[data-color-picker="plane"]');
   const box = (await plane.boundingBox())!;
   await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
@@ -66,7 +101,7 @@ test("captured dragging clamps at the edges and hue survives white and black", a
 test("opacity has a checkerboard rail and changes alpha without changing RGB", async ({
   page,
 }) => {
-  await page.goto(story("default"));
+  await page.goto(story("preview"));
   const alpha = page.getByRole("slider", { name: "Opacity", exact: true });
   const box = (await alpha.boundingBox())!;
   await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2);
@@ -101,9 +136,14 @@ test("uncontrolled RGBA paste and native form reset preserve all four channels",
   await expect(
     page.getByRole("slider", { name: "Opacity", exact: true }),
   ).toHaveValue("0.75");
-  await expect(page.locator('[data-color-picker="preview"]')).toHaveCSS(
-    "background-color",
-    "rgba(217, 255, 48, 0.75)",
+  await page.getByRole("button", { name: "Submit", exact: true }).click();
+  await expect(page.getByLabel("Submitted channels")).toHaveText(
+    JSON.stringify({
+      "accent.r": "217",
+      "accent.g": "255",
+      "accent.b": "48",
+      "accent.a": "0.75",
+    }),
   );
 });
 
@@ -121,10 +161,12 @@ test("disabled and read-only pickers reject changes; localized labels and errors
   await page.goto(story("read-only"));
   const hue = page.getByRole("slider", { name: "Hue", exact: true });
   const before = await hue.inputValue();
-  await hue.press("ArrowRight");
+  await hue.press("ArrowUp");
   await expect(hue).toHaveValue(before);
   await paste(page.locator('[data-color-picker="plane"]'), "#000");
-  await expect(page.getByLabel("RGB value")).toHaveText("rgb(217 255 48 / 1)");
+  await expect(
+    page.getByRole("slider", { name: "Brightness", exact: true }),
+  ).toHaveValue("1");
   await page.goto(story("localized"));
   await expect(
     page.getByRole("group", { name: "색상 영역", exact: true }),
