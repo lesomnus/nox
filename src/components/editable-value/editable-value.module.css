@@ -26,6 +26,7 @@
   font-family: var(--ui-font-mono);
 }
 .editable_value_dialog {
+  --ui-dialog-trigger-opacity: 1;
   position: fixed;
   max-width: none;
   max-height: none;
