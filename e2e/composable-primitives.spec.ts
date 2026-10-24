@@ -31,6 +31,7 @@ test("generic slider shares value/ticks, supports decimal form values/reset and 
   const box = (await vertical.boundingBox())!;
   expect(box.height).toBeGreaterThan(box.width);
   await vertical.press("Home");
+  await expect(vertical).toHaveValue("0");
   await vertical.press("ArrowUp");
   await expect(vertical).toHaveValue("1");
   await story(page, "components-slider--read-only");
