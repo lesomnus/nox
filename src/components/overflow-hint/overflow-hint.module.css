@@ -8,6 +8,7 @@
   outline-offset: var(--ui-control-inset);
 }
 .hint {
+  box-sizing: border-box;
   --hint-max-width: 620px;
   --hint-inset: calc(2 * var(--ui-space));
   position: fixed;
