@@ -8,6 +8,7 @@
   justify-items: center;
   gap: 24px;
   padding: 72px 20px;
+  font-family: var(--ui-font-mono);
 }
 .hint {
   max-width: 320px;

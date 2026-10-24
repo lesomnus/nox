@@ -367,34 +367,6 @@ export const TriggerVariants: Story = {
   },
 };
 
-export const BackdropAndTypography: Story = {
-  render: function BackdropAndTypography() {
-    const [value, setValue] = useState("medium");
-    return (
-      <div className={styles.backdrop}>
-        <p>
-          Open a menu over the dots. The background softens, and the popup keeps
-          its trigger's font.
-        </p>
-        <div className={styles.row}>
-          <ActionMenu
-            label="Appearance actions"
-            triggerContent="Actions"
-            items={basicActions}
-          />
-          <ValueMenu
-            label="Appearance effort"
-            value={value}
-            choose={setValue}
-            options={effortOptions}
-          />
-        </div>
-        <p>The same surface and tokens follow the selected Storybook theme.</p>
-      </div>
-    );
-  },
-};
-
 export const InsideDialog: Story = {
   render: function InsideDialog() {
     const [open, setOpen] = useState(false);

@@ -100,8 +100,6 @@ The example's icons and action handlers come from the consuming application.
   directional slide/reveal entrances.
 - **Trigger Variants** compares ellipsis/text/icon action buttons and
   default/compact/icon-grouped value selectors.
-- **Backdrop And Typography** exposes the shared blur over a dot pattern.
-  Switch the Storybook theme to compare dark and light appearances.
 - **Inside Dialog** shows both menus remaining interactive in a native dialog.
 
 **Features** provides focused cases for disabled triggers, compact typography,
@@ -110,6 +108,10 @@ lists, including their searchable variants. Both menus use the same item labels,
 icons, availability and selected value. Choosing an action or value updates both.
 This keeps the common examples symmetric without implying that search or
 group-title icons exist in ActionMenu.
+
+**Features → Stipple Backdrop** is the single background/blur and typography
+comparison. Both menus sit over the moving dots and inherit their trigger's
+monospace font. Switch the Storybook theme to compare dark and light surfaces.
 
 ## Custom overlays
 

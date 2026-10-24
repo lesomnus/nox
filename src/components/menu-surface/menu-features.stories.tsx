@@ -123,8 +123,8 @@ export const StippleBackdrop: Story = {
       >
         <div className={styles.backdropContent}>
           <p className={styles.hint}>
-            Open Effort to see the dot pattern soften through the menu's
-            backdrop blur.
+            Open either menu to see the dots soften behind it. The popup keeps
+            its trigger's monospace font in either theme.
           </p>
           <div className={styles.menuFrame}>
             <Story />
@@ -137,7 +137,7 @@ export const StippleBackdrop: Story = {
     docs: {
       description: {
         story:
-          "ValueMenu's existing translucent surface and 24px backdrop blur over a moving StippleBackground. Open the selector to compare the crisp dots outside the popup with the softened pattern behind it. No menu appearance overrides are applied.",
+          "Both menus share the same translucent surface and backdrop blur over a moving StippleBackground. Compare the crisp dots outside a popup with the softened pattern behind it, and its inherited monospace typography. Switch the Storybook theme to compare dark and light appearances. No menu appearance overrides are applied.",
       },
     },
   },

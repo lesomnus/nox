@@ -28,22 +28,3 @@
   min-height: 320px;
   align-content: center;
 }
-.backdrop {
-  display: grid;
-  align-content: center;
-  gap: calc(4 * var(--ui-space));
-  min-height: 320px;
-  padding: calc(8 * var(--ui-space));
-  border-radius: var(--ui-dialog-radius);
-  background-color: var(--ui-shade-32);
-  background-image: radial-gradient(var(--ui-shade-115) 1px, transparent 1px);
-  background-size: 8px 8px;
-  font-family: var(--ui-font-mono);
-}
-.backdrop p {
-  margin: 0;
-  max-width: 32ch;
-}
-.backdrop .row {
-  justify-content: center;
-}
