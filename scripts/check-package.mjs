@@ -69,10 +69,11 @@ try {
     join(temporary, "main.tsx"),
     `
     import { createRoot } from "react-dom/client";
-    import { SplitLayout, type SplitNode, setSplitRatio, PrefixValueMenu, type PrefixValueMenuProps, IconValueMenu, AuroraGlow, type AuroraGlowProps, type AuroraPalette, InkSparkle, type InkSparkleProps, Button, Checkbox, DateTime, DescriptionList, IdentifierValue, MenuSurface, type MenuSurfaceProps, MenuScrollArea, MenuItem, type MenuItemProps, MenuIcon, MenuGroupLabel, MenuDivider, NavigationPanel, StippleBackground, clusterMotion, workMotion, withPointerBurst, UIProvider } from "@lesomnus/nox";
+    import { PinInput, type PinInputProps, SplitLayout, type SplitNode, setSplitRatio, PrefixValueMenu, type PrefixValueMenuProps, IconValueMenu, AuroraGlow, type AuroraGlowProps, type AuroraPalette, InkSparkle, type InkSparkleProps, Button, Checkbox, DateTime, DescriptionList, IdentifierValue, MenuSurface, type MenuSurfaceProps, MenuScrollArea, MenuItem, type MenuItemProps, MenuIcon, MenuGroupLabel, MenuDivider, NavigationPanel, StippleBackground, clusterMotion, workMotion, withPointerBurst, UIProvider } from "@lesomnus/nox";
     import { TerminalWorkbench } from "@lesomnus/nox/terminal";
     import "@lesomnus/nox/styles.css";
     void TerminalWorkbench;
+    const pin: PinInputProps = { label: "Device code", groups: [4,4], mode: "alphanumeric", name: "device_code" };
     void MenuSurface;
     void MenuIcon;
     const menuSurface: MenuSurfaceProps = { anchor: null, role: "menu", style: { left: 0, top: 0 } };
@@ -90,6 +91,7 @@ try {
         <PrefixValueMenu {...prefixMenu} />
         <IconValueMenu label="Legacy effort" icon="Effort" value="medium" options={[{value:"medium",label:"Medium"}]} choose={() => {}} />
         <Button>Save</Button>
+        <PinInput {...pin} />
         <MenuScrollArea role="menu" aria-label="Custom actions" scrollbarLabel="Scroll actions">
           <MenuGroupLabel icon={<svg viewBox="0 0 24 24"><path d="M4 12h16" /></svg>}>Commands</MenuGroupLabel>
           <MenuItem {...menuItem}>Details</MenuItem>

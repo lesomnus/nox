@@ -99,6 +99,12 @@ content and leave routing, data and application state to the caller.
 trailing `actions`. Put a selector, breadcrumbs or title in its children and keep
 scrolling content in a sibling below it. It has no routing or resource dependency.
 
+`PinInput` presents one native input as configurable code slots. Use `length={6}`
+for a numeric verification code or `groups={[4, 4]}` with `mode="alphanumeric"`
+for device codes. Typing advances the visible caret; paste, autofill, native form
+submission and keyboard editing work with one unformatted value. See
+[PIN and device codes](docs/pin-input.md) and **Components/PinInput**.
+
 `PrefixValueMenu` combines leading text, an icon or another React node with a
 compact `ValueMenu` and a shared hover, focus and open background. Its `prefix`
 stays outside the trigger and popup; `label` supplies the accessible selector name.
