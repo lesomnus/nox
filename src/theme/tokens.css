@@ -96,6 +96,8 @@
     transparent
   );
   --ui-space: 4px;
+  --ui-sliding-pages-duration: 360ms;
+  --ui-sliding-pages-easing: cubic-bezier(0.22, 0.61, 0.36, 1);
   --ui-date-picker-trigger-width: 180px;
   --ui-date-picker-width: 268px;
   --ui-date-picker-day-size: 32px;

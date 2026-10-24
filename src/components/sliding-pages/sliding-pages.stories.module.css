@@ -1,0 +1,83 @@
+.stage {
+  width: min(580px, calc(100vw - 48px));
+  margin: calc(4 * var(--ui-space)) auto;
+  min-width: 0;
+  display: grid;
+  justify-items: start;
+  gap: calc(3 * var(--ui-space));
+  font-size: 12px;
+}
+.viewport {
+  background: var(--ui-shade-24);
+  border: 1px solid var(--ui-shade-48);
+  border-radius: var(--ui-dialog-radius);
+}
+.page {
+  padding: calc(4 * var(--ui-space));
+}
+.page h2 {
+  margin: 0 0 calc(3 * var(--ui-space));
+  font-size: 15px;
+  font-weight: 500;
+}
+.page p {
+  margin: 0 0 calc(3 * var(--ui-space));
+  color: var(--ui-muted);
+  line-height: 1.7;
+}
+.field {
+  display: grid;
+  gap: var(--ui-space);
+  margin-bottom: calc(3 * var(--ui-space));
+  color: var(--ui-muted);
+}
+.field input,
+.field textarea {
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  padding: calc(2 * var(--ui-space));
+  border: 0;
+  border-radius: var(--ui-space);
+  background: var(--ui-shade-32);
+  color: var(--ui-shade-221);
+  font: inherit;
+}
+.field textarea {
+  resize: vertical;
+}
+.steps,
+.actions,
+.controls {
+  display: flex;
+  align-items: center;
+  gap: var(--ui-space);
+}
+.steps {
+  flex-wrap: wrap;
+}
+.steps [aria-current] {
+  color: var(--ui-shade-255);
+  background: var(--ui-selected);
+}
+.controls {
+  width: 100%;
+  justify-content: space-between;
+}
+.controls output,
+.progress {
+  color: var(--ui-muted);
+  font: 11px var(--ui-font-mono);
+}
+.actions {
+  justify-content: flex-end;
+}
+.page .extra {
+  margin: calc(3 * var(--ui-space)) 0 0;
+}
+.result {
+  color: var(--ui-muted);
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  font: 11px var(--ui-font-mono);
+}

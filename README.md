@@ -121,6 +121,12 @@ from a fixed center outside its left edge. The bordered variant uses the shared
 narrow control inset. Value, timing and animation state belong to the host.
 See [progress indicators](docs/progress.md) and **Components/Progress**.
 
+`SlidingPages` and `SlidingPage` keep a multi-step form inside one clipped
+viewport. Control the active value, preserve page drafts and choose fixed size,
+animated height or animated width and height. They support directional slides,
+RTL, focus transfer and reduced motion without a routing or animation dependency.
+See [sliding pages](docs/sliding-pages.md) and **Components/SlidingPages**.
+
 `Drawer` places an independently sized surface near any viewport or container
 edge. Compose `DrawerCard` for the rounded cxz task-detail card, or supply a
 different surface. See [drawers](docs/drawer.md), **Components/Drawer** and
