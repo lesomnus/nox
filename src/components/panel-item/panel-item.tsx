@@ -1,9 +1,5 @@
-import {
-  forwardRef,
-  type AnchorHTMLAttributes,
-  type ComponentProps,
-} from "react";
-import { Button, ButtonContent } from "../button/button";
+import { forwardRef, type ComponentProps } from "react";
+import { Button, ButtonAnchor, type ButtonAnchorProps } from "../button/button";
 import styles from "./panel-item.module.css";
 
 // Selection follows the native accessibility state for both buttons and links.
@@ -14,20 +10,20 @@ export function PanelItem({
   return <Button {...props} className={`${styles.item} ${className}`} />;
 }
 
-export const PanelItemAnchor = forwardRef<
-  HTMLAnchorElement,
-  AnchorHTMLAttributes<HTMLAnchorElement> & { pressTarget?: string }
->(function PanelItemAnchor(
-  { children, pressTarget, className = "", ...props },
-  ref,
-) {
-  return (
-    <a
-      {...props}
-      ref={ref}
-      className={`${styles.item} route-link ${className}`}
-    >
-      <ButtonContent pressTarget={pressTarget}>{children}</ButtonContent>
-    </a>
-  );
-});
+export const PanelItemAnchor = forwardRef<HTMLAnchorElement, ButtonAnchorProps>(
+  function PanelItemAnchor(
+    { children, pressTarget, className = "", ...props },
+    ref,
+  ) {
+    return (
+      <ButtonAnchor
+        {...props}
+        ref={ref}
+        pressTarget={pressTarget}
+        className={`${styles.item} route-link ${className}`}
+      >
+        {children}
+      </ButtonAnchor>
+    );
+  },
+);

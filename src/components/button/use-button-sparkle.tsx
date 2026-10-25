@@ -2,6 +2,8 @@ import {
   useEffect,
   useRef,
   useState,
+  type FocusEvent,
+  type HTMLAttributes,
   type KeyboardEvent,
   type PointerEvent,
 } from "react";
@@ -20,7 +22,7 @@ type Burst = {
 };
 type Contact = { id: number; pointer?: number; key?: string };
 
-function neutralColor(button: HTMLButtonElement): Burst["color"] {
+function neutralColor(button: HTMLElement): Burst["color"] {
   const canvas = document.createElement("canvas");
   canvas.width = canvas.height = 1;
   const context = canvas.getContext("2d", { willReadFrequently: true });
@@ -33,10 +35,11 @@ function neutralColor(button: HTMLButtonElement): Burst["color"] {
   return [r / 255, g / 255, b / 255, (a / 255) * 0.06];
 }
 
-export function useButtonSparkle(
+export function useButtonSparkle<T extends HTMLElement>(
   enabled: boolean,
   blocked: boolean,
   options?: ButtonEffectOptions,
+  handlers?: HTMLAttributes<T>,
 ) {
   const serial = useRef(0);
   const held = useRef<Contact | undefined>(undefined);
@@ -55,7 +58,7 @@ export function useButtonSparkle(
       );
   };
   const begin = (
-    button: HTMLButtonElement,
+    button: HTMLElement,
     origin: Burst["origin"],
     source: Omit<Contact, "id">,
   ) => {
@@ -99,37 +102,74 @@ export function useButtonSparkle(
     } else if (blocked) release();
   }, [enabled, blocked]);
 
+  const pointerDown = (event: PointerEvent<T>) => {
+    if (event.button !== 0 || !event.isPrimary) return;
+    const button = event.currentTarget;
+    const rect = button.getBoundingClientRect();
+    if (!rect.width || !rect.height) return;
+    begin(
+      button,
+      [
+        ((event.clientX - rect.left) / rect.width) * button.offsetWidth -
+          button.clientLeft,
+        ((event.clientY - rect.top) / rect.height) * button.offsetHeight -
+          button.clientTop,
+      ],
+      { pointer: event.pointerId },
+    );
+  };
+  const pointerEnd = (event: PointerEvent<T>) => {
+    if (held.current?.pointer === event.pointerId) release();
+  };
+  const keyDown = (event: KeyboardEvent<T>) => {
+    // Anchors activate with Enter; Space retains its native scroll behavior.
+    if (
+      event.repeat ||
+      !(
+        event.key === "Enter" ||
+        (event.key === " " && event.currentTarget.tagName === "BUTTON")
+      )
+    )
+      return;
+    const button = event.currentTarget;
+    begin(button, [button.clientWidth / 2, button.clientHeight / 2], {
+      key: event.key,
+    });
+  };
+  const keyUp = (event: KeyboardEvent<T>) => {
+    if (held.current?.key === event.key) release();
+  };
   return {
-    pointerDown(event: PointerEvent<HTMLButtonElement>) {
-      if (event.button !== 0 || !event.isPrimary) return;
-      const button = event.currentTarget;
-      const rect = button.getBoundingClientRect();
-      if (!rect.width || !rect.height) return;
-      begin(
-        button,
-        [
-          ((event.clientX - rect.left) / rect.width) * button.offsetWidth -
-            button.clientLeft,
-          ((event.clientY - rect.top) / rect.height) * button.offsetHeight -
-            button.clientTop,
-        ],
-        { pointer: event.pointerId },
-      );
+    events: {
+      onPointerDown(event: PointerEvent<T>) {
+        handlers?.onPointerDown?.(event);
+        if (!event.defaultPrevented) pointerDown(event);
+      },
+      onPointerUp(event: PointerEvent<T>) {
+        pointerEnd(event);
+        handlers?.onPointerUp?.(event);
+      },
+      onPointerCancel(event: PointerEvent<T>) {
+        pointerEnd(event);
+        handlers?.onPointerCancel?.(event);
+      },
+      onLostPointerCapture(event: PointerEvent<T>) {
+        pointerEnd(event);
+        handlers?.onLostPointerCapture?.(event);
+      },
+      onKeyDown(event: KeyboardEvent<T>) {
+        handlers?.onKeyDown?.(event);
+        if (!event.defaultPrevented) keyDown(event);
+      },
+      onKeyUp(event: KeyboardEvent<T>) {
+        keyUp(event);
+        handlers?.onKeyUp?.(event);
+      },
+      onBlur(event: FocusEvent<T>) {
+        release();
+        handlers?.onBlur?.(event);
+      },
     },
-    pointerEnd(event: PointerEvent<HTMLButtonElement>) {
-      if (held.current?.pointer === event.pointerId) release();
-    },
-    keyDown(event: KeyboardEvent<HTMLButtonElement>) {
-      if (event.repeat || !["Enter", " "].includes(event.key)) return;
-      const button = event.currentTarget;
-      begin(button, [button.clientWidth / 2, button.clientHeight / 2], {
-        key: event.key,
-      });
-    },
-    keyUp(event: KeyboardEvent<HTMLButtonElement>) {
-      if (held.current?.key === event.key) release();
-    },
-    release,
     ink: enabled
       ? bursts.map(({ id, origin, color, pressed }) => (
           <InkSparkle

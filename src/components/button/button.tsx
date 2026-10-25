@@ -5,23 +5,30 @@ import {
 } from "./use-button-sparkle";
 export type { ButtonEffectOptions } from "./use-button-sparkle";
 import {
+  forwardRef,
   useLayoutEffect,
   useRef,
+  type AnchorHTMLAttributes,
   type ButtonHTMLAttributes,
   type ReactNode,
   type Ref,
 } from "react";
 
-export type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
-  /** Hold the pressed state and sweep a soft highlight over the label. */
-  loading?: boolean;
+type ButtonAppearance = {
   pressTarget?: string;
   variant?: "default" | "solid" | "outline" | "toolbar";
   /** Press feedback. Defaults to sparkle; none uses the native variant background. */
   effect?: "sparkle" | "none";
   effectOptions?: ButtonEffectOptions;
-  ref?: Ref<HTMLButtonElement>;
 };
+export type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> &
+  ButtonAppearance & {
+    /** Hold the pressed state and sweep a soft highlight over the label. */
+    loading?: boolean;
+    ref?: Ref<HTMLButtonElement>;
+  };
+export type ButtonAnchorProps = AnchorHTMLAttributes<HTMLAnchorElement> &
+  ButtonAppearance;
 
 export function Button({
   children,
@@ -34,7 +41,7 @@ export function Button({
   onClick,
   ...props
 }: ButtonProps) {
-  const sparkle = useButtonSparkle(
+  const sparkle = useButtonSparkle<HTMLButtonElement>(
     effect === "sparkle",
     !!(
       loading ||
@@ -43,6 +50,7 @@ export function Button({
       props["aria-disabled"] === "true"
     ),
     effectOptions,
+    props,
   );
   return (
     <button
@@ -53,34 +61,7 @@ export function Button({
       data-variant={variant}
       data-effect={effect}
       className={`${styles.button} ${className}`}
-      onPointerDown={(event) => {
-        props.onPointerDown?.(event);
-        if (!event.defaultPrevented) sparkle.pointerDown(event);
-      }}
-      onPointerUp={(event) => {
-        sparkle.pointerEnd(event);
-        props.onPointerUp?.(event);
-      }}
-      onPointerCancel={(event) => {
-        sparkle.pointerEnd(event);
-        props.onPointerCancel?.(event);
-      }}
-      onLostPointerCapture={(event) => {
-        sparkle.pointerEnd(event);
-        props.onLostPointerCapture?.(event);
-      }}
-      onKeyDown={(event) => {
-        props.onKeyDown?.(event);
-        if (!event.defaultPrevented) sparkle.keyDown(event);
-      }}
-      onKeyUp={(event) => {
-        sparkle.keyUp(event);
-        props.onKeyUp?.(event);
-      }}
-      onBlur={(event) => {
-        sparkle.release();
-        props.onBlur?.(event);
-      }}
+      {...sparkle.events}
       onClick={(event) => {
         if (loading) {
           event.preventDefault();
@@ -95,6 +76,54 @@ export function Button({
     </button>
   );
 }
+
+// Keep native link semantics (including modified clicks and Enter activation)
+// while sharing the button surface, press motion and ink lifecycle.
+export const ButtonAnchor = forwardRef<HTMLAnchorElement, ButtonAnchorProps>(
+  function ButtonAnchor(
+    {
+      children,
+      pressTarget,
+      variant = "default",
+      effect = "sparkle",
+      effectOptions,
+      className = "",
+      onClick,
+      ...props
+    },
+    ref,
+  ) {
+    const blocked =
+      props["aria-disabled"] === true || props["aria-disabled"] === "true";
+    const sparkle = useButtonSparkle<HTMLAnchorElement>(
+      effect === "sparkle",
+      blocked,
+      effectOptions,
+      props,
+    );
+    return (
+      <a
+        {...props}
+        {...sparkle.events}
+        ref={ref}
+        data-variant={variant}
+        data-effect={effect}
+        className={`${styles.button} ${styles.anchor} ${className}`}
+        onClick={(event) => {
+          if (blocked) {
+            event.preventDefault();
+            event.stopPropagation();
+            return;
+          }
+          onClick?.(event);
+        }}
+      >
+        {sparkle.ink}
+        <ButtonContent pressTarget={pressTarget}>{children}</ButtonContent>
+      </a>
+    );
+  },
+);
 
 export function ButtonContent({
   children,

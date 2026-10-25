@@ -121,3 +121,8 @@
   min-height: 24px;
   padding: 3px 6px;
 }
+
+.anchor {
+  display: inline-block;
+  text-decoration: none;
+}

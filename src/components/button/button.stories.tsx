@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
-import { Button } from "@lesomnus/nox";
+import { Button, ButtonAnchor, PanelItemAnchor } from "@lesomnus/nox";
 import { useRef, useState } from "react";
 
 const meta = {
@@ -215,4 +215,46 @@ export const ToolbarIcon: Story = {
 
 export const LoadingToolbarIcon: Story = {
   args: { ...ToolbarIcon.args, loading: true },
+};
+
+export const LinkInteraction: Story = {
+  render: function LinkInteraction() {
+    const ref = useRef<HTMLAnchorElement>(null);
+    const [clicks, setClicks] = useState(0);
+    const [downs, setDowns] = useState(0);
+    const [keys, setKeys] = useState(0);
+    return (
+      <nav aria-label="Example links" style={{ display: "grid", gap: 12 }}>
+        <ButtonAnchor
+          ref={ref}
+          href="#destination"
+          onClick={() => setClicks((n) => n + 1)}
+          onPointerDown={() => setDowns((n) => n + 1)}
+          onKeyDown={() => setKeys((n) => n + 1)}
+        >
+          Open project
+        </ButtonAnchor>
+        <output>
+          Clicks: {clicks}; pointer downs: {downs}; keys: {keys}
+        </output>
+        <Button effect="none" onClick={() => ref.current?.focus()}>
+          Focus link
+        </Button>
+        <ButtonAnchor href="#disabled" aria-disabled="true">
+          Disabled link
+        </ButtonAnchor>
+        <ButtonAnchor href="#quiet" effect="none">
+          Link without ink
+        </ButtonAnchor>
+        <ButtonAnchor
+          href="#prevented"
+          onPointerDown={(e) => e.preventDefault()}
+          onKeyDown={(e) => e.preventDefault()}
+        >
+          Prevented press
+        </ButtonAnchor>
+        <PanelItemAnchor href="#panel-destination">Panel link</PanelItemAnchor>
+      </nav>
+    );
+  },
 };
