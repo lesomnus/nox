@@ -91,6 +91,14 @@
 .horizontalRail::before {
   content: "";
   position: absolute;
+  inset: 0;
+  border-radius: calc(var(--ui-scroll-area-hit-size) / 2);
+  -webkit-backdrop-filter: blur(var(--ui-scroll-area-rail-blur));
+  backdrop-filter: blur(var(--ui-scroll-area-rail-blur));
+}
+.horizontalRail::after {
+  content: "";
+  position: absolute;
   left: 0;
   right: 0;
   top: calc(
@@ -99,11 +107,10 @@
   height: var(--ui-scroll-area-handle-size);
   border-radius: var(--ui-scroll-area-handle-radius);
   background: var(--ui-scroll-area-rail-background);
-  -webkit-backdrop-filter: blur(var(--ui-scroll-area-rail-blur));
-  backdrop-filter: blur(var(--ui-scroll-area-rail-blur));
 }
 .horizontalThumb {
   position: absolute;
+  z-index: 1;
   height: 100%;
   cursor: grab;
   touch-action: none;
@@ -148,19 +155,30 @@
 .rail:not(:empty)::before {
   content: "";
   position: absolute;
+  inset: 0;
+  border-radius: calc(var(--ui-scroll-area-hit-size) / 2);
+  -webkit-backdrop-filter: blur(var(--ui-scroll-area-rail-blur));
+  backdrop-filter: blur(var(--ui-scroll-area-rail-blur));
+}
+.rail:not(:empty)::after {
+  content: "";
+  position: absolute;
   inset-block: 0;
   left: 50%;
   width: var(--ui-scroll-area-handle-size);
   transform: translateX(-50%);
   border-radius: var(--ui-scroll-area-handle-radius);
   background: var(--ui-scroll-area-rail-background);
-  -webkit-backdrop-filter: blur(var(--ui-scroll-area-rail-blur));
-  backdrop-filter: blur(var(--ui-scroll-area-rail-blur));
+}
+.rail::before,
+.rail::after {
   opacity: 0;
   transition: opacity var(--ui-scroll-area-transition-duration);
 }
 .area:is(:hover, [data-dragging]) .rail::before,
-.rail:has(.thumb:focus-visible)::before {
+.area:is(:hover, [data-dragging]) .rail::after,
+.rail:has(.thumb:focus-visible)::before,
+.rail:has(.thumb:focus-visible)::after {
   opacity: 1;
 }
 .fade {
@@ -208,6 +226,7 @@
 }
 .thumb {
   position: absolute;
+  z-index: 1;
   width: var(--ui-scroll-area-hit-size);
   cursor: grab;
   touch-action: none;
@@ -249,7 +268,8 @@
 @media (prefers-reduced-motion: reduce) {
   .fade,
   .handle,
-  .rail::before {
+  .rail::before,
+  .rail::after {
     transition: none;
   }
 }
