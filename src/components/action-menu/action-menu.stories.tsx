@@ -1,6 +1,6 @@
 import { useState } from "react";
 import type { Meta, StoryObj } from "@storybook/react-vite";
-import { ActionMenu } from "@lesomnus/nox";
+import { ActionMenu, Button } from "@lesomnus/nox";
 
 const meta = {
   title: "Components/ActionMenu",
@@ -46,6 +46,27 @@ export const Language: Story = {
   decorators: [
     (Story) => (
       <div style={{ width: 180 }}>
+        <Story />
+      </div>
+    ),
+  ],
+};
+
+export const OutsideScrollbar: Story = {
+  args: {
+    label: "Scrollable actions",
+    placement: "above",
+    scrollbarOffset: 12,
+    motion: { from: "bottom-right", effect: "reveal" },
+    footer: <Button>Keep menu open</Button>,
+    items: Array.from({ length: 30 }, (_, i) => ({
+      label: `Action ${i + 1}`,
+      run: () => {},
+    })),
+  },
+  decorators: [
+    (Story) => (
+      <div style={{ position: "fixed", bottom: 8, right: 4 }}>
         <Story />
       </div>
     ),

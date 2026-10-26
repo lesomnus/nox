@@ -4,9 +4,12 @@
 }
 .action_menu_popup {
   min-width: 190px;
-  max-width: calc(100vw - 16px);
+  max-width: calc(100vw - 16px - var(--action-menu-scrollbar-outset, 0px));
   max-height: 50dvh;
   overflow: hidden;
+}
+.action_menu_popup[data-scrollbar-offset] {
+  overflow: visible;
 }
 .shortcut {
   display: inline-flex;

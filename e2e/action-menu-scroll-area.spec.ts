@@ -1,5 +1,68 @@
 import { expect, test } from "@playwright/test";
 
+test("an outward action-menu handle escapes the reveal mask and stays usable at the viewport edge", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 360, height: 440 });
+  await page.goto(
+    "/iframe.html?id=components-actionmenu--outside-scrollbar&viewMode=story",
+  );
+  const trigger = page.getByRole("button", {
+    name: "Scrollable actions",
+    exact: true,
+  });
+  await trigger.click();
+  const popup = page.locator(".action-menu-popup");
+  const area = popup.locator('[data-scroll-area="root"]');
+  const viewport = area.locator('[data-scroll-area="viewport"]');
+  const thumb = area.getByRole("scrollbar");
+  const handle = area.locator('[data-scroll-area="handle"]');
+  await expect(popup.locator("[data-menu-frame]")).toHaveCSS(
+    "mask-image",
+    "none",
+  );
+  await area.hover();
+  const bounds = (await popup.boundingBox())!;
+  const drawn = (await handle.boundingBox())!;
+  expect(drawn.x).toBeGreaterThan(bounds.x + bounds.width);
+  expect(drawn.x + drawn.width).toBeLessThan(360);
+  const footer = popup.locator('[data-menu-fixed="footer"]');
+  const fixed = await footer.boundingBox();
+  await page.mouse.move(drawn.x + drawn.width / 2, drawn.y + drawn.height / 2);
+  await expect(handle).toHaveCSS("opacity", "1");
+  expect(
+    await handle.evaluate((node) => {
+      const rect = node.getBoundingClientRect();
+      return node.parentElement!.contains(
+        document.elementFromPoint(
+          rect.x + rect.width / 2,
+          rect.y + rect.height / 2,
+        ),
+      );
+    }),
+  ).toBe(true);
+  const rail = (await area.locator('[data-scroll-area="rail"]').boundingBox())!;
+  await page.mouse.down();
+  await page.mouse.move(drawn.x + drawn.width / 2, rail.y + rail.height);
+  await page.mouse.up();
+  await expect(popup).toBeVisible();
+  await expect
+    .poll(() =>
+      viewport.evaluate(
+        (node) => node.scrollHeight - node.clientHeight - node.scrollTop,
+      ),
+    )
+    .toBeLessThan(1);
+  expect(await footer.boundingBox()).toEqual(fixed);
+  await thumb.press("Home");
+  await expect.poll(() => viewport.evaluate((node) => node.scrollTop)).toBe(0);
+  await popup.getByRole("button", { name: "Keep menu open" }).click();
+  await expect(popup).toBeVisible();
+  await page.keyboard.press("Escape");
+  await expect(popup).toHaveCount(0);
+  await expect(trigger).toBeFocused();
+});
+
 for (const height of [720, 240]) {
   test(`ActionMenu shares ScrollArea wheel, drag, keyboard and fades at height ${height}`, async ({
     page,

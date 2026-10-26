@@ -14,6 +14,6 @@
 .area:has([role="scrollbar"]) button {
   padding-right: max(
     var(--menu-item-padding-inline, var(--ui-menu-item-padding-inline)),
-    calc(var(--ui-scroll-area-hit-size) / 2)
+    calc(var(--ui-scroll-area-hit-size) / 2 - var(--scrollbar-offset, 0px))
   );
 }

@@ -8,6 +8,7 @@ import {
   useRef,
   useState,
   type ReactNode,
+  type CSSProperties,
 } from "react";
 import { Button } from "../button/button";
 import { MenuSurface } from "../menu-surface/menu-surface";
@@ -66,6 +67,7 @@ export function ActionMenu({
   triggerContent,
   disabledReason,
   triggerClassName = "",
+  scrollbarOffset,
 }: {
   label: string;
   /** Always visible above/below the scrolling action list. */
@@ -86,7 +88,10 @@ export function ActionMenu({
   triggerContent?: ReactNode;
   disabledReason?: string;
   triggerClassName?: string;
+  /** Signed handle-center offset, forwarded to the scrolling action list. */
+  scrollbarOffset?: number;
 }) {
+  const offset = Number.isFinite(scrollbarOffset) ? scrollbarOffset : undefined;
   const { t } = useUI();
   const hasHeader = hasMenuRegion(header);
   const hasFooter = hasMenuRegion(footer);
@@ -122,6 +127,8 @@ export function ActionMenu({
           ? requestedGap(button)
           : requestedGap;
       const inset = 8;
+      const outside = Math.max(0, offset ?? 0);
+      const rightInset = inset + outside;
       const style = getComputedStyle(popup);
       const chrome =
         parseFloat(style.paddingTop) +
@@ -147,13 +154,13 @@ export function ActionMenu({
       if (customPosition) {
         const origin = customPosition(bounds);
         constrainHeight(window.innerHeight - 8);
-        popup.style.left = `${Math.max(4, Math.min(origin.left, window.innerWidth - popup.offsetWidth - 4))}px`;
+        popup.style.left = `${Math.max(4, Math.min(origin.left, window.innerWidth - popup.offsetWidth - 4 - outside))}px`;
         popup.style.top = `${Math.max(4, Math.min(origin.top, window.innerHeight - popup.offsetHeight - 4))}px`;
         return;
       }
       if (placement === "right") {
         constrainHeight(window.innerHeight - 2 * inset);
-        popup.style.left = `${Math.max(inset, Math.min(bounds.right + gap, window.innerWidth - popup.offsetWidth - inset))}px`;
+        popup.style.left = `${Math.max(inset, Math.min(bounds.right + gap, window.innerWidth - popup.offsetWidth - rightInset))}px`;
         popup.style.top = `${Math.max(inset, Math.min(bounds.bottom - popup.offsetHeight, window.innerHeight - popup.offsetHeight - inset))}px`;
         return;
       }
@@ -174,10 +181,20 @@ export function ActionMenu({
         : "auto";
       // A trigger near the left edge cannot keep a wide menu right-aligned.
       // Bound both edges after measuring the popup's actual width.
-      const right = Math.max(inset, window.innerWidth - bounds.right);
-      popup.style.right = `${Math.min(right, Math.max(inset, window.innerWidth - popup.offsetWidth - inset))}px`;
+      const right = Math.max(rightInset, window.innerWidth - bounds.right);
+      popup.style.right = `${Math.min(right, Math.max(rightInset, window.innerWidth - popup.offsetWidth - inset))}px`;
     };
     position();
+    if (offset !== undefined) {
+      const frame = popup.querySelector<HTMLElement>("[data-menu-frame]");
+      if (
+        frame &&
+        frame
+          .getAnimations()
+          .every((animation) => animation.playState === "finished")
+      )
+        frame.style.maskImage = "none";
+    }
     popup
       .querySelector<HTMLElement>(
         'input:not(:disabled), button:not(:disabled), [tabindex="0"]',
@@ -203,7 +220,15 @@ export function ActionMenu({
       resize.disconnect();
       window.removeEventListener("scroll", scrolled, true);
     };
-  }, [open, placement, requestedGap, customPosition, hasHeader, hasFooter]);
+  }, [
+    open,
+    placement,
+    requestedGap,
+    customPosition,
+    hasHeader,
+    hasFooter,
+    offset,
+  ]);
   useEffect(() => {
     if (!open) return;
     const outside = (event: PointerEvent) => {
@@ -261,6 +286,12 @@ export function ActionMenu({
           data-placement={placement}
           data-enter-from={direction}
           data-enter-effect={reveal ? "reveal-frame" : undefined}
+          data-scrollbar-offset={offset}
+          style={
+            {
+              "--action-menu-scrollbar-outset": `${Math.max(0, offset ?? 0)}px`,
+            } as CSSProperties
+          }
           ref={menu}
           id={id}
           role={hasRegions ? "group" : "menu"}
@@ -315,8 +346,13 @@ export function ActionMenu({
             className={reveal ? dialogStyles.entrance : undefined}
             data-enter-from={direction}
             data-enter-effect={reveal ? "reveal" : undefined}
+            onAnimationEnd={(event) => {
+              if (offset !== undefined && event.target === event.currentTarget)
+                event.currentTarget.style.maskImage = "none";
+            }}
           >
             <MenuScrollArea
+              scrollbarOffset={offset}
               viewportRef={viewport}
               id={hasRegions ? `${id}-items` : undefined}
               role={hasRegions ? "menu" : undefined}
