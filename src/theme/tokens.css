@@ -43,6 +43,7 @@
 }
 :root[data-ui-theme="light"],
 :root[data-theme="light"] {
+  --ui-button-hover-background: var(--ui-shade-34);
   --ui-aurora-strength: 0.3;
   --ui-shade-0: #ffffff;
   --ui-shade-16: #fcfcfc;
@@ -218,7 +219,7 @@
   --ui-badged-icon-gap: 1.5px;
   --ui-control-inline-inset: 6px;
   --ui-hover: var(--ui-shade-40);
-  --ui-button-hover-background: var(--ui-shade-34);
+  --ui-button-hover-background: var(--ui-shade-48);
   --ui-button-background-duration: 160ms;
   --ui-button-solid-background: var(--ui-shade-43);
   --ui-button-solid-hover-background: var(--ui-shade-48);
