@@ -99,6 +99,8 @@
   height: var(--ui-scroll-area-handle-size);
   border-radius: var(--ui-scroll-area-handle-radius);
   background: var(--ui-scroll-area-rail-background);
+  -webkit-backdrop-filter: blur(var(--ui-scroll-area-rail-blur));
+  backdrop-filter: blur(var(--ui-scroll-area-rail-blur));
 }
 .horizontalThumb {
   position: absolute;
@@ -152,6 +154,8 @@
   transform: translateX(-50%);
   border-radius: var(--ui-scroll-area-handle-radius);
   background: var(--ui-scroll-area-rail-background);
+  -webkit-backdrop-filter: blur(var(--ui-scroll-area-rail-blur));
+  backdrop-filter: blur(var(--ui-scroll-area-rail-blur));
   opacity: 0;
   transition: opacity var(--ui-scroll-area-transition-duration);
 }

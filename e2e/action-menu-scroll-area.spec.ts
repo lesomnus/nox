@@ -21,7 +21,34 @@ test("an outward action-menu handle escapes the reveal mask and stays usable at 
     "mask-image",
     "none",
   );
+  await expect(popup.locator("[data-menu-frame]")).toHaveCSS("filter", "none");
   await area.hover();
+  await page.evaluate(() => {
+    document.body.style.background =
+      "repeating-linear-gradient(0deg, #222 0 2px, #ddd 2px 4px)";
+  });
+  const railElement = area.locator('[data-scroll-area="rail"]');
+  await expect
+    .poll(() =>
+      railElement.evaluate(
+        (node) => getComputedStyle(node, "::before").opacity,
+      ),
+    )
+    .toBe("1");
+  const background = (await railElement.boundingBox())!;
+  const clip = {
+    x: Math.round(background.x + background.width / 2 - 2),
+    y: Math.round(background.y + background.height - 30),
+    width: 4,
+    height: 20,
+  };
+  const blurred = await page.screenshot({ clip });
+  const override = await page.addStyleTag({
+    content:
+      '[data-scroll-area="rail"]::before { backdrop-filter: none !important; -webkit-backdrop-filter: none !important; }',
+  });
+  expect((await page.screenshot({ clip })).equals(blurred)).toBe(false);
+  await override.evaluate((node) => node.remove());
   const bounds = (await popup.boundingBox())!;
   const drawn = (await handle.boundingBox())!;
   expect(drawn.x).toBeGreaterThan(bounds.x + bounds.width);

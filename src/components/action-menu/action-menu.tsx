@@ -192,8 +192,10 @@ export function ActionMenu({
         frame
           .getAnimations()
           .every((animation) => animation.playState === "finished")
-      )
+      ) {
         frame.style.maskImage = "none";
+        frame.style.animation = "none";
+      }
     }
     popup
       .querySelector<HTMLElement>(
@@ -347,8 +349,13 @@ export function ActionMenu({
             data-enter-from={direction}
             data-enter-effect={reveal ? "reveal" : undefined}
             onAnimationEnd={(event) => {
-              if (offset !== undefined && event.target === event.currentTarget)
+              if (
+                offset !== undefined &&
+                event.target === event.currentTarget
+              ) {
                 event.currentTarget.style.maskImage = "none";
+                event.currentTarget.style.animation = "none";
+              }
             }}
           >
             <MenuScrollArea
