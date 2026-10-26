@@ -16,6 +16,7 @@
   width: max-content;
   max-width: min(var(--hint-max-width), calc(100vw - 2 * var(--hint-inset)));
   padding: var(--ui-control-inline-inset) var(--hint-inset);
+  gap: calc(1 * var(--ui-space));
   border-radius: calc(1.25 * var(--ui-space));
   background: var(--ui-popover-background);
   color: var(--ui-shade-237);

@@ -90,12 +90,15 @@ for (const [name, placement] of [
     await expect(hint).toHaveAttribute("data-placement", placement);
     const source = (await anchor.boundingBox())!,
       box = (await hint.boundingBox())!;
+    const gap = await hint.evaluate((element) =>
+      parseFloat(getComputedStyle(element).columnGap),
+    );
     if (placement === "top-start") {
       expect(box.x).toBeCloseTo(source.x, 1);
-      expect(source.y - box.y - box.height).toBeCloseTo(8, 1);
+      expect(source.y - box.y - box.height).toBeCloseTo(gap, 1);
     } else {
       expect(box.x + box.width).toBeCloseTo(source.x + source.width, 1);
-      expect(box.y - source.y - source.height).toBeCloseTo(8, 1);
+      expect(box.y - source.y - source.height).toBeCloseTo(gap, 1);
     }
     expect(
       await hint.evaluate((el) => el.parentElement === document.body),

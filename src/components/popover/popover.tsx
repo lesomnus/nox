@@ -90,7 +90,7 @@ export function Popover({
       }
       const rect = sourceAnchor.getBoundingClientRect();
       const box = element.getBoundingClientRect();
-      const gap = parseFloat(getComputedStyle(element).paddingInlineStart) || 0;
+      const gap = parseFloat(getComputedStyle(element).columnGap) || 0;
       if (placement !== "adjacent" && placement !== "in-place") {
         setPosition(
           hintPosition(
