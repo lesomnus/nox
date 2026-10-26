@@ -37,3 +37,31 @@ constant; breathing varies opacity instead of moving or narrowing the outline.
 Geometry, palette, intensity and motion defaults live in `src/theme/tokens.css`
 under `--ui-border-trail-*`. Use normal Button variants and styles for the surface;
 the component adds no application-specific sizing or hover overrides.
+
+## Progressive colors and traveling light
+
+`progress` replaces the `segments` configuration. Each `perSegment` units grows
+one color to its near-full length, then the next color starts growing over it.
+Completed colors retain their length. Length changes transition smoothly without
+resizing the button. Zero leaves the quiet track. `maxLength` optionally overrides
+the maximum fraction of the perimeter; the default follows the theme token.
+
+```tsx
+<BorderTrailButton
+  progress={{ value: jobs, perSegment: 8 }}
+  sheen={{ duration: 4000, length: 0.12, strength: 0.6 }}
+>
+  {jobs}
+</BorderTrailButton>
+```
+
+Enable `sheen` to send a highlight from each segment's start to its end repeatedly.
+The highlight is clipped to that segment and adds no surrounding glow or surface.
+`duration` controls travel time in milliseconds, `length` its fraction of the
+segment, `strength` its opacity, and `color` its CSS color. Omitted settings follow
+the theme. Sheen and perimeter drift use CSS animations; inactive buttons pause
+them, and reduced motion hides the traveling highlight while keeping static colors.
+
+Storybook **Progressive** lets you grow and shrink counts across color boundaries;
+**Sheen** isolates the light effect. Existing individual segment configuration
+remains available for other visualizations.

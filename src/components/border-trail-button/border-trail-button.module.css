@@ -14,7 +14,9 @@
   stroke: var(--ui-border-trail-track-color);
   transition: stroke var(--ui-button-background-duration) ease;
 }
-.segment {
+.segment,
+.clip,
+.sheen {
   --trail-length: var(
     --border-trail-length,
     min(
@@ -23,10 +25,18 @@
     )
   );
   stroke-linecap: round;
-  stroke-dasharray: var(--trail-length) calc(100 - var(--trail-length));
+}
+.segment,
+.clip {
+  stroke-dasharray: calc(1px * var(--trail-length))
+    calc(1px * (100 - var(--trail-length)));
   stroke-dashoffset: calc(-100px * var(--border-trail-offset));
+}
+.segment {
   opacity: 0;
-  transition: opacity var(--ui-border-trail-fade-duration) ease;
+  transition:
+    opacity var(--ui-border-trail-fade-duration) ease,
+    stroke-dasharray var(--ui-border-trail-growth-duration) ease-out;
   animation:
     drift var(--border-trail-duration, var(--ui-border-trail-duration)) linear
       infinite,
@@ -42,7 +52,43 @@
   opacity: var(--ui-border-trail-opacity);
   animation-play-state: running;
 }
-.segment[data-empty] {
+.clip {
+  stroke: #fff;
+  animation: drift var(--border-trail-duration, var(--ui-border-trail-duration))
+    linear infinite;
+  animation-play-state: paused;
+  transition: stroke-dasharray var(--ui-border-trail-growth-duration) ease-out;
+}
+.sheen {
+  --sheen-width: calc(
+    var(--trail-length) *
+      var(--border-trail-sheen-length, var(--ui-border-trail-sheen-length))
+  );
+  stroke: var(--border-trail-sheen-color, var(--ui-border-trail-sheen-color));
+  stroke-dasharray: calc(1px * var(--sheen-width))
+    calc(1px * (100 - var(--sheen-width)));
+  stroke-opacity: 0;
+  opacity: 0;
+  transition: opacity var(--ui-border-trail-fade-duration) ease;
+  animation:
+    drift var(--border-trail-duration, var(--ui-border-trail-duration)) linear
+      infinite,
+    sweep
+      var(--border-trail-sheen-duration, var(--ui-border-trail-sheen-duration))
+      linear infinite;
+  animation-composition: replace, add;
+  animation-play-state: paused;
+}
+.border[data-active="true"] :is(.clip, .sheen) {
+  animation-play-state: running;
+}
+.border[data-active="true"] .sheen {
+  opacity: var(
+    --border-trail-sheen-strength,
+    var(--ui-border-trail-sheen-strength)
+  );
+}
+:is(.segment, .sheen)[data-empty] {
   display: none;
 }
 @keyframes drift {
@@ -69,12 +115,31 @@
     stroke-opacity: 0.9;
   }
 }
+@keyframes sweep {
+  from {
+    stroke-dashoffset: calc(1px * var(--sheen-width));
+    stroke-opacity: 0;
+  }
+  12%,
+  88% {
+    stroke-opacity: 1;
+  }
+  to {
+    stroke-dashoffset: calc(-1px * var(--trail-length));
+    stroke-opacity: 0;
+  }
+}
 @media (prefers-reduced-motion: reduce) {
-  .segment {
+  .segment,
+  .clip,
+  .sheen {
     animation: none;
     transition: none;
   }
   .track {
     transition: none;
+  }
+  .sheen {
+    display: none;
   }
 }

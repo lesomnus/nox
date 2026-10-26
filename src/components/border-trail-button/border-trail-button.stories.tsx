@@ -40,6 +40,56 @@ export const Inactive: Story = { args: { active: false } };
 export const TrackOnly: Story = { args: { segments: 0 } };
 export const Disabled: Story = { args: { disabled: true } };
 export const WithInk: Story = { args: { effect: "sparkle" } };
+export const Sheen: Story = {
+  args: {
+    children: "Traveling light",
+    effect: "none",
+    segments: [{ color: "#3d79a6", length: 0.55, offset: 0 }],
+    sheen: { duration: 4000, length: 0.12, strength: 0.85 },
+    style: { width: 220 },
+  },
+};
+export const Progressive: Story = {
+  render: function Progressive(args) {
+    const [value, setValue] = useState(1);
+    return (
+      <div style={{ display: "grid", gap: 12, justifyItems: "start" }}>
+        <BorderTrailButton
+          {...args}
+          effect="none"
+          aria-label="Progressive work"
+          active={value > 0}
+          progress={{ value, perSegment: 8 }}
+          sheen
+          style={{ width: 180 }}
+        >
+          {value} jobs
+        </BorderTrailButton>
+        <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+          <Button effect="none" onClick={() => setValue((n) => n + 1)}>
+            Add unit
+          </Button>
+          <Button
+            effect="none"
+            disabled={!value}
+            onClick={() => setValue((n) => Math.max(0, n - 1))}
+          >
+            Remove unit
+          </Button>
+          <Button effect="none" onClick={() => setValue(8)}>
+            Fill first color
+          </Button>
+          <Button effect="none" onClick={() => setValue(9)}>
+            Start next color
+          </Button>
+          <Button effect="none" onClick={() => setValue(17)}>
+            Third color
+          </Button>
+        </div>
+      </div>
+    );
+  },
+};
 export const Shapes: Story = {
   render: (args) => (
     <div style={{ display: "flex", gap: 16, alignItems: "center" }}>

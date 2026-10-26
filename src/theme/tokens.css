@@ -175,6 +175,12 @@
   --ui-border-trail-breathe-duration: 7s;
   --ui-border-trail-fade-duration: 500ms;
   --ui-border-trail-opacity: 0.8;
+  --ui-border-trail-progress-length: 90;
+  --ui-border-trail-growth-duration: 500ms;
+  --ui-border-trail-sheen-duration: 6s;
+  --ui-border-trail-sheen-length: 0.16;
+  --ui-border-trail-sheen-strength: 0.65;
+  --ui-border-trail-sheen-color: #fff;
   --ui-menu-item-padding-block: 6px;
   --ui-menu-item-padding-inline: 10px;
   --ui-menu-scroll-max-height: 240px;

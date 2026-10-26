@@ -71,9 +71,11 @@ try {
     import { createRoot } from "react-dom/client";
     import { Popover, type PopoverProps, type PopoverPlacement, type PopoverPosition } from "@lesomnus/nox";
     import { Progress, type ProgressProps } from "@lesomnus/nox";
-    import { BorderTrailButton, type BorderTrailButtonProps, type BorderTrailSegment } from "@lesomnus/nox";
+    import { BorderTrailButton, type BorderTrailButtonProps, type BorderTrailSegment, type BorderTrailProgress, type BorderTrailSheen } from "@lesomnus/nox";
     const trail: BorderTrailSegment = { color: "#78d9ef", length: 0.12, duration: 13000, offset: 0.5 };
     const trailButton: BorderTrailButtonProps = { segments: [trail], active: true, colors: ["#c58bef"], segmentLength: 0.1, duration: 15000, ref: node => { void node?.focus(); } };
+    const growingTrail: BorderTrailProgress = {value: 12, perSegment: 8, maxLength: 0.9};
+    const trailSheen: BorderTrailSheen = {duration: 4000, length: 0.12, strength: 0.6, color: "#fff"};
     const popoverPosition: PopoverPosition = "top-start";
     const popoverPlacement: PopoverPlacement = "in-place";
     const popover: PopoverProps = { anchor: null, open: false, content: <span>Details</span>, placement: popoverPosition, onOpenChange: value => { void value; } };
@@ -156,6 +158,7 @@ try {
         <IconValueMenu label="Legacy effort" icon="Effort" value="medium" options={[{value:"medium",label:"Medium"}]} choose={() => {}} />
         <Button>Save</Button>
         <BorderTrailButton {...trailButton}>Work</BorderTrailButton>
+        <BorderTrailButton progress={growingTrail} sheen={trailSheen}>Growing work</BorderTrailButton>
         <Progress {...progress} aria-label="Build progress" />
         <ThemeProvider storage={themeStorage} defaultPreference="system"><ThemeConsumer /></ThemeProvider>
         <SlidingPages {...slidingPages} />

@@ -198,6 +198,9 @@ along the button outline. Use a count and palette or individual lengths, offsets
 and lap times. The outline follows CSS corner radii and stays fixed while the
 label scales on press. **Components/BorderTrailButton** covers multiple colors,
 custom segments, shapes, inactive/disabled states and interaction.
+Its `progress` mode grows one color before introducing the next, and optional
+`sheen` sends light along each segment without leaving its outline. Progressive
+and Sheen stories isolate these behaviors.
 
 `Dialog` provides the modal lifecycle and focus boundary; compose its header,
 body and footer freely. Confirmation buttons, async execution and failure policy

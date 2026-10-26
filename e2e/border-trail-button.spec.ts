@@ -274,3 +274,154 @@ test("the path follows pill and asymmetric CSS corners and updates after resizin
     .locator("path");
   await expect(asymmetric).toHaveAttribute("d", /A 15\.5 15\.5/);
 });
+
+test("progress grows one color smoothly before starting the next", async ({
+  page,
+}) => {
+  await page.goto(
+    "/iframe.html?id=components-bordertrailbutton--progressive&viewMode=story",
+  );
+  const button = page.getByRole("button", { name: "Progressive work" });
+  const segments = button.locator('[data-border-trail="segment"]');
+  await expect(segments).toHaveCount(1);
+  const limit = await button.evaluate((node) =>
+    Number(
+      getComputedStyle(node).getPropertyValue(
+        "--ui-border-trail-progress-length",
+      ),
+    ),
+  );
+  const initial = (await segmentStyles(segments))[0];
+  expect(initial.dash[0]).toBeCloseTo(limit / 8, 1);
+  const frame = await button.boundingBox();
+  await page.getByRole("button", { name: "Add unit", exact: true }).click();
+  await expect(button).toHaveText("2 jobs");
+  const growing = await segments.first().evaluate((node) => {
+    const transitions = node
+      .getAnimations()
+      .filter(
+        (animation) =>
+          animation instanceof CSSTransition &&
+          animation.transitionProperty === "stroke-dasharray",
+      );
+    for (const transition of transitions) {
+      transition.pause();
+      transition.currentTime =
+        Number(transition.effect!.getTiming().duration) / 2;
+    }
+    return transitions.length;
+  });
+  expect(growing).toBe(1);
+  const middle = (await segmentStyles(segments))[0].dash[0];
+  expect(middle).toBeGreaterThan(initial.dash[0]);
+  expect(middle).toBeLessThan(limit / 4);
+  await button.evaluate((node) => {
+    for (const animation of node.getAnimations({ subtree: true }))
+      if (animation instanceof CSSTransition) animation.finish();
+  });
+  await page.getByRole("button", { name: "Fill first color" }).click();
+  await expect(segments).toHaveCount(1);
+  await expect
+    .poll(async () => (await segmentStyles(segments))[0].dash[0])
+    .toBeCloseTo(limit, 1);
+  await page.getByRole("button", { name: "Start next color" }).click();
+  await expect(segments).toHaveCount(2);
+  const next = await segmentStyles(segments);
+  expect(next[0].dash[0]).toBeCloseTo(limit, 1);
+  expect(next[1].dash[0]).toBeCloseTo(limit / 8, 1);
+  expect(next[0].color).toBe(initial.color);
+  expect(next[1].color).not.toBe(next[0].color);
+  await page.getByRole("button", { name: "Third color" }).click();
+  await expect(segments).toHaveCount(3);
+  await expect
+    .poll(async () => (await segmentStyles(segments))[1].dash[0])
+    .toBeCloseTo(limit, 1);
+  expect((await segmentStyles(segments))[2].dash[0]).toBeCloseTo(limit / 8, 1);
+  expect(await button.boundingBox()).toEqual(frame);
+});
+
+test("the painted sheen moves within a stationary segment and reduced motion hides it", async ({
+  page,
+}, testInfo) => {
+  await page.goto(
+    "/iframe.html?id=components-bordertrailbutton--sheen&viewMode=story",
+  );
+  const button = page.getByRole("button", { name: "Traveling light" });
+  await expect(button.locator("path")).toHaveAttribute("d", /^M /);
+  const frame = (await button.boundingBox())!;
+  const positions: { x: number; y: number }[] = [];
+  for (const phase of [0.2, 0.8]) {
+    await button.evaluate((node, phase) => {
+      for (const animation of node.getAnimations({ subtree: true })) {
+        animation.pause();
+        const sweep = (animation as CSSAnimation).animationName?.includes(
+          "sweep",
+        );
+        animation.currentTime = sweep
+          ? Number(animation.effect!.getTiming().duration) * phase
+          : 0;
+      }
+    }, phase);
+    await page.evaluate(
+      () =>
+        new Promise((resolve) =>
+          requestAnimationFrame(() => requestAnimationFrame(resolve)),
+        ),
+    );
+    const png = await page.screenshot({
+      path: testInfo.outputPath(`sheen-phase-${phase}.png`),
+    });
+    const bright = await page.evaluate(
+      async ({ base64, frame }) => {
+        const image = new Image();
+        image.src = `data:image/png;base64,${base64}`;
+        await image.decode();
+        const scale = image.width / innerWidth,
+          canvas = document.createElement("canvas");
+        canvas.width = Math.ceil(frame.width * scale);
+        canvas.height = Math.ceil(frame.height * scale);
+        const context = canvas.getContext("2d")!;
+        context.drawImage(image, -frame.x * scale, -frame.y * scale);
+        const pixels = context.getImageData(
+          0,
+          0,
+          canvas.width,
+          canvas.height,
+        ).data;
+        let count = 0,
+          x = 0,
+          y = 0;
+        for (let index = 0; index < pixels.length; index += 4) {
+          const px = ((index / 4) % canvas.width) / scale,
+            py = Math.floor(index / 4 / canvas.width) / scale;
+          if (px > 3 && px < frame.width - 3 && py > 3 && py < frame.height - 3)
+            continue;
+          if (
+            Math.min(pixels[index], pixels[index + 1], pixels[index + 2]) >
+              100 &&
+            Math.max(pixels[index], pixels[index + 1], pixels[index + 2]) -
+              Math.min(pixels[index], pixels[index + 1], pixels[index + 2]) <
+              45
+          ) {
+            count++;
+            x += px;
+            y += py;
+          }
+        }
+        return { count, x: x / count, y: y / count };
+      },
+      { base64: png.toString("base64"), frame },
+    );
+    expect(bright.count).toBeGreaterThan(3);
+    positions.push(bright);
+  }
+  expect(
+    Math.hypot(
+      positions[1].x - positions[0].x,
+      positions[1].y - positions[0].y,
+    ),
+  ).toBeGreaterThan(frame.width / 5);
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await expect(button.locator('[data-border-trail="sheen"]')).toBeHidden();
+  await expect(button.locator('[data-border-trail="segment"]')).toBeVisible();
+});
