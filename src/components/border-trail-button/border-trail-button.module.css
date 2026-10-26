@@ -24,7 +24,7 @@
   );
   stroke-linecap: round;
   stroke-dasharray: var(--trail-length) calc(100 - var(--trail-length));
-  stroke-dashoffset: calc(-100 * var(--border-trail-offset));
+  stroke-dashoffset: calc(-100px * var(--border-trail-offset));
   opacity: 0;
   transition: opacity var(--ui-border-trail-fade-duration) ease;
   animation:
@@ -46,11 +46,12 @@
   display: none;
 }
 @keyframes drift {
+  /* Keep the dash offsets length-valued so the SVG keyframes interpolate. */
   from {
-    stroke-dashoffset: calc(-100 * var(--border-trail-offset));
+    stroke-dashoffset: calc(-100px * var(--border-trail-offset));
   }
   to {
-    stroke-dashoffset: calc(-100 * (var(--border-trail-offset) + 1));
+    stroke-dashoffset: calc(-100px * (var(--border-trail-offset) + 1));
   }
 }
 @keyframes breathe {

@@ -126,6 +126,90 @@ test("segment colors, lengths, starting positions and lap times are independent"
   ).toEqual([0, -35, -70]);
 });
 
+test("the painted colored segment travels along the perimeter", async ({
+  page,
+}, testInfo) => {
+  await page.emulateMedia({ reducedMotion: "no-preference" });
+  await page.goto(
+    "/iframe.html?id=components-bordertrailbutton--custom-segments&viewMode=story",
+  );
+  const button = page.getByRole("button", {
+    name: "Independent colors and speeds",
+  });
+  await expect(button.locator("path")).toHaveAttribute("d", /^M /);
+  const frame = (await button.boundingBox())!;
+  const positions: { x: number; y: number }[] = [];
+  for (const phase of [0, 0.25]) {
+    const moving = await button.evaluate((node, phase) => {
+      let moving = 0;
+      for (const animation of node.getAnimations({ subtree: true })) {
+        animation.pause();
+        const drift = (animation as CSSAnimation).animationName.includes(
+          "drift",
+        );
+        if (drift) moving++;
+        animation.currentTime = drift
+          ? Number(animation.effect!.getTiming().duration) * phase
+          : 0;
+      }
+      return moving;
+    }, phase);
+    expect(moving).toBe(3);
+    await page.evaluate(
+      () =>
+        new Promise((resolve) =>
+          requestAnimationFrame(() => requestAnimationFrame(resolve)),
+        ),
+    );
+    const png = await page.screenshot({
+      path: testInfo.outputPath(`border-phase-${phase}.png`),
+    });
+    await testInfo.attach(`border-phase-${phase}`, {
+      body: png,
+      contentType: "image/png",
+    });
+    const color = await page.evaluate(
+      async ({ base64, frame }) => {
+        const image = new Image();
+        image.src = `data:image/png;base64,${base64}`;
+        await image.decode();
+        const scale = image.width / innerWidth;
+        const canvas = document.createElement("canvas");
+        canvas.width = Math.ceil(frame.width * scale);
+        canvas.height = Math.ceil(frame.height * scale);
+        const context = canvas.getContext("2d")!;
+        context.drawImage(image, -frame.x * scale, -frame.y * scale);
+        const pixels = context.getImageData(
+          0,
+          0,
+          canvas.width,
+          canvas.height,
+        ).data;
+        let count = 0,
+          x = 0,
+          y = 0;
+        for (let index = 0; index < pixels.length; index += 4) {
+          // Only the cyan trail; the label, quiet track and other colors do not qualify.
+          if (
+            pixels[index + 1] > pixels[index] + 18 &&
+            pixels[index + 2] > pixels[index] + 18
+          ) {
+            count++;
+            x += (index / 4) % canvas.width;
+            y += Math.floor(index / 4 / canvas.width);
+          }
+        }
+        return { count, x: x / count / scale, y: y / count / scale };
+      },
+      { base64: png.toString("base64"), frame },
+    );
+    expect(color.count).toBeGreaterThan(10);
+    positions.push(color);
+    expect(await button.boundingBox()).toEqual(frame);
+  }
+  expect(positions[1].x - positions[0].x).toBeGreaterThan(frame.width / 8);
+});
+
 test("counts beyond the old cap stay separated, while inactive and empty trails preserve layout", async ({
   page,
 }) => {
