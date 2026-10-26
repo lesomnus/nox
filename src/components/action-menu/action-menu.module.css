@@ -39,3 +39,21 @@
 .action_menu_popup[data-placement="right"] {
   transform-origin: top left;
 }
+.action_menu_popup [data-action-menu-layout="row"] {
+  display: grid;
+  grid-template-columns: repeat(var(--action-menu-columns), minmax(0, 1fr));
+}
+.action_menu_popup [data-action-menu-layout="row"] > [data-menu-group-label] {
+  grid-column: 1 / -1;
+}
+.action_menu_popup [data-action-menu-layout="row"] > button {
+  min-width: 0;
+  min-height: 44px;
+  padding: var(--ui-space) var(--ui-control-inset);
+  font-size: 11px;
+}
+.action_menu_popup [data-action-menu-layout="row"] :global(.button-content) {
+  flex-direction: column;
+  justify-content: center;
+  gap: var(--ui-control-inset);
+}

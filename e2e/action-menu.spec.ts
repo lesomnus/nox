@@ -1,5 +1,53 @@
 import { expect, test } from "@playwright/test";
 
+test("row groups scroll with the menu body and skip disabled actions with horizontal keys", async ({
+  page,
+}) => {
+  await page.goto(
+    "/iframe.html?id=components-actionmenu--row-actions&viewMode=story",
+  );
+  const trigger = page.getByRole("button", {
+    name: "Row actions",
+    exact: true,
+  });
+  await trigger.click();
+  const menu = page.getByRole("menu", { name: "Row actions", exact: true });
+  const row = menu.getByRole("group", { name: "Controls", exact: true });
+  const actions = row.getByRole("menuitem");
+  const boxes = await actions.evaluateAll((elements) =>
+    elements.map((el) => {
+      const { x, y, width, height } = el.getBoundingClientRect();
+      return { x, y, width, height };
+    }),
+  );
+  expect(boxes).toHaveLength(3);
+  for (const box of boxes) {
+    expect(box.y).toBe(boxes[0].y);
+    expect(box.width).toBeCloseTo(boxes[0].width, 1);
+  }
+  await expect(actions.nth(0)).toBeFocused();
+  await actions.nth(0).press("ArrowRight");
+  await expect(actions.nth(2)).toBeFocused();
+  await actions.nth(2).press("ArrowLeft");
+  await expect(actions.nth(0)).toBeFocused();
+  const footer = page.locator('[data-menu-fixed="footer"]');
+  const viewport = menu.locator('[data-scroll-area="viewport"]');
+  const before = await footer.boundingBox();
+  const initialRow = (await row.boundingBox())!;
+  await viewport.evaluate((el) => {
+    el.scrollTop = el.scrollHeight;
+  });
+  expect((await row.boundingBox())!.y).toBeLessThan(initialRow.y);
+  expect(await footer.boundingBox()).toEqual(before);
+  await viewport.evaluate((el) => {
+    el.scrollTop = 0;
+  });
+  await actions.nth(2).click();
+  await expect(menu).toHaveCount(0);
+  await expect(trigger).toBeFocused();
+  await expect(page.getByRole("status")).toHaveText("Fork");
+});
+
 for (const theme of ["dark", "light"]) {
   test(`portaled ActionMenu owns its ${theme} foreground and preserves trigger typography`, async ({
     page,

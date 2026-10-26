@@ -52,6 +52,13 @@ export type ActionMenuItem = {
   run: (trigger: HTMLButtonElement) => void;
 };
 
+export type ActionMenuGroup = {
+  label: string;
+  items: ActionMenuItem[];
+  /** Row groups keep equal-width icon/label actions inside the scrolling body. */
+  layout?: "column" | "row";
+};
+
 export function ActionMenu({
   label,
   items = [],
@@ -74,7 +81,7 @@ export function ActionMenu({
   header?: ReactNode;
   footer?: ReactNode;
   items?: ActionMenuItem[];
-  groups?: { label: string; items: ActionMenuItem[] }[];
+  groups?: ActionMenuGroup[];
   disabled?: boolean;
   placement?: "above" | "below" | "right";
   /** Space in pixels between the trigger and automatically positioned popup. */
@@ -92,6 +99,7 @@ export function ActionMenu({
   scrollbarOffset?: number;
 }) {
   const offset = Number.isFinite(scrollbarOffset) ? scrollbarOffset : undefined;
+  const actionGroups: ActionMenuGroup[] = groups ?? [{ label: "", items }];
   const { t } = useUI();
   const hasHeader = hasMenuRegion(header);
   const hasFooter = hasMenuRegion(footer);
@@ -319,6 +327,38 @@ export function ActionMenu({
               event.target.closest("[data-menu-fixed]")
             )
               return;
+            if (
+              ["ArrowLeft", "ArrowRight"].includes(event.key) &&
+              event.target instanceof Element
+            ) {
+              const row = event.target.closest(
+                '[data-action-menu-layout="row"]',
+              );
+              if (row) {
+                const buttons = [
+                  ...row.querySelectorAll<HTMLButtonElement>(
+                    '[role="menuitem"]:not(:disabled), [role="menuitemcheckbox"]:not(:disabled)',
+                  ),
+                ];
+                const current = buttons.indexOf(
+                  document.activeElement as HTMLButtonElement,
+                );
+                if (buttons.length && current >= 0) {
+                  event.preventDefault();
+                  const next =
+                    (current +
+                      (event.key === "ArrowLeft" ? -1 : 1) +
+                      buttons.length) %
+                    buttons.length;
+                  buttons[next]?.focus({ preventScroll: true });
+                  buttons[next]?.scrollIntoView({
+                    block: "nearest",
+                    inline: "nearest",
+                  });
+                }
+                return;
+              }
+            }
             if (["ArrowDown", "ArrowUp", "Home", "End"].includes(event.key)) {
               event.preventDefault();
               const buttons = [
@@ -371,13 +411,19 @@ export function ActionMenu({
               aria-label={hasRegions ? label : undefined}
               scrollbarLabel={t("Scroll {label}", { label })}
             >
-              {(groups ?? [{ label: "", items }]).map((group, index) => (
+              {actionGroups.map((group, index) => (
                 <Fragment key={group.label}>
                   {index > 0 && <MenuDivider />}
                   <div
                     className="action-menu-group"
                     role="group"
                     aria-label={group.label || undefined}
+                    data-action-menu-layout={group.layout}
+                    style={
+                      {
+                        "--action-menu-columns": group.items.length,
+                      } as CSSProperties
+                    }
                   >
                     {group.label && (
                       <MenuGroupLabel
