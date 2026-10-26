@@ -11,6 +11,7 @@ export * from "./components/skeleton/skeleton";
 export * from "./components/badged-icon/badged-icon";
 export * from "./components/panel-item/panel-item";
 export * from "./components/page-toolbar/page-toolbar";
+export * from "./components/section-layout/section-layout";
 export * from "./components/dialog-surface/dialog-surface";
 export * from "./components/card/card";
 export * from "./components/dialog-trigger/dialog-trigger";

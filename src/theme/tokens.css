@@ -154,6 +154,14 @@
   --ui-pin-input-error-color: #db7070;
   --ui-icon-size: 20px;
   --ui-icon-size-small: 14px;
+  --ui-section-layout-max-width: 600px;
+  --ui-section-layout-gap: calc(8 * var(--ui-space));
+  --ui-section-group-gap: var(--ui-space);
+  --ui-section-padding: calc(3 * var(--ui-space));
+  --ui-section-content-gap: var(--ui-space);
+  --ui-section-background: var(--ui-shade-24);
+  --ui-section-radius: 10px;
+  --ui-section-inner-radius: var(--ui-control-inset);
   --ui-aurora-color-1: #23b04a;
   --ui-aurora-color-2: #2596e9;
   --ui-aurora-color-3: #b14ccd;

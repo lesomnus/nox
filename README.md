@@ -146,6 +146,12 @@ See [sliding pages](docs/sliding-pages.md) and **Components/SlidingPages**.
 dialogs and drawers. `fill` and `bodyPadding` adapt it to a bounded container.
 See [cards](docs/card.md) and **Components/Card**.
 
+`SectionLayout`, `SectionGroup` and `Section` compose spaced entries and their
+related borderless surfaces. The column supports bounded or full width and start
+or center alignment; related sections share compact inner corners and a rounded
+outer silhouette. See [section layouts](docs/section-layout.md) and
+**Layout/SectionLayout**.
+
 `Drawer` places an independently sized surface near any viewport or container
 edge. Compose `Card` for the rounded cxz task-detail card, or supply a
 different surface. See [drawers](docs/drawer.md), **Components/Drawer** and
