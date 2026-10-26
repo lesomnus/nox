@@ -1,6 +1,7 @@
 import { useRef, useState } from "react";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { Button, ScrollArea } from "@lesomnus/nox";
+import docs from "../../../docs/scroll-area.md?raw";
 
 const entries = (count: number) =>
   Array.from({ length: count }, (_, i) => (
@@ -17,13 +18,11 @@ const meta = {
     style: { height: 320 },
     children: entries(60),
   },
+  argTypes: {
+    scrollbarOffset: { control: "number" },
+  },
   parameters: {
-    docs: {
-      description: {
-        component:
-          "A standalone scroll viewport with native wheel/touch scrolling, a centered vertical rail, capped handles, hover/focus/drag visibility and edge fades. Enable horizontalScrollbar for a visible horizontal handle with pointer and keyboard navigation; horizontalScrollbarLabel names it. Its CSS Modules and --ui-scroll-area-* tokens work without cxz app styles or a provider. Supply a bounded height, arbitrary children and an accessible scrollbarLabel. viewportRef exposes the native scroll element; onScroll reports its events. className, viewportClassName, contentClassName and classNames customize slots. This component does not virtualize or fetch its content.",
-      },
-    },
+    docs: { description: { component: docs } },
   },
 } satisfies Meta<typeof ScrollArea>;
 export default meta;
@@ -57,6 +56,7 @@ export const HorizontalOverflow: StoryObj<typeof meta> = {
           >
             Columns with native wheel and touch scrolling, plus a draggable
             horizontal handle.
+            {args.scrollbarOffset !== undefined && args.children}
           </div>
         </ScrollArea>
       </section>
@@ -107,4 +107,33 @@ export const GrowingContent: StoryObj<typeof meta> = {
       </section>
     );
   },
+};
+
+export const Outside: StoryObj<typeof meta> = {
+  args: {
+    scrollbarOffset: 12,
+    style: { height: 320, borderRadius: "var(--ui-dialog-radius)" },
+  },
+  render: (args) => (
+    <div style={{ padding: "var(--ui-scroll-area-hit-size)" }}>
+      <ScrollArea {...args} />
+    </div>
+  ),
+};
+export const OutsideBothAxes: StoryObj<typeof meta> = {
+  ...HorizontalOverflow,
+  args: { scrollbarOffset: 12, children: entries(9) },
+};
+export const OutsideNoOverflow: StoryObj<typeof meta> = {
+  ...Outside,
+  args: { ...Outside.args, children: entries(3) },
+};
+
+export const BoundaryOffset: StoryObj<typeof meta> = {
+  ...Outside,
+  args: { ...Outside.args, scrollbarOffset: 0 },
+};
+export const InsetOffset: StoryObj<typeof meta> = {
+  ...Outside,
+  args: { ...Outside.args, scrollbarOffset: -16 },
 };

@@ -9,6 +9,7 @@ import {
   type HTMLAttributes,
   type UIEvent,
   type UIEventHandler,
+  type CSSProperties,
 } from "react";
 import styles from "./scroll-area.module.css";
 const clamp = (value: number, min: number, max: number) =>
@@ -31,6 +32,8 @@ export type ScrollAreaProps = Omit<
 > & {
   children: ReactNode;
   scrollbarLabel?: string;
+  /** Handle-center offset in pixels: positive outside, negative inside. */
+  scrollbarOffset?: number;
   /** Show an additional horizontal scrollbar when content overflows. */
   horizontalScrollbar?: boolean;
   horizontalScrollbarLabel?: string;
@@ -47,17 +50,20 @@ export function ScrollArea({
   children,
   viewportRef,
   scrollbarLabel = "Scroll",
+  scrollbarOffset,
   horizontalScrollbar = false,
   horizontalScrollbarLabel = "Scroll horizontally",
   className = "",
   classNames = {},
   viewportClassName = "",
   contentClassName = "",
+  style,
   onScroll,
   onPointerMove,
   onPointerLeave,
   ...props
 }: ScrollAreaProps) {
+  const offset = Number.isFinite(scrollbarOffset) ? scrollbarOffset : undefined;
   const slot = (name: ScrollAreaSlot) =>
     `${styles[name]} ${classNames[name] ?? ""}`;
   const id = useId();
@@ -233,6 +239,14 @@ export function ScrollArea({
       {...props}
       className={`${styles.area} ${className}`}
       data-scroll-area="root"
+      data-scrollbar-offset={offset}
+      style={
+        {
+          "--scrollbar-offset":
+            offset === undefined ? undefined : `${offset}px`,
+          ...style,
+        } as CSSProperties
+      }
       data-horizontal-scrollbar={horizontalScrollbar || undefined}
       data-near={near || undefined}
       data-dragging={dragging || undefined}

@@ -11,6 +11,54 @@
   overflow: hidden;
   background: var(--ui-scroll-area-background);
 }
+.area[data-scrollbar-offset] {
+  --ui-scroll-area-content-inset: max(
+    0px,
+    calc(
+      var(--ui-scroll-area-handle-size) *
+        var(--ui-scroll-area-handle-expansion) / 2 + var(--ui-control-inset) -
+        var(--scrollbar-offset)
+    )
+  );
+  --scrollbar-horizontal-inset: max(
+    0px,
+    calc(
+      var(--ui-scroll-area-handle-size) / 2 + var(--ui-control-inset) -
+        var(--scrollbar-offset)
+    )
+  );
+  overflow: visible;
+}
+.area[data-scrollbar-offset] .viewport {
+  border-radius: inherit;
+}
+.area[data-scrollbar-offset] .rail {
+  right: calc(
+    -1 * (var(--scrollbar-offset) + var(--ui-scroll-area-hit-size) / 2)
+  );
+}
+.area[data-scrollbar-offset] .horizontalRail {
+  bottom: calc(
+    -1 * (var(--scrollbar-offset) + var(--ui-scroll-area-hit-size) / 2)
+  );
+}
+.area[data-scrollbar-offset] .topFade {
+  border-top-left-radius: inherit;
+  border-top-right-radius: inherit;
+}
+.area[data-scrollbar-offset] .bottomFade {
+  border-bottom-left-radius: inherit;
+  border-bottom-right-radius: inherit;
+}
+.area[data-scrollbar-offset] :is(.thumb, .horizontalThumb):focus-visible {
+  outline: none;
+}
+.area[data-scrollbar-offset]
+  :is(.thumb, .horizontalThumb):focus-visible
+  :is(.handle, .horizontalHandle) {
+  outline: 1px solid var(--ui-shade-204);
+  outline-offset: 2px;
+}
 .viewport {
   height: 100%;
   overflow: auto;
@@ -24,7 +72,9 @@
   padding-right: var(--ui-scroll-area-content-inset);
 }
 .area[data-horizontal-overflow] .viewport {
-  height: calc(100% - var(--ui-scroll-area-hit-size));
+  height: calc(
+    100% - var(--scrollbar-horizontal-inset, var(--ui-scroll-area-hit-size))
+  );
 }
 .area[data-horizontal-scrollbar] .content {
   min-width: fit-content;
@@ -82,7 +132,7 @@
   border-radius: var(--ui-scroll-area-handle-radius);
 }
 .area[data-horizontal-overflow] .bottomFade {
-  bottom: var(--ui-scroll-area-hit-size);
+  bottom: var(--scrollbar-horizontal-inset, var(--ui-scroll-area-hit-size));
 }
 .rail {
   position: absolute;

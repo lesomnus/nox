@@ -81,6 +81,8 @@ try {
     import { Drawer, Card, CardActions, type CardProps, type DrawerProps, type DrawerSide } from "@lesomnus/nox";
     import { DatePicker, dateWindowSelection, dateWeekSelection, type DatePickerProps, type DatePickerDateInfo, type DatePickerRange, type DatePickerSelectionResolver } from "@lesomnus/nox";
     import { PinInput, type PinInputProps, SplitLayout, type SplitNode, setSplitRatio, PrefixValueMenu, type PrefixValueMenuProps, IconValueMenu, AuroraGlow, type AuroraGlowProps, type AuroraPalette, InkSparkle, type InkSparkleProps, Button, Checkbox, DateTime, DescriptionList, IdentifierValue, MenuSurface, type MenuSurfaceProps, MenuScrollArea, MenuItem, type MenuItemProps, MenuIcon, MenuGroupLabel, MenuDivider, NavigationPanel, StippleBackground, clusterMotion, workMotion, withPointerBurst, UIProvider } from "@lesomnus/nox";
+    import { ScrollArea, type ScrollAreaProps } from "@lesomnus/nox";
+    const outsideScroll: ScrollAreaProps = { children: <p>Outside rails</p>, scrollbarOffset: 12, horizontalScrollbar: true, scrollbarLabel: "Scroll document", horizontalScrollbarLabel: "Scroll columns" };
     import { Table, TableHeader, TableBody, TableFooter, TableRow, TableHead, TableCell, TableCaption, TableScrollArea, type TableProps, type TableRowProps } from "@lesomnus/nox";
     import { LinkButton, Skeleton, SkeletonGroup, type LinkButtonProps, type SkeletonProps, type SkeletonGroupProps } from "@lesomnus/nox";
     import { ColorPicker, ColorPickerRoot, ColorPickerArea, ColorPickerHue, ColorPickerOpacity, type RgbColor, type ColorPickerProps, type ColorPickerRootProps, type ColorPickerAreaProps, type ColorPickerHueProps, type ColorPickerOpacityProps } from "@lesomnus/nox";
@@ -158,6 +160,7 @@ try {
         <DatePicker {...datePicker} />
         <DatePicker {...multipleDates} /><DatePicker {...dateRange} />
         <PinInput {...pin} />
+        <ScrollArea {...outsideScroll} />
         <MenuScrollArea role="menu" aria-label="Custom actions" scrollbarLabel="Scroll actions">
           <MenuGroupLabel icon={<svg viewBox="0 0 24 24"><path d="M4 12h16" /></svg>}>Commands</MenuGroupLabel>
           <MenuItem {...menuItem}>Details</MenuItem>
