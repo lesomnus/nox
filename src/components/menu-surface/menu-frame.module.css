@@ -17,5 +17,5 @@
   border-bottom: 1px solid var(--ui-shade-54);
 }
 .fixed[data-menu-fixed="footer"] {
-  border-top: 1px solid var(--ui-shade-54);
+  padding: var(--ui-control-inset) 0 0;
 }
