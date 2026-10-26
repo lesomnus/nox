@@ -27,6 +27,24 @@ close together. Section surfaces have no border or shadow.
   gap. Outside a group it retains its complete rounded outline. Composed components
   may return a Section directly; put ungrouped headers or actions outside the group.
 
+Set `as="button"` to make the whole Section a native button. It retains the same
+surface, padding and group corners while sharing Button's InkSparkle, content press
+scale, focus, keyboard, disabled and loading behavior. It defaults to `type="button"`.
+Use text/icons inside an action section and keep nested links, inputs and buttons
+outside it. The host owns confirmation and the action itself.
+
+```tsx
+<SectionLayout>
+  <SectionGroup>
+    <Section as="button" onClick={confirmRestart} aria-label="Restart">
+      <span>Restart the workspace runtime</span>
+    </Section>
+  </SectionGroup>
+</SectionLayout>
+```
+
+Button options such as `effect="none"` and `effectOptions` remain available.
+
 All three forward native attributes, events, refs, className and style. Use native
 articles and accessible names to describe entries. Content typography, field layout,
 forms, data loading and business actions belong to the host; no resource schemas or
@@ -37,4 +55,4 @@ tokens on a layout to adapt the shared widths, spacing, padding, colors and corn
 radii. The components inherit them without app-specific CSS selectors.
 
 Storybook **Layout/SectionLayout** includes grouped records, independent surfaces,
-start alignment, full width and conditional sections.
+start alignment, full width, conditional sections and whole-surface actions.

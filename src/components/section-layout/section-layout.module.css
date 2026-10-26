@@ -7,6 +7,15 @@
   min-width: 0;
   display: grid;
 }
+.section.action {
+  --button-background: var(--ui-section-background);
+  width: 100%;
+  text-align: start;
+}
+.action > :global(.button-content) {
+  width: 100%;
+  justify-content: flex-start;
+}
 .layout {
   width: 100%;
   max-width: var(

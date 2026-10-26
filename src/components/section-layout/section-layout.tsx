@@ -1,4 +1,5 @@
 import type { ComponentPropsWithRef, CSSProperties } from "react";
+import { Button, type ButtonProps } from "../button/button";
 import styles from "./section-layout.module.css";
 
 export type SectionLayoutProps = ComponentPropsWithRef<"div"> & {
@@ -7,7 +8,13 @@ export type SectionLayoutProps = ComponentPropsWithRef<"div"> & {
   align?: "start" | "center";
 };
 export type SectionGroupProps = ComponentPropsWithRef<"div">;
-export type SectionProps = ComponentPropsWithRef<"section">;
+export type SectionSurfaceProps = ComponentPropsWithRef<"section"> & {
+  as?: "section";
+};
+export type SectionButtonProps = Omit<ButtonProps, "variant"> & {
+  as: "button";
+};
+export type SectionProps = SectionSurfaceProps | SectionButtonProps;
 
 /** A bounded column with generous space between independent groups. */
 export function SectionLayout({
@@ -46,10 +53,23 @@ export function SectionGroup({ className = "", ...props }: SectionGroupProps) {
 }
 
 /** A semantic, borderless surface whose content and accessible name belong to the host. */
-export function Section({ className = "", ...props }: SectionProps) {
+export function Section(props: SectionProps) {
+  if (props.as === "button") {
+    const { as, className = "", type = "button", ...button } = props;
+    return (
+      <Button
+        {...button}
+        type={type}
+        className={`${styles.section} ${styles.action} ${className}`}
+        data-section-layout="section"
+        data-section-action={as}
+      />
+    );
+  }
+  const { as: Element = "section", className = "", ...surface } = props;
   return (
-    <section
-      {...props}
+    <Element
+      {...surface}
       className={`${styles.section} ${className}`}
       data-section-layout="section"
     />

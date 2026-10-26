@@ -151,6 +151,8 @@ related borderless surfaces. The column supports bounded or full width and start
 or center alignment; related sections share compact inner corners and a rounded
 outer silhouette. See [section layouts](docs/section-layout.md) and
 **Layout/SectionLayout**.
+`Section as="button"` makes the complete surface an action with the shared
+InkSparkle, press, disabled and keyboard behavior.
 
 `Drawer` places an independently sized surface near any viewport or container
 edge. Compose `Card` for the rounded cxz task-detail card, or supply a

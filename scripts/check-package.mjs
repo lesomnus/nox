@@ -71,10 +71,14 @@ try {
     import { createRoot } from "react-dom/client";
     import { Popover, type PopoverProps, type PopoverPlacement, type PopoverPosition } from "@lesomnus/nox";
     import { Progress, type ProgressProps } from "@lesomnus/nox";
-    import { SectionLayout, SectionGroup, Section, type SectionLayoutProps, type SectionGroupProps, type SectionProps } from "@lesomnus/nox";
+    import { SectionLayout, SectionGroup, Section, type SectionLayoutProps, type SectionGroupProps, type SectionProps, type SectionButtonProps } from "@lesomnus/nox";
     const sections: SectionLayoutProps = {maxWidth: "40rem", align: "start", ref: node => {void node?.querySelector("section");}};
     const sectionGroup: SectionGroupProps = {ref: node => {void node?.children.length;}};
     const section: SectionProps = {"aria-label": "Record information", ref: node => {void node?.tagName;}};
+    const sectionAction: SectionButtonProps = {as:"button", onClick: event => {void event.currentTarget.disabled;}, effect:"sparkle", ref: node => {void node?.focus();}};
+    // @ts-expect-error Interactive props require the native button variant.
+    const invalidSection: SectionProps = {disabled:true};
+    void invalidSection;
     import { BorderTrailButton, type BorderTrailButtonProps, type BorderTrailSegment, type BorderTrailProgress, type BorderTrailSheen } from "@lesomnus/nox";
     const trail: BorderTrailSegment = { color: "#78d9ef", length: 0.12, duration: 13000, offset: 0.5 };
     const trailButton: BorderTrailButtonProps = { segments: [trail], active: true, colors: ["#c58bef"], segmentLength: 0.1, duration: 15000, ref: node => { void node?.focus(); } };
@@ -161,7 +165,7 @@ try {
         <PrefixValueMenu {...prefixMenu} />
         <IconValueMenu label="Legacy effort" icon="Effort" value="medium" options={[{value:"medium",label:"Medium"}]} choose={() => {}} />
         <Button>Save</Button>
-        <SectionLayout {...sections}><article><SectionGroup {...sectionGroup}><Section {...section}>Information</Section><Section>Activity</Section></SectionGroup></article></SectionLayout>
+        <SectionLayout {...sections}><article><SectionGroup {...sectionGroup}><Section {...section}>Information</Section><Section>Activity</Section><Section {...sectionAction}>Run action</Section></SectionGroup></article></SectionLayout>
         <BorderTrailButton {...trailButton}>Work</BorderTrailButton>
         <BorderTrailButton progress={growingTrail} sheen={trailSheen}>Growing work</BorderTrailButton>
         <Progress {...progress} aria-label="Build progress" />

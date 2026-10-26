@@ -1,5 +1,16 @@
 import { expect, test } from "@playwright/test";
 
+test.use({
+  launchOptions: {
+    args: [
+      "--no-zygote",
+      "--use-angle=swiftshader",
+      "--enable-unsafe-swiftshader",
+      "--renderer-process-limit=1",
+    ],
+  },
+});
+
 for (const width of [1280, 320])
   test(`grouped sections remain bounded and centered at ${width}px`, async ({
     page,
@@ -137,4 +148,58 @@ test("column alignment and maximum width can be configured independently", async
   );
   const full = await geometry();
   expect(full.width).toBeCloseTo(full.available, 1);
+});
+
+test.describe("action sections", () => {
+  test("the full surface renders InkSparkle and preserves native release, focus and disabled behavior", async ({
+    page,
+  }) => {
+    await page.goto(
+      "/iframe.html?id=layout-sectionlayout--actions&viewMode=story",
+    );
+    const action = page.getByRole("button", {
+      name: "Run validation",
+      exact: true,
+    });
+    const disabled = page.getByRole("button", {
+      name: "Unavailable action",
+      exact: true,
+    });
+    await expect(action).toHaveAttribute("type", "button");
+    await expect(action).toHaveAttribute("data-section-layout", "section");
+    await expect(action).toHaveAccessibleDescription(
+      "The whole section is an action with shared button feedback.",
+    );
+    await expect(disabled).toBeDisabled();
+    await page
+      .getByRole("button", { name: "Focus action", exact: true })
+      .click();
+    await expect(action).toBeFocused();
+    const frame = (await action.boundingBox())!;
+    const content = action.locator(".button-content");
+    const width = (await content.boundingBox())!.width;
+    await action.hover({
+      position: { x: frame.width - 4, y: frame.height / 2 },
+    });
+    await page.mouse.down();
+    const ink = action.locator("canvas[data-ink-sparkle]").last();
+    await expect(ink).toHaveAttribute("data-renderer", "webgl2");
+    await expect(ink).toHaveAttribute("data-pressed", "true");
+    expect(await ink.boundingBox()).toEqual(frame);
+    await expect
+      .poll(async () => (await content.boundingBox())!.width)
+      .toBeLessThan(width);
+    expect(await action.boundingBox()).toEqual(frame);
+    await expect(page.getByRole("status")).toHaveText("Actions: 0");
+    await page.mouse.up();
+    await expect(page.getByRole("status")).toHaveText("Actions: 1");
+    await action.focus();
+    await page.keyboard.down("Space");
+    await expect(page.getByRole("status")).toHaveText("Actions: 1");
+    await page.keyboard.up("Space");
+    await expect(page.getByRole("status")).toHaveText("Actions: 2");
+    await disabled.evaluate((node) => (node as HTMLButtonElement).click());
+    await expect(page.getByRole("status")).toHaveText("Actions: 2");
+    await expect(disabled.locator("canvas[data-ink-sparkle]")).toHaveCount(0);
+  });
 });

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useId, useRef, useState } from "react";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import {
   Button,
@@ -115,6 +115,47 @@ export const DynamicSections: Story = {
             </Section>
           )}
         </SectionGroup>
+      </SectionLayout>
+    );
+  },
+};
+
+export const Actions: Story = {
+  render: function Actions(args) {
+    const [count, setCount] = useState(0);
+    const ref = useRef<HTMLButtonElement>(null);
+    const description = useId();
+    return (
+      <SectionLayout {...args}>
+        <SectionGroup>
+          <Section
+            as="button"
+            ref={ref}
+            aria-label="Run validation"
+            aria-describedby={description}
+            onClick={() => setCount((value) => value + 1)}
+          >
+            <span
+              style={{
+                display: "grid",
+                gap: "var(--ui-space)",
+                textAlign: "start",
+              }}
+            >
+              <strong>Run validation</strong>
+              <span id={description}>
+                The whole section is an action with shared button feedback.
+              </span>
+            </span>
+          </Section>
+          <Section as="button" aria-label="Unavailable action" disabled>
+            <span>This action is not available.</span>
+          </Section>
+        </SectionGroup>
+        <output>Actions: {count}</output>
+        <Button effect="none" onClick={() => ref.current?.focus()}>
+          Focus action
+        </Button>
       </SectionLayout>
     );
   },
