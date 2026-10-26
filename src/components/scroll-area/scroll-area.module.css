@@ -92,38 +92,18 @@
 .rail:not(:empty)::before {
   content: "";
   position: absolute;
-  inset: 0;
-  border-radius: calc(var(--ui-scroll-area-hit-size) / 2);
+  border-radius: var(--ui-scroll-area-handle-radius);
+  background: var(--ui-scroll-area-rail-background);
   -webkit-backdrop-filter: blur(var(--ui-scroll-area-rail-blur));
   backdrop-filter: blur(var(--ui-scroll-area-rail-blur));
-  mask-image:
-    linear-gradient(
-      to right,
-      transparent,
-      #000 calc(var(--ui-scroll-area-hit-size) / 4),
-      #000 calc(100% - var(--ui-scroll-area-hit-size) / 4),
-      transparent
-    ),
-    linear-gradient(
-      to bottom,
-      transparent,
-      #000 calc(var(--ui-scroll-area-hit-size) / 4),
-      #000 calc(100% - var(--ui-scroll-area-hit-size) / 4),
-      transparent
-    );
-  mask-composite: intersect;
 }
-.horizontalRail::after {
-  content: "";
-  position: absolute;
+.horizontalRail::before {
   left: 0;
   right: 0;
   top: calc(
     (var(--ui-scroll-area-hit-size) - var(--ui-scroll-area-handle-size)) / 2
   );
   height: var(--ui-scroll-area-handle-size);
-  border-radius: var(--ui-scroll-area-handle-radius);
-  background: var(--ui-scroll-area-rail-background);
 }
 .horizontalThumb {
   position: absolute;
@@ -169,25 +149,18 @@
   z-index: 2;
   pointer-events: none;
 }
-.rail:not(:empty)::after {
-  content: "";
-  position: absolute;
+.rail:not(:empty)::before {
   inset-block: 0;
   left: 50%;
   width: var(--ui-scroll-area-handle-size);
   transform: translateX(-50%);
-  border-radius: var(--ui-scroll-area-handle-radius);
-  background: var(--ui-scroll-area-rail-background);
 }
-.rail::before,
-.rail::after {
+.rail::before {
   opacity: 0;
   transition: opacity var(--ui-scroll-area-transition-duration);
 }
 .area:is(:hover, [data-dragging]) .rail::before,
-.area:is(:hover, [data-dragging]) .rail::after,
-.rail:has(.thumb:focus-visible)::before,
-.rail:has(.thumb:focus-visible)::after {
+.rail:has(.thumb:focus-visible)::before {
   opacity: 1;
 }
 .fade {
@@ -277,8 +250,7 @@
 @media (prefers-reduced-motion: reduce) {
   .fade,
   .handle,
-  .rail::before,
-  .rail::after {
+  .rail::before {
     transition: none;
   }
 }
