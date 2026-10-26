@@ -1,15 +1,12 @@
 import { useUI } from "../../providers/ui-provider";
-import {
-  OverflowHint,
-  type OverflowHintPosition,
-} from "../overflow-hint/overflow-hint";
+import { Popover, type PopoverPosition } from "../popover/popover";
 import styles from "./field-label.module.css";
 
 export type FieldLabelProps = {
   label: string;
   description?: string;
   /** Help tooltip side/alignment. Defaults to its bottom-left above the icon. */
-  helpPlacement?: OverflowHintPosition;
+  helpPlacement?: PopoverPosition;
 };
 
 export function FieldLabel({
@@ -23,7 +20,7 @@ export function FieldLabel({
       <span>{label}</span>
       {description && (
         <span className={styles.help}>
-          <OverflowHint content={description} placement={helpPlacement}>
+          <Popover content={description} placement={helpPlacement}>
             <svg
               viewBox="0 0 24 24"
               fill="none"
@@ -43,7 +40,7 @@ export function FieldLabel({
                 stroke="none"
               />
             </svg>
-          </OverflowHint>
+          </Popover>
         </span>
       )}
     </span>

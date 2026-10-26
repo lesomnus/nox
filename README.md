@@ -357,6 +357,12 @@ import { UIProvider } from "@lesomnus/nox";
 </UIProvider>;
 ```
 
+## Popover
+
+`Popover` provides shared hover/focus overlays for text and React content, with
+controlled DOM anchors, viewport-aware placement and in-place text overlays.
+See [Popover](docs/popover.md) for its API and examples.
+
 ## Optional source editor
 
 Install `monaco-editor` when using the separate editor entry. Importing the core entry does not load Monaco, its language services or its workers.

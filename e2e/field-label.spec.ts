@@ -135,7 +135,7 @@ test("plain labels have no Help focus stop and old adjacent hints still prefer b
   await expect(page.getByRole("img")).toHaveCount(0);
   await expect(page.locator('[tabindex="0"]')).toHaveCount(0);
   await page.goto(
-    "/iframe.html?id=components-overflowhint--adjacent&viewMode=story",
+    "/iframe.html?id=components-popover--adjacent&viewMode=story",
   );
   const anchor = page.locator('[tabindex="0"]');
   await anchor.hover();

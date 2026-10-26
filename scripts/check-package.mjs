@@ -69,7 +69,12 @@ try {
     join(temporary, "main.tsx"),
     `
     import { createRoot } from "react-dom/client";
+    import { Popover, type PopoverProps, type PopoverPlacement, type PopoverPosition } from "@lesomnus/nox";
     import { Progress, type ProgressProps } from "@lesomnus/nox";
+    const popoverPosition: PopoverPosition = "top-start";
+    const popoverPlacement: PopoverPlacement = "in-place";
+    const popover: PopoverProps = { anchor: null, open: false, content: <span>Details</span>, placement: popoverPosition, onOpenChange: value => { void value; } };
+    void Popover; void popover; void popoverPlacement;
     import { ThemeProvider, useTheme, createLocalStorageThemeStorage, type ThemeStorage, type ThemePreference } from "@lesomnus/nox";
     import { SlidingPages, SlidingPage, type SlidingPagesProps, type SlidingPageProps } from "@lesomnus/nox";
 

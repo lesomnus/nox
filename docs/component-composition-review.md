@@ -46,7 +46,7 @@ Today/Clear/Done. Original default components compose the same parts.
 - ScrollArea already offers viewport/content refs and per-slot classes. Splitting
   rail/thumb/fade rendering would need a concrete custom scrollbar use case
   because measurements and pointer geometry depend on their relationship.
-- IdentifierValue already composes public CopyButton and OverflowHint.
+- IdentifierValue already composes public CopyButton and Popover.
   Splitting its short text span adds little beyond composing those components.
 - DateTime/ElapsedTime already reuse public AnimatedText. Their punctuation and
   padding are formatting details; tokens and motion options cover customization.

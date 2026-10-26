@@ -84,7 +84,7 @@ Both use the shared reveal duration/easing and respect reduced motion.
 An **in-place overlay** expands a value at its existing text origin and baseline,
 keeping its typography. Use this term for selected ValueMenu rows and expanded
 identifier hints; align the actual text rather than the surrounding box.
-`OverflowHint` supports `placement="in-place"`. It uses a portal to escape container
+`Popover` supports `placement="in-place"`. It uses a portal to escape container
 clipping and wraps long values at the viewport edge while keeping the text origin
 fixed. Verify discrepancies with geometry and raster comparisons rather than adding
 arbitrary pixel offsets. Adjacent hints remain available through the default placement.

@@ -1,4 +1,4 @@
-export type OverflowHintPosition =
+export type PopoverPosition =
   | "top"
   | "top-start"
   | "top-end"
@@ -21,7 +21,7 @@ type Frame = Pick<
 export function hintPosition(
   anchor: Frame,
   box: Pick<DOMRect, "width" | "height">,
-  placement: OverflowHintPosition,
+  placement: PopoverPosition,
   viewport: { width: number; height: number },
   gap: number,
 ): { top: number; left: number } {

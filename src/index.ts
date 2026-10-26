@@ -43,7 +43,7 @@ export * from "./components/audio-waveform/audio-waveform";
 export * from "./components/suggestion-grid/suggestion-grid";
 export * from "./components/scroll-area/scroll-area";
 export * from "./components/duration-display/duration-display";
-export * from "./components/overflow-hint/overflow-hint";
+export * from "./components/popover/popover";
 export * from "./components/checkbox/checkbox";
 export * from "./components/radio/radio";
 export * from "./components/copy-button/copy-button";

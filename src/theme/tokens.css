@@ -168,7 +168,7 @@
   --ui-menu-item-padding-inline: 10px;
   --ui-menu-scroll-max-height: 240px;
   --ui-checkbox-size: 18px;
-  --ui-overflow-hint-background: var(--ui-shade-51);
+  --ui-popover-background: var(--ui-shade-51);
   --ui-scroll-area-background: var(--ui-shade-24);
   --ui-scroll-area-content-inset: 14px;
   --ui-scroll-area-hit-size: 24px;
