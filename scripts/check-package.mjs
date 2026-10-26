@@ -71,6 +71,9 @@ try {
     import { createRoot } from "react-dom/client";
     import { Popover, type PopoverProps, type PopoverPlacement, type PopoverPosition } from "@lesomnus/nox";
     import { Progress, type ProgressProps } from "@lesomnus/nox";
+    import { BorderTrailButton, type BorderTrailButtonProps, type BorderTrailSegment } from "@lesomnus/nox";
+    const trail: BorderTrailSegment = { color: "#78d9ef", length: 0.12, duration: 13000, offset: 0.5 };
+    const trailButton: BorderTrailButtonProps = { segments: [trail], active: true, colors: ["#c58bef"], segmentLength: 0.1, duration: 15000, ref: node => { void node?.focus(); } };
     const popoverPosition: PopoverPosition = "top-start";
     const popoverPlacement: PopoverPlacement = "in-place";
     const popover: PopoverProps = { anchor: null, open: false, content: <span>Details</span>, placement: popoverPosition, onOpenChange: value => { void value; } };
@@ -152,6 +155,7 @@ try {
         <PrefixValueMenu {...prefixMenu} />
         <IconValueMenu label="Legacy effort" icon="Effort" value="medium" options={[{value:"medium",label:"Medium"}]} choose={() => {}} />
         <Button>Save</Button>
+        <BorderTrailButton {...trailButton}>Work</BorderTrailButton>
         <Progress {...progress} aria-label="Build progress" />
         <ThemeProvider storage={themeStorage} defaultPreference="system"><ThemeConsumer /></ThemeProvider>
         <SlidingPages {...slidingPages} />

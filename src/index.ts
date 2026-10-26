@@ -4,6 +4,7 @@ export { monospaceFont, MONOSPACE_FONT_FALLBACK } from "./theme/fonts";
 export * from "./providers/ui-provider";
 export * from "./providers/theme-provider";
 export * from "./components/button/button";
+export * from "./components/border-trail-button/border-trail-button";
 export * from "./components/toggle-button/toggle-button";
 export * from "./components/link-button/link-button";
 export * from "./components/skeleton/skeleton";

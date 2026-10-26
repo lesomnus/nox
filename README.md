@@ -191,7 +191,13 @@ The component has no application dependencies or idle animation loop. See
 [SVG effects on HTML](https://developer.mozilla.org/en-US/docs/Web/SVG/Guides/Applying_SVG_effects_to_HTML_content)
 describes the underlying mask mechanism.
 
-The public core entry exports Button/ButtonAnchor/ButtonContent, BadgedIcon, ConfirmButton, ActionMenu, ValueMenu, SegmentedControl, Switch, Dialog/DialogHeader/DialogTitle/DialogDescription/DialogBody/DialogFooter, EditableValue, FloatingCard, SettingField, SettingSlider, ElapsedTime, CompactNumber, DurationDisplay, DialogReveal, SplitLayout, ResizeHandle, ScrollArea and UIProvider. Button's `toolbar` variant provides the compact rectangular shape. [ButtonAnchor](docs/button-anchor.md) and PanelItemAnchor share its native-link press feedback. Button defaults to `effect="sparkle"`; use `effect="none"` to opt out or `effectOptions` to customize ink color/timing. Callbacks and selected values belong to the consuming application; Application adapters handle persistence and session operations separately.
+The public core entry exports Button/ButtonAnchor/ButtonContent, BorderTrailButton, BadgedIcon, ConfirmButton, ActionMenu, ValueMenu, SegmentedControl, Switch, Dialog/DialogHeader/DialogTitle/DialogDescription/DialogBody/DialogFooter, EditableValue, FloatingCard, SettingField, SettingSlider, ElapsedTime, CompactNumber, DurationDisplay, DialogReveal, SplitLayout, ResizeHandle, ScrollArea and UIProvider. Button's `toolbar` variant provides the compact rectangular shape. [ButtonAnchor](docs/button-anchor.md) and PanelItemAnchor share its native-link press feedback. Button defaults to `effect="sparkle"`; use `effect="none"` to opt out or `effectOptions` to customize ink color/timing. Callbacks and selected values belong to the consuming application; Application adapters handle persistence and session operations separately.
+
+[BorderTrailButton](docs/border-trail-button.md) moves configurable colored segments
+along the button outline. Use a count and palette or individual lengths, offsets
+and lap times. The outline follows CSS corner radii and stays fixed while the
+label scales on press. **Components/BorderTrailButton** covers multiple colors,
+custom segments, shapes, inactive/disabled states and interaction.
 
 `Dialog` provides the modal lifecycle and focus boundary; compose its header,
 body and footer freely. Confirmation buttons, async execution and failure policy

@@ -165,6 +165,16 @@
   --ui-aurora-focus-duration: 17s;
   --ui-aurora-orbit-radius: 26%;
   --ui-aurora-orbit-rise: 34%;
+  --ui-border-trail-color-1: var(--ui-brand-color);
+  --ui-border-trail-color-2: var(--ui-aurora-color-2);
+  --ui-border-trail-color-3: var(--ui-aurora-color-3);
+  --ui-border-trail-track-color: var(--ui-shade-54);
+  --ui-border-trail-width: 1px;
+  --ui-border-trail-length: 12.5;
+  --ui-border-trail-duration: 13s;
+  --ui-border-trail-breathe-duration: 7s;
+  --ui-border-trail-fade-duration: 500ms;
+  --ui-border-trail-opacity: 0.8;
   --ui-menu-item-padding-block: 6px;
   --ui-menu-item-padding-inline: 10px;
   --ui-menu-scroll-max-height: 240px;

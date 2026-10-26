@@ -23,6 +23,8 @@ type ButtonAppearance = {
 };
 export type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> &
   ButtonAppearance & {
+    /** Decorative surface outside the scaled content layer. */
+    decoration?: ReactNode;
     /** Hold the pressed state and sweep a soft highlight over the label. */
     loading?: boolean;
     ref?: Ref<HTMLButtonElement>;
@@ -32,6 +34,7 @@ export type ButtonAnchorProps = AnchorHTMLAttributes<HTMLAnchorElement> &
 
 export function Button({
   children,
+  decoration,
   pressTarget,
   loading = false,
   variant = "default",
@@ -72,6 +75,7 @@ export function Button({
       }}
     >
       {sparkle.ink}
+      {decoration}
       <ButtonContent pressTarget={pressTarget}>{children}</ButtonContent>
     </button>
   );
