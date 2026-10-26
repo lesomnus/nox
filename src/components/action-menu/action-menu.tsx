@@ -284,11 +284,12 @@ export function ActionMenu({
       {open && (
         <MenuSurface
           anchor={trigger.current?.querySelector("button")}
-          className={`${styles.action_menu_popup} ${motion ? dialogStyles.entrance : ""} action-menu-popup`}
+          className={`${styles.action_menu_popup} ${motion && offset === undefined ? dialogStyles.entrance : ""} action-menu-popup`}
           data-placement={placement}
           data-enter-from={direction}
           data-enter-effect={reveal ? "reveal-frame" : undefined}
           data-scrollbar-offset={offset}
+          data-menu-entrance={(motion && offset !== undefined) || undefined}
           style={
             {
               "--action-menu-scrollbar-outset": `${Math.max(0, offset ?? 0)}px`,
@@ -345,7 +346,11 @@ export function ActionMenu({
           <MenuFrame
             header={header}
             footer={footer}
-            className={reveal ? dialogStyles.entrance : undefined}
+            className={
+              reveal || (motion && offset !== undefined)
+                ? dialogStyles.entrance
+                : undefined
+            }
             data-enter-from={direction}
             data-enter-effect={reveal ? "reveal" : undefined}
             onAnimationEnd={(event) => {

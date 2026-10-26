@@ -44,3 +44,9 @@ ScrollArea's signed pixel convention. The popup reserves viewport room for an
 outward handle and releases its reveal mask after the entrance completes so the
 handle stays visible and interactive. Header/footer positions stay fixed.
 See **ActionMenu → Outside Scrollbar** and [ScrollArea](scroll-area.md).
+
+With an explicit scrollbar offset, menu glass is painted in a sibling background
+layer. The glass and content enter independently, keeping parent backdrop filters
+and retained root fades out of the rail's backdrop ancestry. Completed body
+reveal effects are released. This lets the outward rail blur ordinary page text
+while the menu itself keeps its translucent glass appearance.
