@@ -46,14 +46,20 @@
 .action_menu_popup [data-action-menu-layout="row"] > [data-menu-group-label] {
   grid-column: 1 / -1;
 }
-.action_menu_popup [data-action-menu-layout="row"] > button {
+/* Row cells center their content instead of reserving scrollbar space per item. */
+.action_menu_popup [data-action-menu-layout="row"] > button[role] {
+  display: flex;
+  align-items: center;
+  justify-content: center;
   min-width: 0;
   min-height: 44px;
   padding: var(--ui-space) var(--ui-control-inset);
   font-size: 11px;
+  text-align: center;
 }
 .action_menu_popup [data-action-menu-layout="row"] :global(.button-content) {
   flex-direction: column;
+  align-items: center;
   justify-content: center;
   gap: var(--ui-control-inset);
 }
