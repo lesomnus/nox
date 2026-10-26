@@ -82,6 +82,13 @@ Set `data-ui-theme="light"` on the document root for CSS-only use.
 Root-level `--ui-*` overrides also reach portaled menus and dialogs. Keep
 token values in CSS rather than duplicating design measurements in documentation.
 
+`CompactNumber` accepts a `digits` prop only with `mode="integer"`. For example,
+`<CompactNumber value={7} mode="integer" digits={3} />` reserves three numeric
+cells and renders `007`, with padding zeroes dimmed. Omitting `digits` retains
+four integer cells. Use a positive integer; unavailable and overflow indicators
+stay within the same width, and the accessible label preserves the original
+value. Compact mode keeps its fixed numeric/unit layout and rejects `digits`.
+
 Formatted text shares three color roles across `ElapsedTime`, `CompactNumber`,
 `DurationDisplay` and `DateTime`:
 

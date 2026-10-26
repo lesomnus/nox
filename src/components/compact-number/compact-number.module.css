@@ -15,5 +15,5 @@
   color: var(--ui-text-separator);
 }
 .number[data-mode="integer"] {
-  width: 4ch;
+  width: calc(var(--compact-number-digits) * 1ch);
 }
