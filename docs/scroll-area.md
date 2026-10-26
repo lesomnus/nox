@@ -58,7 +58,8 @@ and `classNames` customize slots without replacing scrolling behavior.
 Home/End. Horizontal handles use left/right arrows and the same page/end keys.
 
 Override `--ui-scroll-area-background` to match the containing surface and fades.
-Backdrop blur covers the full rail area through `--ui-scroll-area-rail-blur`.
+Backdrop blur covers the rail area through `--ui-scroll-area-rail-blur`,
+feathering at its edges so the blur does not form a visible capsule boundary.
 The thin translucent track line and foreground handle are separate layers,
 preserving their original shape and contrast.
 Geometry, color, motion, gap and fade defaults live in `src/theme/tokens.css`.

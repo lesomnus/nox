@@ -88,13 +88,30 @@
   z-index: 2;
   pointer-events: none;
 }
-.horizontalRail::before {
+.horizontalRail::before,
+.rail:not(:empty)::before {
   content: "";
   position: absolute;
   inset: 0;
   border-radius: calc(var(--ui-scroll-area-hit-size) / 2);
   -webkit-backdrop-filter: blur(var(--ui-scroll-area-rail-blur));
   backdrop-filter: blur(var(--ui-scroll-area-rail-blur));
+  mask-image:
+    linear-gradient(
+      to right,
+      transparent,
+      #000 calc(var(--ui-scroll-area-hit-size) / 4),
+      #000 calc(100% - var(--ui-scroll-area-hit-size) / 4),
+      transparent
+    ),
+    linear-gradient(
+      to bottom,
+      transparent,
+      #000 calc(var(--ui-scroll-area-hit-size) / 4),
+      #000 calc(100% - var(--ui-scroll-area-hit-size) / 4),
+      transparent
+    );
+  mask-composite: intersect;
 }
 .horizontalRail::after {
   content: "";
@@ -151,14 +168,6 @@
   width: var(--ui-scroll-area-hit-size);
   z-index: 2;
   pointer-events: none;
-}
-.rail:not(:empty)::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  border-radius: calc(var(--ui-scroll-area-hit-size) / 2);
-  -webkit-backdrop-filter: blur(var(--ui-scroll-area-rail-blur));
-  backdrop-filter: blur(var(--ui-scroll-area-rail-blur));
 }
 .rail:not(:empty)::after {
   content: "";
