@@ -1,6 +1,7 @@
 import { monospaceFont } from "../theme/fonts";
 import styles from "./source-editor.module.css";
 import { defaultEditorSettings, type EditorSettings } from "./settings";
+import { loadEditor } from "./load-editor";
 import {
   useEffect,
   useImperativeHandle,
@@ -135,9 +136,10 @@ export function SourceEditor({
     let e: Monaco.editor.IStandaloneCodeEditor | undefined;
     let m: Monaco.editor.ITextModel | undefined;
     const subscriptions: Monaco.IDisposable[] = [];
-    import("./code-editor")
+    loadEditor()
       .then(({ monaco, language, configureEditor, editorOptions }) => {
         if (canceled) return;
+        setError("");
         m = monaco.editor.createModel(
           latest.current.value,
           languageId ?? language(path),
