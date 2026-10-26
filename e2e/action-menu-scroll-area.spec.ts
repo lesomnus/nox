@@ -48,7 +48,7 @@ test("an outward action-menu handle escapes the reveal mask and stays usable at 
       '[data-scroll-area="rail"]::before { backdrop-filter: none !important; -webkit-backdrop-filter: none !important; }',
   });
   expect((await page.screenshot({ clip })).equals(blurred)).toBe(false);
-  await override.evaluate((node) => node.remove());
+  await override.evaluate((node) => node.parentNode?.removeChild(node));
   const bounds = (await popup.boundingBox())!;
   const drawn = (await handle.boundingBox())!;
   expect(drawn.x).toBeGreaterThan(bounds.x + bounds.width);
