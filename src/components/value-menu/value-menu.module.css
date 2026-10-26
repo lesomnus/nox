@@ -164,3 +164,7 @@
   font-size: min(1em, 12px);
   line-height: 20px;
 }
+
+.setting_menu:global(.opens-up) :global([data-menu-body]) {
+  flex-direction: column-reverse;
+}

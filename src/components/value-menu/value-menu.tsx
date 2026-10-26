@@ -13,6 +13,11 @@ import {
 } from "react";
 import { MenuSurface } from "../menu-surface/menu-surface";
 import {
+  MenuFrame,
+  menuFixedHeight,
+  hasMenuRegion,
+} from "../menu-surface/menu-frame";
+import {
   MenuDivider,
   MenuGroupLabel,
   MenuIcon,
@@ -49,6 +54,8 @@ export function ValueMenu({
   value,
   options: items = [],
   groups,
+  header,
+  footer,
   muted = false,
   minMenuWidth = 140,
   variant = "default",
@@ -58,6 +65,9 @@ export function ValueMenu({
   searchable = false,
 }: {
   label: string;
+  /** Always visible above/below the value rows, regardless of opening direction. */
+  header?: ReactNode;
+  footer?: ReactNode;
   display?: string;
   value: string;
   options?: ValueOption[];
@@ -72,6 +82,9 @@ export function ValueMenu({
   searchable?: boolean;
 }) {
   const { t } = useUI();
+  const hasHeader = hasMenuRegion(header);
+  const hasFooter = hasMenuRegion(footer);
+  const hasRegions = hasHeader || hasFooter;
   const root = useRef<HTMLDivElement>(null);
   const menu = useRef<HTMLDivElement>(null);
   const id = useId();
@@ -147,7 +160,8 @@ export function ValueMenu({
       // Headers and dividers also take space. Measure the complete list after
       // applying its width/typography, even when it is already scroll-clipped.
       const list = popup.querySelector<HTMLElement>(".setting-options");
-      const height = chrome + (list?.scrollHeight ?? 0);
+      const fixed = menuFixedHeight(popup);
+      const height = chrome + fixed + (list?.scrollHeight ?? 0);
       const upwards = rect.top + height > window.innerHeight;
       setUp(upwards);
       popup.style.left = `${Math.min(rect.left - inset, window.innerWidth - parseFloat(popup.style.getPropertyValue("--menu-width")) - inset)}px`;
@@ -157,7 +171,7 @@ export function ValueMenu({
         : "auto";
       popup.style.setProperty(
         "--options-height",
-        `${Math.max(rect.height, (upwards ? rect.bottom : window.innerHeight - rect.top) - chrome)}px`,
+        `${Math.max(hasRegions ? 0 : rect.height, (upwards ? rect.bottom : window.innerHeight - rect.top) - chrome - fixed)}px`,
       );
       const anchor = trigger()?.querySelector(".button-content");
       const current = popup.querySelector(
@@ -174,14 +188,49 @@ export function ValueMenu({
           popup.style.bottom = `${parseFloat(popup.style.bottom) - shift}px`;
         else popup.style.top = `${parseFloat(popup.style.top) + shift}px`;
       }
+      if (hasRegions) {
+        const bounds = popup.getBoundingClientRect();
+        const shift = Math.max(
+          8 - bounds.top,
+          Math.min(0, window.innerHeight - 8 - bounds.bottom),
+        );
+        if (upwards)
+          popup.style.bottom = `${parseFloat(popup.style.bottom) - shift}px`;
+        else popup.style.top = `${parseFloat(popup.style.top) + shift}px`;
+      }
     };
     position();
+    const resize = new ResizeObserver(position);
+    resize.observe(menu.current);
+    for (
+      let node: HTMLElement | null = root.current;
+      node;
+      node = node.parentElement
+    )
+      resize.observe(node);
+    menu.current
+      .querySelectorAll<HTMLElement>("[data-menu-fixed]")
+      .forEach((region) => resize.observe(region));
     const scrolled = (e: Event) => {
       if (!menu.current?.contains(e.target as Node)) position();
     };
     document.addEventListener("scroll", scrolled, true);
-    return () => document.removeEventListener("scroll", scrolled, true);
-  }, [open, items, groups, query, queryEdited, minMenuWidth, searchable, up]);
+    return () => {
+      resize.disconnect();
+      document.removeEventListener("scroll", scrolled, true);
+    };
+  }, [
+    open,
+    items,
+    groups,
+    query,
+    queryEdited,
+    minMenuWidth,
+    searchable,
+    up,
+    hasHeader,
+    hasFooter,
+  ]);
   useLayoutEffect(() => {
     if (!open) return;
     if (searchable) {
@@ -222,6 +271,8 @@ export function ValueMenu({
       close(true);
       return;
     }
+    if (e.target instanceof Element && e.target.closest("[data-menu-fixed]"))
+      return;
     if (searchable && e.target === search.current) {
       if (e.nativeEvent.isComposing) return;
       if (e.key === "Enter") {
@@ -291,7 +342,9 @@ export function ValueMenu({
         role="combobox"
         aria-label={label}
         aria-haspopup="listbox"
-        aria-controls={searchable ? `${id}-results` : id}
+        aria-controls={
+          searchable ? `${id}-results` : hasRegions ? `${id}-list` : id
+        }
         aria-expanded={open}
         disabled={disabled}
         title={disabled ? disabledReason : text}
@@ -329,111 +382,126 @@ export function ValueMenu({
             )
               close();
           }}
-          role={searchable ? "group" : "listbox"}
+          role={searchable || hasRegions ? "group" : "listbox"}
           tabIndex={-1}
           aria-label={t("{label} choices", { label })}
         >
-          {searchable ? (
-            <div className="setting-current setting-search-row">
-              <MenuIcon icon={selected?.icon} />
-              <input
-                ref={search}
-                className="setting-search"
-                aria-label={t("Search {label}", { label })}
-                role="combobox"
-                aria-expanded="true"
-                aria-autocomplete="list"
-                aria-controls={`${id}-results`}
-                value={query}
-                onChange={(e) => {
-                  setQuery(e.target.value);
-                  setQueryEdited(true);
-                }}
-              />
-            </div>
-          ) : (
-            <MenuItem
-              type="button"
-              className="setting-current"
-              icon={selected?.icon}
-              data-option-value={value}
-              data-muted={!!isMuted}
-              role="option"
-              tabIndex={-1}
-              aria-selected="true"
-              disabled={selected?.disabled}
-              onClick={() => close(true)}
-            >
-              <span className="meta-value">{text}</span>
-            </MenuItem>
-          )}
-          <div className={`${styles.choices} ${dialogStyles.entrance}`}>
-            <MenuDivider className="setting-divider" />
-            <MenuScrollArea
-              viewportClassName="setting-options"
-              scrollbarLabel={t("Scroll {label} choices", { label })}
-              id={`${id}-results`}
-              role={searchable ? "listbox" : undefined}
-              aria-label={
-                searchable ? t("{label} choices", { label }) : undefined
-              }
-            >
-              {searchable && options.length === 0 && (
-                <p className={styles.emptyState} role="status">
-                  {t("No matches")}
-                </p>
-              )}
-              {visibleSections.map((section, sectionIndex) => (
-                <Fragment key={section.index}>
-                  {sectionIndex > 0 && (
-                    <MenuDivider className="setting-divider" />
-                  )}
-                  <div
-                    role="group"
-                    aria-labelledby={
-                      section.label ? `${id}-group-${section.index}` : undefined
-                    }
-                  >
-                    {section.label && (
-                      <MenuGroupLabel
-                        id={`${id}-group-${section.index}`}
-                        icon={section.icon}
-                      >
-                        {section.label}
-                      </MenuGroupLabel>
+          <MenuFrame
+            header={header}
+            footer={footer}
+            bodyProps={{
+              role: hasRegions && !searchable ? "listbox" : undefined,
+              id: hasRegions && !searchable ? `${id}-list` : undefined,
+              "aria-label":
+                hasRegions && !searchable
+                  ? t("{label} choices", { label })
+                  : undefined,
+            }}
+          >
+            {searchable ? (
+              <div className="setting-current setting-search-row">
+                <MenuIcon icon={selected?.icon} />
+                <input
+                  ref={search}
+                  className="setting-search"
+                  aria-label={t("Search {label}", { label })}
+                  role="combobox"
+                  aria-expanded="true"
+                  aria-autocomplete="list"
+                  aria-controls={`${id}-results`}
+                  value={query}
+                  onChange={(e) => {
+                    setQuery(e.target.value);
+                    setQueryEdited(true);
+                  }}
+                />
+              </div>
+            ) : (
+              <MenuItem
+                type="button"
+                className="setting-current"
+                icon={selected?.icon}
+                data-option-value={value}
+                data-muted={!!isMuted}
+                role="option"
+                tabIndex={-1}
+                aria-selected="true"
+                disabled={selected?.disabled}
+                onClick={() => close(true)}
+              >
+                <span className="meta-value">{text}</span>
+              </MenuItem>
+            )}
+            <div className={`${styles.choices} ${dialogStyles.entrance}`}>
+              <MenuDivider className="setting-divider" />
+              <MenuScrollArea
+                viewportClassName="setting-options"
+                scrollbarLabel={t("Scroll {label} choices", { label })}
+                id={`${id}-results`}
+                role={searchable ? "listbox" : undefined}
+                aria-label={
+                  searchable ? t("{label} choices", { label }) : undefined
+                }
+              >
+                {searchable && options.length === 0 && (
+                  <p className={styles.emptyState} role="status">
+                    {t("No matches")}
+                  </p>
+                )}
+                {visibleSections.map((section, sectionIndex) => (
+                  <Fragment key={section.index}>
+                    {sectionIndex > 0 && (
+                      <MenuDivider className="setting-divider" />
                     )}
-                    {section.items.map((choice, itemIndex) => (
-                      <Fragment key={choice.value}>
-                        {choice.separatorBefore && itemIndex > 0 && (
-                          <MenuDivider className="setting-divider" />
-                        )}
-                        <MenuItem
-                          data-option-value={choice.value}
-                          type="button"
-                          role="option"
-                          tabIndex={-1}
-                          aria-selected={choice.value === value}
-                          disabled={choice.disabled}
-                          title={choice.label}
-                          icon={choice.icon}
-                          data-muted={!!choice.muted}
-                          onClick={() => {
-                            close(true);
-                            choose(choice.value);
-                          }}
+                    <div
+                      role="group"
+                      aria-labelledby={
+                        section.label
+                          ? `${id}-group-${section.index}`
+                          : undefined
+                      }
+                    >
+                      {section.label && (
+                        <MenuGroupLabel
+                          id={`${id}-group-${section.index}`}
+                          icon={section.icon}
                         >
-                          <ValueLabel
-                            option={choice}
-                            query={searchable && queryEdited ? query : ""}
-                          />
-                        </MenuItem>
-                      </Fragment>
-                    ))}
-                  </div>
-                </Fragment>
-              ))}
-            </MenuScrollArea>
-          </div>
+                          {section.label}
+                        </MenuGroupLabel>
+                      )}
+                      {section.items.map((choice, itemIndex) => (
+                        <Fragment key={choice.value}>
+                          {choice.separatorBefore && itemIndex > 0 && (
+                            <MenuDivider className="setting-divider" />
+                          )}
+                          <MenuItem
+                            data-option-value={choice.value}
+                            type="button"
+                            role="option"
+                            tabIndex={-1}
+                            aria-selected={choice.value === value}
+                            disabled={choice.disabled}
+                            title={choice.label}
+                            icon={choice.icon}
+                            data-muted={!!choice.muted}
+                            onClick={() => {
+                              close(true);
+                              choose(choice.value);
+                            }}
+                          >
+                            <ValueLabel
+                              option={choice}
+                              query={searchable && queryEdited ? query : ""}
+                            />
+                          </MenuItem>
+                        </Fragment>
+                      ))}
+                    </div>
+                  </Fragment>
+                ))}
+              </MenuScrollArea>
+            </div>
+          </MenuFrame>
         </MenuSurface>
       )}
     </div>

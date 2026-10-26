@@ -1,6 +1,8 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { useArgs } from "storybook/preview-api";
+import { useState } from "react";
 import {
+  Button,
   ActionMenu,
   ValueMenu,
   StippleBackground,
@@ -357,4 +359,61 @@ export const Scrolling: Story = {
 export const SearchableScrolling: Story = {
   ...Scrolling,
   args: { ...Scrolling.args, searchable: true },
+};
+
+export const FixedRegions: Story = {
+  render: function FixedRegions(args) {
+    const [enabled, setEnabled] = useState(false);
+    const [value, setValue] = useState("preset-1");
+    const items = Array.from({ length: 40 }, (_, i) => ({
+      value: `preset-${i + 1}`,
+      label: `Preset ${i + 1}`,
+    }));
+    const header = (
+      <input
+        aria-label="Pinned filter"
+        placeholder="Pinned header"
+        style={{ width: 160, height: 28, font: "inherit" }}
+      />
+    );
+    const footer = (
+      <div role="toolbar" aria-label="Menu options">
+        <Button
+          type="button"
+          aria-pressed={enabled}
+          onClick={() => setEnabled(!enabled)}
+        >
+          Keep open toggle
+        </Button>
+      </div>
+    );
+    return (
+      <div style={{ display: "flex", gap: 24, marginTop: 140, width: 360 }}>
+        <ActionMenu
+          label="Fixed actions"
+          triggerContent="Actions"
+          header={header}
+          footer={footer}
+          items={items.map((item) => ({
+            label: item.label,
+            run: () => setValue(item.value),
+          }))}
+        />
+        <ValueMenu
+          label="Fixed values"
+          searchable={args.searchable}
+          value={value}
+          options={items}
+          choose={setValue}
+          header={header}
+          footer={footer}
+        />
+      </div>
+    );
+  },
+};
+
+export const FixedSearchRegions: Story = {
+  ...FixedRegions,
+  args: { searchable: true },
 };

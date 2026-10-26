@@ -11,6 +11,11 @@ import {
 } from "react";
 import { Button } from "../button/button";
 import { MenuSurface } from "../menu-surface/menu-surface";
+import {
+  MenuFrame,
+  menuFixedHeight,
+  hasMenuRegion,
+} from "../menu-surface/menu-frame";
 import { MenuScrollArea } from "../menu-surface/menu-scroll-area";
 import { useUI } from "../../providers/ui-provider";
 import {
@@ -50,6 +55,8 @@ export function ActionMenu({
   label,
   items = [],
   groups,
+  header,
+  footer,
   disabled = false,
   placement = "below",
   gap: requestedGap = 4,
@@ -61,6 +68,9 @@ export function ActionMenu({
   triggerClassName = "",
 }: {
   label: string;
+  /** Always visible above/below the scrolling action list. */
+  header?: ReactNode;
+  footer?: ReactNode;
   items?: ActionMenuItem[];
   groups?: { label: string; items: ActionMenuItem[] }[];
   disabled?: boolean;
@@ -78,6 +88,9 @@ export function ActionMenu({
   triggerClassName?: string;
 }) {
   const { t } = useUI();
+  const hasHeader = hasMenuRegion(header);
+  const hasFooter = hasMenuRegion(footer);
+  const hasRegions = hasHeader || hasFooter;
   const reveal = typeof motion === "object" && motion.effect === "reveal";
   const direction =
     typeof motion === "object"
@@ -115,16 +128,19 @@ export function ActionMenu({
         parseFloat(style.paddingBottom) +
         parseFloat(style.borderTopWidth) +
         parseFloat(style.borderBottomWidth);
+      const fixed = menuFixedHeight(popup);
       const maxViewport =
         parseFloat(style.getPropertyValue("--ui-menu-scroll-max-height")) ||
         window.innerHeight;
       const preferredHeight =
-        Math.min(viewport.current?.scrollHeight ?? 0, maxViewport) + chrome;
+        Math.min(viewport.current?.scrollHeight ?? 0, maxViewport) +
+        chrome +
+        fixed;
       const constrainHeight = (available: number) => {
         popup.style.maxHeight = `${Math.max(0, available)}px`;
         popup.style.setProperty(
           "--menu-scroll-max-height",
-          `${Math.max(0, available - chrome)}px`,
+          `${Math.max(0, available - chrome - fixed)}px`,
         );
       };
       popup.style.bottom = "auto";
@@ -163,10 +179,22 @@ export function ActionMenu({
     };
     position();
     popup
-      .querySelector<HTMLButtonElement>("button:not(:disabled)")
+      .querySelector<HTMLElement>(
+        'input:not(:disabled), button:not(:disabled), [tabindex="0"]',
+      )
       ?.focus({ preventScroll: true });
     const resize = new ResizeObserver(position);
     resize.observe(popup);
+    // Fixed-region controls can resize the editor surrounding the trigger.
+    for (
+      let node: HTMLElement | null = trigger.current;
+      node;
+      node = node.parentElement
+    )
+      resize.observe(node);
+    popup
+      .querySelectorAll<HTMLElement>("[data-menu-fixed]")
+      .forEach((region) => resize.observe(region));
     const scrolled = (event: Event) => {
       if (!popup.contains(event.target as Node)) position();
     };
@@ -175,7 +203,7 @@ export function ActionMenu({
       resize.disconnect();
       window.removeEventListener("scroll", scrolled, true);
     };
-  }, [open, placement, requestedGap, customPosition]);
+  }, [open, placement, requestedGap, customPosition, hasHeader, hasFooter]);
   useEffect(() => {
     if (!open) return;
     const outside = (event: PointerEvent) => {
@@ -203,7 +231,7 @@ export function ActionMenu({
         aria-description={status}
         aria-haspopup="menu"
         aria-expanded={open}
-        aria-controls={open ? id : undefined}
+        aria-controls={open ? (hasRegions ? `${id}-items` : id) : undefined}
         onClick={() => setOpen(!open)}
         onKeyDown={(event) => {
           if (event.key === "ArrowDown") {
@@ -235,7 +263,7 @@ export function ActionMenu({
           data-enter-effect={reveal ? "reveal-frame" : undefined}
           ref={menu}
           id={id}
-          role="menu"
+          role={hasRegions ? "group" : "menu"}
           aria-label={label}
           onBlur={(event) => {
             const target = event.relatedTarget as Node | null;
@@ -252,11 +280,16 @@ export function ActionMenu({
               event.stopPropagation();
               close(true);
             }
+            if (
+              event.target instanceof Element &&
+              event.target.closest("[data-menu-fixed]")
+            )
+              return;
             if (["ArrowDown", "ArrowUp", "Home", "End"].includes(event.key)) {
               event.preventDefault();
               const buttons = [
                 ...event.currentTarget.querySelectorAll<HTMLButtonElement>(
-                  "button:not(:disabled)",
+                  '[role="menuitem"]:not(:disabled), [role="menuitemcheckbox"]:not(:disabled)',
                 ),
               ];
               const current = buttons.indexOf(
@@ -276,13 +309,18 @@ export function ActionMenu({
             }
           }}
         >
-          <div
+          <MenuFrame
+            header={header}
+            footer={footer}
             className={reveal ? dialogStyles.entrance : undefined}
             data-enter-from={direction}
             data-enter-effect={reveal ? "reveal" : undefined}
           >
             <MenuScrollArea
               viewportRef={viewport}
+              id={hasRegions ? `${id}-items` : undefined}
+              role={hasRegions ? "menu" : undefined}
+              aria-label={hasRegions ? label : undefined}
               scrollbarLabel={t("Scroll {label}", { label })}
             >
               {(groups ?? [{ label: "", items }]).map((group, index) => (
@@ -340,7 +378,7 @@ export function ActionMenu({
               ))}
               {status && <small role="status">{status}</small>}
             </MenuScrollArea>
-          </div>
+          </MenuFrame>
         </MenuSurface>
       )}
     </div>
