@@ -88,6 +88,11 @@ cells and renders `007`, with padding zeroes dimmed. Omitting `digits` retains
 four integer cells. Use a positive integer; unavailable and overflow indicators
 stay within the same width, and the accessible label preserves the original
 value. Compact mode keeps its fixed numeric/unit layout and rejects `digits`.
+The effective digit of a displayed zero uses the intermediate text color instead
+of the normal value color. Set `muted` to use that intermediate color for
+significant digits of any value in either mode, for example
+`<CompactNumber value={7} mode="integer" digits={3} muted />`. Padding zeroes
+stay darker; number formatting, reserved width and accessible labels are unchanged.
 
 Formatted text shares three color roles across `ElapsedTime`, `CompactNumber`,
 `DurationDisplay` and `DateTime`:

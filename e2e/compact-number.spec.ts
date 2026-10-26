@@ -38,3 +38,75 @@ for (const [story, text, digits] of [
     }
   });
 }
+
+for (const theme of ["dark", "light"] as const) {
+  for (const mode of ["compact", "integer"] as const) {
+    test(`${theme} ${mode} zero and muted values use the intermediate color without changing cells`, async ({
+      page,
+    }) => {
+      const open = async (story: string) => {
+        await page.goto(
+          `/iframe.html?id=components-compactnumber--${story}&viewMode=story`,
+        );
+        const number = page.locator(`[data-mode="${mode}"]`);
+        await expect(number).toBeVisible();
+        await page.evaluate((theme) => {
+          document.documentElement.dataset.uiTheme = theme;
+          document.documentElement.dataset.theme = theme;
+        }, theme);
+        return number;
+      };
+      const normal = await open(mode === "integer" ? "three-digits" : "single");
+      const colors = await normal.evaluate((el) => ({
+        value: getComputedStyle(el).getPropertyValue("--ui-text-value"),
+        intermediate: getComputedStyle(el).getPropertyValue(
+          "--ui-text-separator",
+        ),
+        leading: getComputedStyle(el).getPropertyValue("--ui-text-leading"),
+      }));
+      const width = (await normal.boundingBox())!.width;
+      const normalColor = await normal.evaluate(
+        (el) => getComputedStyle(el).color,
+      );
+      const leadingColor = await normal
+        .locator(":scope > span")
+        .first()
+        .evaluate((el) => getComputedStyle(el).color);
+      expect(colors.value).not.toBe(colors.intermediate);
+      expect(colors.leading).not.toBe(colors.intermediate);
+
+      let intermediateColor: string | undefined;
+      for (const [story, text, label] of mode === "integer"
+        ? [
+            ["integer-zero", "000", "0"],
+            ["muted-integer", "007", "7"],
+          ]
+        : [
+            ["zero", "0000·", "0"],
+            ["muted", "1.23K", "1230"],
+          ]) {
+        const number = await open(story);
+        await expect(number).toHaveText(text);
+        await expect(number).toHaveAttribute("aria-label", label);
+        const value = number.locator(":scope > span").nth(1);
+        const valueColor = await value.evaluate(
+          (el) => getComputedStyle(el).color,
+        );
+        expect(valueColor).not.toBe(normalColor);
+        expect(valueColor).not.toBe(leadingColor);
+        if (intermediateColor) expect(valueColor).toBe(intermediateColor);
+        intermediateColor = valueColor;
+        await expect(number.locator(":scope > span").first()).toHaveCSS(
+          "color",
+          leadingColor,
+        );
+        if (mode === "compact")
+          await expect(number.locator(":scope > span").last()).toHaveCSS(
+            "color",
+            valueColor,
+          );
+        expect((await number.boundingBox())!.width).toBeCloseTo(width, 2);
+      }
+    });
+  }
+}

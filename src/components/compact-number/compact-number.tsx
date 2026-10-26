@@ -2,7 +2,11 @@ import styles from "./compact-number.module.css";
 import type { CSSProperties } from "react";
 
 type FormattedNumber = { digits: string; leading: string; unit: string };
-export type CompactNumberProps = { value: number; label?: string } & (
+export type CompactNumberProps = {
+  value: number;
+  label?: string;
+  muted?: boolean;
+} & (
   | { mode: "integer"; digits?: number }
   | { mode?: "compact"; digits?: never }
 );
@@ -96,7 +100,7 @@ export function formatCompactNumber(
 }
 
 export function CompactNumber(props: CompactNumberProps) {
-  const { value, label, mode = "compact" } = props;
+  const { value, label, mode = "compact", muted = false } = props;
   const digits = props.mode === "integer" ? (props.digits ?? 4) : 4;
   const number =
     mode === "integer"
@@ -108,6 +112,7 @@ export function CompactNumber(props: CompactNumberProps) {
       role="img"
       aria-label={label ?? String(value)}
       data-mode={mode}
+      data-muted={muted || number.digits === "0" || undefined}
       style={
         mode === "integer"
           ? ({ "--compact-number-digits": digits } as CSSProperties)

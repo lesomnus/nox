@@ -29,7 +29,7 @@ describe("compact metric numbers", () => {
     ] as const)
       expect(text(value)).toBe(expected);
   });
-  it("dims padding only, including the actual zero case", () => {
+  it("separates padding from significant digits, including the actual zero case", () => {
     expect(formatCompactNumber(0)).toEqual({
       leading: "000",
       digits: "0",
