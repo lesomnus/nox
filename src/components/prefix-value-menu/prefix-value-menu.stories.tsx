@@ -17,6 +17,7 @@ const meta = {
   args: {
     label: "Effort",
     value: "medium",
+    hideSelected: false,
     options: ["low", "medium", "high"].map((value) => ({
       value,
       label: value,
@@ -45,6 +46,7 @@ const meta = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 export const Default: Story = {};
+export const HideSelected: Story = { args: { hideSelected: true } };
 export const TextPrefix: Story = {
   args: { prefix: "Effort" },
 };

@@ -26,7 +26,7 @@ test("ValueMenu visibly blurs the StippleBackground behind its portaled surface"
   });
   const trigger = page.getByRole("combobox", { name: "Effort" });
   await trigger.click();
-  const menu = page.getByRole("listbox", { name: "Effort choices" });
+  const menu = page.locator(".setting-menu");
   await expect(menu).toHaveCSS("backdrop-filter", "blur(24px)");
   await page.screenshot({ path: "test-results/value-menu-stipple.png" });
   const blurred = await menu.screenshot({ animations: "disabled" });

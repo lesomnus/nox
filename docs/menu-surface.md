@@ -31,6 +31,13 @@ typography instead of inheriting the host document's font. It owns its foregroun
 color, so a host page cannot make dark menus unreadable. Shade and dropdown
 tokens are the source of truth for appearance.
 
+ValueMenu includes the selected choice in its list by default and marks it with
+`aria-selected`. Set `hideSelected` to omit it, including from search results.
+The aligned current-value/search row remains visible independently of that flag;
+it is outside the listbox, so the choice appears only once among accessible
+options. Reselecting the same value closes the popup without calling `choose`.
+PrefixValueMenu and its IconValueMenu compatibility wrapper forward the flag.
+
 ActionMenu and ValueMenu also render their rows with the same `MenuItem`,
 `MenuIcon`, `MenuGroupLabel` and `MenuDivider` components. This includes value
 triggers, current rows and search-row icons. SVG and image icons fill a shared
@@ -56,6 +63,7 @@ PrefixValueMenu supports the same choices and search behavior as ValueMenu.
 | Item icons                                         | `items[].icon`                                | `options[].icon` or `groups[].items[].icon`         |
 | Group-title icons                                  | —                                             | `groups[].icon`                                     |
 | Current state                                      | `items[].checked`                             | `value` and `choose`                                |
+| Hide selected choice                               | —                                             | `hideSelected` (off by default)                     |
 | Disabled items                                     | `items[].disabled`                            | `options[].disabled`                                |
 | Disabled trigger with explanation                  | `disabled`, `disabledReason`                  | `disabled`, `disabledReason`                        |
 | Shortcut keycaps                                   | `items[].shortcut`                            | —                                                   |

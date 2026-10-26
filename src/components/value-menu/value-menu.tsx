@@ -46,7 +46,7 @@ export type ValueOptionGroup = {
   items: ValueOption[];
 };
 
-// The selected row overlays the trigger text exactly. A portal avoids clipping
+// The current-value row overlays the trigger text exactly. A portal avoids clipping
 // inside settings panes while sharing the composer menu's focus and geometry.
 export function ValueMenu({
   label,
@@ -63,6 +63,7 @@ export function ValueMenu({
   disabledReason,
   choose,
   searchable = false,
+  hideSelected = false,
 }: {
   label: string;
   /** Always visible above/below the value rows, regardless of opening direction. */
@@ -80,6 +81,8 @@ export function ValueMenu({
   disabledReason?: string;
   choose: (value: string) => void;
   searchable?: boolean;
+  /** Exclude the selected value from choices; the aligned current/search row stays. */
+  hideSelected?: boolean;
 }) {
   const { t } = useUI();
   const hasHeader = hasMenuRegion(header);
@@ -105,7 +108,7 @@ export function ValueMenu({
       index,
       items: section.items.filter(
         (item) =>
-          item.value !== value &&
+          (!hideSelected || item.value !== value) &&
           (!searchable ||
             !queryEdited ||
             matchesValueQuery(`${item.label} ${item.searchText ?? ""}`, query)),
@@ -230,6 +233,7 @@ export function ValueMenu({
     up,
     hasHeader,
     hasFooter,
+    hideSelected,
   ]);
   useLayoutEffect(() => {
     if (!open) return;
@@ -237,10 +241,15 @@ export function ValueMenu({
       search.current?.focus({ preventScroll: true });
       search.current?.select();
     } else {
-      const option = menu.current?.querySelector<HTMLButtonElement>(
-        "[role=option]:not(:disabled)",
-      );
+      const option =
+        menu.current?.querySelector<HTMLButtonElement>(
+          '[role=option][aria-selected="true"]:not(:disabled)',
+        ) ??
+        menu.current?.querySelector<HTMLButtonElement>(
+          "[role=option]:not(:disabled)",
+        );
       (option ?? menu.current)?.focus({ preventScroll: true });
+      option?.scrollIntoView({ block: "nearest" });
     }
   }, [open, searchable]);
   useEffect(() => {
@@ -282,7 +291,7 @@ export function ValueMenu({
         } else {
           const option = options.find((item) => !item.disabled);
           if (option) {
-            choose(option.value);
+            if (option.value !== value) choose(option.value);
             close(true);
           }
         }
@@ -300,9 +309,7 @@ export function ValueMenu({
       ...(menu.current?.querySelectorAll<HTMLButtonElement>("[role=option]") ||
         []),
     ];
-    const visual = (
-      up && !searchable ? [...buttons.slice(1), buttons[0]] : buttons
-    ).filter((button) => !button.disabled);
+    const visual = buttons.filter((button) => !button.disabled);
     if (visual.length === 0) return;
     const index = visual.indexOf(document.activeElement as HTMLButtonElement);
     const next =
@@ -342,9 +349,7 @@ export function ValueMenu({
         role="combobox"
         aria-label={label}
         aria-haspopup="listbox"
-        aria-controls={
-          searchable ? `${id}-results` : hasRegions ? `${id}-list` : id
-        }
+        aria-controls={`${id}-results`}
         aria-expanded={open}
         disabled={disabled}
         title={disabled ? disabledReason : text}
@@ -382,22 +387,11 @@ export function ValueMenu({
             )
               close();
           }}
-          role={searchable || hasRegions ? "group" : "listbox"}
+          role="group"
           tabIndex={-1}
           aria-label={t("{label} choices", { label })}
         >
-          <MenuFrame
-            header={header}
-            footer={footer}
-            bodyProps={{
-              role: hasRegions && !searchable ? "listbox" : undefined,
-              id: hasRegions && !searchable ? `${id}-list` : undefined,
-              "aria-label":
-                hasRegions && !searchable
-                  ? t("{label} choices", { label })
-                  : undefined,
-            }}
-          >
+          <MenuFrame header={header} footer={footer}>
             {searchable ? (
               <div className="setting-current setting-search-row">
                 <MenuIcon icon={selected?.icon} />
@@ -423,9 +417,7 @@ export function ValueMenu({
                 icon={selected?.icon}
                 data-option-value={value}
                 data-muted={!!isMuted}
-                role="option"
                 tabIndex={-1}
-                aria-selected="true"
                 disabled={selected?.disabled}
                 onClick={() => close(true)}
               >
@@ -438,10 +430,8 @@ export function ValueMenu({
                 viewportClassName="setting-options"
                 scrollbarLabel={t("Scroll {label} choices", { label })}
                 id={`${id}-results`}
-                role={searchable ? "listbox" : undefined}
-                aria-label={
-                  searchable ? t("{label} choices", { label }) : undefined
-                }
+                role="listbox"
+                aria-label={t("{label} choices", { label })}
               >
                 {searchable && options.length === 0 && (
                   <p className={styles.emptyState} role="status">
@@ -486,7 +476,7 @@ export function ValueMenu({
                             data-muted={!!choice.muted}
                             onClick={() => {
                               close(true);
-                              choose(choice.value);
+                              if (choice.value !== value) choose(choice.value);
                             }}
                           >
                             <ValueLabel

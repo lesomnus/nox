@@ -6,7 +6,7 @@ test("ValueMenu paints equal row insets after its entrance at fractional zoom", 
   await page.setViewportSize({ width: 1200, height: 900 });
   await page.goto("/iframe.html?id=menus--overview&viewMode=story");
   await page.getByRole("combobox", { name: "Effort" }).click();
-  const menu = page.getByRole("listbox", { name: "Effort choices" });
+  const menu = page.locator(".setting-menu");
   await menu.evaluate((node) => {
     Object.assign(node.style, { zoom: "1.5", left: "19.5px", top: "10.5px" });
     node.style.setProperty("--menu-width", "455.5px");
@@ -97,7 +97,9 @@ for (const kind of ["action", "value"] as const) {
       dialog.showModal();
     });
     await trigger.click();
-    const menu = page.getByRole(kind === "action" ? "menu" : "listbox");
+    const menu = page.locator(
+      kind === "action" ? ".action-menu-popup" : ".setting-menu",
+    );
     await expect(menu).toBeVisible();
     expect(await menu.evaluate((node) => node.parentElement?.tagName)).toBe(
       "DIALOG",

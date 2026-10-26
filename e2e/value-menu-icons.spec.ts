@@ -31,7 +31,7 @@ test("value icons stay aligned with the selected trigger and follow selection", 
   expect(anchorIcon.x + anchorIcon.width).toBeLessThan(anchorText.x);
   await trigger.click();
   const menu = page.getByRole("listbox", { name: "Effort choices" });
-  const current = menu.getByRole("option", { name: "Medium", exact: true });
+  const current = page.locator(".setting-menu .setting-current");
   const currentText = (await current.locator(".meta-value").boundingBox())!;
   const currentIcon = (await current.locator("svg").boundingBox())!;
   expect(currentText.x).toBeCloseTo(anchorText.x, 0);
