@@ -1,4 +1,5 @@
 import { matchValueQuery, matchesValueQuery } from "./value-search";
+import { positionSelectedMenu } from "./position-selected-menu";
 import styles from "./value-menu.module.css";
 import dialogStyles from "../dialog-surface/dialog-surface.module.css";
 import {
@@ -64,6 +65,7 @@ export function ValueMenu({
   choose,
   searchable = false,
   hideSelected = false,
+  alignItemWithTrigger = false,
 }: {
   label: string;
   /** Always visible above/below the value rows, regardless of opening direction. */
@@ -83,6 +85,8 @@ export function ValueMenu({
   searchable?: boolean;
   /** Exclude the selected value from choices; the aligned current/search row stays. */
   hideSelected?: boolean;
+  /** Align the selected option itself; search/hidden/missing selections use the current-row layout. */
+  alignItemWithTrigger?: boolean;
 }) {
   const { t } = useUI();
   const hasHeader = hasMenuRegion(header);
@@ -96,11 +100,15 @@ export function ValueMenu({
   const search = useRef<HTMLInputElement>(null);
   const [open, setOpen] = useState(false);
   const [up, setUp] = useState(true);
+  const [itemAligned, setItemAligned] = useState(false);
   const sections = groups ?? [{ items }];
   const selected = sections
     .flatMap((section) => section.items)
     .find((item) => item.value === value);
   const text = display ?? selected?.label ?? value;
+  const alignItem =
+    alignItemWithTrigger && !searchable && !hideSelected && !!selected;
+  const itemAnchor = alignItem ? value : undefined;
   const isMuted = muted || selected?.muted;
   const visibleSections = sections
     .map((section, index) => ({
@@ -125,6 +133,7 @@ export function ValueMenu({
   }
   function close(restore = false) {
     setOpen(false);
+    setItemAligned(false);
     setQuery("");
     if (restore) trigger()?.focus({ preventScroll: true });
   }
@@ -142,6 +151,13 @@ export function ValueMenu({
     if (!open || !root.current || !menu.current) return;
     const position = () => {
       if (!root.current || !menu.current) return;
+      if (alignItem && trigger()) {
+        setItemAligned(
+          positionSelectedMenu(menu.current, trigger()!, minMenuWidth),
+        );
+        return;
+      }
+      setItemAligned(false);
       const rect = root.current.getBoundingClientRect();
       const popup = menu.current;
       const style = getComputedStyle(popup);
@@ -234,6 +250,8 @@ export function ValueMenu({
     hasHeader,
     hasFooter,
     hideSelected,
+    alignItem,
+    itemAnchor,
   ]);
   useLayoutEffect(() => {
     if (!open) return;
@@ -241,6 +259,13 @@ export function ValueMenu({
       search.current?.focus({ preventScroll: true });
       search.current?.select();
     } else {
+      const selected = menu.current?.querySelector<HTMLButtonElement>(
+        '[role=option][aria-selected="true"]',
+      );
+      if (alignItem && selected?.disabled) {
+        menu.current?.focus({ preventScroll: true });
+        return;
+      }
       const option =
         menu.current?.querySelector<HTMLButtonElement>(
           '[role=option][aria-selected="true"]:not(:disabled)',
@@ -251,7 +276,7 @@ export function ValueMenu({
       (option ?? menu.current)?.focus({ preventScroll: true });
       option?.scrollIntoView({ block: "nearest" });
     }
-  }, [open, searchable]);
+  }, [open, searchable, alignItem, itemAnchor]);
   useEffect(() => {
     if (!open) return;
     const outside = (e: PointerEvent) => {
@@ -312,6 +337,21 @@ export function ValueMenu({
     const visual = buttons.filter((button) => !button.disabled);
     if (visual.length === 0) return;
     const index = visual.indexOf(document.activeElement as HTMLButtonElement);
+    if (alignItem && index < 0 && ["ArrowDown", "ArrowUp"].includes(e.key)) {
+      const anchor = buttons.findIndex(
+        (button) => button.getAttribute("aria-selected") === "true",
+      );
+      const ordered =
+        e.key === "ArrowUp"
+          ? buttons.slice(0, anchor).reverse()
+          : buttons.slice(anchor + 1);
+      const next =
+        ordered.find((button) => !button.disabled) ??
+        (e.key === "ArrowUp" ? visual.at(-1) : visual[0]);
+      next?.focus({ preventScroll: true });
+      next?.scrollIntoView({ block: "nearest" });
+      return;
+    }
     const next =
       e.key === "Home"
         ? 0
@@ -332,6 +372,7 @@ export function ValueMenu({
       className={`${styles.value_menu} value-menu`}
       data-variant={variant}
       data-value={value}
+      data-item-aligned={(open && itemAligned) || undefined}
       onKeyDown={key}
       onBlur={(e) => {
         if (
@@ -364,7 +405,8 @@ export function ValueMenu({
           id={id}
           data-variant={variant}
           data-searchable={searchable}
-          className={`${styles.setting_menu} ${dialogStyles.entrance} setting-menu ${up ? "opens-up" : ""}`}
+          data-align-item-with-trigger={alignItem || undefined}
+          className={`${styles.setting_menu} ${dialogStyles.entrance} setting-menu ${!alignItem && up ? "opens-up" : ""}`}
           data-enter-effect="fade"
           onPointerDownCapture={(event) => {
             // Non-interactive rows must not blur the focused option/search field.
@@ -410,7 +452,7 @@ export function ValueMenu({
                   }}
                 />
               </div>
-            ) : (
+            ) : !alignItem ? (
               <MenuItem
                 type="button"
                 className="setting-current"
@@ -423,9 +465,11 @@ export function ValueMenu({
               >
                 <span className="meta-value">{text}</span>
               </MenuItem>
-            )}
-            <div className={`${styles.choices} ${dialogStyles.entrance}`}>
-              <MenuDivider className="setting-divider" />
+            ) : null}
+            <div
+              className={`${styles.choices} ${alignItem ? "" : dialogStyles.entrance}`}
+            >
+              {!alignItem && <MenuDivider className="setting-divider" />}
               <MenuScrollArea
                 viewportClassName="setting-options"
                 scrollbarLabel={t("Scroll {label} choices", { label })}
@@ -433,7 +477,7 @@ export function ValueMenu({
                 role="listbox"
                 aria-label={t("{label} choices", { label })}
               >
-                {searchable && options.length === 0 && (
+                {(searchable || alignItem) && options.length === 0 && (
                   <p className={styles.emptyState} role="status">
                     {t("No matches")}
                   </p>
@@ -497,6 +541,8 @@ export function ValueMenu({
     </div>
   );
 }
+
+export type ValueMenuProps = Parameters<typeof ValueMenu>[0];
 
 function ValueLabel({ option, query }: { option: ValueOption; query: string }) {
   const source = `${option.label} ${option.searchText ?? ""}`;

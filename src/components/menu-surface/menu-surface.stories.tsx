@@ -96,6 +96,108 @@ export const Overview: Story = {
   },
 };
 
+export const ItemAlignment: Story = {
+  render: function ItemAlignment() {
+    const [value, choose] = useState("medium");
+    const [many, setMany] = useState(false);
+    const [longValue, setLongValue] = useState("entry-40");
+    const [dialog, setDialog] = useState(false);
+    const [groups, setGroups] = useState(false);
+    const options = [
+      { value: "low", label: "Low" },
+      { value: "balanced", label: "Balanced" },
+      { value: "medium", label: "Medium" },
+      { value: "high", label: "High", disabled: true },
+      { value: "maximum", label: "Maximum" },
+    ];
+    return (
+      <div className={styles.example}>
+        <p className={styles.hint}>
+          The same selector and menu parts, with two positioning modes. The
+          item-aligned menu preserves source order and overlays the selected
+          option; near an edge it uses a bounded popup beside the trigger.
+        </p>
+        <div className={styles.row}>
+          <ValueMenu
+            label="Current row"
+            value={value}
+            choose={choose}
+            options={options}
+          />
+          <ValueMenu
+            label="Selected item"
+            alignItemWithTrigger
+            value={many ? longValue : value}
+            choose={many ? setLongValue : choose}
+            options={
+              many
+                ? Array.from({ length: 80 }, (_, index) => ({
+                    value: `entry-${index}`,
+                    label: `Entry ${index + 1}`,
+                  }))
+                : options
+            }
+            groups={
+              !many && groups
+                ? [
+                    {
+                      label: "Quick",
+                      icon: <MenuIcon path={paths.quick} />,
+                      items: options.slice(0, 2).map((option) => ({
+                        ...option,
+                        icon: <MenuIcon path={paths.quick} />,
+                      })),
+                    },
+                    {
+                      label: "Deep",
+                      icon: <MenuIcon path={paths.deep} />,
+                      items: options.slice(2).map((option) => ({
+                        ...option,
+                        icon: <MenuIcon path={paths.deep} />,
+                      })),
+                    },
+                  ]
+                : undefined
+            }
+            header={<span>Choose an effort</span>}
+            footer={<span>Arrow keys to browse · Escape to close</span>}
+          />
+        </div>
+        <div className={styles.row}>
+          <Button onClick={() => setMany((value) => !value)}>
+            {many ? "Short list" : "Long list"}
+          </Button>
+          <Button disabled={many} onClick={() => setGroups((value) => !value)}>
+            {groups ? "Flat options" : "Groups and icons"}
+          </Button>
+          <Button onClick={() => setDialog(true)}>Open dialog</Button>
+        </div>
+        <Dialog
+          open={dialog}
+          onClose={() => setDialog(false)}
+          aria-label="Choose effort"
+        >
+          <DialogHeader>
+            <DialogTitle>Choose effort</DialogTitle>
+          </DialogHeader>
+          <DialogBody>
+            <ValueMenu
+              label="Dialog effort"
+              alignItemWithTrigger
+              value={value}
+              choose={choose}
+              options={options}
+            />
+          </DialogBody>
+          <DialogFooter>
+            <Button onClick={() => setDialog(false)}>Close</Button>
+          </DialogFooter>
+        </Dialog>
+      </div>
+    );
+  },
+};
+
 export const GroupsAndIcons: Story = {
   render: function GroupsAndIcons() {
     const [lastAction, setLastAction] = useState("No action yet");

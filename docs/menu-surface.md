@@ -38,6 +38,48 @@ it is outside the listbox, so the choice appears only once among accessible
 options. Reselecting the same value closes the popup without calling `choose`.
 PrefixValueMenu and its IconValueMenu compatibility wrapper forward the flag.
 
+## Selected-item alignment
+
+Set `alignItemWithTrigger` on ValueMenu to overlay the **actual selected option**
+on its trigger. Earlier options extend above it and later options below it,
+without changing their source order or adding a duplicate current-value row.
+The selected row is highlighted and focused. The trigger's painted content is
+hidden only while its aligned replacement is visible; its size stays fixed.
+
+```tsx
+<ValueMenu
+  label="Effort"
+  value={effort}
+  choose={setEffort}
+  alignItemWithTrigger
+  options={efforts}
+/>
+```
+
+This is a positioning mode of the existing selector, not another menu family.
+It reuses the same surface, rows, groups, icons, fixed header/footer, scrolling,
+disabled behavior and keyboard selection. PrefixValueMenu and IconValueMenu
+forward the option too. It defaults to false to preserve existing callers.
+
+Long lists open with the selected item in view and keep a bounded viewport above
+and below the trigger. Near a viewport edge, if too few rows can fit around the
+selected item, the list opens beside the trigger instead. The trigger remains
+visible in that case. Insets and the minimum useful row count are theme tokens.
+
+Item alignment requires a visible selected option. Searchable menus, hidden
+selected values and values missing from the supplied options retain the existing
+current-value/search-row layout. This preserves the search field's position and
+avoids aligning to an unrelated item. `display` can still customize the trigger;
+the actual option retains its own label.
+
+Storybook **Components/ValueMenu/ItemAligned** exposes the basic API, and
+**Menus/ItemAlignment** compares both modes with long lists, groups and icons.
+**Components/PrefixValueMenu/ItemAligned** demonstrates the shared prefix wrapper.
+The interaction follows the selected-item alignment described by
+[shadcn Select](https://ui.shadcn.com/docs/components/base/select#align-item-with-trigger).
+
+## Shared rows and scrolling
+
 ActionMenu and ValueMenu also render their rows with the same `MenuItem`,
 `MenuIcon`, `MenuGroupLabel` and `MenuDivider` components. This includes value
 triggers, current rows and search-row icons. SVG and image icons fill a shared
@@ -49,7 +91,7 @@ also share one implementation.
 Both menus use `MenuScrollArea`, built on ScrollArea, for their scroll viewport,
 hover-only handle, proximity expansion, rail, edge fades and scrollbar clearance.
 The shared `--ui-menu-scroll-max-height` token and available viewport space bound
-the list. ValueMenu keeps its current/search row outside the scrolling choices.
+the list. ValueMenu's default mode keeps its current/search row outside the scrolling choices.
 Scrollbar keyboard input stays with the scrollbar; item navigation reveals the
 focused item without moving the popup itself.
 
@@ -57,26 +99,26 @@ Sharing the surface does not make the interaction APIs interchangeable. Each
 menu owns its placement, focus, keyboard navigation, dismissal and roles.
 PrefixValueMenu supports the same choices and search behavior as ValueMenu.
 
-| Capability                                         | ActionMenu                                    | ValueMenu                                           |
-| -------------------------------------------------- | --------------------------------------------- | --------------------------------------------------- |
-| Titled/untitled groups and dividers between groups | `groups`                                      | `groups`                                            |
-| Item icons                                         | `items[].icon`                                | `options[].icon` or `groups[].items[].icon`         |
-| Group-title icons                                  | —                                             | `groups[].icon`                                     |
-| Current state                                      | `items[].checked`                             | `value` and `choose`                                |
-| Hide selected choice                               | —                                             | `hideSelected` (off by default)                     |
-| Disabled items                                     | `items[].disabled`                            | `options[].disabled`                                |
-| Disabled trigger with explanation                  | `disabled`, `disabledReason`                  | `disabled`, `disabledReason`                        |
-| Shortcut keycaps                                   | `items[].shortcut`                            | —                                                   |
-| Dangerous actions and status footer                | `items[].danger`, `status`                    | —                                                   |
-| Text search and search aliases                     | —                                             | `searchable`, `searchText`                          |
-| Divider before an individual item                  | —                                             | `separatorBefore`                                   |
-| Muted/default value                                | —                                             | `muted` on the selector or option                   |
-| Long lists                                         | Shared MenuScrollArea                         | Shared MenuScrollArea with a stationary current row |
-| Placement                                          | `placement`, `position`, `gap`                | Current-text alignment, automatic viewport bounds   |
-| Entrance animation                                 | Optional `motion`, direction and slide/reveal | Built in                                            |
-| Custom trigger                                     | `triggerContent`                              | `display`, compact variant, PrefixValueMenu         |
-| Arrow keys, Home/End, Escape and outside dismissal | Yes                                           | Yes                                                 |
-| Open-native-dialog portal and themed typography    | Shared MenuSurface                            | Shared MenuSurface                                  |
+| Capability                                         | ActionMenu                                    | ValueMenu                                                        |
+| -------------------------------------------------- | --------------------------------------------- | ---------------------------------------------------------------- |
+| Titled/untitled groups and dividers between groups | `groups`                                      | `groups`                                                         |
+| Item icons                                         | `items[].icon`                                | `options[].icon` or `groups[].items[].icon`                      |
+| Group-title icons                                  | —                                             | `groups[].icon`                                                  |
+| Current state                                      | `items[].checked`                             | `value` and `choose`                                             |
+| Hide selected choice                               | —                                             | `hideSelected` (off by default)                                  |
+| Disabled items                                     | `items[].disabled`                            | `options[].disabled`                                             |
+| Disabled trigger with explanation                  | `disabled`, `disabledReason`                  | `disabled`, `disabledReason`                                     |
+| Shortcut keycaps                                   | `items[].shortcut`                            | —                                                                |
+| Dangerous actions and status footer                | `items[].danger`, `status`                    | —                                                                |
+| Text search and search aliases                     | —                                             | `searchable`, `searchText`                                       |
+| Divider before an individual item                  | —                                             | `separatorBefore`                                                |
+| Muted/default value                                | —                                             | `muted` on the selector or option                                |
+| Long lists                                         | Shared MenuScrollArea                         | Shared MenuScrollArea with a stationary current row              |
+| Placement                                          | `placement`, `position`, `gap`                | Current-row or `alignItemWithTrigger`, automatic viewport bounds |
+| Entrance animation                                 | Optional `motion`, direction and slide/reveal | Built in                                                         |
+| Custom trigger                                     | `triggerContent`                              | `display`, compact variant, PrefixValueMenu                      |
+| Arrow keys, Home/End, Escape and outside dismissal | Yes                                           | Yes                                                              |
+| Open-native-dialog portal and themed typography    | Shared MenuSurface                            | Shared MenuSurface                                               |
 
 Groups replace the flat item list when supplied. Both menus use
 `{ label, items }` groups. Icons are caller-supplied React nodes; use decorative
@@ -125,6 +167,7 @@ The example's icons and action handlers come from the consuming application.
   groups, per-item dividers and the stationary current row.
 - **Placement And Motion** shows above/below/beside/custom placement and
   directional slide/reveal entrances.
+- **Item Alignment** compares the current-row and selected-item modes of ValueMenu.
 - **Trigger Variants** compares ellipsis/text/icon action buttons and
   default/compact value selectors and selectors with icon or text prefixes.
 - **Inside Dialog** shows both menus remaining interactive in a native dialog.

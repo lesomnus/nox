@@ -192,6 +192,8 @@
   --ui-menu-item-padding-block: 6px;
   --ui-menu-item-padding-inline: 10px;
   --ui-menu-scroll-max-height: 240px;
+  --ui-menu-viewport-inset: 8px;
+  --ui-menu-align-min-rows: 3;
   --ui-checkbox-size: 18px;
   --ui-popover-background: var(--ui-shade-51);
   --ui-scroll-area-background: var(--ui-shade-24);

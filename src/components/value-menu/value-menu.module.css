@@ -27,6 +27,10 @@
 .value_menu[data-variant="compact"] {
   --value-background: transparent;
 }
+.value_menu[data-item-aligned="true"]
+  :global(.setting-trigger .button-content) {
+  opacity: 0;
+}
 :is(.value_menu, .setting_menu) :global(.setting-trigger) {
   background: var(--value-background);
   display: block;
@@ -115,6 +119,10 @@
 }
 .setting_menu button[data-muted="true"] {
   color: var(--ui-muted);
+}
+.setting_menu[data-align-item-with-trigger="true"]
+  :global([role="option"][aria-selected="true"]) {
+  background: var(--ui-selected);
 }
 
 .setting_menu :global(.setting-search-row) {

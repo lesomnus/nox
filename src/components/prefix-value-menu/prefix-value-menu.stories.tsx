@@ -46,6 +46,7 @@ const meta = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 export const Default: Story = {};
+export const ItemAligned: Story = { args: { alignItemWithTrigger: true } };
 export const HideSelected: Story = { args: { hideSelected: true } };
 export const TextPrefix: Story = {
   args: { prefix: "Effort" },
