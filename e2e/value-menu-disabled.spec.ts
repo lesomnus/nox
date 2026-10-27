@@ -25,29 +25,22 @@ for (const height of [720, 240]) {
     await expect(trigger).toHaveText("Medium");
     await expect(menu.getByRole("option", { name: "Medium" })).toBeFocused();
 
-    for (const name of ["Balanced", "High", "Medium"]) {
+    for (const name of ["High", "Balanced", "Medium"]) {
       await page.keyboard.press("ArrowDown");
       await expect(
         menu.getByRole("option", { name, exact: true }),
       ).toBeFocused();
     }
-    for (const name of ["High", "Balanced", "Medium"]) {
+    for (const name of ["Balanced", "High", "Medium"]) {
       await page.keyboard.press("ArrowUp");
       await expect(
         menu.getByRole("option", { name, exact: true }),
       ).toBeFocused();
     }
-    const opensUp = await menu.evaluate((node) =>
-      node.classList.contains("opens-up"),
-    );
     await page.keyboard.press("Home");
-    await expect(
-      menu.getByRole("option", { name: opensUp ? "Balanced" : "Medium" }),
-    ).toBeFocused();
+    await expect(menu.getByRole("option", { name: "Balanced" })).toBeFocused();
     await page.keyboard.press("End");
-    await expect(
-      menu.getByRole("option", { name: opensUp ? "Medium" : "High" }),
-    ).toBeFocused();
+    await expect(menu.getByRole("option", { name: "High" })).toBeFocused();
     await page.keyboard.press("Escape");
     await expect(trigger).toBeFocused();
   });

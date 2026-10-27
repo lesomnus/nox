@@ -1,0 +1,51 @@
+.layout,
+.group,
+.section {
+  margin: 0;
+  border: 0;
+  box-sizing: border-box;
+  min-width: 0;
+  display: grid;
+}
+.section.action {
+  --button-background: var(--ui-section-background);
+  width: 100%;
+  text-align: start;
+}
+.action > :global(.button-content) {
+  width: 100%;
+  justify-content: flex-start;
+}
+.layout {
+  width: 100%;
+  max-width: var(
+    --section-layout-max-width,
+    var(--ui-section-layout-max-width)
+  );
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--ui-section-layout-gap);
+  margin-inline: auto;
+}
+.layout[data-align="start"] {
+  margin-inline: 0;
+}
+.group {
+  gap: var(--ui-section-group-gap);
+}
+.section {
+  padding: var(--ui-section-padding);
+  gap: var(--ui-section-content-gap);
+  background: var(--ui-section-background);
+  border-radius: var(--ui-section-radius);
+}
+.group > .section {
+  border-radius: var(--ui-section-inner-radius);
+}
+.group > .section:first-child {
+  border-start-start-radius: var(--ui-section-radius);
+  border-start-end-radius: var(--ui-section-radius);
+}
+.group > .section:last-child {
+  border-end-start-radius: var(--ui-section-radius);
+  border-end-end-radius: var(--ui-section-radius);
+}

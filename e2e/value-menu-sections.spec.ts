@@ -13,12 +13,12 @@ test("section titles and item dividers do not interrupt selection or anchor alig
   await expect(menu.getByRole("group", { name: "Deep" })).toContainText(
     "Maximum",
   );
-  await expect(menu.getByRole("separator")).toHaveCount(3);
+  await expect(menu.getByRole("separator")).toHaveCount(2);
   await menu.getByText("Quick", { exact: true }).click();
   await expect(menu).toBeVisible();
   await menu.getByRole("separator").nth(1).click();
   await expect(menu).toBeVisible();
-  const current = menu.getByRole("option", { name: "Medium", exact: true });
+  const current = page.locator(".setting-menu .setting-current");
   const aligned = (await current.locator(".meta-value").boundingBox())!;
   expect(aligned.x).toBeCloseTo(anchor.x, 0);
   expect(aligned.y).toBeCloseTo(anchor.y, 0);
@@ -38,11 +38,12 @@ test("upward sections count header/divider heights and keep keyboard choices in 
   await page.goto("/iframe.html?id=menus-features--sections&viewMode=story");
   await page.getByRole("combobox", { name: "Effort" }).click();
   const menu = page.getByRole("listbox", { name: "Effort choices" });
-  await expect(menu).toHaveClass(/opens-up/);
-  const bounds = (await menu.boundingBox())!;
+  const popup = page.locator(".setting-menu");
+  await expect(popup).toHaveClass(/opens-up/);
+  const bounds = (await popup.boundingBox())!;
   expect(bounds.y).toBeGreaterThanOrEqual(0);
   expect(bounds.y + bounds.height).toBeLessThanOrEqual(240);
-  await page.keyboard.press("ArrowUp");
+  await page.keyboard.press("End");
   const maximum = menu.getByRole("option", { name: "Maximum" });
   await expect(maximum).toBeFocused();
   await expect(maximum).toBeInViewport();
@@ -83,14 +84,14 @@ test("flat options support dividers without section headings", async ({
   );
   await page.getByRole("combobox", { name: "Effort" }).click();
   const menu = page.getByRole("listbox", { name: "Effort choices" });
-  await expect(menu.getByRole("separator")).toHaveCount(2);
+  await expect(menu.getByRole("separator")).toHaveCount(1);
   await menu.getByRole("option", { name: "Maximum" }).click();
   await expect(page.getByRole("combobox", { name: "Effort" })).toHaveText(
     "Maximum",
   );
 });
 
-test("empty and selected-only sections leave no header or leading divider", async ({
+test("empty sections disappear and a selected-only section stays visible", async ({
   page,
 }) => {
   await page.goto(
@@ -98,7 +99,8 @@ test("empty and selected-only sections leave no header or leading divider", asyn
   );
   await page.getByRole("combobox", { name: "Effort" }).click();
   const menu = page.getByRole("listbox", { name: "Effort choices" });
-  await expect(menu.getByRole("group")).toHaveCount(1);
+  await expect(menu.getByRole("group")).toHaveCount(2);
+  await expect(menu.getByRole("group", { name: "Current" })).toBeVisible();
   await expect(menu.getByRole("group", { name: "Remaining" })).toBeVisible();
   await expect(menu.getByRole("separator")).toHaveCount(1);
 });

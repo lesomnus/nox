@@ -1,4 +1,15 @@
 import styles from "./compact-number.module.css";
+import type { CSSProperties } from "react";
+
+type FormattedNumber = { digits: string; leading: string; unit: string };
+export type CompactNumberProps = {
+  value: number;
+  label?: string;
+  muted?: boolean;
+} & (
+  | { mode: "integer"; digits?: number }
+  | { mode?: "compact"; digits?: never }
+);
 
 const units = [
   [1e-9, "n"],
@@ -17,15 +28,32 @@ const units = [
 // Fractional units keep small costs visible instead of rounding them to zero.
 export function formatCompactNumber(
   value: number,
+  mode?: "compact" | "integer",
+): FormattedNumber;
+export function formatCompactNumber(
+  value: number,
+  mode: "integer",
+  digits: number,
+): FormattedNumber;
+export function formatCompactNumber(
+  value: number,
   mode: "compact" | "integer" = "compact",
-) {
+  digits = 4,
+): FormattedNumber {
+  if (mode === "integer" && (!Number.isSafeInteger(digits) || digits < 1))
+    throw new RangeError("Integer digits must be a positive safe integer.");
+  const cells = mode === "integer" ? digits : 4;
   if (!Number.isFinite(value) || value < 0)
-    return { digits: "----", leading: "", unit: mode === "integer" ? "" : "·" };
+    return {
+      digits: "-".repeat(cells),
+      leading: "",
+      unit: mode === "integer" ? "" : "·",
+    };
   if (mode === "integer") {
     const text = String(Math.round(value));
-    return text.length > 4
-      ? { digits: ">999", leading: "", unit: "" }
-      : { digits: text, leading: "0".repeat(4 - text.length), unit: "" };
+    return text.length > cells
+      ? { digits: ">" + "9".repeat(cells - 1), leading: "", unit: "" }
+      : { digits: text, leading: "0".repeat(cells - text.length), unit: "" };
   }
   let index = 3;
   if (value > 0) {
@@ -71,22 +99,25 @@ export function formatCompactNumber(
   };
 }
 
-export function CompactNumber({
-  value,
-  label,
-  mode = "compact",
-}: {
-  value: number;
-  label?: string;
-  mode?: "compact" | "integer";
-}) {
-  const number = formatCompactNumber(value, mode);
+export function CompactNumber(props: CompactNumberProps) {
+  const { value, label, mode = "compact", muted = false } = props;
+  const digits = props.mode === "integer" ? (props.digits ?? 4) : 4;
+  const number =
+    mode === "integer"
+      ? formatCompactNumber(value, "integer", digits)
+      : formatCompactNumber(value, "compact");
   return (
     <span
       className={styles.number}
       role="img"
       aria-label={label ?? String(value)}
       data-mode={mode}
+      data-muted={muted || number.digits === "0" || undefined}
+      style={
+        mode === "integer"
+          ? ({ "--compact-number-digits": digits } as CSSProperties)
+          : undefined
+      }
     >
       <span className={styles.leading} aria-hidden="true">
         {number.leading}

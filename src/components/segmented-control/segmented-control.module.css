@@ -53,9 +53,21 @@
   cursor: inherit;
 }
 .segmented_control :global(.segment) span {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--ui-space);
   position: relative;
   pointer-events: none;
   overflow-wrap: anywhere;
+}
+.segmented_control[data-size="compact"] {
+  width: fit-content;
+}
+.segmented_control[data-size="compact"] :global(.segment) {
+  min-width: 28px;
+  min-height: 20px;
+  padding: 2px 6px;
 }
 .segmented_control :global(.segment):has(input:focus-visible) {
   outline: 2px solid var(--ui-shade-237);

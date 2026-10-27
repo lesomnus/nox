@@ -1,4 +1,5 @@
 import { matchValueQuery, matchesValueQuery } from "./value-search";
+import { positionSelectedMenu } from "./position-selected-menu";
 import styles from "./value-menu.module.css";
 import dialogStyles from "../dialog-surface/dialog-surface.module.css";
 import {
@@ -12,6 +13,11 @@ import {
   type ReactNode,
 } from "react";
 import { MenuSurface } from "../menu-surface/menu-surface";
+import {
+  MenuFrame,
+  menuFixedHeight,
+  hasMenuRegion,
+} from "../menu-surface/menu-frame";
 import {
   MenuDivider,
   MenuGroupLabel,
@@ -41,7 +47,7 @@ export type ValueOptionGroup = {
   items: ValueOption[];
 };
 
-// The selected row overlays the trigger text exactly. A portal avoids clipping
+// The current-value row overlays the trigger text exactly. A portal avoids clipping
 // inside settings panes while sharing the composer menu's focus and geometry.
 export function ValueMenu({
   label,
@@ -49,6 +55,8 @@ export function ValueMenu({
   value,
   options: items = [],
   groups,
+  header,
+  footer,
   muted = false,
   minMenuWidth = 140,
   variant = "default",
@@ -56,8 +64,13 @@ export function ValueMenu({
   disabledReason,
   choose,
   searchable = false,
+  hideSelected = false,
+  alignItemWithTrigger = false,
 }: {
   label: string;
+  /** Always visible above/below the value rows, regardless of opening direction. */
+  header?: ReactNode;
+  footer?: ReactNode;
   display?: string;
   value: string;
   options?: ValueOption[];
@@ -70,8 +83,15 @@ export function ValueMenu({
   disabledReason?: string;
   choose: (value: string) => void;
   searchable?: boolean;
+  /** Exclude the selected value from choices; the aligned current/search row stays. */
+  hideSelected?: boolean;
+  /** Align the selected option itself; search/hidden/missing selections use the current-row layout. */
+  alignItemWithTrigger?: boolean;
 }) {
   const { t } = useUI();
+  const hasHeader = hasMenuRegion(header);
+  const hasFooter = hasMenuRegion(footer);
+  const hasRegions = hasHeader || hasFooter;
   const root = useRef<HTMLDivElement>(null);
   const menu = useRef<HTMLDivElement>(null);
   const id = useId();
@@ -80,11 +100,15 @@ export function ValueMenu({
   const search = useRef<HTMLInputElement>(null);
   const [open, setOpen] = useState(false);
   const [up, setUp] = useState(true);
+  const [itemAligned, setItemAligned] = useState(false);
   const sections = groups ?? [{ items }];
   const selected = sections
     .flatMap((section) => section.items)
     .find((item) => item.value === value);
   const text = display ?? selected?.label ?? value;
+  const alignItem =
+    alignItemWithTrigger && !searchable && !hideSelected && !!selected;
+  const itemAnchor = alignItem ? value : undefined;
   const isMuted = muted || selected?.muted;
   const visibleSections = sections
     .map((section, index) => ({
@@ -92,7 +116,7 @@ export function ValueMenu({
       index,
       items: section.items.filter(
         (item) =>
-          item.value !== value &&
+          (!hideSelected || item.value !== value) &&
           (!searchable ||
             !queryEdited ||
             matchesValueQuery(`${item.label} ${item.searchText ?? ""}`, query)),
@@ -109,6 +133,7 @@ export function ValueMenu({
   }
   function close(restore = false) {
     setOpen(false);
+    setItemAligned(false);
     setQuery("");
     if (restore) trigger()?.focus({ preventScroll: true });
   }
@@ -126,6 +151,13 @@ export function ValueMenu({
     if (!open || !root.current || !menu.current) return;
     const position = () => {
       if (!root.current || !menu.current) return;
+      if (alignItem && trigger()) {
+        setItemAligned(
+          positionSelectedMenu(menu.current, trigger()!, minMenuWidth),
+        );
+        return;
+      }
+      setItemAligned(false);
       const rect = root.current.getBoundingClientRect();
       const popup = menu.current;
       const style = getComputedStyle(popup);
@@ -147,7 +179,8 @@ export function ValueMenu({
       // Headers and dividers also take space. Measure the complete list after
       // applying its width/typography, even when it is already scroll-clipped.
       const list = popup.querySelector<HTMLElement>(".setting-options");
-      const height = chrome + (list?.scrollHeight ?? 0);
+      const fixed = menuFixedHeight(popup);
+      const height = chrome + fixed + (list?.scrollHeight ?? 0);
       const upwards = rect.top + height > window.innerHeight;
       setUp(upwards);
       popup.style.left = `${Math.min(rect.left - inset, window.innerWidth - parseFloat(popup.style.getPropertyValue("--menu-width")) - inset)}px`;
@@ -157,7 +190,7 @@ export function ValueMenu({
         : "auto";
       popup.style.setProperty(
         "--options-height",
-        `${Math.max(rect.height, (upwards ? rect.bottom : window.innerHeight - rect.top) - chrome)}px`,
+        `${Math.max(hasRegions ? 0 : rect.height, (upwards ? rect.bottom : window.innerHeight - rect.top) - chrome - fixed)}px`,
       );
       const anchor = trigger()?.querySelector(".button-content");
       const current = popup.querySelector(
@@ -174,26 +207,76 @@ export function ValueMenu({
           popup.style.bottom = `${parseFloat(popup.style.bottom) - shift}px`;
         else popup.style.top = `${parseFloat(popup.style.top) + shift}px`;
       }
+      if (hasRegions) {
+        const bounds = popup.getBoundingClientRect();
+        const shift = Math.max(
+          8 - bounds.top,
+          Math.min(0, window.innerHeight - 8 - bounds.bottom),
+        );
+        if (upwards)
+          popup.style.bottom = `${parseFloat(popup.style.bottom) - shift}px`;
+        else popup.style.top = `${parseFloat(popup.style.top) + shift}px`;
+      }
     };
     position();
+    const resize = new ResizeObserver(position);
+    resize.observe(menu.current);
+    for (
+      let node: HTMLElement | null = root.current;
+      node;
+      node = node.parentElement
+    )
+      resize.observe(node);
+    menu.current
+      .querySelectorAll<HTMLElement>("[data-menu-fixed]")
+      .forEach((region) => resize.observe(region));
     const scrolled = (e: Event) => {
       if (!menu.current?.contains(e.target as Node)) position();
     };
     document.addEventListener("scroll", scrolled, true);
-    return () => document.removeEventListener("scroll", scrolled, true);
-  }, [open, items, groups, query, queryEdited, minMenuWidth, searchable, up]);
+    return () => {
+      resize.disconnect();
+      document.removeEventListener("scroll", scrolled, true);
+    };
+  }, [
+    open,
+    items,
+    groups,
+    query,
+    queryEdited,
+    minMenuWidth,
+    searchable,
+    up,
+    hasHeader,
+    hasFooter,
+    hideSelected,
+    alignItem,
+    itemAnchor,
+  ]);
   useLayoutEffect(() => {
     if (!open) return;
     if (searchable) {
       search.current?.focus({ preventScroll: true });
       search.current?.select();
     } else {
-      const option = menu.current?.querySelector<HTMLButtonElement>(
-        "[role=option]:not(:disabled)",
+      const selected = menu.current?.querySelector<HTMLButtonElement>(
+        '[role=option][aria-selected="true"]',
       );
+      if (alignItem && selected?.disabled) {
+        menu.current?.focus({ preventScroll: true });
+        return;
+      }
+      const option =
+        menu.current?.querySelector<HTMLButtonElement>(
+          '[role=option][aria-selected="true"]:not(:disabled)',
+        ) ??
+        menu.current?.querySelector<HTMLButtonElement>(
+          "[role=option]:not(:disabled)",
+        );
       (option ?? menu.current)?.focus({ preventScroll: true });
+      option?.scrollIntoView({ block: "nearest" });
     }
-  }, [open, searchable]);
+  }, [open, searchable, alignItem, itemAnchor]);
   useEffect(() => {
     if (!open) return;
     const outside = (e: PointerEvent) => {
@@ -222,6 +305,8 @@ export function ValueMenu({
       close(true);
       return;
     }
+    if (e.target instanceof Element && e.target.closest("[data-menu-fixed]"))
+      return;
     if (searchable && e.target === search.current) {
       if (e.nativeEvent.isComposing) return;
       if (e.key === "Enter") {
@@ -231,7 +316,7 @@ export function ValueMenu({
         } else {
           const option = options.find((item) => !item.disabled);
           if (option) {
-            choose(option.value);
+            if (option.value !== value) choose(option.value);
             close(true);
           }
         }
@@ -249,11 +334,24 @@ export function ValueMenu({
       ...(menu.current?.querySelectorAll<HTMLButtonElement>("[role=option]") ||
         []),
     ];
-    const visual = (
-      up && !searchable ? [...buttons.slice(1), buttons[0]] : buttons
-    ).filter((button) => !button.disabled);
+    const visual = buttons.filter((button) => !button.disabled);
     if (visual.length === 0) return;
     const index = visual.indexOf(document.activeElement as HTMLButtonElement);
+    if (alignItem && index < 0 && ["ArrowDown", "ArrowUp"].includes(e.key)) {
+      const anchor = buttons.findIndex(
+        (button) => button.getAttribute("aria-selected") === "true",
+      );
+      const ordered =
+        e.key === "ArrowUp"
+          ? buttons.slice(0, anchor).reverse()
+          : buttons.slice(anchor + 1);
+      const next =
+        ordered.find((button) => !button.disabled) ??
+        (e.key === "ArrowUp" ? visual.at(-1) : visual[0]);
+      next?.focus({ preventScroll: true });
+      next?.scrollIntoView({ block: "nearest" });
+      return;
+    }
     const next =
       e.key === "Home"
         ? 0
@@ -274,6 +372,7 @@ export function ValueMenu({
       className={`${styles.value_menu} value-menu`}
       data-variant={variant}
       data-value={value}
+      data-item-aligned={(open && itemAligned) || undefined}
       onKeyDown={key}
       onBlur={(e) => {
         if (
@@ -291,7 +390,7 @@ export function ValueMenu({
         role="combobox"
         aria-label={label}
         aria-haspopup="listbox"
-        aria-controls={searchable ? `${id}-results` : id}
+        aria-controls={`${id}-results`}
         aria-expanded={open}
         disabled={disabled}
         title={disabled ? disabledReason : text}
@@ -306,7 +405,8 @@ export function ValueMenu({
           id={id}
           data-variant={variant}
           data-searchable={searchable}
-          className={`${styles.setting_menu} ${dialogStyles.entrance} setting-menu ${up ? "opens-up" : ""}`}
+          data-align-item-with-trigger={alignItem || undefined}
+          className={`${styles.setting_menu} ${dialogStyles.entrance} setting-menu ${!alignItem && up ? "opens-up" : ""}`}
           data-enter-effect="fade"
           onPointerDownCapture={(event) => {
             // Non-interactive rows must not blur the focused option/search field.
@@ -329,116 +429,120 @@ export function ValueMenu({
             )
               close();
           }}
-          role={searchable ? "group" : "listbox"}
+          role="group"
           tabIndex={-1}
           aria-label={t("{label} choices", { label })}
         >
-          {searchable ? (
-            <div className="setting-current setting-search-row">
-              <MenuIcon icon={selected?.icon} />
-              <input
-                ref={search}
-                className="setting-search"
-                aria-label={t("Search {label}", { label })}
-                role="combobox"
-                aria-expanded="true"
-                aria-autocomplete="list"
-                aria-controls={`${id}-results`}
-                value={query}
-                onChange={(e) => {
-                  setQuery(e.target.value);
-                  setQueryEdited(true);
-                }}
-              />
-            </div>
-          ) : (
-            <MenuItem
-              type="button"
-              className="setting-current"
-              icon={selected?.icon}
-              data-option-value={value}
-              data-muted={!!isMuted}
-              role="option"
-              tabIndex={-1}
-              aria-selected="true"
-              disabled={selected?.disabled}
-              onClick={() => close(true)}
+          <MenuFrame header={header} footer={footer}>
+            {searchable ? (
+              <div className="setting-current setting-search-row">
+                <MenuIcon icon={selected?.icon} />
+                <input
+                  ref={search}
+                  className="setting-search"
+                  aria-label={t("Search {label}", { label })}
+                  role="combobox"
+                  aria-expanded="true"
+                  aria-autocomplete="list"
+                  aria-controls={`${id}-results`}
+                  value={query}
+                  onChange={(e) => {
+                    setQuery(e.target.value);
+                    setQueryEdited(true);
+                  }}
+                />
+              </div>
+            ) : !alignItem ? (
+              <MenuItem
+                type="button"
+                className="setting-current"
+                icon={selected?.icon}
+                data-option-value={value}
+                data-muted={!!isMuted}
+                tabIndex={-1}
+                disabled={selected?.disabled}
+                onClick={() => close(true)}
+              >
+                <span className="meta-value">{text}</span>
+              </MenuItem>
+            ) : null}
+            <div
+              className={`${styles.choices} ${alignItem ? "" : dialogStyles.entrance}`}
             >
-              <span className="meta-value">{text}</span>
-            </MenuItem>
-          )}
-          <div className={`${styles.choices} ${dialogStyles.entrance}`}>
-            <MenuDivider className="setting-divider" />
-            <MenuScrollArea
-              viewportClassName="setting-options"
-              scrollbarLabel={t("Scroll {label} choices", { label })}
-              id={`${id}-results`}
-              role={searchable ? "listbox" : undefined}
-              aria-label={
-                searchable ? t("{label} choices", { label }) : undefined
-              }
-            >
-              {searchable && options.length === 0 && (
-                <p className={styles.emptyState} role="status">
-                  {t("No matches")}
-                </p>
-              )}
-              {visibleSections.map((section, sectionIndex) => (
-                <Fragment key={section.index}>
-                  {sectionIndex > 0 && (
-                    <MenuDivider className="setting-divider" />
-                  )}
-                  <div
-                    role="group"
-                    aria-labelledby={
-                      section.label ? `${id}-group-${section.index}` : undefined
-                    }
-                  >
-                    {section.label && (
-                      <MenuGroupLabel
-                        id={`${id}-group-${section.index}`}
-                        icon={section.icon}
-                      >
-                        {section.label}
-                      </MenuGroupLabel>
+              {!alignItem && <MenuDivider className="setting-divider" />}
+              <MenuScrollArea
+                viewportClassName="setting-options"
+                scrollbarLabel={t("Scroll {label} choices", { label })}
+                id={`${id}-results`}
+                role="listbox"
+                aria-label={t("{label} choices", { label })}
+              >
+                {(searchable || alignItem) && options.length === 0 && (
+                  <p className={styles.emptyState} role="status">
+                    {t("No matches")}
+                  </p>
+                )}
+                {visibleSections.map((section, sectionIndex) => (
+                  <Fragment key={section.index}>
+                    {sectionIndex > 0 && (
+                      <MenuDivider className="setting-divider" />
                     )}
-                    {section.items.map((choice, itemIndex) => (
-                      <Fragment key={choice.value}>
-                        {choice.separatorBefore && itemIndex > 0 && (
-                          <MenuDivider className="setting-divider" />
-                        )}
-                        <MenuItem
-                          data-option-value={choice.value}
-                          type="button"
-                          role="option"
-                          tabIndex={-1}
-                          aria-selected={choice.value === value}
-                          disabled={choice.disabled}
-                          title={choice.label}
-                          icon={choice.icon}
-                          data-muted={!!choice.muted}
-                          onClick={() => {
-                            close(true);
-                            choose(choice.value);
-                          }}
+                    <div
+                      role="group"
+                      aria-labelledby={
+                        section.label
+                          ? `${id}-group-${section.index}`
+                          : undefined
+                      }
+                    >
+                      {section.label && (
+                        <MenuGroupLabel
+                          id={`${id}-group-${section.index}`}
+                          icon={section.icon}
                         >
-                          <ValueLabel
-                            option={choice}
-                            query={searchable && queryEdited ? query : ""}
-                          />
-                        </MenuItem>
-                      </Fragment>
-                    ))}
-                  </div>
-                </Fragment>
-              ))}
-            </MenuScrollArea>
-          </div>
+                          {section.label}
+                        </MenuGroupLabel>
+                      )}
+                      {section.items.map((choice, itemIndex) => (
+                        <Fragment key={choice.value}>
+                          {choice.separatorBefore && itemIndex > 0 && (
+                            <MenuDivider className="setting-divider" />
+                          )}
+                          <MenuItem
+                            data-option-value={choice.value}
+                            type="button"
+                            role="option"
+                            tabIndex={-1}
+                            aria-selected={choice.value === value}
+                            disabled={choice.disabled}
+                            title={choice.label}
+                            icon={choice.icon}
+                            data-muted={!!choice.muted}
+                            onClick={() => {
+                              close(true);
+                              if (choice.value !== value) choose(choice.value);
+                            }}
+                          >
+                            <ValueLabel
+                              option={choice}
+                              query={searchable && queryEdited ? query : ""}
+                            />
+                          </MenuItem>
+                        </Fragment>
+                      ))}
+                    </div>
+                  </Fragment>
+                ))}
+              </MenuScrollArea>
+            </div>
+          </MenuFrame>
         </MenuSurface>
       )}
     </div>
   );
 }
+
+export type ValueMenuProps = Parameters<typeof ValueMenu>[0];
 
 function ValueLabel({ option, query }: { option: ValueOption; query: string }) {
   const source = `${option.label} ${option.searchText ?? ""}`;

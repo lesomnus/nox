@@ -82,6 +82,18 @@ Set `data-ui-theme="light"` on the document root for CSS-only use.
 Root-level `--ui-*` overrides also reach portaled menus and dialogs. Keep
 token values in CSS rather than duplicating design measurements in documentation.
 
+`CompactNumber` accepts a `digits` prop only with `mode="integer"`. For example,
+`<CompactNumber value={7} mode="integer" digits={3} />` reserves three numeric
+cells and renders `007`, with padding zeroes dimmed. Omitting `digits` retains
+four integer cells. Use a positive integer; unavailable and overflow indicators
+stay within the same width, and the accessible label preserves the original
+value. Compact mode keeps its fixed numeric/unit layout and rejects `digits`.
+The effective digit of a displayed zero uses the intermediate text color instead
+of the normal value color. Set `muted` to use that intermediate color for
+significant digits of any value in either mode, for example
+`<CompactNumber value={7} mode="integer" digits={3} muted />`. Padding zeroes
+stay darker; number formatting, reserved width and accessible labels are unchanged.
+
 Formatted text shares three color roles across `ElapsedTime`, `CompactNumber`,
 `DurationDisplay` and `DateTime`:
 
@@ -134,6 +146,14 @@ See [sliding pages](docs/sliding-pages.md) and **Components/SlidingPages**.
 dialogs and drawers. `fill` and `bodyPadding` adapt it to a bounded container.
 See [cards](docs/card.md) and **Components/Card**.
 
+`SectionLayout`, `SectionGroup` and `Section` compose spaced entries and their
+related borderless surfaces. The column supports bounded or full width and start
+or center alignment; related sections share compact inner corners and a rounded
+outer silhouette. See [section layouts](docs/section-layout.md) and
+**Layout/SectionLayout**.
+`Section as="button"` makes the complete surface an action with the shared
+InkSparkle, press, disabled and keyboard behavior.
+
 `Drawer` places an independently sized surface near any viewport or container
 edge. Compose `Card` for the rounded cxz task-detail card, or supply a
 different surface. See [drawers](docs/drawer.md), **Components/Drawer** and
@@ -179,7 +199,16 @@ The component has no application dependencies or idle animation loop. See
 [SVG effects on HTML](https://developer.mozilla.org/en-US/docs/Web/SVG/Guides/Applying_SVG_effects_to_HTML_content)
 describes the underlying mask mechanism.
 
-The public core entry exports Button/ButtonAnchor/ButtonContent, BadgedIcon, ConfirmButton, ActionMenu, ValueMenu, SegmentedControl, Switch, Dialog/DialogHeader/DialogTitle/DialogDescription/DialogBody/DialogFooter, EditableValue, FloatingCard, SettingField, SettingSlider, ElapsedTime, CompactNumber, DurationDisplay, DialogReveal, SplitLayout, ResizeHandle, ScrollArea and UIProvider. Button's `toolbar` variant provides the compact rectangular shape. [ButtonAnchor](docs/button-anchor.md) and PanelItemAnchor share its native-link press feedback. Button defaults to `effect="sparkle"`; use `effect="none"` to opt out or `effectOptions` to customize ink color/timing. Callbacks and selected values belong to the consuming application; Application adapters handle persistence and session operations separately.
+The public core entry exports Button/ButtonAnchor/ButtonContent, BorderTrailButton, BadgedIcon, ConfirmButton, ActionMenu, ValueMenu, SegmentedControl, Switch, Dialog/DialogHeader/DialogTitle/DialogDescription/DialogBody/DialogFooter, EditableValue, FloatingCard, SettingField, SettingSlider, ElapsedTime, CompactNumber, DurationDisplay, DialogReveal, SplitLayout, ResizeHandle, ScrollArea and UIProvider. Button's `toolbar` variant provides the compact rectangular shape. [ButtonAnchor](docs/button-anchor.md) and PanelItemAnchor share its native-link press feedback. Button defaults to `effect="sparkle"`; use `effect="none"` to opt out or `effectOptions` to customize ink color/timing. Callbacks and selected values belong to the consuming application; Application adapters handle persistence and session operations separately.
+
+[BorderTrailButton](docs/border-trail-button.md) moves configurable colored segments
+along the button outline. Use a count and palette or individual lengths, offsets
+and lap times. The outline follows CSS corner radii and stays fixed while the
+label scales on press. **Components/BorderTrailButton** covers multiple colors,
+custom segments, shapes, inactive/disabled states and interaction.
+Its `progress` mode grows one color before introducing the next, and optional
+`sheen` sends light along each segment without leaving its outline. Progressive
+and Sheen stories isolate these behaviors.
 
 `Dialog` provides the modal lifecycle and focus boundary; compose its header,
 body and footer freely. Confirmation buttons, async execution and failure policy
@@ -263,8 +292,12 @@ receives its scroll events. `viewportClassName`, `contentClassName` and
 `classNames` customize slots. Override `--ui-scroll-area-background` to match
 the containing surface and its fades; rail geometry, handle appearance and
 fade limits use the other `--ui-scroll-area-*` CSS tokens. Defaults live in
-`src/theme/tokens.css`. See **Layout/ScrollArea** for short overflow, long
-lists, growing content and no-overflow examples. Content fetching and
+`src/theme/tokens.css`. Use signed `scrollbarOffset` values to move handle centers relative to the
+container edge: positive goes outside, negative inside, and zero sits on the edge.
+Omitting it preserves existing placement. Leave room in the parent for outside
+handles and avoid clipping ancestors. See [ScrollArea](docs/scroll-area.md)
+and **Layout/ScrollArea** for placement, short/long overflow, growing content
+and no-overflow examples. Content fetching and
 virtualization belong to the caller. An application's elastic transcript
 scrollbar remains specialized; it is not part of this primitive.
 
@@ -345,6 +378,12 @@ import { UIProvider } from "@lesomnus/nox";
 </UIProvider>;
 ```
 
+## Popover
+
+`Popover` provides shared hover/focus overlays for text and React content, with
+controlled DOM anchors, viewport-aware placement and in-place text overlays.
+See [Popover](docs/popover.md) for its API and examples.
+
 ## Optional source editor
 
 Install `monaco-editor` when using the separate editor entry. Importing the core entry does not load Monaco, its language services or its workers.
@@ -363,6 +402,10 @@ import { SourceEditor } from "@lesomnus/nox/editor";
 ```
 
 The editor accepts plain settings and theme values; it does not know about settings.json, font downloads or application storage. It loads Monaco lazily and ships editor/JSON worker assets. An existing host MonacoEnvironment is respected. The host gives the editor a bounded layout area. The explicit `nox-source` condition uses source files for Vite hot reload; the default uses compiled ES modules and TypeScript declarations.
+
+A failed module fetch is retried once through a separate bundled entry, avoiding
+the browser's cached failed URL without reloading the host page. Persistent fetch
+failures and editor evaluation errors are reported in the editor surface.
 
 ## Independent previews
 

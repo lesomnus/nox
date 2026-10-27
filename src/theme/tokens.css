@@ -43,6 +43,7 @@
 }
 :root[data-ui-theme="light"],
 :root[data-theme="light"] {
+  --ui-button-hover-background: var(--ui-shade-34);
   --ui-aurora-strength: 0.3;
   --ui-shade-0: #ffffff;
   --ui-shade-16: #fcfcfc;
@@ -153,6 +154,14 @@
   --ui-pin-input-error-color: #db7070;
   --ui-icon-size: 20px;
   --ui-icon-size-small: 14px;
+  --ui-section-layout-max-width: 600px;
+  --ui-section-layout-gap: calc(8 * var(--ui-space));
+  --ui-section-group-gap: var(--ui-space);
+  --ui-section-padding: calc(3 * var(--ui-space));
+  --ui-section-content-gap: var(--ui-space);
+  --ui-section-background: var(--ui-shade-24);
+  --ui-section-radius: 10px;
+  --ui-section-inner-radius: var(--ui-control-inset);
   --ui-aurora-color-1: #23b04a;
   --ui-aurora-color-2: #2596e9;
   --ui-aurora-color-3: #b14ccd;
@@ -164,11 +173,29 @@
   --ui-aurora-focus-duration: 17s;
   --ui-aurora-orbit-radius: 26%;
   --ui-aurora-orbit-rise: 34%;
+  --ui-border-trail-color-1: var(--ui-brand-color);
+  --ui-border-trail-color-2: var(--ui-aurora-color-2);
+  --ui-border-trail-color-3: var(--ui-aurora-color-3);
+  --ui-border-trail-track-color: var(--ui-shade-54);
+  --ui-border-trail-width: 1px;
+  --ui-border-trail-length: 12.5;
+  --ui-border-trail-duration: 13s;
+  --ui-border-trail-breathe-duration: 7s;
+  --ui-border-trail-fade-duration: 500ms;
+  --ui-border-trail-opacity: 0.8;
+  --ui-border-trail-progress-length: 90;
+  --ui-border-trail-growth-duration: 500ms;
+  --ui-border-trail-sheen-duration: 6s;
+  --ui-border-trail-sheen-length: 0.16;
+  --ui-border-trail-sheen-strength: 0.65;
+  --ui-border-trail-sheen-color: #fff;
   --ui-menu-item-padding-block: 6px;
   --ui-menu-item-padding-inline: 10px;
   --ui-menu-scroll-max-height: 240px;
+  --ui-menu-viewport-inset: 8px;
+  --ui-menu-align-min-rows: 3;
   --ui-checkbox-size: 18px;
-  --ui-overflow-hint-background: var(--ui-shade-51);
+  --ui-popover-background: var(--ui-shade-51);
   --ui-scroll-area-background: var(--ui-shade-24);
   --ui-scroll-area-content-inset: 14px;
   --ui-scroll-area-hit-size: 24px;
@@ -185,6 +212,7 @@
   --ui-scroll-area-rail-max-ratio: 0.75;
   --ui-scroll-area-rail-growth: 0.35;
   --ui-scroll-area-rail-offset: calc(-1 * var(--ui-space));
+  --ui-scroll-area-rail-blur: var(--ui-dropdown-blur);
   --ui-scroll-area-rail-background: color-mix(
     in srgb,
     var(--ui-scroll-area-handle-color) 18%,
@@ -218,12 +246,13 @@
   --ui-badged-icon-gap: 1.5px;
   --ui-control-inline-inset: 6px;
   --ui-hover: var(--ui-shade-40);
-  --ui-button-hover-background: var(--ui-shade-34);
+  --ui-button-hover-background: var(--ui-shade-48);
   --ui-button-background-duration: 160ms;
   --ui-button-solid-background: var(--ui-shade-43);
   --ui-button-solid-hover-background: var(--ui-shade-48);
   --ui-button-solid-active-background: var(--ui-shade-65);
   --ui-button-outline-border: var(--ui-shade-72);
+  --ui-toggle-button-border: var(--ui-shade-115);
   --ui-button-outline-hover-border: var(--ui-shade-115);
   --ui-button-outline-hover-background: var(--ui-shade-24);
   --ui-button-outline-active-background: var(--ui-shade-38);

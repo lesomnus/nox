@@ -69,13 +69,33 @@ try {
     join(temporary, "main.tsx"),
     `
     import { createRoot } from "react-dom/client";
+    import { Popover, type PopoverProps, type PopoverPlacement, type PopoverPosition } from "@lesomnus/nox";
     import { Progress, type ProgressProps } from "@lesomnus/nox";
+    import { SectionLayout, SectionGroup, Section, type SectionLayoutProps, type SectionGroupProps, type SectionProps, type SectionButtonProps } from "@lesomnus/nox";
+    const sections: SectionLayoutProps = {maxWidth: "40rem", align: "start", ref: node => {void node?.querySelector("section");}};
+    const sectionGroup: SectionGroupProps = {ref: node => {void node?.children.length;}};
+    const section: SectionProps = {"aria-label": "Record information", ref: node => {void node?.tagName;}};
+    const sectionAction: SectionButtonProps = {as:"button", onClick: event => {void event.currentTarget.disabled;}, effect:"sparkle", ref: node => {void node?.focus();}};
+    // @ts-expect-error Interactive props require the native button variant.
+    const invalidSection: SectionProps = {disabled:true};
+    void invalidSection;
+    import { BorderTrailButton, type BorderTrailButtonProps, type BorderTrailSegment, type BorderTrailProgress, type BorderTrailSheen } from "@lesomnus/nox";
+    const trail: BorderTrailSegment = { color: "#78d9ef", length: 0.12, duration: 13000, offset: 0.5 };
+    const trailButton: BorderTrailButtonProps = { segments: [trail], active: true, colors: ["#c58bef"], segmentLength: 0.1, duration: 15000, ref: node => { void node?.focus(); } };
+    const growingTrail: BorderTrailProgress = {value: 12, perSegment: 8, maxLength: 0.9};
+    const trailSheen: BorderTrailSheen = {duration: 4000, length: 0.12, strength: 0.6, color: "#fff"};
+    const popoverPosition: PopoverPosition = "top-start";
+    const popoverPlacement: PopoverPlacement = "in-place";
+    const popover: PopoverProps = { anchor: null, open: false, content: <span>Details</span>, placement: popoverPosition, onOpenChange: value => { void value; } };
+    void Popover; void popover; void popoverPlacement;
     import { ThemeProvider, useTheme, createLocalStorageThemeStorage, type ThemeStorage, type ThemePreference } from "@lesomnus/nox";
     import { SlidingPages, SlidingPage, type SlidingPagesProps, type SlidingPageProps } from "@lesomnus/nox";
 
     import { Drawer, Card, CardActions, type CardProps, type DrawerProps, type DrawerSide } from "@lesomnus/nox";
     import { DatePicker, dateWindowSelection, dateWeekSelection, type DatePickerProps, type DatePickerDateInfo, type DatePickerRange, type DatePickerSelectionResolver } from "@lesomnus/nox";
     import { PinInput, type PinInputProps, SplitLayout, type SplitNode, setSplitRatio, PrefixValueMenu, type PrefixValueMenuProps, IconValueMenu, AuroraGlow, type AuroraGlowProps, type AuroraPalette, InkSparkle, type InkSparkleProps, Button, Checkbox, DateTime, DescriptionList, IdentifierValue, MenuSurface, type MenuSurfaceProps, MenuScrollArea, MenuItem, type MenuItemProps, MenuIcon, MenuGroupLabel, MenuDivider, NavigationPanel, StippleBackground, clusterMotion, workMotion, withPointerBurst, UIProvider } from "@lesomnus/nox";
+    import { ScrollArea, type ScrollAreaProps } from "@lesomnus/nox";
+    const outsideScroll: ScrollAreaProps = { children: <p>Outside rails</p>, scrollbarOffset: 12, horizontalScrollbar: true, scrollbarLabel: "Scroll document", horizontalScrollbarLabel: "Scroll columns" };
     import { Table, TableHeader, TableBody, TableFooter, TableRow, TableHead, TableCell, TableCaption, TableScrollArea, type TableProps, type TableRowProps } from "@lesomnus/nox";
     import { LinkButton, Skeleton, SkeletonGroup, type LinkButtonProps, type SkeletonProps, type SkeletonGroupProps } from "@lesomnus/nox";
     import { ColorPicker, ColorPickerRoot, ColorPickerArea, ColorPickerHue, ColorPickerOpacity, type RgbColor, type ColorPickerProps, type ColorPickerRootProps, type ColorPickerAreaProps, type ColorPickerHueProps, type ColorPickerOpacityProps } from "@lesomnus/nox";
@@ -134,7 +154,9 @@ try {
     void menuSurface;
     const menuItem: MenuItemProps = { role: "menuitem", icon: <svg viewBox="0 0 24 24"><path d="M4 12h16" /></svg>, trailing: "Open", onClick: (event) => event.currentTarget.focus() };
     const splitTree: SplitNode = {kind:"split",id:"root",axis:"horizontal",ratio:0.5,first:{kind:"pane",id:"a"},second:{kind:"pane",id:"b"}};
-    const prefixMenu: PrefixValueMenuProps = {label:"Effort",prefix:"Effort",prefixClassName:"prefix",value:"medium",options:[{value:"medium",label:"Medium"}],choose:() => {}};
+    const prefixMenu: PrefixValueMenuProps = {label:"Effort",prefix:"Effort",prefixClassName:"prefix",value:"medium",options:[{value:"medium",label:"Medium"}],hideSelected:true,choose:() => {}};
+    import { ValueMenu, type ValueMenuProps } from "@lesomnus/nox";
+    const selectedMenu: ValueMenuProps = {label:"Aligned effort",value:"medium",options:[{value:"medium",label:"Medium"}],alignItemWithTrigger:true,choose:() => {}};
     const auroraPalette: AuroraPalette = ["#23b04a", "#2596e9", "#b14ccd"];
     const aurora: AuroraGlowProps = {active: true, paused: false, speed: 0.75, strength: 0.4, seed: 12, palette: auroraPalette};
     const sparkle: InkSparkleProps = { duration: 2000, origin: [-8, 40], centerMotion: "fixed", loop: true, sparkleColor: [0.25, 0.5, 0.75, 0.2] };
@@ -143,8 +165,12 @@ try {
         <div style={{position:"relative",height:40}}><AuroraGlow {...aurora} /></div>
         <div style={{height:100}}><SplitLayout node={splitTree} renderPane={id => id} junctionLabel="Resize both axes" onResize={(id,ratio) => {void setSplitRatio(splitTree,id,ratio);}} /><SplitLayout node={splitTree} renderPane={id => id} onChange={tree => {void tree;}} /></div>
         <PrefixValueMenu {...prefixMenu} />
+        <ValueMenu {...selectedMenu} />
         <IconValueMenu label="Legacy effort" icon="Effort" value="medium" options={[{value:"medium",label:"Medium"}]} choose={() => {}} />
         <Button>Save</Button>
+        <SectionLayout {...sections}><article><SectionGroup {...sectionGroup}><Section {...section}>Information</Section><Section>Activity</Section><Section {...sectionAction}>Run action</Section></SectionGroup></article></SectionLayout>
+        <BorderTrailButton {...trailButton}>Work</BorderTrailButton>
+        <BorderTrailButton progress={growingTrail} sheen={trailSheen}>Growing work</BorderTrailButton>
         <Progress {...progress} aria-label="Build progress" />
         <ThemeProvider storage={themeStorage} defaultPreference="system"><ThemeConsumer /></ThemeProvider>
         <SlidingPages {...slidingPages} />
@@ -153,6 +179,7 @@ try {
         <DatePicker {...datePicker} />
         <DatePicker {...multipleDates} /><DatePicker {...dateRange} />
         <PinInput {...pin} />
+        <ScrollArea {...outsideScroll} />
         <MenuScrollArea role="menu" aria-label="Custom actions" scrollbarLabel="Scroll actions">
           <MenuGroupLabel icon={<svg viewBox="0 0 24 24"><path d="M4 12h16" /></svg>}>Commands</MenuGroupLabel>
           <MenuItem {...menuItem}>Details</MenuItem>

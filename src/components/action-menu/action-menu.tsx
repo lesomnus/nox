@@ -8,9 +8,15 @@ import {
   useRef,
   useState,
   type ReactNode,
+  type CSSProperties,
 } from "react";
 import { Button } from "../button/button";
 import { MenuSurface } from "../menu-surface/menu-surface";
+import {
+  MenuFrame,
+  menuFixedHeight,
+  hasMenuRegion,
+} from "../menu-surface/menu-frame";
 import { MenuScrollArea } from "../menu-surface/menu-scroll-area";
 import { useUI } from "../../providers/ui-provider";
 import {
@@ -46,10 +52,19 @@ export type ActionMenuItem = {
   run: (trigger: HTMLButtonElement) => void;
 };
 
+export type ActionMenuGroup = {
+  label: string;
+  items: ActionMenuItem[];
+  /** Row groups keep equal-width icon/label actions inside the scrolling body. */
+  layout?: "column" | "row";
+};
+
 export function ActionMenu({
   label,
   items = [],
   groups,
+  header,
+  footer,
   disabled = false,
   placement = "below",
   gap: requestedGap = 4,
@@ -59,10 +74,14 @@ export function ActionMenu({
   triggerContent,
   disabledReason,
   triggerClassName = "",
+  scrollbarOffset,
 }: {
   label: string;
+  /** Always visible above/below the scrolling action list. */
+  header?: ReactNode;
+  footer?: ReactNode;
   items?: ActionMenuItem[];
-  groups?: { label: string; items: ActionMenuItem[] }[];
+  groups?: ActionMenuGroup[];
   disabled?: boolean;
   placement?: "above" | "below" | "right";
   /** Space in pixels between the trigger and automatically positioned popup. */
@@ -76,8 +95,15 @@ export function ActionMenu({
   triggerContent?: ReactNode;
   disabledReason?: string;
   triggerClassName?: string;
+  /** Signed handle-center offset, forwarded to the scrolling action list. */
+  scrollbarOffset?: number;
 }) {
+  const offset = Number.isFinite(scrollbarOffset) ? scrollbarOffset : undefined;
+  const actionGroups: ActionMenuGroup[] = groups ?? [{ label: "", items }];
   const { t } = useUI();
+  const hasHeader = hasMenuRegion(header);
+  const hasFooter = hasMenuRegion(footer);
+  const hasRegions = hasHeader || hasFooter;
   const reveal = typeof motion === "object" && motion.effect === "reveal";
   const direction =
     typeof motion === "object"
@@ -109,35 +135,40 @@ export function ActionMenu({
           ? requestedGap(button)
           : requestedGap;
       const inset = 8;
+      const outside = Math.max(0, offset ?? 0);
+      const rightInset = inset + outside;
       const style = getComputedStyle(popup);
       const chrome =
         parseFloat(style.paddingTop) +
         parseFloat(style.paddingBottom) +
         parseFloat(style.borderTopWidth) +
         parseFloat(style.borderBottomWidth);
+      const fixed = menuFixedHeight(popup);
       const maxViewport =
         parseFloat(style.getPropertyValue("--ui-menu-scroll-max-height")) ||
         window.innerHeight;
       const preferredHeight =
-        Math.min(viewport.current?.scrollHeight ?? 0, maxViewport) + chrome;
+        Math.min(viewport.current?.scrollHeight ?? 0, maxViewport) +
+        chrome +
+        fixed;
       const constrainHeight = (available: number) => {
         popup.style.maxHeight = `${Math.max(0, available)}px`;
         popup.style.setProperty(
           "--menu-scroll-max-height",
-          `${Math.max(0, available - chrome)}px`,
+          `${Math.max(0, available - chrome - fixed)}px`,
         );
       };
       popup.style.bottom = "auto";
       if (customPosition) {
         const origin = customPosition(bounds);
         constrainHeight(window.innerHeight - 8);
-        popup.style.left = `${Math.max(4, Math.min(origin.left, window.innerWidth - popup.offsetWidth - 4))}px`;
+        popup.style.left = `${Math.max(4, Math.min(origin.left, window.innerWidth - popup.offsetWidth - 4 - outside))}px`;
         popup.style.top = `${Math.max(4, Math.min(origin.top, window.innerHeight - popup.offsetHeight - 4))}px`;
         return;
       }
       if (placement === "right") {
         constrainHeight(window.innerHeight - 2 * inset);
-        popup.style.left = `${Math.max(inset, Math.min(bounds.right + gap, window.innerWidth - popup.offsetWidth - inset))}px`;
+        popup.style.left = `${Math.max(inset, Math.min(bounds.right + gap, window.innerWidth - popup.offsetWidth - rightInset))}px`;
         popup.style.top = `${Math.max(inset, Math.min(bounds.bottom - popup.offsetHeight, window.innerHeight - popup.offsetHeight - inset))}px`;
         return;
       }
@@ -158,15 +189,39 @@ export function ActionMenu({
         : "auto";
       // A trigger near the left edge cannot keep a wide menu right-aligned.
       // Bound both edges after measuring the popup's actual width.
-      const right = Math.max(inset, window.innerWidth - bounds.right);
-      popup.style.right = `${Math.min(right, Math.max(inset, window.innerWidth - popup.offsetWidth - inset))}px`;
+      const right = Math.max(rightInset, window.innerWidth - bounds.right);
+      popup.style.right = `${Math.min(right, Math.max(rightInset, window.innerWidth - popup.offsetWidth - inset))}px`;
     };
     position();
+    if (offset !== undefined) {
+      const frame = popup.querySelector<HTMLElement>("[data-menu-frame]");
+      if (
+        frame &&
+        frame
+          .getAnimations()
+          .every((animation) => animation.playState === "finished")
+      ) {
+        frame.style.maskImage = "none";
+        frame.style.animation = "none";
+      }
+    }
     popup
-      .querySelector<HTMLButtonElement>("button:not(:disabled)")
+      .querySelector<HTMLElement>(
+        'input:not(:disabled), button:not(:disabled), [tabindex="0"]',
+      )
       ?.focus({ preventScroll: true });
     const resize = new ResizeObserver(position);
     resize.observe(popup);
+    // Fixed-region controls can resize the editor surrounding the trigger.
+    for (
+      let node: HTMLElement | null = trigger.current;
+      node;
+      node = node.parentElement
+    )
+      resize.observe(node);
+    popup
+      .querySelectorAll<HTMLElement>("[data-menu-fixed]")
+      .forEach((region) => resize.observe(region));
     const scrolled = (event: Event) => {
       if (!popup.contains(event.target as Node)) position();
     };
@@ -175,7 +230,15 @@ export function ActionMenu({
       resize.disconnect();
       window.removeEventListener("scroll", scrolled, true);
     };
-  }, [open, placement, requestedGap, customPosition]);
+  }, [
+    open,
+    placement,
+    requestedGap,
+    customPosition,
+    hasHeader,
+    hasFooter,
+    offset,
+  ]);
   useEffect(() => {
     if (!open) return;
     const outside = (event: PointerEvent) => {
@@ -203,7 +266,7 @@ export function ActionMenu({
         aria-description={status}
         aria-haspopup="menu"
         aria-expanded={open}
-        aria-controls={open ? id : undefined}
+        aria-controls={open ? (hasRegions ? `${id}-items` : id) : undefined}
         onClick={() => setOpen(!open)}
         onKeyDown={(event) => {
           if (event.key === "ArrowDown") {
@@ -229,13 +292,20 @@ export function ActionMenu({
       {open && (
         <MenuSurface
           anchor={trigger.current?.querySelector("button")}
-          className={`${styles.action_menu_popup} ${motion ? dialogStyles.entrance : ""} action-menu-popup`}
+          className={`${styles.action_menu_popup} ${motion && offset === undefined ? dialogStyles.entrance : ""} action-menu-popup`}
           data-placement={placement}
           data-enter-from={direction}
           data-enter-effect={reveal ? "reveal-frame" : undefined}
+          data-scrollbar-offset={offset}
+          data-menu-entrance={(motion && offset !== undefined) || undefined}
+          style={
+            {
+              "--action-menu-scrollbar-outset": `${Math.max(0, offset ?? 0)}px`,
+            } as CSSProperties
+          }
           ref={menu}
           id={id}
-          role="menu"
+          role={hasRegions ? "group" : "menu"}
           aria-label={label}
           onBlur={(event) => {
             const target = event.relatedTarget as Node | null;
@@ -252,11 +322,48 @@ export function ActionMenu({
               event.stopPropagation();
               close(true);
             }
+            if (
+              event.target instanceof Element &&
+              event.target.closest("[data-menu-fixed]")
+            )
+              return;
+            if (
+              ["ArrowLeft", "ArrowRight"].includes(event.key) &&
+              event.target instanceof Element
+            ) {
+              const row = event.target.closest(
+                '[data-action-menu-layout="row"]',
+              );
+              if (row) {
+                const buttons = [
+                  ...row.querySelectorAll<HTMLButtonElement>(
+                    '[role="menuitem"]:not(:disabled), [role="menuitemcheckbox"]:not(:disabled)',
+                  ),
+                ];
+                const current = buttons.indexOf(
+                  document.activeElement as HTMLButtonElement,
+                );
+                if (buttons.length && current >= 0) {
+                  event.preventDefault();
+                  const next =
+                    (current +
+                      (event.key === "ArrowLeft" ? -1 : 1) +
+                      buttons.length) %
+                    buttons.length;
+                  buttons[next]?.focus({ preventScroll: true });
+                  buttons[next]?.scrollIntoView({
+                    block: "nearest",
+                    inline: "nearest",
+                  });
+                }
+                return;
+              }
+            }
             if (["ArrowDown", "ArrowUp", "Home", "End"].includes(event.key)) {
               event.preventDefault();
               const buttons = [
                 ...event.currentTarget.querySelectorAll<HTMLButtonElement>(
-                  "button:not(:disabled)",
+                  '[role="menuitem"]:not(:disabled), [role="menuitemcheckbox"]:not(:disabled)',
                 ),
               ];
               const current = buttons.indexOf(
@@ -276,22 +383,47 @@ export function ActionMenu({
             }
           }}
         >
-          <div
-            className={reveal ? dialogStyles.entrance : undefined}
+          <MenuFrame
+            header={header}
+            footer={footer}
+            className={
+              reveal || (motion && offset !== undefined)
+                ? dialogStyles.entrance
+                : undefined
+            }
             data-enter-from={direction}
             data-enter-effect={reveal ? "reveal" : undefined}
+            onAnimationEnd={(event) => {
+              if (
+                offset !== undefined &&
+                event.target === event.currentTarget
+              ) {
+                event.currentTarget.style.maskImage = "none";
+                event.currentTarget.style.animation = "none";
+              }
+            }}
           >
             <MenuScrollArea
+              scrollbarOffset={offset}
               viewportRef={viewport}
+              id={hasRegions ? `${id}-items` : undefined}
+              role={hasRegions ? "menu" : undefined}
+              aria-label={hasRegions ? label : undefined}
               scrollbarLabel={t("Scroll {label}", { label })}
             >
-              {(groups ?? [{ label: "", items }]).map((group, index) => (
+              {actionGroups.map((group, index) => (
                 <Fragment key={group.label}>
                   {index > 0 && <MenuDivider />}
                   <div
                     className="action-menu-group"
                     role="group"
                     aria-label={group.label || undefined}
+                    data-action-menu-layout={group.layout}
+                    style={
+                      {
+                        "--action-menu-columns": group.items.length,
+                      } as CSSProperties
+                    }
                   >
                     {group.label && (
                       <MenuGroupLabel
@@ -340,7 +472,7 @@ export function ActionMenu({
               ))}
               {status && <small role="status">{status}</small>}
             </MenuScrollArea>
-          </div>
+          </MenuFrame>
         </MenuSurface>
       )}
     </div>

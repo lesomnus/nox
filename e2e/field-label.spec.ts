@@ -18,8 +18,11 @@ test("default help aligns its bottom-left corner above the icon and remains keyb
   await expect(hint).toBeVisible();
   await expect(hint).toHaveAttribute("data-placement", "top-start");
   const box = await frame(hint);
+  const gap = await hint.evaluate((node) =>
+    parseFloat(getComputedStyle(node).columnGap),
+  );
   expect(box.x).toBeCloseTo(before.x, 1);
-  expect(before.y - box.y - box.height).toBeCloseTo(8, 1);
+  expect(before.y - box.y - box.height).toBeCloseTo(gap, 1);
   expect(await frame(icon)).toEqual(before);
   expect(await anchor.getAttribute("aria-describedby")).toBe(
     await hint.getAttribute("id"),
@@ -68,13 +71,16 @@ for (const placement of [
     await expect(hint).toBeVisible();
     const icon = await frame(anchor),
       box = await frame(hint);
+    const gap = await hint.evaluate((node) =>
+      parseFloat(getComputedStyle(node).columnGap),
+    );
     const [side, align = "center"] = placement.split("-");
     if (side === "top" || side === "bottom") {
       expect(
         side === "top"
           ? icon.y - box.y - box.height
           : box.y - icon.y - icon.height,
-      ).toBeCloseTo(8, 1);
+      ).toBeCloseTo(gap, 1);
       expect(
         align === "start"
           ? box.x - icon.x
@@ -87,7 +93,7 @@ for (const placement of [
         side === "left"
           ? icon.x - box.x - box.width
           : box.x - icon.x - icon.width,
-      ).toBeCloseTo(8, 1);
+      ).toBeCloseTo(gap, 1);
       expect(
         align === "start"
           ? box.y - icon.y
@@ -110,9 +116,12 @@ test("viewport edges flip above/below and shift wide help into a narrow screen",
   await expect(hint).toBeVisible();
   const icon = await frame(top),
     below = await frame(hint);
+  const gap = await hint.evaluate((node) =>
+    parseFloat(getComputedStyle(node).columnGap),
+  );
   expect(below.y).toBeGreaterThanOrEqual(icon.y + icon.height);
-  expect(below.x).toBeGreaterThanOrEqual(8);
-  expect(below.x + below.width).toBeLessThanOrEqual(312);
+  expect(below.x).toBeGreaterThanOrEqual(gap);
+  expect(below.x + below.width).toBeLessThanOrEqual(320 - gap);
   await top.press("Escape");
   const bottom = page
     .getByRole("img", { name: "About Bottom edge" })
@@ -122,8 +131,8 @@ test("viewport edges flip above/below and shift wide help into a narrow screen",
   const above = await frame(hint),
     bottomIcon = await frame(bottom);
   expect(above.y + above.height).toBeLessThan(bottomIcon.y);
-  expect(above.x).toBeGreaterThanOrEqual(8);
-  expect(above.x + above.width).toBeLessThanOrEqual(312);
+  expect(above.x).toBeGreaterThanOrEqual(gap);
+  expect(above.x + above.width).toBeLessThanOrEqual(320 - gap);
   await page.setViewportSize({ width: 330, height: 240 });
   await expect(hint).toHaveCount(0);
 });
@@ -135,7 +144,7 @@ test("plain labels have no Help focus stop and old adjacent hints still prefer b
   await expect(page.getByRole("img")).toHaveCount(0);
   await expect(page.locator('[tabindex="0"]')).toHaveCount(0);
   await page.goto(
-    "/iframe.html?id=components-overflowhint--adjacent&viewMode=story",
+    "/iframe.html?id=components-popover--adjacent&viewMode=story",
   );
   const anchor = page.locator('[tabindex="0"]');
   await anchor.hover();

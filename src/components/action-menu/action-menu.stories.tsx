@@ -1,6 +1,6 @@
 import { useState } from "react";
 import type { Meta, StoryObj } from "@storybook/react-vite";
-import { ActionMenu } from "@lesomnus/nox";
+import { ActionMenu, Button } from "@lesomnus/nox";
 
 const meta = {
   title: "Components/ActionMenu",
@@ -27,6 +27,51 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 export const More: Story = {};
+export const RowActions: Story = {
+  render: function RowActions() {
+    const [last, setLast] = useState("None");
+    return (
+      <>
+        <ActionMenu
+          label="Row actions"
+          footer={<span>Fixed footer</span>}
+          groups={[
+            {
+              label: "Controls",
+              layout: "row",
+              items: [
+                {
+                  label: "Stop",
+                  icon: <span>□</span>,
+                  run: () => setLast("Stop"),
+                },
+                {
+                  label: "Restart",
+                  icon: <span>↻</span>,
+                  disabled: true,
+                  run: () => setLast("Restart"),
+                },
+                {
+                  label: "Fork",
+                  icon: <span>⑂</span>,
+                  run: () => setLast("Fork"),
+                },
+              ],
+            },
+            {
+              label: "Other actions",
+              items: Array.from({ length: 24 }, (_, index) => ({
+                label: `Action ${index + 1}`,
+                run: () => setLast(`Action ${index + 1}`),
+              })),
+            },
+          ]}
+        />
+        <output>{last}</output>
+      </>
+    );
+  },
+};
 export const Language: Story = {
   args: { label: "Voice language" },
   render: function LanguageMenu(args) {
@@ -46,6 +91,27 @@ export const Language: Story = {
   decorators: [
     (Story) => (
       <div style={{ width: 180 }}>
+        <Story />
+      </div>
+    ),
+  ],
+};
+
+export const OutsideScrollbar: Story = {
+  args: {
+    label: "Scrollable actions",
+    placement: "above",
+    scrollbarOffset: 12,
+    motion: { from: "bottom-right", effect: "reveal" },
+    footer: <Button>Keep menu open</Button>,
+    items: Array.from({ length: 30 }, (_, i) => ({
+      label: `Action ${i + 1}`,
+      run: () => {},
+    })),
+  },
+  decorators: [
+    (Story) => (
+      <div style={{ position: "fixed", bottom: 8, right: 4 }}>
         <Story />
       </div>
     ),

@@ -9,6 +9,8 @@ import {
   type HTMLAttributes,
   type UIEvent,
   type UIEventHandler,
+  type CSSProperties,
+  type PointerEvent,
 } from "react";
 import styles from "./scroll-area.module.css";
 const clamp = (value: number, min: number, max: number) =>
@@ -31,6 +33,8 @@ export type ScrollAreaProps = Omit<
 > & {
   children: ReactNode;
   scrollbarLabel?: string;
+  /** Handle-center offset in pixels: positive outside, negative inside. */
+  scrollbarOffset?: number;
   /** Show an additional horizontal scrollbar when content overflows. */
   horizontalScrollbar?: boolean;
   horizontalScrollbarLabel?: string;
@@ -47,17 +51,20 @@ export function ScrollArea({
   children,
   viewportRef,
   scrollbarLabel = "Scroll",
+  scrollbarOffset,
   horizontalScrollbar = false,
   horizontalScrollbarLabel = "Scroll horizontally",
   className = "",
   classNames = {},
   viewportClassName = "",
   contentClassName = "",
+  style,
   onScroll,
   onPointerMove,
   onPointerLeave,
   ...props
 }: ScrollAreaProps) {
+  const offset = Number.isFinite(scrollbarOffset) ? scrollbarOffset : undefined;
   const slot = (name: ScrollAreaSlot) =>
     `${styles[name]} ${classNames[name] ?? ""}`;
   const id = useId();
@@ -72,6 +79,7 @@ export function ScrollArea({
   );
   const content = useRef<HTMLDivElement>(null);
   const rail = useRef<HTMLDivElement>(null);
+  const horizontalRail = useRef<HTMLDivElement>(null);
   const drag = useRef<{ pointer: number; y: number; top: number } | null>(null);
   const horizontalDrag = useRef<{
     pointer: number;
@@ -89,6 +97,7 @@ export function ScrollArea({
     width: 0,
     thumb: 0,
   });
+  const horizontalOverflow = horizontalScrollbar && horizontalView.max > 0;
 
   function measure() {
     const el = pane.current;
@@ -221,24 +230,123 @@ export function ScrollArea({
       cancelAnimationFrame(motionRaf.current);
     };
   }, [horizontalScrollbar]);
+  useEffect(() => {
+    const tracks = [rail.current, horizontalRail.current];
+    function wheel(event: WheelEvent) {
+      const el = pane.current;
+      if (!el || event.ctrlKey || event.defaultPrevented) return;
+      const line = parseFloat(getComputedStyle(el).lineHeight) || 16;
+      const dx =
+        event.deltaX *
+        (event.deltaMode === 1
+          ? line
+          : event.deltaMode === 2
+            ? el.clientWidth
+            : 1);
+      const dy =
+        event.deltaY *
+        (event.deltaMode === 1
+          ? line
+          : event.deltaMode === 2
+            ? el.clientHeight
+            : 1);
+      const left = el.scrollLeft;
+      const top = el.scrollTop;
+      el.scrollBy({
+        left: event.shiftKey && !dx ? dy : dx,
+        top: event.shiftKey && !dx ? 0 : dy,
+        behavior: "instant",
+      });
+      if (left !== el.scrollLeft || top !== el.scrollTop)
+        event.preventDefault();
+    }
+    for (const track of tracks)
+      track?.addEventListener("wheel", wheel, { passive: false });
+    return () => {
+      for (const track of tracks) track?.removeEventListener("wheel", wheel);
+    };
+  }, [horizontalOverflow]);
 
   const travel = Math.max(0, view.height - view.thumb);
   const horizontalTravel = Math.max(
     0,
     horizontalView.width - horizontalView.thumb,
   );
+  function beginDrag(event: PointerEvent<HTMLDivElement>, horizontal = false) {
+    const el = pane.current;
+    const range = horizontal ? horizontalView : view;
+    const distance = horizontal ? horizontalTravel : travel;
+    if (!el || event.button !== 0 || !range.max || !distance) return;
+    const track = event.currentTarget;
+    const thumb = track.querySelector<HTMLDivElement>('[role="scrollbar"]')!;
+    event.preventDefault();
+    thumb.focus({ preventScroll: true });
+    if (!thumb.contains(event.target as Node)) {
+      const bounds = track.getBoundingClientRect();
+      const position = horizontal
+        ? event.clientX - bounds.left
+        : event.clientY - bounds.top;
+      const next =
+        (clamp(position - range.thumb / 2, 0, distance) * range.max) / distance;
+      if (horizontal) el.scrollLeft = next;
+      else el.scrollTop = next;
+    }
+    track.setPointerCapture(event.pointerId);
+    if (horizontal) {
+      horizontalDrag.current = {
+        pointer: event.pointerId,
+        x: event.clientX,
+        left: el.scrollLeft,
+      };
+    } else {
+      drag.current = {
+        pointer: event.pointerId,
+        y: event.clientY,
+        top: el.scrollTop,
+      };
+    }
+    setDragging(true);
+  }
+  function moveDrag(event: PointerEvent<HTMLDivElement>) {
+    const el = pane.current;
+    if (!el) return;
+    const vertical = drag.current;
+    if (vertical?.pointer === event.pointerId && travel) {
+      el.scrollTop =
+        vertical.top + ((event.clientY - vertical.y) * view.max) / travel;
+    }
+    const horizontal = horizontalDrag.current;
+    if (horizontal?.pointer === event.pointerId && horizontalTravel) {
+      el.scrollLeft =
+        horizontal.left +
+        ((event.clientX - horizontal.x) * horizontalView.max) /
+          horizontalTravel;
+    }
+  }
+  function endDrag(event: PointerEvent<HTMLDivElement>) {
+    if (drag.current?.pointer === event.pointerId) drag.current = null;
+    if (horizontalDrag.current?.pointer === event.pointerId)
+      horizontalDrag.current = null;
+    setDragging(!!(drag.current || horizontalDrag.current));
+  }
   return (
     <div
       ref={region}
       {...props}
       className={`${styles.area} ${className}`}
       data-scroll-area="root"
+      data-scrollbar-offset={offset}
+      style={
+        {
+          "--scrollbar-offset":
+            offset === undefined ? undefined : `${offset}px`,
+          ...style,
+        } as CSSProperties
+      }
       data-horizontal-scrollbar={horizontalScrollbar || undefined}
       data-near={near || undefined}
       data-dragging={dragging || undefined}
-      data-horizontal-overflow={
-        (horizontalScrollbar && horizontalView.max > 0) || undefined
-      }
+      data-horizontal-overflow={horizontalOverflow || undefined}
       onPointerMove={(event) => {
         const bounds = event.currentTarget.getBoundingClientRect();
         setNear(
@@ -285,6 +393,9 @@ export function ScrollArea({
         className={slot("rail")}
         data-scroll-area="rail"
         style={{ height: view.height }}
+        onPointerDown={(event) => beginDrag(event)}
+        onPointerMove={moveDrag}
+        onLostPointerCapture={endDrag}
       >
         {view.max > 0 && (
           <div
@@ -300,29 +411,6 @@ export function ScrollArea({
             style={{
               top: view.max ? (view.top / view.max) * travel : 0,
               height: view.thumb,
-            }}
-            onPointerDown={(event) => {
-              if (event.button !== 0 || !travel) return;
-              event.preventDefault();
-              event.currentTarget.focus({ preventScroll: true });
-              event.currentTarget.setPointerCapture(event.pointerId);
-              drag.current = {
-                pointer: event.pointerId,
-                y: event.clientY,
-                top: pane.current!.scrollTop,
-              };
-              setDragging(true);
-            }}
-            onPointerMove={(event) => {
-              const active = drag.current;
-              if (!active || active.pointer !== event.pointerId || !travel)
-                return;
-              pane.current!.scrollTop =
-                active.top + ((event.clientY - active.y) * view.max) / travel;
-            }}
-            onLostPointerCapture={() => {
-              drag.current = null;
-              setDragging(false);
             }}
             onKeyDown={(event) => {
               const el = pane.current!;
@@ -344,11 +432,15 @@ export function ScrollArea({
           </div>
         )}
       </div>
-      {horizontalScrollbar && horizontalView.max > 0 && (
+      {horizontalOverflow && (
         <div
+          ref={horizontalRail}
           className={slot("horizontalRail")}
           data-scroll-area="horizontal-rail"
           style={{ width: horizontalView.width }}
+          onPointerDown={(event) => beginDrag(event, true)}
+          onPointerMove={moveDrag}
+          onLostPointerCapture={endDrag}
         >
           <div
             className={slot("horizontalThumb")}
@@ -365,35 +457,6 @@ export function ScrollArea({
                 ? (horizontalView.left / horizontalView.max) * horizontalTravel
                 : 0,
               width: horizontalView.thumb,
-            }}
-            onPointerDown={(event) => {
-              if (event.button !== 0 || !horizontalTravel) return;
-              event.preventDefault();
-              event.currentTarget.focus({ preventScroll: true });
-              event.currentTarget.setPointerCapture(event.pointerId);
-              horizontalDrag.current = {
-                pointer: event.pointerId,
-                x: event.clientX,
-                left: pane.current!.scrollLeft,
-              };
-              setDragging(true);
-            }}
-            onPointerMove={(event) => {
-              const active = horizontalDrag.current;
-              if (
-                !active ||
-                active.pointer !== event.pointerId ||
-                !horizontalTravel
-              )
-                return;
-              pane.current!.scrollLeft =
-                active.left +
-                ((event.clientX - active.x) * horizontalView.max) /
-                  horizontalTravel;
-            }}
-            onLostPointerCapture={() => {
-              horizontalDrag.current = null;
-              setDragging(false);
             }}
             onKeyDown={(event) => {
               const el = pane.current!;

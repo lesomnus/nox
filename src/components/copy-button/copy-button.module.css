@@ -11,7 +11,7 @@
   right: 0;
   width: max-content;
   max-width: min(280px, 80vw);
-  background: var(--ui-overflow-hint-background);
+  background: var(--ui-popover-background);
   color: var(--ui-shade-237);
   padding: var(--ui-control-inline-inset) calc(2 * var(--ui-space));
   border-radius: var(--ui-space);

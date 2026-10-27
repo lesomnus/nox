@@ -3,6 +3,8 @@
   box-sizing: border-box;
 }
 .surface {
+  --menu-surface-radius: calc(6px + var(--ui-control-inset) + 1px);
+  --menu-surface-shadow: 0 6px 24px #0005;
   position: fixed;
   z-index: 1100;
   padding: var(--ui-control-inset);
@@ -11,8 +13,50 @@
   -webkit-backdrop-filter: blur(var(--ui-dropdown-blur));
   backdrop-filter: blur(var(--ui-dropdown-blur));
   border: 1px solid var(--ui-shade-58);
-  border-radius: calc(6px + var(--ui-control-inset) + 1px);
-  box-shadow: 0 6px 24px #0005;
+  border-radius: var(--menu-surface-radius);
+  box-shadow: var(--menu-surface-shadow);
+}
+.surface[data-scrollbar-offset] {
+  background: transparent;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  border-color: transparent;
+  box-shadow: none;
+}
+/* Keep the glass beside the scrolling content, outside its backdrop ancestry. */
+.surface[data-scrollbar-offset]::before {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  z-index: -1;
+  pointer-events: none;
+  background: var(--ui-dropdown-background);
+  -webkit-backdrop-filter: blur(var(--ui-dropdown-blur));
+  backdrop-filter: blur(var(--ui-dropdown-blur));
+  border: 1px solid var(--ui-shade-58);
+  border-radius: var(--menu-surface-radius);
+  box-shadow: var(--menu-surface-shadow);
+}
+.surface[data-scrollbar-offset][data-menu-entrance]::before {
+  animation: glass-enter var(--ui-dialog-enter-duration)
+    var(--ui-dialog-enter-easing) both;
+}
+.surface[data-scrollbar-offset][data-menu-entrance][data-enter-effect="reveal-frame"]::before {
+  animation-duration: var(--ui-menu-reveal-duration);
+  animation-timing-function: var(--ui-menu-reveal-easing);
+}
+@keyframes glass-enter {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .surface[data-scrollbar-offset][data-menu-entrance]::before {
+    animation: none;
+  }
 }
 .surface :where(button, input) {
   letter-spacing: inherit;

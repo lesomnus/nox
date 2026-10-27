@@ -1,5 +1,13 @@
 import { describe, expect, it } from "vitest";
-import { formatCompactNumber } from "./compact-number";
+import { formatCompactNumber, type CompactNumberProps } from "./compact-number";
+
+// @ts-expect-error Digit cells can only be configured in integer mode.
+const compactDigits: CompactNumberProps = { value: 1, digits: 3 };
+void compactDigits;
+if (false) {
+  // @ts-expect-error Compact formatting always owns its numeric/unit cells.
+  formatCompactNumber(1, "compact", 3);
+}
 
 const text = (value: number) => {
   const result = formatCompactNumber(value);
@@ -21,7 +29,7 @@ describe("compact metric numbers", () => {
     ] as const)
       expect(text(value)).toBe(expected);
   });
-  it("dims padding only, including the actual zero case", () => {
+  it("separates padding from significant digits, including the actual zero case", () => {
     expect(formatCompactNumber(0)).toEqual({
       leading: "000",
       digits: "0",
@@ -69,4 +77,24 @@ describe("compact metric numbers", () => {
     ])
       expect(text(value)).toHaveLength(5);
   });
+});
+
+it("fits requested integer cells, including padding, unavailable values and overflow", () => {
+  for (const [value, expected] of [
+    [0, "000"],
+    [7, "007"],
+    [99, "099"],
+    [999, "999"],
+    [1000, ">99"],
+    [NaN, "---"],
+    [-1, "---"],
+  ] as const) {
+    const number = formatCompactNumber(value, "integer", 3);
+    expect(number.leading + number.digits).toBe(expected);
+    expect(number.unit).toBe("");
+  }
+  expect(formatCompactNumber(7, "integer", 3).leading).toBe("00");
+  expect(formatCompactNumber(42, "integer", 1).digits).toBe(">");
+  for (const digits of [0, -1, 1.5, Infinity, NaN])
+    expect(() => formatCompactNumber(1, "integer", digits)).toThrow(RangeError);
 });

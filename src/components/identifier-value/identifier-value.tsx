@@ -1,6 +1,6 @@
 import type { CSSProperties, HTMLAttributes, ReactNode } from "react";
 import { CopyButton } from "../copy-button/copy-button";
-import { OverflowHint } from "../overflow-hint/overflow-hint";
+import { Popover } from "../popover/popover";
 import styles from "./identifier-value.module.css";
 
 export type IdentifierValueProps = Omit<
@@ -36,9 +36,9 @@ export function IdentifierValue({
       style={{ "--identifier-length": length, ...style } as CSSProperties}
     >
       {value.length > length ? (
-        <OverflowHint content={value} placement="in-place">
+        <Popover content={value} placement="in-place">
           {prefix}
-        </OverflowHint>
+        </Popover>
       ) : (
         prefix
       )}

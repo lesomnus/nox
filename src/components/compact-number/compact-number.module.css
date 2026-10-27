@@ -7,6 +7,9 @@
   font-variant-numeric: tabular-nums;
   color: var(--ui-text-value);
 }
+.number[data-muted="true"] {
+  color: var(--ui-text-separator);
+}
 .leading {
   color: var(--ui-text-leading);
 }
@@ -15,5 +18,5 @@
   color: var(--ui-text-separator);
 }
 .number[data-mode="integer"] {
-  width: 4ch;
+  width: calc(var(--compact-number-digits) * 1ch);
 }

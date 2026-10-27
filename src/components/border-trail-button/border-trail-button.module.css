@@ -1,0 +1,145 @@
+.border {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  overflow: hidden;
+  border-radius: inherit;
+  fill: none;
+  stroke-width: var(--ui-border-trail-width);
+}
+.track {
+  stroke: var(--ui-border-trail-track-color);
+  transition: stroke var(--ui-button-background-duration) ease;
+}
+.segment,
+.clip,
+.sheen {
+  --trail-length: var(
+    --border-trail-length,
+    min(
+      var(--ui-border-trail-length),
+      calc(50 / max(1, var(--border-trail-count)))
+    )
+  );
+  stroke-linecap: round;
+}
+.segment,
+.clip {
+  stroke-dasharray: calc(1px * var(--trail-length))
+    calc(1px * (100 - var(--trail-length)));
+  stroke-dashoffset: calc(-100px * var(--border-trail-offset));
+}
+.segment {
+  opacity: 0;
+  transition:
+    opacity var(--ui-border-trail-fade-duration) ease,
+    stroke-dasharray var(--ui-border-trail-growth-duration) ease-out;
+  animation:
+    drift var(--border-trail-duration, var(--ui-border-trail-duration)) linear
+      infinite,
+    breathe var(--ui-border-trail-breathe-duration) ease-in-out infinite;
+  animation-delay:
+    0s,
+    calc(
+      -1 * var(--border-trail-offset) * var(--ui-border-trail-breathe-duration)
+    );
+  animation-play-state: paused;
+}
+.border[data-active="true"] .segment {
+  opacity: var(--ui-border-trail-opacity);
+  animation-play-state: running;
+}
+.clip {
+  stroke: #fff;
+  animation: drift var(--border-trail-duration, var(--ui-border-trail-duration))
+    linear infinite;
+  animation-play-state: paused;
+  transition: stroke-dasharray var(--ui-border-trail-growth-duration) ease-out;
+}
+.sheen {
+  --sheen-width: calc(
+    var(--trail-length) *
+      var(--border-trail-sheen-length, var(--ui-border-trail-sheen-length))
+  );
+  stroke: var(--border-trail-sheen-color, var(--ui-border-trail-sheen-color));
+  stroke-dasharray: calc(1px * var(--sheen-width))
+    calc(1px * (100 - var(--sheen-width)));
+  stroke-opacity: 0;
+  opacity: 0;
+  transition: opacity var(--ui-border-trail-fade-duration) ease;
+  animation:
+    drift var(--border-trail-duration, var(--ui-border-trail-duration)) linear
+      infinite,
+    sweep
+      var(--border-trail-sheen-duration, var(--ui-border-trail-sheen-duration))
+      linear infinite;
+  animation-composition: replace, add;
+  animation-play-state: paused;
+}
+.border[data-active="true"] :is(.clip, .sheen) {
+  animation-play-state: running;
+}
+.border[data-active="true"] .sheen {
+  opacity: var(
+    --border-trail-sheen-strength,
+    var(--ui-border-trail-sheen-strength)
+  );
+}
+:is(.segment, .sheen)[data-empty] {
+  display: none;
+}
+@keyframes drift {
+  /* Keep the dash offsets length-valued so the SVG keyframes interpolate. */
+  from {
+    stroke-dashoffset: calc(-100px * var(--border-trail-offset));
+  }
+  to {
+    stroke-dashoffset: calc(-100px * (var(--border-trail-offset) + 1));
+  }
+}
+@keyframes breathe {
+  0%,
+  100% {
+    stroke-opacity: 0.6;
+  }
+  27% {
+    stroke-opacity: 1;
+  }
+  58% {
+    stroke-opacity: 0.7;
+  }
+  81% {
+    stroke-opacity: 0.9;
+  }
+}
+@keyframes sweep {
+  from {
+    stroke-dashoffset: calc(1px * var(--sheen-width));
+    stroke-opacity: 0;
+  }
+  12%,
+  88% {
+    stroke-opacity: 1;
+  }
+  to {
+    stroke-dashoffset: calc(-1px * var(--trail-length));
+    stroke-opacity: 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .segment,
+  .clip,
+  .sheen {
+    animation: none;
+    transition: none;
+  }
+  .track {
+    transition: none;
+  }
+  .sheen {
+    display: none;
+  }
+}

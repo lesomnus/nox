@@ -7,7 +7,7 @@ test("ValueMenu uses ScrollArea for wheel, drag and independent scrollbar keyboa
   const trigger = page.getByRole("combobox", { name: "Preset", exact: true });
   await trigger.click();
   const menu = page.getByRole("listbox", { name: "Preset choices" });
-  const area = menu.locator('[data-scroll-area="root"]');
+  const area = page.locator('.setting-menu [data-scroll-area="root"]');
   const viewport = area.locator('[data-scroll-area="viewport"]');
   const rail = area.locator('[data-scroll-area="rail"]');
   const thumb = area.getByRole("scrollbar", { name: "Scroll Preset choices" });
@@ -63,8 +63,6 @@ test("ValueMenu uses ScrollArea for wheel, drag and independent scrollbar keyboa
 
   await trigger.click();
   await page.keyboard.press("End");
-  if (await menu.evaluate((el) => el.classList.contains("opens-up")))
-    await page.keyboard.press("ArrowUp");
   const last = menu.getByRole("option", {
     name: "Experimental 10",
     exact: true,
@@ -96,7 +94,7 @@ test("filtering shrinks ScrollArea and removes its thumb when choices fit", asyn
     .toBeLessThan(100);
   await expect(search).toBeFocused();
   await search.fill("");
-  await expect(list.getByRole("option")).toHaveCount(39);
+  await expect(list.getByRole("option")).toHaveCount(40);
   await expect(thumb).toBeVisible();
   await expect(viewport).toHaveCSS("height", "240px");
   await search.fill("missing");

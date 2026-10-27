@@ -23,7 +23,7 @@ permission on mount. Built-in labels use `UIProvider` translations.
 and a compact copy control. Copy always uses the complete original value.
 `prefixLength` changes the reserved text width, `copyable` hides the copy control,
 and `copyLabel` customizes its accessible label. Empty values use `empty`.
-The overlay uses `OverflowHint`, so expanded identifiers can escape clipped
+The overlay uses `Popover`, so expanded identifiers can escape clipped
 containers while keeping the original text origin and baseline.
 
 ## Dates and information fields
@@ -35,7 +35,7 @@ the UTC instant in `datetime`; absent or invalid values use `empty`.
 API timestamp objects belong in the consuming application's adapter.
 
 `FieldLabel` adds an optional help icon to a label. Its description uses a
-portaled `OverflowHint`, available on hover or keyboard focus and dismissed with
+portaled `Popover`, available on hover or keyboard focus and dismissed with
 Escape. Help labels can be translated through `UIProvider`.
 
 `DescriptionList` renders rows as a semantic `dl` with consistent label and value

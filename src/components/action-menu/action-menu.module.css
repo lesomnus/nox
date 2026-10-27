@@ -4,9 +4,12 @@
 }
 .action_menu_popup {
   min-width: 190px;
-  max-width: calc(100vw - 16px);
+  max-width: calc(100vw - 16px - var(--action-menu-scrollbar-outset, 0px));
   max-height: 50dvh;
   overflow: hidden;
+}
+.action_menu_popup[data-scrollbar-offset] {
+  overflow: visible;
 }
 .shortcut {
   display: inline-flex;
@@ -35,4 +38,28 @@
 
 .action_menu_popup[data-placement="right"] {
   transform-origin: top left;
+}
+.action_menu_popup [data-action-menu-layout="row"] {
+  display: grid;
+  grid-template-columns: repeat(var(--action-menu-columns), minmax(0, 1fr));
+}
+.action_menu_popup [data-action-menu-layout="row"] > [data-menu-group-label] {
+  grid-column: 1 / -1;
+}
+/* Row cells center their content instead of reserving scrollbar space per item. */
+.action_menu_popup [data-action-menu-layout="row"] > button[role] {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+  min-height: 44px;
+  padding: var(--ui-space) var(--ui-control-inset);
+  font-size: 11px;
+  text-align: center;
+}
+.action_menu_popup [data-action-menu-layout="row"] :global(.button-content) {
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--ui-control-inset);
 }

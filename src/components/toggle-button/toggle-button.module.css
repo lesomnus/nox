@@ -1,0 +1,4 @@
+.toggle[aria-pressed="true"] {
+  /* An inset border leaves the button and its content in place when toggled. */
+  box-shadow: inset 0 0 0 1px var(--ui-toggle-button-border);
+}

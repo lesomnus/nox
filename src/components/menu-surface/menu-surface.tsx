@@ -56,3 +56,5 @@ export function MenuSurface({
     )
   );
 }
+
+export { MenuFrame, type MenuFrameProps } from "./menu-frame";
