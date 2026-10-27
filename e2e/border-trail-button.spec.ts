@@ -138,6 +138,9 @@ test("the painted colored segment travels along the perimeter", async ({
   });
   await expect(button.locator("path")).toHaveAttribute("d", /^M /);
   const frame = (await button.boundingBox())!;
+  const stroke = await button
+    .locator('[data-border-trail="border"]')
+    .evaluate((node) => parseFloat(getComputedStyle(node).strokeWidth));
   const positions: { x: number; y: number }[] = [];
   for (const phase of [0, 0.25]) {
     const moving = await button.evaluate((node, phase) => {
@@ -169,7 +172,7 @@ test("the painted colored segment travels along the perimeter", async ({
       contentType: "image/png",
     });
     const color = await page.evaluate(
-      async ({ base64, frame }) => {
+      async ({ base64, frame, stroke }) => {
         const image = new Image();
         image.src = `data:image/png;base64,${base64}`;
         await image.decode();
@@ -185,23 +188,33 @@ test("the painted colored segment travels along the perimeter", async ({
           canvas.width,
           canvas.height,
         ).data;
+        const band = Math.ceil((stroke + 1) * scale);
         let count = 0,
           x = 0,
           y = 0;
         for (let index = 0; index < pixels.length; index += 4) {
-          // Only the cyan trail; the label, quiet track and other colors do not qualify.
+          const px = (index / 4) % canvas.width;
+          const py = Math.floor(index / 4 / canvas.width);
+          // LCD text antialiasing can also be cyan; sample only the border band.
+          if (
+            px >= band &&
+            px < canvas.width - band &&
+            py >= band &&
+            py < canvas.height - band
+          )
+            continue;
           if (
             pixels[index + 1] > pixels[index] + 18 &&
             pixels[index + 2] > pixels[index] + 18
           ) {
             count++;
-            x += (index / 4) % canvas.width;
-            y += Math.floor(index / 4 / canvas.width);
+            x += px;
+            y += py;
           }
         }
         return { count, x: x / count / scale, y: y / count / scale };
       },
-      { base64: png.toString("base64"), frame },
+      { base64: png.toString("base64"), frame, stroke },
     );
     expect(color.count).toBeGreaterThan(10);
     positions.push(color);
