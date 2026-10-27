@@ -1,5 +1,104 @@
 import { expect, test } from "@playwright/test";
 
+for (const offset of [-16, 12]) {
+  for (const horizontal of [false, true]) {
+    const axis = horizontal ? "horizontal" : "vertical";
+    test(`${axis} rail at offset ${offset} stays visible and supports jump, drag and wheel`, async ({
+      page,
+    }) => {
+      await page.goto(
+        `/iframe.html?id=layout-scrollarea--outside-both-axes&viewMode=story&args=scrollbarOffset:${offset}`,
+      );
+      const area = page.locator('[data-scroll-area="root"]');
+      const viewport = area.locator('[data-scroll-area="viewport"]');
+      const track = area.locator(
+        `[data-scroll-area="${horizontal ? "horizontal-rail" : "rail"}"]`,
+      );
+      const handle = track.locator(
+        `[data-scroll-area="${horizontal ? "horizontal-handle" : "handle"}"]`,
+      );
+      const thumb = track.getByRole("scrollbar");
+      await expect(thumb).toBeVisible();
+      const box = (await track.boundingBox())!;
+      const grab = (await thumb.boundingBox())!;
+      const length = horizontal ? box.width : box.height;
+      const thumbLength = horizontal ? grab.width : grab.height;
+      const x = box.x + box.width * (horizontal ? 0.65 : 0.5);
+      const y = box.y + box.height * (horizontal ? 0.5 : 0.65);
+      await page.mouse.move(0, 0);
+      if (!horizontal) await expect(handle).toHaveCSS("opacity", "0");
+      await page.mouse.move(x, y);
+      await expect(handle).toHaveCSS("opacity", "1");
+      expect(
+        await track.evaluate(
+          (node, point) => document.elementFromPoint(point.x, point.y) === node,
+          { x, y },
+        ),
+      ).toBe(true);
+      const position = () =>
+        viewport.evaluate(
+          (node, horizontal) => (horizontal ? node.scrollLeft : node.scrollTop),
+          horizontal,
+        );
+      await page.mouse.click(x, y, { button: "right" });
+      expect(await position()).toBe(0);
+      const max = await viewport.evaluate(
+        (node, horizontal) =>
+          horizontal
+            ? node.scrollWidth - node.clientWidth
+            : node.scrollHeight - node.clientHeight,
+        horizontal,
+      );
+      const expected =
+        ((length * 0.65 - thumbLength / 2) / (length - thumbLength)) * max;
+      await page.mouse.move(x, y);
+      await page.mouse.down();
+      await expect(area).toHaveAttribute("data-dragging", "true");
+      await expect
+        .poll(async () => Math.abs((await position()) - expected))
+        .toBeLessThan(1);
+      await expect(thumb).toBeFocused();
+      const moved = (await handle.boundingBox())!;
+      expect(
+        horizontal ? moved.x + moved.width / 2 : moved.y + moved.height / 2,
+      ).toBeCloseTo(horizontal ? x : y, 0);
+      await page.mouse.move(
+        horizontal ? box.x + box.width + 30 : x,
+        horizontal ? y : box.y + box.height + 30,
+      );
+      await expect.poll(position).toBe(max);
+      await page.mouse.up();
+      await expect(area).not.toHaveAttribute("data-dragging", "true");
+      await thumb.press("Home");
+      await expect.poll(position).toBe(0);
+      await thumb.evaluate((node) => (node as HTMLElement).blur());
+      await page.mouse.move(0, 0);
+      if (!horizontal) await expect(handle).toHaveCSS("opacity", "0");
+      await page.mouse.move(x, y);
+      await expect(handle).toHaveCSS("opacity", "1");
+      await page.mouse.wheel(horizontal ? 100 : 0, horizontal ? 0 : 100);
+      await expect.poll(position).toBeGreaterThan(0);
+      await thumb.press("Home");
+      await expect(thumb).toHaveAttribute("aria-valuenow", "0");
+      const start = (await thumb.boundingBox())!;
+      await page.mouse.move(
+        start.x + start.width / 2,
+        start.y + start.height / 2,
+      );
+      await page.mouse.down();
+      expect(await position()).toBe(0);
+      await page.mouse.move(
+        horizontal ? box.x - 30 : x,
+        horizontal ? y : box.y - 30,
+      );
+      await page.mouse.up();
+      await expect.poll(position).toBe(0);
+      await thumb.press("End");
+      await expect.poll(position).toBe(max);
+    });
+  }
+}
+
 for (const offset of [0, -16, 7.5]) {
   test(`signed offset ${offset} aligns both handle centers to the container edges`, async ({
     page,

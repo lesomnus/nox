@@ -86,7 +86,8 @@
   transform: translateX(-50%);
   height: var(--ui-scroll-area-hit-size);
   z-index: 2;
-  pointer-events: none;
+  pointer-events: auto;
+  touch-action: none;
 }
 .horizontalRail::before,
 .rail:not(:empty)::before {
@@ -126,6 +127,7 @@
   opacity: 0.7;
 }
 .horizontalThumb:is(:hover, :focus-visible) .horizontalHandle,
+.horizontalRail:hover .horizontalHandle,
 .area[data-dragging] .horizontalHandle {
   opacity: 1;
 }
@@ -148,6 +150,10 @@
   width: var(--ui-scroll-area-hit-size);
   z-index: 2;
   pointer-events: none;
+}
+.rail:not(:empty) {
+  pointer-events: auto;
+  touch-action: none;
 }
 .rail:not(:empty)::before {
   inset-block: 0;
@@ -239,7 +245,11 @@
   transform: scaleX(var(--ui-scroll-area-handle-expansion));
   opacity: 1;
 }
-.area[data-dragging] .thumb {
+.rail:hover .handle {
+  transform: scaleX(var(--ui-scroll-area-handle-expansion));
+  opacity: 1;
+}
+.area[data-dragging] :is(.thumb, .rail, .horizontalRail) {
   cursor: grabbing;
 }
 .thumb:focus-visible {

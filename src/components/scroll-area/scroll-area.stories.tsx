@@ -137,3 +137,7 @@ export const InsetOffset: StoryObj<typeof meta> = {
   ...Outside,
   args: { ...Outside.args, scrollbarOffset: -16 },
 };
+export const InsetBothAxes: StoryObj<typeof meta> = {
+  ...OutsideBothAxes,
+  args: { ...OutsideBothAxes.args, scrollbarOffset: -16 },
+};

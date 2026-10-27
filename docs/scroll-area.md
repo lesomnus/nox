@@ -57,6 +57,13 @@ and `classNames` customize slots without replacing scrolling behavior.
 `horizontalScrollbarLabel`. Vertical handles support arrows, Page Up/Down and
 Home/End. Horizontal handles use left/right arrows and the same page/end keys.
 
+Hovering a rail keeps its scrollbar visible, including inset and outside offsets.
+A primary pointer press on the empty rail centers the handle at that position,
+clamped to the scroll range. Keep holding to drag from there. Pressing the handle
+itself retains its grab position. Both axes focus their scrollbar for subsequent
+keyboard navigation; an area without overflow has no interactive rail.
+Wheel and trackpad events over either rail scroll the native viewport too.
+
 Override `--ui-scroll-area-background` to match the containing surface and fades.
 Backdrop blur applies only inside the thin translucent rail line through
 `--ui-scroll-area-rail-blur`. The wider pointer target stays invisible;
