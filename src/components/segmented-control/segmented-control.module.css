@@ -70,7 +70,12 @@
   padding: 2px 6px;
 }
 .segmented_control[data-size="inline"] {
-  width: 100%;
+  --ui-control-inset: var(--ui-segmented-inline-inset);
+  grid-template-columns: repeat(
+    var(--segment-count),
+    var(--ui-segmented-inline-item-width)
+  );
+  width: max-content;
   height: 100%;
   padding: var(--ui-control-inset);
   background: transparent;
