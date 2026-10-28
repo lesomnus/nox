@@ -69,6 +69,11 @@ try {
     join(temporary, "main.tsx"),
     `
     import { createRoot } from "react-dom/client";
+    import { CompactNumber, type CompactNumberProps } from "@lesomnus/nox";
+    const byteNumber: CompactNumberProps = {value: 55, baseUnit: "B", label: "55 bytes", className: "editor-number"};
+    // @ts-expect-error Integer mode does not have a unit cell.
+    const invalidIntegerUnit: CompactNumberProps = {value: 55, mode:"integer", baseUnit:"B"};
+    void invalidIntegerUnit;
     import { FileChip, type FileChipProps, fileChipClassName, fileChipText } from "@lesomnus/nox";
     const fileChip: FileChipProps = {as:"a", href:"/report.md", children:"report.md", ref: node => { void node?.href; }};
     const attachmentChip: FileChipProps = {as:"button", loading:true, children:"Uploading", ref: node => { void node?.disabled; }};
@@ -168,6 +173,7 @@ try {
     const sparkle: InkSparkleProps = { duration: 2000, origin: [-8, 40], centerMotion: "fixed", loop: true, sparkleColor: [0.25, 0.5, 0.75, 0.2] };
     createRoot(document.getElementById("root")!).render(
       <UIProvider>
+        <CompactNumber {...byteNumber} />
         <FileChip {...fileChip} /><FileChip {...attachmentChip} />
         <div style={{position:"relative",height:40}}><AuroraGlow {...aurora} /></div>
         <div style={{height:100}}><SplitLayout node={splitTree} renderPane={id => id} junctionLabel="Resize both axes" onResize={(id,ratio) => {void setSplitRatio(splitTree,id,ratio);}} /><SplitLayout node={splitTree} renderPane={id => id} onChange={tree => {void tree;}} /></div>

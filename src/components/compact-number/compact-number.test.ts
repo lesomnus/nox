@@ -4,6 +4,13 @@ import { formatCompactNumber, type CompactNumberProps } from "./compact-number";
 // @ts-expect-error Digit cells can only be configured in integer mode.
 const compactDigits: CompactNumberProps = { value: 1, digits: 3 };
 void compactDigits;
+// @ts-expect-error Integer mode has no unit cell to label.
+const integerUnit: CompactNumberProps = {
+  value: 1,
+  mode: "integer",
+  baseUnit: "B",
+};
+void integerUnit;
 if (false) {
   // @ts-expect-error Compact formatting always owns its numeric/unit cells.
   formatCompactNumber(1, "compact", 3);

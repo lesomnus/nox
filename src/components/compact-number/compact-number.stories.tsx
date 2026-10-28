@@ -8,6 +8,7 @@ const meta = {
   args: { value: 1 },
   argTypes: {
     muted: { control: "boolean" },
+    baseUnit: { control: "text", if: { arg: "mode", neq: "integer" } },
     digits: {
       control: { type: "number", min: 1, step: 1 },
       if: { arg: "mode", eq: "integer" },
@@ -36,6 +37,9 @@ export const MutedInteger: Story = {
   args: { value: 7, mode: "integer", digits: 3, muted: true },
 };
 export const Thousands: Story = { args: { value: 1230 } };
+export const Bytes: Story = {
+  args: { value: 55, baseUnit: "B", label: "55 bytes" },
+};
 export const Millions: Story = { args: { value: 1_230_000 } };
 export const SmallCost: Story = {
   args: { value: 0.0001, label: "Cost: $0.0001" },

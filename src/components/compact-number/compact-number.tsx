@@ -6,9 +6,10 @@ export type CompactNumberProps = {
   value: number;
   label?: string;
   muted?: boolean;
+  className?: string;
 } & (
-  | { mode: "integer"; digits?: number }
-  | { mode?: "compact"; digits?: never }
+  | { mode: "integer"; digits?: number; baseUnit?: never }
+  | { mode?: "compact"; digits?: never; baseUnit?: string }
 );
 
 const units = [
@@ -100,15 +101,22 @@ export function formatCompactNumber(
 }
 
 export function CompactNumber(props: CompactNumberProps) {
-  const { value, label, mode = "compact", muted = false } = props;
+  const {
+    value,
+    label,
+    mode = "compact",
+    muted = false,
+    className = "",
+  } = props;
   const digits = props.mode === "integer" ? (props.digits ?? 4) : 4;
   const number =
     mode === "integer"
       ? formatCompactNumber(value, "integer", digits)
       : formatCompactNumber(value, "compact");
+  const unit = number.unit === "·" ? (props.baseUnit ?? "·") : number.unit;
   return (
     <span
-      className={styles.number}
+      className={`${styles.number} ${className}`.trim()}
       role="img"
       aria-label={label ?? String(value)}
       data-mode={mode}
@@ -133,9 +141,9 @@ export function CompactNumber(props: CompactNumberProps) {
           ),
         )}
       </span>
-      {number.unit && (
+      {unit && (
         <span className={styles.unit} aria-hidden="true">
-          {number.unit}
+          {unit}
         </span>
       )}
     </span>
