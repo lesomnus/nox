@@ -122,7 +122,8 @@
 .prefixContent {
   position: absolute;
   top: 50%;
-  inset-inline: var(--ui-file-chip-border-width) var(--ui-space);
+  inset-inline-start: var(--ui-file-chip-border-width);
+  width: max-content;
   transform: translateY(-50%);
   border-radius: inherit;
 }

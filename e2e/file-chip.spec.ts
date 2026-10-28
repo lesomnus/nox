@@ -23,6 +23,10 @@ test("leading controls retain keyboard semantics and a stable outer frame", asyn
   expect(leading.offset).toBe(leading.border);
   expect(leading.padding).toBe("1px");
   const control = chip.getByRole("radiogroup");
+  await expect(chip.locator("[data-file-chip-control]")).toHaveCSS(
+    "width",
+    "34px",
+  );
   await expect(control).toHaveCSS("width", "34px");
   await expect(control).toHaveCSS("height", "18px");
   const frame = (await chip.boundingBox())!;
@@ -43,6 +47,24 @@ test("leading controls retain keyboard semantics and a stable outer frame", asyn
     await expect(label).toHaveCSS("min-height", "16px");
     await expect(label).toHaveCSS("max-height", "16px");
   }
+  const prefix = chip.locator("[data-file-chip-prefix]");
+  await prefix.evaluate((el) => (el.style.width = "38.49px"));
+  const widths = await chip.locator("[data-file-chip-control]").evaluate((el) =>
+    [el, ...el.querySelectorAll("*")].map((node) => ({
+      tag: node.tagName,
+      width: getComputedStyle(node).width,
+    })),
+  );
+  for (const item of widths) {
+    const width = parseFloat(item.width);
+    if (Number.isFinite(width))
+      expect(Number.isInteger(width), JSON.stringify(item)).toBe(true);
+  }
+  await expect(chip.locator("[data-file-chip-control]")).toHaveCSS(
+    "width",
+    "34px",
+  );
+  await prefix.evaluate((el) => el.style.removeProperty("width"));
   const before = await chip.boundingBox();
   await text.focus();
   await text.press("ArrowRight");
