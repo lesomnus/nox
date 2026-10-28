@@ -75,7 +75,10 @@
     var(--segment-count),
     var(--ui-segmented-inline-item-width)
   );
-  width: max-content;
+  width: calc(
+    var(--segment-count) * var(--ui-segmented-inline-item-width) + 2 *
+      var(--ui-control-inset)
+  );
   height: 100%;
   padding: var(--ui-control-inset);
   background: transparent;
@@ -84,11 +87,14 @@
   font-size: 0.75em;
 }
 .segmented_control[data-size="inline"] :global(.segment) {
-  min-width: 0;
+  width: var(--ui-segmented-inline-item-width);
+  min-width: var(--ui-segmented-inline-item-width);
+  max-width: var(--ui-segmented-inline-item-width);
   min-height: 0;
   padding: 0;
 }
 .segmented_control[data-size="inline"] :global(.segment-indicator) {
+  width: var(--ui-segmented-inline-item-width);
   border-radius: calc(0.5 * var(--ui-space));
 }
 .segmented_control :global(.segment):has(input:focus-visible) {

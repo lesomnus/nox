@@ -22,6 +22,17 @@ test("leading controls retain keyboard semantics and a stable outer frame", asyn
   });
   expect(leading.offset).toBe(leading.border);
   expect(leading.padding).toBe("1px");
+  const control = chip.getByRole("radiogroup");
+  await expect(control).toHaveCSS("width", "34px");
+  await expect(control.locator(".segment-indicator")).toHaveCSS(
+    "width",
+    "16px",
+  );
+  for (const label of await control.locator("label").all()) {
+    await expect(label).toHaveCSS("width", "16px");
+    await expect(label).toHaveCSS("min-width", "16px");
+    await expect(label).toHaveCSS("max-width", "16px");
+  }
   const before = await chip.boundingBox();
   await text.focus();
   await text.press("ArrowRight");
