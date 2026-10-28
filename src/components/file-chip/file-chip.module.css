@@ -117,11 +117,13 @@
 .customPrefix {
   position: relative;
   display: inline-block;
+  line-height: normal;
 }
 .prefixContent {
   position: absolute;
-  inset-block: var(--ui-file-chip-border-width);
+  top: 50%;
   inset-inline: var(--ui-file-chip-border-width) var(--ui-space);
+  transform: translateY(-50%);
   border-radius: inherit;
 }
 .customPrefix::after {

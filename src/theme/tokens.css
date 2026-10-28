@@ -155,6 +155,7 @@
   --ui-icon-size: 20px;
   --ui-icon-size-small: 14px;
   --ui-segmented-inline-item-width: 16px;
+  --ui-segmented-inline-item-height: 16px;
   --ui-segmented-inline-inset: 1px;
   --ui-file-chip-border-width: 1px;
   --ui-file-chip-border: var(--ui-shade-65);
