@@ -9,6 +9,19 @@ test("leading controls retain keyboard semantics and a stable outer frame", asyn
   const chip = page.getByRole("group", { name: "File with leading control" });
   const text = chip.getByRole("radio", { name: "Text", exact: true });
   await expect(text).toBeChecked();
+  const leading = await chip.evaluate((el) => {
+    const control = el.querySelector('[role="radiogroup"]')!;
+    return {
+      offset:
+        control.getBoundingClientRect().left - el.getBoundingClientRect().left,
+      border: parseFloat(
+        getComputedStyle(el).getPropertyValue("--ui-file-chip-border-width"),
+      ),
+      padding: getComputedStyle(control).paddingLeft,
+    };
+  });
+  expect(leading.offset).toBe(leading.border);
+  expect(leading.padding).toBe("1px");
   const before = await chip.boundingBox();
   await text.focus();
   await text.press("ArrowRight");

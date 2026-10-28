@@ -121,7 +121,7 @@
 .prefixContent {
   position: absolute;
   inset-block: var(--ui-file-chip-border-width);
-  inset-inline: 0 var(--ui-space);
+  inset-inline: var(--ui-file-chip-border-width) var(--ui-space);
   border-radius: inherit;
 }
 .customPrefix::after {
