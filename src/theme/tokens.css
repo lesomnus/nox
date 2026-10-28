@@ -158,6 +158,7 @@
   --ui-file-chip-border: var(--ui-shade-65);
   --ui-file-chip-hover-border: var(--ui-shade-115);
   --ui-file-chip-radius: var(--ui-space);
+  --ui-file-chip-text-padding-block: calc(0.5 * var(--ui-space));
   --ui-file-chip-muted: var(--ui-shade-150);
   --ui-file-chip-hover-duration: 120ms;
   --ui-file-chip-fade-duration: 450ms;

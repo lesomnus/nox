@@ -86,11 +86,11 @@
   opacity: 1;
   animation-play-state: running;
 }
-/* Textarea mirrors reserve icon/inset space with the same literal en spaces.
+/* Textarea mirrors reserve icon/inset space with the same typographic spaces.
    An inset stroke paints the frame without advancing the native caret. */
 .chip[data-text-layout] {
   display: inline;
-  padding: 0;
+  padding: var(--ui-file-chip-text-padding-block) 0;
   border: 0;
   box-shadow: inset 0 0 0 var(--ui-file-chip-border-width)
     var(--ui-file-chip-border);
