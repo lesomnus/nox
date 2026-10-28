@@ -43,7 +43,7 @@ export const CustomLeading: Story = {
     return (
       <FileChip
         textLayout
-        textPrefix={"\u2007".repeat(6)}
+        textPrefix={"\u2007".repeat(5)}
         role="group"
         aria-label="File with leading control"
         leading={
