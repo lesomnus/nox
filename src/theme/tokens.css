@@ -158,6 +158,8 @@
   --ui-segmented-inline-item-height: 16px;
   --ui-segmented-inline-inset: 1px;
   --ui-file-chip-border-width: 1px;
+  --ui-file-chip-editor-height: 20px;
+  --ui-file-chip-caret-gap: 1px;
   --ui-file-chip-border: var(--ui-shade-65);
   --ui-file-chip-hover-border: var(--ui-shade-115);
   --ui-file-chip-radius: var(--ui-space);

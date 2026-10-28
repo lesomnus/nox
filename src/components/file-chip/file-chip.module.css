@@ -136,6 +136,47 @@
   background: var(--ui-file-chip-border);
   pointer-events: none;
 }
+.chip[data-pixel-layout] {
+  display: inline-flex;
+  width: max-content;
+  align-items: center;
+  min-height: var(--ui-file-chip-editor-height);
+  padding-block: 0;
+  line-height: normal;
+  white-space: pre;
+}
+.chip[data-pixel-layout][data-custom-prefix] {
+  gap: calc(0.5 * var(--ui-space));
+  padding-inline-end: calc(0.5 * var(--ui-space));
+}
+.chip:not([data-text-layout]) .customPrefix {
+  display: inline-flex;
+  align-items: center;
+  gap: calc(0.5 * var(--ui-space));
+  flex: none;
+}
+.chip:not([data-text-layout]) .prefixContent {
+  position: static;
+  transform: none;
+}
+.chip:not([data-text-layout]) .customPrefix::after {
+  position: static;
+  align-self: stretch;
+  margin-block: var(--ui-space);
+  flex: none;
+}
+.chip[data-pixel-layout] .label,
+.chip[data-pixel-layout] .label span {
+  display: inline-block;
+  width: max-content;
+  width: calc-size(max-content, round(up, size, 1px));
+  box-sizing: border-box;
+}
+.chip[data-pixel-layout] > .label {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
 @keyframes shimmer {
   from {
     background-position: 150% 0;

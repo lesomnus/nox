@@ -42,8 +42,7 @@ export const CustomLeading: Story = {
     const [mode, setMode] = useState("text");
     return (
       <FileChip
-        textLayout
-        textPrefix={"\u2007".repeat(5)}
+        pixelLayout
         role="group"
         aria-label="File with leading control"
         leading={

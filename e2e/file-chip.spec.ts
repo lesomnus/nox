@@ -1,4 +1,10 @@
 import { expect, test } from "@playwright/test";
+import {
+  fractionalChipBrowser,
+  fractionalChipFont,
+} from "./fractional-chip-font";
+
+test.use(fractionalChipBrowser);
 
 test("leading controls retain keyboard semantics and a stable outer frame", async ({
   page,
@@ -7,6 +13,11 @@ test("leading controls retain keyboard semantics and a stable outer frame", asyn
     "/iframe.html?id=components-filechip--custom-leading&viewMode=story",
   );
   const chip = page.getByRole("group", { name: "File with leading control" });
+  await fractionalChipFont(page);
+  await chip.evaluate((el) => {
+    el.style.fontFamily = "ChipFractionalFixture";
+    el.style.fontSize = "14px";
+  });
   const text = chip.getByRole("radio", { name: "Text", exact: true });
   await expect(text).toBeChecked();
   const leading = await chip.evaluate((el) => {
@@ -47,9 +58,7 @@ test("leading controls retain keyboard semantics and a stable outer frame", asyn
     await expect(label).toHaveCSS("min-height", "16px");
     await expect(label).toHaveCSS("max-height", "16px");
   }
-  const prefix = chip.locator("[data-file-chip-prefix]");
-  await prefix.evaluate((el) => (el.style.width = "38.49px"));
-  const widths = await chip.locator("[data-file-chip-control]").evaluate((el) =>
+  const widths = await chip.evaluate((el) =>
     [el, ...el.querySelectorAll("*")].map((node) => ({
       tag: node.tagName,
       width: getComputedStyle(node).width,
@@ -64,7 +73,10 @@ test("leading controls retain keyboard semantics and a stable outer frame", asyn
     "width",
     "34px",
   );
-  await prefix.evaluate((el) => el.style.removeProperty("width"));
+  await expect(chip.locator("[data-file-chip-prefix]")).toHaveCSS(
+    "width",
+    "37px",
+  );
   const before = await chip.boundingBox();
   await text.focus();
   await text.press("ArrowRight");

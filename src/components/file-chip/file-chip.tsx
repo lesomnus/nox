@@ -11,6 +11,8 @@ type SharedProps = {
   loading?: boolean;
   /** Match fileChipText(label) without changing native text's inline advances. */
   textLayout?: boolean;
+  /** Content-sized boxes with integer CSS widths, independent of native text. */
+  pixelLayout?: boolean;
   leading?: ReactNode;
   textPrefix?: string;
 };
@@ -26,6 +28,7 @@ export function FileChip({
   children,
   loading = false,
   textLayout = false,
+  pixelLayout = false,
   leading,
   textPrefix = FILE_CHIP_PREFIX,
   className = "",
@@ -40,7 +43,7 @@ export function FileChip({
       />
       {leading !== undefined ? (
         <span className={styles.customPrefix} data-file-chip-prefix>
-          <span aria-hidden="true">{textPrefix}</span>
+          {textLayout && <span aria-hidden="true">{textPrefix}</span>}
           <span className={styles.prefixContent} data-file-chip-control>
             {leading}
           </span>
@@ -65,6 +68,7 @@ export function FileChip({
   const common = {
     "data-file-chip": "",
     "data-text-layout": textLayout || undefined,
+    "data-pixel-layout": pixelLayout || undefined,
     "data-custom-prefix": leading !== undefined || undefined,
     "data-loading": loading || undefined,
     "aria-busy": loading,
