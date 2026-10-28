@@ -11,6 +11,8 @@ type SharedProps = {
   loading?: boolean;
   /** Match fileChipText(label) without changing native text's inline advances. */
   textLayout?: boolean;
+  leading?: ReactNode;
+  textPrefix?: string;
 };
 export type FileChipProps = SharedProps &
   (
@@ -24,6 +26,8 @@ export function FileChip({
   children,
   loading = false,
   textLayout = false,
+  leading,
+  textPrefix = FILE_CHIP_PREFIX,
   className = "",
   ...props
 }: FileChipProps) {
@@ -34,10 +38,19 @@ export function FileChip({
         aria-hidden="true"
         data-file-chip-activity
       />
-      {textLayout && (
-        <span aria-hidden="true" data-file-chip-prefix>
-          {FILE_CHIP_PREFIX}
+      {leading !== undefined ? (
+        <span className={styles.customPrefix} data-file-chip-prefix>
+          <span aria-hidden="true">{textPrefix}</span>
+          <span className={styles.prefixContent} data-file-chip-control>
+            {leading}
+          </span>
         </span>
+      ) : (
+        textLayout && (
+          <span aria-hidden="true" data-file-chip-prefix>
+            {textPrefix}
+          </span>
+        )
       )}
       <span className={styles.label} data-file-chip-label>
         {children}
@@ -52,6 +65,7 @@ export function FileChip({
   const common = {
     "data-file-chip": "",
     "data-text-layout": textLayout || undefined,
+    "data-custom-prefix": leading !== undefined || undefined,
     "data-loading": loading || undefined,
     "aria-busy": loading,
     className: `${styles.chip} ${className}`.trim(),

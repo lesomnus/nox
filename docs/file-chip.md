@@ -24,3 +24,5 @@ const value = fileChipText(label);
 ```
 
 Visual defaults live in `theme/tokens.css` and the component stylesheet. Application-specific progress, byte formatting, errors and attachment dialogs belong to the caller.
+
+`leading` replaces the icon with caller content. Use the default span host for interactive children such as `SegmentedControl size="inline"`; do not nest controls inside a link or button. Set `textPrefix` to the spacing reserved for the leading area and pass that same prefix to `fileChipText(label, textPrefix)` in a native overlay. The control is positioned inside the reserved area, separately from its accessibility-hidden spacing, so changing a selection does not alter the text's advances.

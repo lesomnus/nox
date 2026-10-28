@@ -1,5 +1,24 @@
 import { expect, test } from "@playwright/test";
 
+test("leading controls retain keyboard semantics and a stable outer frame", async ({
+  page,
+}) => {
+  await page.goto(
+    "/iframe.html?id=components-filechip--custom-leading&viewMode=story",
+  );
+  const chip = page.getByRole("group", { name: "File with leading control" });
+  const text = chip.getByRole("radio", { name: "Text", exact: true });
+  await expect(text).toBeChecked();
+  const before = await chip.boundingBox();
+  await text.focus();
+  await text.press("ArrowRight");
+  await expect(
+    chip.getByRole("radio", { name: "File", exact: true }),
+  ).toBeChecked();
+  expect(await chip.boundingBox()).toEqual(before);
+  expect(await chip.evaluate((el) => el.tagName)).toBe("SPAN");
+});
+
 test("file links inherit body typography and the shared transparent frame", async ({
   page,
 }) => {

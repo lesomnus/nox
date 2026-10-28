@@ -1,6 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { useState } from "react";
 import { FileChip, fileChipText } from "./file-chip";
+import { SegmentedControl } from "../segmented-control/segmented-control";
 import docs from "../../../docs/file-chip.md?raw";
 
 const meta = {
@@ -35,6 +36,64 @@ export const Loading: Story = {
 };
 export const Disabled: Story = {
   args: { as: "button", disabled: true },
+};
+export const CustomLeading: Story = {
+  render: function CustomLeading() {
+    const [mode, setMode] = useState("text");
+    return (
+      <FileChip
+        textLayout
+        textPrefix={"\u2007".repeat(6)}
+        role="group"
+        aria-label="File with leading control"
+        leading={
+          <SegmentedControl
+            size="inline"
+            iconOnly
+            label="Delivery mode"
+            value={mode}
+            onChange={setMode}
+            options={[
+              {
+                value: "text",
+                label: "Text",
+                icon: (
+                  <svg
+                    width="12"
+                    height="12"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="1.5"
+                  >
+                    <path d="M4 5h16M12 5v14M8 19h8" />
+                  </svg>
+                ),
+              },
+              {
+                value: "file",
+                label: "File",
+                icon: (
+                  <svg
+                    width="12"
+                    height="12"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="1.5"
+                  >
+                    <path d="M14 3H6v18h14V9ZM14 3v6h6" />
+                  </svg>
+                ),
+              },
+            ]}
+          />
+        }
+      >
+        1.23K
+      </FileChip>
+    );
+  },
 };
 export const InlineText: Story = {
   render: () => (

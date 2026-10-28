@@ -69,6 +69,23 @@
   min-height: 20px;
   padding: 2px 6px;
 }
+.segmented_control[data-size="inline"] {
+  width: 100%;
+  height: 100%;
+  padding: var(--ui-control-inset);
+  background: transparent;
+  border-radius: var(--ui-space);
+  font: inherit;
+  font-size: 0.75em;
+}
+.segmented_control[data-size="inline"] :global(.segment) {
+  min-width: 0;
+  min-height: 0;
+  padding: 0;
+}
+.segmented_control[data-size="inline"] :global(.segment-indicator) {
+  border-radius: calc(0.5 * var(--ui-space));
+}
 .segmented_control :global(.segment):has(input:focus-visible) {
   outline: 2px solid var(--ui-shade-237);
   outline-offset: -2px;
