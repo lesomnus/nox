@@ -5,7 +5,7 @@ import type {
   ComponentPropsWithRef,
 } from "react";
 import { FieldLabel } from "../field-label/field-label";
-import styles from "./description-list.module.css";
+import styles from "../field-layout/field-layout.module.css";
 
 export type DescriptionListRow = {
   id?: string;
@@ -39,9 +39,7 @@ export function DescriptionListRoot({
     <dl
       {...props}
       className={`${styles.fields} ${className}`}
-      style={
-        { "--description-list-columns": columns, ...style } as CSSProperties
-      }
+      style={{ "--field-columns": columns, ...style } as CSSProperties}
     />
   );
 }

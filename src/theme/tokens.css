@@ -259,6 +259,8 @@
   --ui-control-inset: 2px;
   --ui-badged-icon-gap: 1.5px;
   --ui-control-inline-inset: 6px;
+  --ui-form-control-background: var(--ui-dialog-input-background);
+  --ui-form-control-radius: 6px;
   --ui-hover: var(--ui-shade-40);
   --ui-button-hover-background: var(--ui-shade-48);
   --ui-button-background-duration: 160ms;

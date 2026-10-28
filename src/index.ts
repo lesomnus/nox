@@ -58,6 +58,7 @@ export * from "./components/sliding-pages/sliding-pages";
 export * from "./components/calendar/calendar";
 export * from "./components/field-label/field-label";
 export * from "./components/description-list/description-list";
+export * from "./components/form/form";
 export * from "./components/table/table";
 export * from "./components/navigation-panel/navigation-panel";
 export * from "./components/stipple-background/stipple-background";
