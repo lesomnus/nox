@@ -14,6 +14,7 @@ Design values live in the CSS and theme tokens.
   <FormField label="Status">
     <ValueMenu
       label="Status"
+      alignItemWithTrigger
       value={status}
       options={options}
       choose={setStatus}
@@ -34,8 +35,10 @@ Use `as="fieldset"` to group fields inside an existing form, including a native
 Submission, validation, values, network requests and error messages belong to
 the caller. No form state or schema library is required.
 
-`--ui-form-control-background` and `--ui-form-control-radius` customize the
-control surface. The shared field layout keeps label and value text aligned
+`--ui-form-control-background`, `--ui-form-control-border` and
+`--ui-form-control-radius` customize the control surface. The subtle inset border
+is lighter than the input in dark themes and darker in light themes, without
+changing control geometry. The shared field layout keeps label and value text aligned
 when controls have larger padded hit areas.
 
 See `Components/Form/Default` for the compact fields and `Components/Form/InCard`

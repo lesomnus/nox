@@ -78,6 +78,25 @@ test("card forms share control heights, keep metadata first and submit native fi
   expect(right.x).toBeGreaterThan(left.x + left.width);
   expect(input.y).toBeGreaterThan(left.y + left.height);
   await page.screenshot({ path: testInfo.outputPath("form-in-card.png") });
+  for (const trigger of [priority, status]) {
+    const anchor = (await trigger.locator(".meta-value").boundingBox())!;
+    await trigger.click();
+    const popup = page.locator(".setting-menu");
+    await expect(popup).toHaveAttribute("data-item-alignment", "selected");
+    const selected = popup.locator(
+      '[aria-selected="true"] .setting-match-label',
+    );
+    await expect
+      .poll(async () => {
+        const box = (await selected.boundingBox())!;
+        return Math.max(
+          Math.abs(box.x - anchor.x),
+          Math.abs(box.y + box.height / 2 - anchor.y - anchor.height / 2),
+        );
+      })
+      .toBeLessThan(0.5);
+    await page.keyboard.press("Escape");
+  }
   await priority.click();
   await page.getByRole("option", { name: "High", exact: true }).click();
   await name.fill("Updated workspace");

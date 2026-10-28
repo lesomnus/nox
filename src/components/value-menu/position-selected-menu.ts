@@ -46,6 +46,9 @@ export function positionSelectedMenu(
   const center = anchor.top + anchor.height / 2;
   const row = option.getBoundingClientRect();
   const text = label.getBoundingClientRect();
+  // Form controls can use different padding from the portaled option rows.
+  // Align the text itself rather than assuming the two frames share an inset.
+  popup.style.left = `${clamp(parseFloat(popup.style.left) + anchor.left - text.left, edge, window.innerWidth - edge - popup.getBoundingClientRect().width)}px`;
   const contentCenter =
     text.top +
     text.height / 2 -

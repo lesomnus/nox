@@ -30,11 +30,20 @@
   ) {
   padding: var(--ui-space) var(--ui-control-inline-inset);
   border: 0;
-  border-radius: var(--ui-form-control-radius);
   background: var(--ui-form-control-background);
   font: inherit;
   color: inherit;
   outline: 0;
+}
+.control
+  > :is(
+    input:not([type="checkbox"], [type="radio"], [type="range"]),
+    textarea,
+    select
+  ),
+.control > :global(.value-menu) :global(.setting-trigger) {
+  border-radius: var(--ui-form-control-radius);
+  box-shadow: inset 0 0 0 1px var(--ui-form-control-border);
 }
 .control > :is(input, textarea, select):focus-visible {
   box-shadow: inset 0 0 0 1px var(--ui-shade-160);
@@ -51,7 +60,4 @@
   --value-padding-block: max(0px, calc(var(--ui-space) - (20px - 1.5em) / 2));
   --value-padding-inline: var(--ui-control-inline-inset);
   flex: none;
-}
-.control > :global(.value-menu) :global(.setting-trigger) {
-  border-radius: var(--ui-form-control-radius);
 }

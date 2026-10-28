@@ -90,6 +90,7 @@ export const InCard: Story = {
             <FormField label="Priority">
               <ValueMenu
                 label="Priority"
+                alignItemWithTrigger
                 value={priority}
                 choose={setPriority}
                 options={[
@@ -102,6 +103,7 @@ export const InCard: Story = {
             <FormField label="Status">
               <ValueMenu
                 label="Status"
+                alignItemWithTrigger
                 value={status}
                 choose={setStatus}
                 options={[

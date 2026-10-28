@@ -260,6 +260,11 @@
   --ui-badged-icon-gap: 1.5px;
   --ui-control-inline-inset: 6px;
   --ui-form-control-background: var(--ui-dialog-input-background);
+  --ui-form-control-border: color-mix(
+    in srgb,
+    var(--ui-form-control-background) 92%,
+    var(--ui-shade-237)
+  );
   --ui-form-control-radius: 6px;
   --ui-hover: var(--ui-shade-40);
   --ui-button-hover-background: var(--ui-shade-48);
