@@ -227,7 +227,7 @@ actions, placement and keyboard behavior belong to each menu. The top-level
 controls and component-specific cases. See [menu overlays](docs/menu-surface.md)
 for the capability table.
 
-`Checkbox`, `Radio`, `CopyButton`, `IdentifierValue`, `DateTime`, `FieldLabel`,
+`Checkbox`, `Radio`, `CopyButton`, `FileChip`, `IdentifierValue`, `DateTime`, `FieldLabel`,
 `DescriptionList` and `NavigationPanel` provide native selection, clipboard
 feedback, stable identifier previews, local timestamps and compact record views.
 They share the existing tokens, work without application CSS or services, and

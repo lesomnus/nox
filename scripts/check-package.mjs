@@ -69,6 +69,12 @@ try {
     join(temporary, "main.tsx"),
     `
     import { createRoot } from "react-dom/client";
+    import { FileChip, type FileChipProps, fileChipClassName, fileChipText } from "@lesomnus/nox";
+    const fileChip: FileChipProps = {as:"a", href:"/report.md", children:"report.md", ref: node => { void node?.href; }};
+    const attachmentChip: FileChipProps = {as:"button", loading:true, children:"Uploading", ref: node => { void node?.disabled; }};
+    // @ts-expect-error Native disabled state belongs to the button variant.
+    const invalidChip: FileChipProps = {as:"a", disabled:true, children:"Invalid"};
+    void invalidChip; void fileChipClassName; void fileChipText("Report");
     import { Popover, type PopoverProps, type PopoverPlacement, type PopoverPosition } from "@lesomnus/nox";
     import { Progress, type ProgressProps } from "@lesomnus/nox";
     import { SectionLayout, SectionGroup, Section, type SectionLayoutProps, type SectionGroupProps, type SectionProps, type SectionButtonProps } from "@lesomnus/nox";
@@ -162,6 +168,7 @@ try {
     const sparkle: InkSparkleProps = { duration: 2000, origin: [-8, 40], centerMotion: "fixed", loop: true, sparkleColor: [0.25, 0.5, 0.75, 0.2] };
     createRoot(document.getElementById("root")!).render(
       <UIProvider>
+        <FileChip {...fileChip} /><FileChip {...attachmentChip} />
         <div style={{position:"relative",height:40}}><AuroraGlow {...aurora} /></div>
         <div style={{height:100}}><SplitLayout node={splitTree} renderPane={id => id} junctionLabel="Resize both axes" onResize={(id,ratio) => {void setSplitRatio(splitTree,id,ratio);}} /><SplitLayout node={splitTree} renderPane={id => id} onChange={tree => {void tree;}} /></div>
         <PrefixValueMenu {...prefixMenu} />

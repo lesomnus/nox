@@ -12,6 +12,13 @@ this repository. The original cxz workspace was left in place.
 
 ## Subsequent syncs
 
+- 2026-10-28: adapted the conversation container-file chip from cxz commit
+  `3b728c552238cf1437863e8384e352c363d3719b` into `FileChip`. Shared the
+  icon, separator, transparent outline and typography through scoped styles
+  and theme tokens. Added native link/button variants, upload activity and a
+  literal-text overlay adapter. File access, Markdown sanitization, attachment
+  projection, uploads and preview dialogs remain in cxz.
+
 - 2026-10-24: adapted cxz's `ComposerAurora` and its toolbar aurora CSS from
   commit `5f082de68b1d23c7be1a30c4c8cc61aa7dacc0df` into `AuroraGlow`. The
   drifting clusters, orbiting palette, morphing orbs and wandering hotspots now

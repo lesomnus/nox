@@ -50,6 +50,7 @@ export * from "./components/popover/popover";
 export * from "./components/checkbox/checkbox";
 export * from "./components/radio/radio";
 export * from "./components/copy-button/copy-button";
+export * from "./components/file-chip/file-chip";
 export * from "./components/identifier-value/identifier-value";
 export * from "./components/date-time/date-time";
 export * from "./components/date-picker/date-picker";
