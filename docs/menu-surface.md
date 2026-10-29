@@ -45,6 +45,11 @@ on its trigger. Earlier options extend above it and later options below it,
 without changing their source order or adding a duplicate current-value row.
 The selected row is highlighted and focused. The trigger's painted content is
 hidden only while its aligned replacement is visible; its size stays fixed.
+The aligned value stays fully visible and stationary throughout opening. The
+surface reveals upward and downward from the selected row while surrounding
+items fade in. The selected row defines both opening directions; this mode
+does not need a directional entrance setting. Reduced-motion preferences skip
+these entrance animations.
 
 ```tsx
 <ValueMenu

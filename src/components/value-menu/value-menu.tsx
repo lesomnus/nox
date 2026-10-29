@@ -407,7 +407,7 @@ export function ValueMenu({
           data-searchable={searchable}
           data-align-item-with-trigger={alignItem || undefined}
           className={`${styles.setting_menu} ${dialogStyles.entrance} setting-menu ${!alignItem && up ? "opens-up" : ""}`}
-          data-enter-effect="fade"
+          data-enter-effect={itemAligned ? "anchored" : "fade"}
           onPointerDownCapture={(event) => {
             // Non-interactive rows must not blur the focused option/search field.
             if (

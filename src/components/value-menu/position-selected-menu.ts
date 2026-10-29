@@ -77,6 +77,16 @@ export function positionSelectedMenu(
     list.scrollTop = contentCenter - visibleAbove;
     const actual = label.getBoundingClientRect();
     popup.style.top = `${center - (actual.top + actual.height / 2 - popup.getBoundingClientRect().top)}px`;
+    const frame = popup.getBoundingClientRect();
+    const selected = option.getBoundingClientRect();
+    popup.style.setProperty(
+      "--menu-reveal-top",
+      `${Math.max(0, selected.top - frame.top - topInset)}px`,
+    );
+    popup.style.setProperty(
+      "--menu-reveal-bottom",
+      `${Math.max(0, frame.bottom - selected.bottom - bottomInset)}px`,
+    );
     popup.dataset.itemAlignment = "selected";
     return true;
   }
