@@ -1,5 +1,21 @@
 import { expect, test } from "@playwright/test";
 
+test("base-unit labels replace only the unscaled unit cell", async ({
+  page,
+}) => {
+  await page.goto(
+    "/iframe.html?id=components-compactnumber--bytes&viewMode=story",
+  );
+  const number = page.getByRole("img", { name: "55 bytes" });
+  await expect(number).toHaveText("0055B");
+  const width = (await number.boundingBox())!.width;
+  await page.goto(
+    "/iframe.html?id=components-compactnumber--bytes&viewMode=story&args=value:1230",
+  );
+  await expect(number).toHaveText("1.23K");
+  expect((await number.boundingBox())!.width).toBeCloseTo(width, 2);
+});
+
 for (const [story, text, digits] of [
   ["integer", "0001", 4],
   ["three-digits", "007", 3],

@@ -14,6 +14,117 @@ async function aligned(
   expect(Math.abs(box.x - anchor.x)).toBeLessThan(0.75);
 }
 
+for (const [component, reducedMotion] of [
+  ["valuemenu", false],
+  ["prefixvaluemenu", false],
+  ["valuemenu", true],
+] as const) {
+  test(`${component} keeps its value visible and stationary during entrance${reducedMotion ? " with reduced motion" : ""}`, async ({
+    page,
+  }) => {
+    await page.emulateMedia({
+      reducedMotion: reducedMotion ? "reduce" : "no-preference",
+    });
+    await page.goto(
+      `/iframe.html?id=components-${component}--item-aligned&viewMode=story`,
+    );
+    const trigger = page.getByRole("combobox", { name: "Effort", exact: true });
+    const frames = await trigger.evaluate(async (node) => {
+      const anchor = node.querySelector(".meta-value")!.getBoundingClientRect();
+      const opacity = (element: Element | null) => {
+        let result = element ? 1 : 0;
+        for (let current = element; current; current = current.parentElement)
+          result *= Number(getComputedStyle(current).opacity);
+        return result;
+      };
+      const frames: {
+        visible: number;
+        other: number;
+        disabled: number;
+        dx: number;
+        dy: number;
+        top: number;
+        bottom: number;
+      }[] = [];
+      (node as HTMLButtonElement).click();
+      const start = performance.now();
+      await new Promise<void>((resolve) => {
+        const sample = () => {
+          const selected = document.querySelector(
+            '.setting-menu [aria-selected="true"] .setting-match-label',
+          );
+          const rect = selected?.getBoundingClientRect();
+          const other = document.querySelector(
+            '.setting-menu [aria-selected="false"]',
+          );
+          const popup = document.querySelector(".setting-menu")!;
+          const bounds = popup.getBoundingClientRect();
+          const insets = getComputedStyle(popup)
+            .clipPath.match(/inset\(([^)]+)\)/)?.[1]
+            .split(" ")
+            .map(parseFloat) ?? [0];
+          frames.push({
+            visible: Math.max(
+              opacity(node.querySelector(".button-content")),
+              opacity(selected),
+            ),
+            other: opacity(other),
+            disabled: opacity(popup.querySelector("button:disabled")),
+            top: bounds.top + Math.max(0, insets[0]),
+            bottom: bounds.bottom - Math.max(0, insets[2] ?? insets[0]),
+            dx: rect ? Math.abs(rect.left - anchor.left) : Infinity,
+            dy: rect
+              ? Math.abs(
+                  rect.top + rect.height / 2 - anchor.top - anchor.height / 2,
+                )
+              : Infinity,
+          });
+          if (performance.now() - start < 350) requestAnimationFrame(sample);
+          else resolve();
+        };
+        requestAnimationFrame(sample);
+      });
+      return frames;
+    });
+    expect(frames.length).toBeGreaterThan(3);
+    expect(Math.min(...frames.map((frame) => frame.visible))).toBeGreaterThan(
+      0.99,
+    );
+    expect(Math.max(...frames.map((frame) => frame.dx))).toBeLessThan(0.75);
+    expect(Math.max(...frames.map((frame) => frame.dy))).toBeLessThan(0.75);
+    if (!reducedMotion) {
+      expect(Math.min(...frames.map((frame) => frame.other))).toBeLessThan(
+        0.99,
+      );
+      expect(frames[0].top - frames.at(-1)!.top).toBeGreaterThan(10);
+      expect(frames.at(-1)!.bottom - frames[0].bottom).toBeGreaterThan(10);
+    } else {
+      expect(Math.min(...frames.map((frame) => frame.other))).toBeGreaterThan(
+        0.99,
+      );
+      expect(
+        frames.every((frame) => Math.abs(frame.top - frames[0].top) < 0.75),
+      ).toBe(true);
+      expect(
+        frames.every(
+          (frame) => Math.abs(frame.bottom - frames[0].bottom) < 0.75,
+        ),
+      ).toBe(true);
+    }
+    expect(frames.at(-1)!.other).toBeGreaterThan(0.99);
+    if (component === "valuemenu") {
+      const disabledOpacity = frames.at(-1)!.disabled;
+      expect(disabledOpacity).toBeGreaterThan(0);
+      expect(disabledOpacity).toBeLessThan(1);
+      expect(
+        Math.max(...frames.map((frame) => frame.disabled)),
+      ).toBeLessThanOrEqual(disabledOpacity + 0.001);
+    }
+    if (component === "valuemenu" && !reducedMotion)
+      await page.screenshot({ path: test.info().outputPath("opened.png") });
+  });
+}
+
 for (const deviceScaleFactor of [1, 1.5]) {
   test.describe(`item alignment at scale ${deviceScaleFactor}`, () => {
     test.use({ deviceScaleFactor });

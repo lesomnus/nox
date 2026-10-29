@@ -1,9 +1,6 @@
 .fields {
   display: grid;
-  grid-template-columns: repeat(
-    var(--description-list-columns),
-    minmax(0, 1fr)
-  );
+  grid-template-columns: repeat(var(--field-columns, 2), minmax(0, 1fr));
   gap: var(--ui-space) calc(2 * var(--ui-space));
   margin: var(--ui-space) 0;
   font: 12px/1.5 var(--ui-font-mono);

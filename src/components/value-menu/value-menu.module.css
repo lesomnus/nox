@@ -75,6 +75,55 @@
   flex-direction: column;
   width: var(--menu-width, 180px);
 }
+.setting_menu[data-enter-effect="anchored"] {
+  --menu-reveal-outset: calc(8 * var(--ui-space));
+  /* Keep the selected replacement visible while its surroundings enter. */
+  animation-name: anchored-surface-enter;
+  animation-fill-mode: backwards;
+}
+.setting_menu[data-enter-effect="anchored"]
+  :global(
+    :is(
+      [data-menu-fixed],
+      [data-menu-group-label],
+      [role="separator"],
+      [role="option"]:not([aria-selected="true"]),
+      [role="scrollbar"]
+    )
+  ) {
+  animation: anchored-content-enter var(--ui-dialog-enter-duration)
+    var(--ui-dialog-enter-easing) backwards;
+}
+@keyframes anchored-surface-enter {
+  from {
+    clip-path: inset(
+      var(--menu-reveal-top) calc(-1 * var(--menu-reveal-outset))
+        var(--menu-reveal-bottom)
+    );
+    background-color: transparent;
+    border-color: transparent;
+    box-shadow: none;
+    -webkit-backdrop-filter: blur(0px);
+    backdrop-filter: blur(0px);
+  }
+  80% {
+    clip-path: inset(0px calc(-1 * var(--menu-reveal-outset)));
+  }
+  to {
+    clip-path: inset(calc(-1 * var(--menu-reveal-outset)));
+  }
+}
+@keyframes anchored-content-enter {
+  from {
+    opacity: 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .setting_menu[data-enter-effect="anchored"] {
+    --ui-dialog-enter-duration: 0s;
+    animation: none;
+  }
+}
 .setting_menu:global(.opens-up) {
   top: auto;
   bottom: calc(-1 * var(--ui-control-inset));

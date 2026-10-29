@@ -69,6 +69,39 @@
   min-height: 20px;
   padding: 2px 6px;
 }
+.segmented_control[data-size="inline"] {
+  --ui-control-inset: var(--ui-segmented-inline-inset);
+  grid-template-columns: repeat(
+    var(--segment-count),
+    var(--ui-segmented-inline-item-width)
+  );
+  width: calc(
+    var(--segment-count) * var(--ui-segmented-inline-item-width) + 2 *
+      var(--ui-control-inset)
+  );
+  height: calc(
+    var(--ui-segmented-inline-item-height) + 2 * var(--ui-control-inset)
+  );
+  padding: var(--ui-control-inset);
+  background: transparent;
+  border-radius: var(--ui-space);
+  font: inherit;
+  font-size: 0.75em;
+}
+.segmented_control[data-size="inline"] :global(.segment) {
+  width: var(--ui-segmented-inline-item-width);
+  min-width: var(--ui-segmented-inline-item-width);
+  max-width: var(--ui-segmented-inline-item-width);
+  height: var(--ui-segmented-inline-item-height);
+  min-height: var(--ui-segmented-inline-item-height);
+  max-height: var(--ui-segmented-inline-item-height);
+  padding: 0;
+}
+.segmented_control[data-size="inline"] :global(.segment-indicator) {
+  width: var(--ui-segmented-inline-item-width);
+  height: var(--ui-segmented-inline-item-height);
+  border-radius: calc(0.5 * var(--ui-space));
+}
 .segmented_control :global(.segment):has(input:focus-visible) {
   outline: 2px solid var(--ui-shade-237);
   outline-offset: -2px;

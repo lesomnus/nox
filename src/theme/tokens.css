@@ -154,6 +154,20 @@
   --ui-pin-input-error-color: #db7070;
   --ui-icon-size: 20px;
   --ui-icon-size-small: 14px;
+  --ui-segmented-inline-item-width: 16px;
+  --ui-segmented-inline-item-height: 16px;
+  --ui-segmented-inline-inset: 1px;
+  --ui-file-chip-border-width: 1px;
+  --ui-file-chip-editor-height: 20px;
+  --ui-file-chip-caret-gap: 1px;
+  --ui-file-chip-border: var(--ui-shade-65);
+  --ui-file-chip-hover-border: var(--ui-shade-115);
+  --ui-file-chip-radius: var(--ui-space);
+  --ui-file-chip-text-padding-block: calc(0.5 * var(--ui-space));
+  --ui-file-chip-muted: var(--ui-shade-150);
+  --ui-file-chip-hover-duration: 120ms;
+  --ui-file-chip-fade-duration: 450ms;
+  --ui-file-chip-shimmer-duration: 1.8s;
   --ui-section-layout-max-width: 600px;
   --ui-section-layout-gap: calc(8 * var(--ui-space));
   --ui-section-group-gap: var(--ui-space);
@@ -245,6 +259,13 @@
   --ui-control-inset: 2px;
   --ui-badged-icon-gap: 1.5px;
   --ui-control-inline-inset: 6px;
+  --ui-form-control-background: var(--ui-dialog-input-background);
+  --ui-form-control-border: color-mix(
+    in srgb,
+    var(--ui-form-control-background) 92%,
+    var(--ui-shade-237)
+  );
+  --ui-form-control-radius: 6px;
   --ui-hover: var(--ui-shade-40);
   --ui-button-hover-background: var(--ui-shade-48);
   --ui-button-background-duration: 160ms;

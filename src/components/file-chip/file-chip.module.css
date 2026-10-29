@@ -1,0 +1,197 @@
+.chip {
+  position: relative;
+  display: inline-block;
+  max-width: 100%;
+  box-sizing: border-box;
+  padding: 0 calc(1 * var(--ui-space));
+  padding-inline-start: calc(
+    var(--ui-icon-size-small) + 3 * var(--ui-space) + 1px
+  );
+  border: var(--ui-file-chip-border-width) solid var(--ui-file-chip-border);
+  border-radius: var(--ui-file-chip-radius);
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: inherit;
+  text-decoration: none;
+  overflow-wrap: anywhere;
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+  transition:
+    border-color var(--ui-file-chip-hover-duration),
+    color var(--ui-file-chip-fade-duration) ease-out;
+}
+.chip::before {
+  content: "";
+  position: absolute;
+  inset-inline-start: var(--ui-space);
+  top: 50%;
+  transform: translateY(-50%);
+  width: var(--ui-icon-size-small);
+  height: var(--ui-icon-size-small);
+  background: currentColor;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9Z'/%3E%3Cpath d='M14 3v6h6M8 13h8M8 17h5'/%3E%3C/svg%3E")
+    center / contain no-repeat;
+  pointer-events: none;
+}
+.chip::after {
+  content: "";
+  position: absolute;
+  inset-inline-start: calc(var(--ui-icon-size-small) + 2 * var(--ui-space));
+  inset-block: var(--ui-space);
+  width: var(--ui-file-chip-border-width);
+  background: var(--ui-file-chip-border);
+  pointer-events: none;
+}
+.chip:is(a, button, [role="button"]) {
+  cursor: pointer;
+}
+.chip:is(:hover, :focus-visible) {
+  border-color: var(--ui-file-chip-hover-border);
+}
+.chip:focus-visible {
+  outline: var(--ui-file-chip-border-width) solid currentColor;
+  outline-offset: var(--ui-file-chip-border-width);
+}
+.chip:disabled {
+  cursor: default;
+  color: var(--ui-file-chip-muted);
+}
+.chip code {
+  padding: 0;
+  background: transparent;
+  font: inherit;
+}
+.label {
+  position: relative;
+  z-index: 1;
+}
+.activity {
+  position: absolute;
+  inset: var(--ui-file-chip-border-width);
+  border-radius: inherit;
+  pointer-events: none;
+  background: linear-gradient(
+    105deg,
+    transparent 30%,
+    color-mix(in srgb, currentColor 16%, transparent) 50%,
+    transparent 70%
+  );
+  background-size: 250% 100%;
+  opacity: 0;
+  transition: opacity var(--ui-file-chip-fade-duration) ease-out;
+  animation: shimmer var(--ui-file-chip-shimmer-duration) linear infinite paused;
+}
+.chip[data-loading] .activity {
+  opacity: 1;
+  animation-play-state: running;
+}
+/* Textarea mirrors reserve icon/inset space with the same typographic spaces.
+   An inset stroke paints the frame without advancing the native caret. */
+.chip[data-text-layout] {
+  display: inline;
+  padding: var(--ui-file-chip-text-padding-block) 0;
+  border: 0;
+  box-shadow: inset 0 0 0 var(--ui-file-chip-border-width)
+    var(--ui-file-chip-border);
+}
+.chip[data-text-layout]::before {
+  inset-inline-start: 0.25em;
+  width: min(var(--ui-icon-size-small), 1em);
+  height: min(var(--ui-icon-size-small), 1em);
+}
+.chip[data-text-layout]::after {
+  inset-inline-start: 1.5em;
+}
+.chip[data-text-layout]:is(:hover, :focus-visible) {
+  box-shadow: inset 0 0 0 var(--ui-file-chip-border-width)
+    var(--ui-file-chip-hover-border);
+}
+.chip[data-custom-prefix] {
+  padding-inline-start: 0;
+}
+.chip[data-custom-prefix]::before,
+.chip[data-custom-prefix]::after {
+  content: none;
+}
+.customPrefix {
+  position: relative;
+  display: inline-block;
+  line-height: normal;
+}
+.prefixContent {
+  position: absolute;
+  top: 50%;
+  inset-inline-start: var(--ui-file-chip-border-width);
+  width: max-content;
+  transform: translateY(-50%);
+  border-radius: inherit;
+}
+.customPrefix::after {
+  content: "";
+  position: absolute;
+  inset-block: var(--ui-space);
+  inset-inline-end: calc(0.5 * var(--ui-space));
+  width: var(--ui-file-chip-border-width);
+  background: var(--ui-file-chip-border);
+  pointer-events: none;
+}
+.chip[data-pixel-layout] {
+  display: inline-flex;
+  width: max-content;
+  align-items: center;
+  min-height: var(--ui-file-chip-editor-height);
+  padding-block: 0;
+  line-height: normal;
+  white-space: pre;
+}
+.chip[data-pixel-layout][data-custom-prefix] {
+  gap: calc(0.5 * var(--ui-space));
+  padding-inline-end: calc(0.5 * var(--ui-space));
+}
+.chip:not([data-text-layout]) .customPrefix {
+  display: inline-flex;
+  align-items: center;
+  gap: calc(0.5 * var(--ui-space));
+  flex: none;
+}
+.chip:not([data-text-layout]) .prefixContent {
+  position: static;
+  transform: none;
+}
+.chip:not([data-text-layout]) .customPrefix::after {
+  position: static;
+  align-self: stretch;
+  margin-block: var(--ui-space);
+  flex: none;
+}
+.chip[data-pixel-layout] .label,
+.chip[data-pixel-layout] .label span {
+  display: inline-block;
+  width: max-content;
+  width: calc-size(max-content, round(up, size, 1px));
+  box-sizing: border-box;
+}
+.chip[data-pixel-layout] > .label {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+@keyframes shimmer {
+  from {
+    background-position: 150% 0;
+  }
+  to {
+    background-position: -50% 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .chip,
+  .activity {
+    transition: none;
+  }
+  .activity {
+    animation: none;
+    background-position: 50% 0;
+  }
+}

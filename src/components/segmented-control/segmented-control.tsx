@@ -10,7 +10,7 @@ export type SegmentedControlProps = {
   options: ValueOption[];
   disabled?: boolean;
   /** Compact controls fit a 24px toolbar row. */
-  size?: "default" | "compact";
+  size?: "default" | "compact" | "inline";
   /** Show option icons while retaining their labels for accessibility/tooltips. */
   iconOnly?: boolean;
   onChange: (value: string) => void;

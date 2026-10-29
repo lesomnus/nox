@@ -94,6 +94,8 @@ significant digits of any value in either mode, for example
 `<CompactNumber value={7} mode="integer" digits={3} muted />`. Padding zeroes
 stay darker; number formatting, reserved width and accessible labels are unchanged.
 
+`baseUnit` labels the unscaled compact unit cell, for example `baseUnit="B"` for bytes. Scaled units keep their existing labels. Integer mode has no unit cell. A caller `className` can adapt typography to an editor.
+
 Formatted text shares three color roles across `ElapsedTime`, `CompactNumber`,
 `DurationDisplay` and `DateTime`:
 
@@ -227,7 +229,7 @@ actions, placement and keyboard behavior belong to each menu. The top-level
 controls and component-specific cases. See [menu overlays](docs/menu-surface.md)
 for the capability table.
 
-`Checkbox`, `Radio`, `CopyButton`, `IdentifierValue`, `DateTime`, `FieldLabel`,
+`Checkbox`, `Radio`, `CopyButton`, `FileChip`, `IdentifierValue`, `DateTime`, `FieldLabel`,
 `DescriptionList` and `NavigationPanel` provide native selection, clipboard
 feedback, stable identifier previews, local timestamps and compact record views.
 They share the existing tokens, work without application CSS or services, and

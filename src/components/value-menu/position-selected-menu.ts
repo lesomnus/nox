@@ -46,6 +46,9 @@ export function positionSelectedMenu(
   const center = anchor.top + anchor.height / 2;
   const row = option.getBoundingClientRect();
   const text = label.getBoundingClientRect();
+  // Form controls can use different padding from the portaled option rows.
+  // Align the text itself rather than assuming the two frames share an inset.
+  popup.style.left = `${clamp(parseFloat(popup.style.left) + anchor.left - text.left, edge, window.innerWidth - edge - popup.getBoundingClientRect().width)}px`;
   const contentCenter =
     text.top +
     text.height / 2 -
@@ -74,6 +77,16 @@ export function positionSelectedMenu(
     list.scrollTop = contentCenter - visibleAbove;
     const actual = label.getBoundingClientRect();
     popup.style.top = `${center - (actual.top + actual.height / 2 - popup.getBoundingClientRect().top)}px`;
+    const frame = popup.getBoundingClientRect();
+    const selected = option.getBoundingClientRect();
+    popup.style.setProperty(
+      "--menu-reveal-top",
+      `${Math.max(0, selected.top - frame.top - topInset)}px`,
+    );
+    popup.style.setProperty(
+      "--menu-reveal-bottom",
+      `${Math.max(0, frame.bottom - selected.bottom - bottomInset)}px`,
+    );
     popup.dataset.itemAlignment = "selected";
     return true;
   }
