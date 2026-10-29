@@ -40,6 +40,7 @@ for (const [component, reducedMotion] of [
       const frames: {
         visible: number;
         other: number;
+        disabled: number;
         dx: number;
         dy: number;
         top: number;
@@ -68,6 +69,7 @@ for (const [component, reducedMotion] of [
               opacity(selected),
             ),
             other: opacity(other),
+            disabled: opacity(popup.querySelector("button:disabled")),
             top: bounds.top + Math.max(0, insets[0]),
             bottom: bounds.bottom - Math.max(0, insets[2] ?? insets[0]),
             dx: rect ? Math.abs(rect.left - anchor.left) : Infinity,
@@ -110,6 +112,14 @@ for (const [component, reducedMotion] of [
       ).toBe(true);
     }
     expect(frames.at(-1)!.other).toBeGreaterThan(0.99);
+    if (component === "valuemenu") {
+      const disabledOpacity = frames.at(-1)!.disabled;
+      expect(disabledOpacity).toBeGreaterThan(0);
+      expect(disabledOpacity).toBeLessThan(1);
+      expect(
+        Math.max(...frames.map((frame) => frame.disabled)),
+      ).toBeLessThanOrEqual(disabledOpacity + 0.001);
+    }
     if (component === "valuemenu" && !reducedMotion)
       await page.screenshot({ path: test.info().outputPath("opened.png") });
   });
