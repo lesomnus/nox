@@ -30,7 +30,7 @@ export function Switch({
         if (!pending) onChange(!checked);
       }}
     >
-      <span aria-hidden="true" />
+      <span className={styles.thumb} aria-hidden="true" />
       {pending && (
         <InkSparkle
           className={styles.ink_sparkle}

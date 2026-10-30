@@ -1,4 +1,6 @@
 .switch_control {
+  -webkit-appearance: none;
+  appearance: none;
   position: relative;
   overflow: hidden;
   isolation: isolate;
@@ -15,8 +17,11 @@
   touch-action: manipulation;
   transition: background 160ms ease-out;
 }
-.switch_control > span {
-  position: relative;
+.thumb {
+  position: absolute;
+  inset-block: 0;
+  inset-inline-start: 3px;
+  margin-block: auto;
   z-index: 1;
   width: 16px;
   height: 16px;
@@ -31,7 +36,7 @@
 .switch_control[aria-checked="true"] {
   background: var(--ui-shade-204);
 }
-.switch_control[aria-checked="true"] > span {
+.switch_control[aria-checked="true"] > .thumb {
   transform: translateX(18px);
   background: var(--ui-shade-20);
 }
@@ -52,7 +57,7 @@
 .switch_control[data-pending] {
   cursor: progress;
 }
-.switch_control[data-pending] > span {
+.switch_control[data-pending] > .thumb {
   transform: translateX(9px);
 }
 .ink_sparkle {
@@ -71,7 +76,7 @@
 }
 @media (prefers-reduced-motion: reduce) {
   .switch_control,
-  .switch_control > span {
+  .thumb {
     transition: none;
   }
 }
