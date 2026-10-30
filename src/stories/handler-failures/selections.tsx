@@ -39,9 +39,15 @@ const options = [
 export function SelectionFailureExample({
   kind = "switch",
   showRetry = false,
+  awaitAction = false,
+  searchable = false,
+  alignItemWithTrigger = false,
 }: {
   kind?: SelectionKind;
   showRetry?: boolean;
+  awaitAction?: boolean;
+  searchable?: boolean;
+  alignItemWithTrigger?: boolean;
 }) {
   const state = useCommit("low", showRetry);
   const name = useId();
@@ -49,7 +55,10 @@ export function SelectionFailureExample({
   const menuProps = {
     label: "Quality",
     value: state.value,
-    choose: state.change,
+    choose: awaitAction ? state.commit : state.change,
+    awaitAction,
+    searchable,
+    alignItemWithTrigger,
     options,
     disabled: state.pending,
   };

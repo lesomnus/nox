@@ -104,14 +104,42 @@ other errors on the same anchor are preserved. Changing these styles does not
 move surrounding content. Components/ActionError/TriggerStyling demonstrates the
 default stroke, overridden tokens and a background-only treatment.
 
+### Waiting for menu actions
+
+`ActionMenu` and `ValueMenu` (including its prefix wrappers) support
+`awaitAction`. It defaults to false, retaining immediate closing. Enable it to
+keep the menu visible until `run` or `choose` succeeds. Return the actual handler
+Promise and let failure reject or throw; starting work with `void` or swallowing
+its rejection makes the menu consider it successful.
+
+```tsx
+<ActionMenu
+  label="Report actions"
+  awaitAction
+  items={[{ label: "Publish", run: () => api.publishReport() }]}
+/>
+```
+
+The active item shows pending feedback and duplicate actions are blocked. Failure
+keeps the menu open and shows the shared ActionError anchored to that item,
+including its trigger styling. Dismiss the error or activate the item again to
+retry. Success closes the menu and restores its opener. This mode owns its error
+feedback; avoid wrapping its handler with another error surface. The caller still
+owns the committed value of a ValueMenu.
+
+Escape and outside clicks remain manual dismissal. They do not cancel work, and
+a late result cannot close a newly reopened menu or show stale feedback there.
+Menus/Features/AwaitAction compares both menus using the existing failure recipes;
+Patterns/HandlerFailures/MenuAction and MenuChoice expose the option in Controls.
+
 | Family                                                  | Example recovery policy                                                                                                                      |
 | ------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
 | Button, BorderTrailButton, ConfirmButton, FileChip      | Busy guard, local error and explicit retry. Confirmation still applies to fresh activations.                                                 |
-| ActionMenu                                              | `run` closes the menu normally; feedback survives beside its opener.                                                                         |
+| ActionMenu                                              | Default closes before `run`; `awaitAction` keeps it open and anchors failure to its item.                                                    |
 | LinkButton, ButtonAnchor                                | Plain clicks load a preview; modified clicks retain native behavior.                                                                         |
 | CopyButton                                              | Failing `onCopied` work is separate from clipboard success. Retry repeats only the failed follow-up. Clipboard denial has separate feedback. |
 | Switch, ToggleButton, Checkbox, Radio, SegmentedControl | Keep the confirmed value on failure; retry the requested value.                                                                              |
-| ValueMenu, PrefixValueMenu, IconValueMenu               | `choose` commits after success; failure is outside the closed menu.                                                                          |
+| ValueMenu, PrefixValueMenu, IconValueMenu               | Default feedback stays outside the closed menu; `awaitAction` awaits `choose` and keeps failure beside its option.                           |
 | EditableValue                                           | `save` already catches rejection and keeps its editor/draft. Pass the rejecting promise directly, without swallowing it with `run`.          |
 | Form                                                    | Capture FormData synchronously, preserve the draft and native required validation on retry.                                                  |
 | PinInput                                                | Failed `onComplete` verification retains the entered code for correction or retry.                                                           |

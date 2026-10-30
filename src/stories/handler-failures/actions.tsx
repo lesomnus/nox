@@ -36,18 +36,21 @@ const titles: Record<ActionKind, string> = {
 export function ActionFailureExample({
   kind = "button",
   showRetry = false,
+  awaitAction = false,
 }: {
   kind?: ActionKind;
   showRetry?: boolean;
+  awaitAction?: boolean;
 }) {
   const failOnce = useFailOnce();
   const trigger = useRef<HTMLElement | null>(null);
   const [completed, setCompleted] = useState(false);
   const [clipboardFailed, setClipboardFailed] = useState(false);
-  const action = useAsyncAction(async () => {
+  const publish = async () => {
     await failOnce();
     setCompleted(true);
-  });
+  };
+  const action = useAsyncAction(publish);
   const run = async () => {
     if (await action.run())
       requestAnimationFrame(() =>
@@ -113,11 +116,13 @@ export function ActionFailureExample({
         {kind === "menu" && (
           <ActionMenu
             label="Report actions"
+            awaitAction={awaitAction}
             disabled={action.pending}
             items={[
               {
                 label: "Publish report",
                 run: () => {
+                  if (awaitAction) return publish();
                   // ActionMenu has already restored focus to its opener.
                   trigger.current = document.activeElement as HTMLElement;
                   void run();

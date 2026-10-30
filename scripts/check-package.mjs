@@ -179,8 +179,11 @@ try {
     const menuItem: MenuItemProps = { role: "menuitem", icon: <svg viewBox="0 0 24 24"><path d="M4 12h16" /></svg>, trailing: "Open", onClick: (event) => event.currentTarget.focus() };
     const splitTree: SplitNode = {kind:"split",id:"root",axis:"horizontal",ratio:0.5,first:{kind:"pane",id:"a"},second:{kind:"pane",id:"b"}};
     const prefixMenu: PrefixValueMenuProps = {label:"Effort",prefix:"Effort",prefixClassName:"prefix",value:"medium",options:[{value:"medium",label:"Medium"}],hideSelected:true,choose:() => {}};
-    import { ValueMenu, type ValueMenuProps } from "@lesomnus/nox";
-    const selectedMenu: ValueMenuProps = {label:"Aligned effort",value:"medium",options:[{value:"medium",label:"Medium"}],alignItemWithTrigger:true,choose:() => {}};
+    import { ActionMenu, type ActionMenuItem, ValueMenu, type ValueMenuProps } from "@lesomnus/nox";
+    const asyncMenuItems: ActionMenuItem[] = [{label:"Save",run:async button => { void button; return {saved:true}; }}];
+    const asyncActions = <ActionMenu label="Save actions" awaitAction items={asyncMenuItems} />;
+    void asyncActions;
+    const selectedMenu: ValueMenuProps = {label:"Aligned effort",value:"medium",options:[{value:"medium",label:"Medium"}],alignItemWithTrigger:true,awaitAction:true,choose:async () => {}};
     const auroraPalette: AuroraPalette = ["#23b04a", "#2596e9", "#b14ccd"];
     const aurora: AuroraGlowProps = {active: true, paused: false, speed: 0.75, strength: 0.4, seed: 12, palette: auroraPalette};
     const sparkle: InkSparkleProps = { duration: 2000, origin: [-8, 40], centerMotion: "fixed", loop: true, sparkleColor: [0.25, 0.5, 0.75, 0.2] };

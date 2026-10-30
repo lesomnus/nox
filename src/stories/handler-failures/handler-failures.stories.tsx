@@ -42,7 +42,9 @@ export const Action: Recipe<{ kind: ActionKind }> = {
   },
   render: (args) => <ActionFailureExample {...args} />,
 };
-export const MenuAction: Story = {
+export const MenuAction: Recipe<{ awaitAction?: boolean }> = {
+  args: { awaitAction: false },
+  argTypes: { awaitAction: { control: "boolean" } },
   render: (args) => <ActionFailureExample {...args} kind="menu" />,
 };
 export const CopyCallback: Story = {
@@ -63,9 +65,13 @@ export const Selection: Recipe<{ kind: SelectionKind }> = {
   },
   render: (args) => <SelectionFailureExample {...args} />,
 };
-export const MenuChoice: Recipe<{ kind: SelectionKind }> = {
-  args: { kind: "value-menu" },
+export const MenuChoice: Recipe<{
+  kind: SelectionKind;
+  awaitAction?: boolean;
+}> = {
+  args: { kind: "value-menu", awaitAction: false },
   argTypes: {
+    awaitAction: { control: "boolean" },
     kind: {
       control: "select",
       options: ["value-menu", "prefix-menu", "icon-menu"],

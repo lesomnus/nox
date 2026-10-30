@@ -18,11 +18,12 @@ export function useCommit<Value>(initial: Value, showRetry = false) {
   const anchor = useRef<HTMLElement | null>(null);
   const requested = useRef(initial);
   const failOnce = useFailOnce();
-  const action = useAsyncAction(async (next: Value) => {
+  const commit = async (next: Value) => {
     requested.current = next;
     await failOnce();
     setValue(next);
-  });
+  };
+  const action = useAsyncAction(commit);
   const id = useId();
   const change = async (next: Value) => {
     const root = controlRef.current;
@@ -53,6 +54,7 @@ export function useCommit<Value>(initial: Value, showRetry = false) {
     error: action.error,
     description: action.error ? id : undefined,
     change: (next: Value) => void change(next),
+    commit,
     feedback: action.error && (
       <ActionError
         onDismiss={action.reset}
