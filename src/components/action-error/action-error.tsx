@@ -14,6 +14,7 @@ import styles from "./action-error.module.css";
 
 export type ActionErrorProps = Omit<ComponentPropsWithRef<"div">, "role"> & {
   onRetry?: () => void;
+  showRetry?: boolean;
   pending?: boolean;
   retryLabel?: string;
   /** Anchor to the failed control without taking space in the page layout. */
@@ -25,10 +26,11 @@ export type ActionErrorProps = Omit<ComponentPropsWithRef<"div">, "role"> & {
 export function ActionError({
   children,
   onRetry,
+  showRetry = false,
   pending = false,
   retryLabel,
   anchor,
-  placement = "bottom-start",
+  placement = "top-start",
   id: suppliedId,
   ref,
   style,
@@ -94,7 +96,7 @@ export function ActionError({
       <span className={styles.message}>
         {children ?? t("Action failed. Please try again.")}
       </span>
-      {onRetry && (
+      {showRetry && onRetry && (
         <Button type="button" loading={pending} onClick={onRetry}>
           {retryLabel ?? t("Retry")}
         </Button>

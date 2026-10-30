@@ -12,7 +12,7 @@ export function useFailOnce() {
   };
 }
 
-export function useCommit<Value>(initial: Value) {
+export function useCommit<Value>(initial: Value, showRetry = false) {
   const [value, setValue] = useState(initial);
   const controlRef = useRef<HTMLDivElement>(null);
   const anchor = useRef<HTMLElement | null>(null);
@@ -55,6 +55,7 @@ export function useCommit<Value>(initial: Value) {
     change: (next: Value) => void change(next),
     feedback: action.error && (
       <ActionError
+        showRetry={showRetry}
         anchor={anchor.current ?? controlRef.current}
         id={id}
         pending={action.pending}

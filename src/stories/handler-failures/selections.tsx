@@ -38,10 +38,12 @@ const options = [
 
 export function SelectionFailureExample({
   kind = "switch",
+  showRetry = false,
 }: {
   kind?: SelectionKind;
+  showRetry?: boolean;
 }) {
-  const state = useCommit("low");
+  const state = useCommit("low", showRetry);
   const name = useId();
   const binary = (checked: boolean) => state.change(checked ? "high" : "low");
   const menuProps = {

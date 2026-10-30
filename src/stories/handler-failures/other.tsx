@@ -14,7 +14,11 @@ import {
 } from "@lesomnus/nox";
 import { Example, useCommit, useFailOnce } from "./shared";
 
-export function PopoverFailureExample() {
+export function PopoverFailureExample({
+  showRetry = false,
+}: {
+  showRetry?: boolean;
+}) {
   const [open, setOpen] = useState(false);
   const [loaded, setLoaded] = useState(false);
   const trigger = useRef<HTMLButtonElement>(null);
@@ -48,6 +52,7 @@ export function PopoverFailureExample() {
       {load.error && (
         <ActionError
           anchor={trigger.current}
+          showRetry={showRetry}
           pending={load.pending}
           onRetry={() => {
             void load.run().then((ok) => {
@@ -63,8 +68,12 @@ export function PopoverFailureExample() {
   );
 }
 
-export function SuggestionFailureExample() {
-  const state = useCommit(0);
+export function SuggestionFailureExample({
+  showRetry = false,
+}: {
+  showRetry?: boolean;
+}) {
+  const state = useCommit(0, showRetry);
   const id = useId();
   return (
     <Example title="SuggestionGrid">
@@ -91,7 +100,11 @@ export function SuggestionFailureExample() {
   );
 }
 
-export function TableFailureExample() {
+export function TableFailureExample({
+  showRetry = false,
+}: {
+  showRetry?: boolean;
+}) {
   const trigger = useRef<HTMLButtonElement>(null);
   const [present, setPresent] = useState(true);
   const failOnce = useFailOnce();
@@ -129,6 +142,7 @@ export function TableFailureExample() {
       {remove.error && (
         <ActionError
           anchor={trigger.current}
+          showRetry={showRetry}
           pending={remove.pending}
           onRetry={() => void remove.run()}
         >

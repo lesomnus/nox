@@ -25,11 +25,7 @@ return (
       Publish report
     </Button>
     {publish.error && (
-      <ActionError
-        anchor={trigger.current}
-        pending={publish.pending}
-        onRetry={() => void publish.run()}
-      >
+      <ActionError anchor={trigger.current} pending={publish.pending}>
         Could not publish. Your report is still available.
       </ActionError>
     )}
@@ -53,7 +49,10 @@ success result after unmount. No automatic retry, rollback or logging occurs.
 
 `ActionError` provides an alert, optional retry and pending feedback. Pass
 `anchor` to overlay it beside the triggering control without changing layout;
-`placement` prefers a side and flips or shifts at viewport edges. The shared
+`placement` defaults to `top-start`, above the trigger, and flips or shifts at
+viewport edges. Retry is hidden by default, even when an `onRetry` handler is
+provided. Set `showRetry` together with `onRetry` to display it. Storybook's
+shared recipes expose this opt-in through the `showRetry` control. The shared
 menu surface keeps it clear of clipping and inside an anchor's open Dialog,
 where its Retry button remains interactive. Scroll and resize reposition it.
 The borderless surface uses a translucent red tint and backdrop blur in both

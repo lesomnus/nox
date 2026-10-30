@@ -39,7 +39,7 @@ const story = (component: string, name?: string) => {
     component === "button" && name === "link-failure-and-retry"
       ? ["link-action", "kind:anchor"]
       : recipes[component];
-  return `/iframe.html?id=patterns-handlerfailures--${recipe}&viewMode=story${args ? `&args=${args}` : ""}`;
+  return `/iframe.html?id=patterns-handlerfailures--${recipe}&viewMode=story&args=showRetry:true${args ? `;${args}` : ""}`;
 };
 const errors = new WeakMap<Page, string[]>();
 test.beforeEach(async ({ page }) => {
@@ -52,6 +52,30 @@ const retry = async (page: Page) => {
   await expect(page.getByRole("alert")).toBeVisible();
   await page.getByRole("button", { name: "Retry", exact: true }).click();
 };
+
+test("errors appear above their trigger without a retry button by default", async ({
+  page,
+}) => {
+  await page.goto(
+    "/iframe.html?id=patterns-handlerfailures--action&viewMode=story",
+  );
+  const trigger = page.getByRole("button", {
+    name: "Publish report",
+    exact: true,
+  });
+  await trigger.click();
+  const alert = page.getByRole("alert");
+  await expect(alert).toBeVisible();
+  await expect(
+    alert.getByRole("button", { name: "Retry", exact: true }),
+  ).toHaveCount(0);
+  const control = await trigger.boundingBox();
+  const popup = await alert.boundingBox();
+  expect(popup!.y + popup!.height).toBeLessThanOrEqual(control!.y);
+  await trigger.click();
+  await expect(page.getByRole("status")).toHaveText("Action completed");
+  await expect(alert).toHaveCount(0);
+});
 
 for (const [component, label] of [
   ["button", "Publish report"],
@@ -188,10 +212,10 @@ test("EditableValue keeps its editor open and its draft after save rejects", asy
   await expect(dialog.getByRole("alert")).toContainText("Connection lost");
   await expect(input).toHaveValue("Edited workspace");
   await expect(page.getByLabel("Saved value")).toHaveText("My workspace");
-  const again = dialog.getByRole("button", { name: "Retry", exact: true });
-  await again.click();
-  await expect(again).toHaveAttribute("aria-busy", "true");
-  await expect(again).toBeFocused();
+  await expect(
+    dialog.getByRole("button", { name: "Retry", exact: true }),
+  ).toHaveCount(0);
+  await dialog.getByRole("button", { name: "Confirm", exact: true }).click();
   await expect(dialog).toHaveCount(0);
   await expect(page.getByLabel("Saved value")).toHaveText("Edited workspace");
 });

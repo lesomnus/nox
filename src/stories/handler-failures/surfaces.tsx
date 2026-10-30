@@ -21,9 +21,11 @@ import styles from "./examples.module.css";
 export function SurfaceFailureExample({
   drawer = false,
   card = false,
+  showRetry = false,
 }: {
   drawer?: boolean;
   card?: boolean;
+  showRetry?: boolean;
 }) {
   const [open, setOpen] = useState(false);
   const [saved, setSaved] = useState(false);
@@ -69,6 +71,7 @@ export function SurfaceFailureExample({
       {save.error && (
         <ActionError
           anchor={submit.current}
+          showRetry={showRetry}
           pending={save.pending}
           onRetry={() => void run()}
         >
@@ -147,7 +150,13 @@ const initial: SplitNode = {
   first: { kind: "pane", id: "Files" },
   second: { kind: "pane", id: "Preview" },
 };
-export function LayoutFailureExample({ resize = false }: { resize?: boolean }) {
+export function LayoutFailureExample({
+  resize = false,
+  showRetry = false,
+}: {
+  resize?: boolean;
+  showRetry?: boolean;
+}) {
   const [node, setNode] = useState<SplitNode>(initial);
   const [width, setWidth] = useState(180);
   const [saved, setSaved] = useState("Not saved");
@@ -208,6 +217,7 @@ export function LayoutFailureExample({ resize = false }: { resize?: boolean }) {
       {save.error && (
         <ActionError
           anchor={submit.current}
+          showRetry={showRetry}
           pending={save.pending}
           onRetry={() => {
             submit.current?.focus();

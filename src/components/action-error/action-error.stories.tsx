@@ -20,9 +20,11 @@ const meta = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 export const Default: Story = {};
-export const WithRetry: Story = { args: { onRetry: () => {} } };
+export const WithRetry: Story = {
+  args: { showRetry: true, onRetry: () => {} },
+};
 export const PendingRetry: Story = {
-  args: { onRetry: () => {}, pending: true },
+  args: { showRetry: true, onRetry: () => {}, pending: true },
 };
 export const Localized: Story = {
   render: () => (
@@ -35,7 +37,7 @@ export const Localized: Story = {
             : message
       }
     >
-      <ActionError onRetry={() => {}} />
+      <ActionError showRetry onRetry={() => {}} />
     </UIProvider>
   ),
 };

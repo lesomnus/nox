@@ -35,8 +35,10 @@ const titles: Record<ActionKind, string> = {
 
 export function ActionFailureExample({
   kind = "button",
+  showRetry = false,
 }: {
   kind?: ActionKind;
+  showRetry?: boolean;
 }) {
   const failOnce = useFailOnce();
   const trigger = useRef<HTMLElement | null>(null);
@@ -150,11 +152,14 @@ export function ActionFailureExample({
       {action.error && (
         <ActionError
           anchor={trigger.current}
+          showRetry={showRetry}
           pending={action.pending}
           onRetry={() => void run()}
         >
           {kind === "copy"
-            ? "Copied, but recording the copy failed. Retry only records it; the clipboard is already updated."
+            ? showRetry
+              ? "Copied, but recording the copy failed. Retry only records it; the clipboard is already updated."
+              : "Copied, but recording the copy failed. The clipboard is already updated."
             : kind === "link" || kind === "anchor"
               ? "Could not load the report preview. Please try again."
               : "Could not publish the report. Your report is still available."}

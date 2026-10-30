@@ -17,7 +17,11 @@ import {
 } from "@lesomnus/nox";
 import { Example, useCommit, useFailOnce } from "./shared";
 
-export function FormFailureExample() {
+export function FormFailureExample({
+  showRetry = false,
+}: {
+  showRetry?: boolean;
+}) {
   const id = useId();
   const form = useRef<HTMLFormElement>(null);
   const submit = useRef<HTMLButtonElement>(null);
@@ -59,6 +63,7 @@ export function FormFailureExample() {
         <ActionError
           id={`${id}-error`}
           anchor={submit.current}
+          showRetry={showRetry}
           pending={save.pending}
           onRetry={() => {
             submit.current?.focus();
@@ -101,7 +106,11 @@ export function EditableFailureExample() {
   );
 }
 
-export function PinFailureExample() {
+export function PinFailureExample({
+  showRetry = false,
+}: {
+  showRetry?: boolean;
+}) {
   const [code, setCode] = useState("");
   const [verified, setVerified] = useState(false);
   const requested = useRef("");
@@ -137,6 +146,7 @@ export function PinFailureExample() {
         <ActionError
           id={id}
           anchor={input.current}
+          showRetry={showRetry}
           pending={verify.pending}
           onRetry={() => void run(requested.current)}
         >
@@ -150,10 +160,12 @@ export function PinFailureExample() {
 
 export function DateFailureExample({
   calendar = false,
+  showRetry = false,
 }: {
   calendar?: boolean;
+  showRetry?: boolean;
 }) {
-  const state = useCommit<string | null>("2026-10-21");
+  const state = useCommit<string | null>("2026-10-21", showRetry);
   const props = {
     label: "Schedule",
     value: state.value,
@@ -178,8 +190,10 @@ export function DateFailureExample({
 
 export function DraftFailureExample({
   kind = "color",
+  showRetry = false,
 }: {
   kind?: "color" | "slider" | "setting-slider";
+  showRetry?: boolean;
 }) {
   const [color, setColor] = useState<RgbColor>({ r: 217, g: 255, b: 48 });
   const [amount, setAmount] = useState<number | undefined>(4);
@@ -247,6 +261,7 @@ export function DraftFailureExample({
       {save.error && (
         <ActionError
           anchor={submit.current}
+          showRetry={showRetry}
           pending={save.pending}
           onRetry={() => {
             submit.current?.focus();
