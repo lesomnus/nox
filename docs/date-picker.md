@@ -82,6 +82,39 @@ or true to close after a multiple choice. A pending range stays open until its
 end is chosen. Clear empties a selection; multiple/range mode stays open unless
 closeOnSelect is explicitly true. `clearable={false}` omits Clear.
 
+## Async selection
+
+Set `awaitAction` to keep the popup open while the Promise returned by `onChange`
+is pending. Selection is temporarily read-only, preventing duplicate requests.
+On success, an uncontrolled picker commits its value and follows `closeOnSelect`.
+Controlled consumers should update their value after their save succeeds.
+
+```tsx
+<DatePicker
+  label="Schedule"
+  value={date}
+  awaitAction
+  onChange={async (next) => {
+    await saveDate(next);
+    setDate(next);
+  }}
+/>
+```
+
+A thrown/rejected error keeps the calendar open and shows an ActionError above
+the chosen day (or Today/Clear action), with that element highlighted. The saved
+selection remains unchanged. Dismiss the error to focus that date and select it
+again to retry. The Promise must be returned and failures must propagate;
+starting a detached request or swallowing its error is treated as success.
+
+Escape, outside click and Done still dismiss manually without canceling the
+request. A late result cannot close a reopened calendar or display stale errors.
+`awaitAction` defaults to false, preserving immediate selection and dismissal.
+It also works with multiple/range selections and `closeOnSelect={false}`.
+
+Storybook **Components/DatePicker/AwaitSelection** demonstrates pending selection;
+**Patterns/HandlerFailures/DateChange** demonstrates a failed save anchored to a day.
+
 ## Date information
 
 `getDateInfo(date)` returns a `DatePickerDateInfo` object, null or undefined:

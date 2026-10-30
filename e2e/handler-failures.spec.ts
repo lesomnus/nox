@@ -240,7 +240,16 @@ for (const component of ["datepicker", "calendar"]) {
     await page.getByRole("gridcell", { name: /October 24, 2026/ }).click();
     await expect(page.getByRole("alert")).toBeVisible();
     await expect(page.getByLabel("Saved value")).toHaveText("2026-10-21");
-    await retry(page);
+    if (component === "datepicker") {
+      const date = page.getByRole("gridcell", { name: /October 24, 2026/ });
+      await expect(
+        page.getByRole("dialog", { name: "Calendar for Schedule" }),
+      ).toBeVisible();
+      await expect(date).toHaveAttribute("data-action-error-open", "true");
+      await page.getByRole("button", { name: "Dismiss error" }).click();
+      await expect(date).toBeFocused();
+      await date.click();
+    } else await retry(page);
     await expect(page.getByLabel("Saved value")).toHaveText("2026-10-24");
   });
 }

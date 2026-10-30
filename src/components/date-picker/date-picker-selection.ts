@@ -19,21 +19,21 @@ export type DatePickerSelectionProps =
       mode?: "single";
       value?: string | null;
       defaultValue?: string | null;
-      onChange?: (value: string | null) => void;
+      onChange?: (value: string | null) => unknown;
       getSelectionDates?: never;
     }
   | {
       mode: "multiple";
       value?: readonly string[];
       defaultValue?: readonly string[];
-      onChange?: (value: string[]) => void;
+      onChange?: (value: string[]) => unknown;
       getSelectionDates?: DatePickerSelectionResolver;
     }
   | {
       mode: "range";
       value?: DatePickerRange | null;
       defaultValue?: DatePickerRange | null;
-      onChange?: (value: DatePickerRange | null) => void;
+      onChange?: (value: DatePickerRange | null) => unknown;
       getSelectionDates?: DatePickerSelectionResolver;
     };
 

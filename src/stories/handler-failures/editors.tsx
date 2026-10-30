@@ -183,7 +183,12 @@ export function DateFailureExample({
         {calendar ? (
           <Calendar {...props} defaultMonth="2026-10-01" />
         ) : (
-          <DatePicker {...props} />
+          <DatePicker
+            label={props.label}
+            value={state.value}
+            onChange={state.commit}
+            awaitAction
+          />
         )}
       </div>
       {state.feedback}

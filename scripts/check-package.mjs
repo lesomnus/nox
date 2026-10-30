@@ -162,7 +162,7 @@ try {
     const invalidCalendar: CalendarProps = { mode: "range", label: "Invalid", value: [] };
     void invalidCalendar;
     const progress: ProgressProps = { value: 42, variant: "bordered", animated: false, sparkleOptions: { duration: 2000 } };
-    const datePicker: DatePickerProps = { label: "Date", defaultValue: "2026-10-24", min: "2026-01-01", max: "2026-12-31", name: "date", locale: "en-US", weekStartsOn: 1, onChange: value => { void value; }, ref: node => { void node?.focus(); } };
+    const datePicker: DatePickerProps = { label: "Date", defaultValue: "2026-10-24", min: "2026-01-01", max: "2026-12-31", name: "date", locale: "en-US", weekStartsOn: 1, awaitAction: true, onChange: async value => { await Promise.resolve(value); }, ref: node => { void node?.focus(); } };
     const holiday: DatePickerDateInfo = { disabled: true, label: "Holiday", description: "Closed", marker: "•", style: { color: "currentColor" } };
     const windowSelection: DatePickerSelectionResolver = dateWindowSelection({ before: 1, after: 1 });
     const multipleDates: DatePickerProps = { mode: "multiple", label: "Dates", defaultValue: [], getDateInfo: () => holiday, getSelectionDates: windowSelection, onChange: dates => { void dates.join(","); } };

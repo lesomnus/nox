@@ -10,6 +10,7 @@ import {
 } from "react";
 import { Button, type ButtonProps } from "../button/button";
 import { MenuSurface } from "../menu-surface/menu-surface";
+import { useMenuAction } from "../menu-surface/use-menu-action";
 import { ScrollArea } from "../scroll-area/scroll-area";
 import { Calendar, type CalendarDateInfo } from "../calendar/calendar";
 import { DateSelectionFields } from "./date-selection-fields";
@@ -54,6 +55,8 @@ export type DatePickerProps = Omit<
   readOnly?: boolean;
   /** Defaults to closing after a complete single/range selection; multiple stays open. */
   closeOnSelect?: boolean;
+  /** Await onChange before committing/closing; rejection stays on the chosen date. */
+  awaitAction?: boolean;
 } & DatePickerSelectionProps;
 
 /** A date-only field with an anchored, keyboard-navigable Gregorian calendar. */
@@ -77,6 +80,7 @@ export function DatePicker(options: DatePickerProps) {
     readOnly = false,
     disabled = false,
     closeOnSelect,
+    awaitAction = false,
     ref,
     form,
     className = "",
@@ -103,7 +107,9 @@ export function DatePicker(options: DatePickerProps) {
   const [open, setOpen] = useState(false);
   const trigger = useRef<HTMLButtonElement>(null);
   const popup = useRef<HTMLDivElement>(null);
+  const activated = useRef<HTMLElement | null>(null);
   const input = useRef<HTMLInputElement>(null);
+  const action = useMenuAction(awaitAction, close);
   const id = useId();
   useImperativeHandle(ref, () => trigger.current!, []);
   const formatters = useMemo(
@@ -132,6 +138,8 @@ export function DatePicker(options: DatePickerProps) {
         : `${formatDate(selected.value!.start)} – ${selected.value!.end ? formatDate(selected.value!.end) : "…"}`;
 
   function close(restore = false) {
+    action.clear();
+    activated.current = null;
     setOpen(false);
     if (restore) trigger.current?.focus({ preventScroll: true });
   }
@@ -140,18 +148,42 @@ export function DatePicker(options: DatePickerProps) {
   }
   function commit(next: DatePickerSelection) {
     if (unavailable || trigger.current?.matches(":disabled")) return;
-    if (!controlled) setInternal(next);
-    if (!sameSelection(selected, next) && onChange) {
+    const notify = () => {
+      if (sameSelection(selected, next) || !onChange) return;
       if (options.mode === "multiple" && next.mode === "multiple")
-        options.onChange?.([...next.value]);
-      else if (options.mode === "range" && next.mode === "range")
-        options.onChange?.(next.value ? { ...next.value } : null);
-      else if (
+        return options.onChange?.([...next.value]);
+      if (options.mode === "range" && next.mode === "range")
+        return options.onChange?.(next.value ? { ...next.value } : null);
+      if (
         options.mode !== "multiple" &&
         options.mode !== "range" &&
         next.mode === "single"
       )
-        options.onChange?.(next.value);
+        return options.onChange?.(next.value);
+    };
+    if (awaitAction) {
+      const focused = document.activeElement;
+      const anchor =
+        activated.current && popup.current?.contains(activated.current)
+          ? activated.current
+          : focused instanceof HTMLElement && popup.current?.contains(focused)
+            ? focused
+            : trigger.current;
+      if (!anchor) return;
+      action.invoke(
+        async () => {
+          await notify();
+          if (!controlled) setInternal(next);
+        },
+        anchor,
+        JSON.stringify(next),
+        hasSelection(next)
+          ? (closeOnSelect ?? mode !== "multiple") && selectionComplete(next)
+          : mode === "single" || closeOnSelect === true,
+      );
+    } else {
+      if (!controlled) setInternal(next);
+      notify();
     }
   }
   function keys(event: KeyboardEvent<HTMLDivElement>) {
@@ -183,7 +215,7 @@ export function DatePicker(options: DatePickerProps) {
       queueMicrotask(() => {
         if (event.defaultPrevented) return;
         if (!controlled) setInternal(normalizeSelection(mode, defaultValue));
-        setOpen(false);
+        close();
       });
     owner?.addEventListener("reset", reset);
     return () => owner?.removeEventListener("reset", reset);
@@ -235,7 +267,8 @@ export function DatePicker(options: DatePickerProps) {
     const outside = (event: PointerEvent) => {
       if (
         !popup.current?.contains(event.target as Node) &&
-        !trigger.current?.contains(event.target as Node)
+        !trigger.current?.contains(event.target as Node) &&
+        !action.containsFeedback(event.target as Node)
       )
         close();
     };
@@ -276,6 +309,7 @@ export function DatePicker(options: DatePickerProps) {
         aria-label={props["aria-label"] ?? `${label}: ${display}`}
         aria-haspopup="dialog"
         aria-expanded={open}
+        aria-busy={action.pending || props["aria-busy"]}
         aria-controls={open ? id : undefined}
         data-empty={!filled || undefined}
         data-mode={mode}
@@ -325,6 +359,12 @@ export function DatePicker(options: DatePickerProps) {
           style={{ fontSize: "var(--ui-date-picker-font-size)" }}
           role="dialog"
           aria-label={t("Calendar for {label}", { label })}
+          onClickCapture={(event) => {
+            activated.current =
+              event.target instanceof Element
+                ? event.target.closest<HTMLButtonElement>("button")
+                : null;
+          }}
           onKeyDown={keys}
           onBlur={(event) => {
             if (
@@ -332,7 +372,9 @@ export function DatePicker(options: DatePickerProps) {
               !event.currentTarget.contains(
                 event.relatedTarget as Node | null,
               ) &&
-              event.relatedTarget !== trigger.current
+              event.relatedTarget !== trigger.current &&
+              !action.containsFeedback(event.relatedTarget as Node) &&
+              !action.isRunning()
             )
               close();
           }}
@@ -352,11 +394,17 @@ export function DatePicker(options: DatePickerProps) {
               locale={locale}
               weekStartsOn={weekStartsOn}
               clearable={clearable}
-              readOnly={!!unavailable || trigger.current?.matches(":disabled")}
+              readOnly={
+                !!unavailable ||
+                action.pending ||
+                trigger.current?.matches(":disabled")
+              }
+              aria-busy={action.pending || undefined}
               autoFocus
               style={{ width: "100%" }}
               onSelect={(next) => {
                 if (
+                  !awaitAction &&
                   !unavailable &&
                   !trigger.current?.matches(":disabled") &&
                   (closeOnSelect ?? mode !== "multiple") &&
@@ -366,6 +414,7 @@ export function DatePicker(options: DatePickerProps) {
               }}
               onClear={() => {
                 if (
+                  !awaitAction &&
                   !unavailable &&
                   !trigger.current?.matches(":disabled") &&
                   (mode === "single" || closeOnSelect === true)
@@ -381,6 +430,7 @@ export function DatePicker(options: DatePickerProps) {
           </ScrollArea>
         </MenuSurface>
       )}
+      {open && action.feedback}
     </>
   );
 }

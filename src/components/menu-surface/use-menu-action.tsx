@@ -20,7 +20,12 @@ export function useMenuAction(
     generation.current++;
     action.reset();
   }
-  function invoke(run: () => unknown, anchor: HTMLElement, key: string) {
+  function invoke(
+    run: () => unknown,
+    anchor: HTMLElement,
+    key: string,
+    closeOnSuccess = true,
+  ) {
     if (busy.current) return;
     if (!awaitAction) {
       close(true);
@@ -35,7 +40,8 @@ export function useMenuAction(
     void action.run(run).then((success) => {
       busy.current = false;
       // A later result must not close a menu the user dismissed and reopened.
-      if (success && generation.current === request) close(true);
+      if (success && generation.current === request && closeOnSuccess)
+        close(true);
     });
   }
   const current = active.current;

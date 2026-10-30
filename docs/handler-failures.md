@@ -143,7 +143,7 @@ Patterns/HandlerFailures/MenuAction and MenuChoice expose the option in Controls
 | EditableValue                                           | `save` already catches rejection and keeps its editor/draft. Pass the rejecting promise directly, without swallowing it with `run`.          |
 | Form                                                    | Capture FormData synchronously, preserve the draft and native required validation on retry.                                                  |
 | PinInput                                                | Failed `onComplete` verification retains the entered code for correction or retry.                                                           |
-| DatePicker, Calendar, SuggestionGrid                    | Commit a discrete choice after success.                                                                                                      |
+| DatePicker, Calendar, SuggestionGrid                    | Commit a discrete choice after success. DatePicker's `awaitAction` keeps failures on the chosen day inside the open calendar.                |
 | ColorPicker, Slider, SettingSlider                      | `onChange` edits a local draft; a composed Save persists it. No request per pointer frame.                                                   |
 | Dialog, Drawer, Card                                    | Caller-owned save-before-close: failure keeps the surface open; Discard closes without saving.                                               |
 | Popover                                                 | `onOpenChange` starts lazy loading. Failure keeps the trigger usable and retry stays outside the tooltip.                                    |
