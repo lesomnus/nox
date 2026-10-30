@@ -1,6 +1,32 @@
 import { expect, test } from "@playwright/test";
 
 for (const theme of ["dark", "light"]) {
+  test(`headerless Card keeps matching top and horizontal body insets in ${theme}`, async ({
+    page,
+  }) => {
+    await page.goto(
+      `/iframe.html?id=components-card--headerless&viewMode=story&globals=theme:${theme}`,
+    );
+    const card = page.locator("section.floating-card");
+    await expect(card.locator(".card-heading")).toHaveCount(0);
+    await expect(card.locator(".card-body")).toHaveCSS("padding", "0px");
+    const gaps = await card.evaluate((node) => {
+      const outer = node.getBoundingClientRect();
+      const inner = node.querySelector(".card-body")!.getBoundingClientRect();
+      const css = getComputedStyle(node);
+      return {
+        top: inner.top - outer.top - parseFloat(css.borderTopWidth),
+        left: inner.left - outer.left - parseFloat(css.borderLeftWidth),
+        right: outer.right - inner.right - parseFloat(css.borderRightWidth),
+      };
+    });
+    expect(gaps.top).toBeGreaterThan(0);
+    expect(gaps.top).toBeCloseTo(gaps.left, 5);
+    expect(gaps.top).toBeCloseTo(gaps.right, 5);
+  });
+}
+
+for (const theme of ["dark", "light"]) {
   test(`Card owns its surface and preserves action variants in ${theme}`, async ({
     page,
   }) => {

@@ -82,9 +82,17 @@ test("forms choose initial focus, wrap keyboard navigation and submit without bu
 test("caller-owned pending policy blocks dismissal and failure can retry", async ({
   page,
 }) => {
-  await page.goto(story("failure-and-retry"));
+  await page.goto(`${story("async-action")}&args=failFirst:true`);
   await page.getByRole("button", { name: "Open operation" }).click();
   const dialog = page.getByRole("dialog", { name: "Save workspace" });
+  await dialog.evaluate(async (node) => {
+    await Promise.all(
+      node
+        .getAnimations({ subtree: true })
+        .map((a) => a.finished.catch(() => {})),
+    );
+  });
+  const bounds = await dialog.boundingBox();
   await expect(
     dialog.getByRole("button", { name: "Cancel", exact: true }),
   ).toBeFocused();
@@ -93,7 +101,14 @@ test("caller-owned pending policy blocks dismissal and failure can retry", async
   await page.keyboard.press("Escape");
   await page.mouse.click(1, 1);
   await expect(dialog).toBeVisible();
-  await expect(dialog.getByRole("alert")).toHaveText("Save failed. Try again.");
+  await expect(dialog.getByRole("alert")).toContainText(
+    "Save failed. Try again.",
+  );
+  await expect(dialog.getByRole("alert")).toHaveAttribute(
+    "data-action-error-overlay",
+    "true",
+  );
+  expect(await dialog.boundingBox()).toEqual(bounds);
   await dialog.getByRole("button", { name: "Save changes" }).click();
   await expect(dialog).toHaveCount(0);
   await expect(page.getByRole("status")).toHaveText("Action completed");

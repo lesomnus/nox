@@ -8,6 +8,9 @@ Package: `@lesomnus/nox` · Repository: [lesomnus/nox](https://github.com/lesomn
 
 [Browse Storybook](https://lesomnus.github.io/nox/)
 
+For recoverable event handlers, see [handler failures](docs/handler-failures.md):
+`useAsyncAction`, `ActionError` and the shared Patterns/HandlerFailures recipes.
+
 ## Develop
 
 Node 22.12+ (CI uses Node 24), npm 11.

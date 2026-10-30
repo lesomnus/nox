@@ -18,6 +18,7 @@ import {
   hasMenuRegion,
 } from "../menu-surface/menu-frame";
 import { MenuScrollArea } from "../menu-surface/menu-scroll-area";
+import { useMenuAction } from "../menu-surface/use-menu-action";
 import { useUI } from "../../providers/ui-provider";
 import {
   MenuDivider,
@@ -49,7 +50,7 @@ export type ActionMenuItem = {
   checked?: boolean;
   disabled?: boolean;
   danger?: boolean;
-  run: (trigger: HTMLButtonElement) => void;
+  run: (trigger: HTMLButtonElement) => unknown;
 };
 
 export type ActionMenuGroup = {
@@ -75,6 +76,7 @@ export function ActionMenu({
   disabledReason,
   triggerClassName = "",
   scrollbarOffset,
+  awaitAction = false,
 }: {
   label: string;
   /** Always visible above/below the scrolling action list. */
@@ -97,6 +99,8 @@ export function ActionMenu({
   triggerClassName?: string;
   /** Signed handle-center offset, forwarded to the scrolling action list. */
   scrollbarOffset?: number;
+  /** Keep the menu open while run settles; rejection stays beside the clicked item. */
+  awaitAction?: boolean;
 }) {
   const offset = Number.isFinite(scrollbarOffset) ? scrollbarOffset : undefined;
   const actionGroups: ActionMenuGroup[] = groups ?? [{ label: "", items }];
@@ -116,10 +120,12 @@ export function ActionMenu({
   const menu = useRef<HTMLDivElement>(null);
   const viewport = useRef<HTMLDivElement>(null);
   const id = useId();
+  const action = useMenuAction(awaitAction, close);
   useEffect(() => {
-    if (disabled) setOpen(false);
+    if (disabled) close();
   }, [disabled]);
   function close(restore = false) {
+    action.clear();
     setOpen(false);
     if (restore)
       trigger.current?.querySelector("button")?.focus({ preventScroll: true });
@@ -243,7 +249,11 @@ export function ActionMenu({
     if (!open) return;
     const outside = (event: PointerEvent) => {
       const target = event.target as Node;
-      if (!trigger.current?.contains(target) && !menu.current?.contains(target))
+      if (
+        !trigger.current?.contains(target) &&
+        !menu.current?.contains(target) &&
+        !action.containsFeedback(target)
+      )
         close();
     };
     const resize = () => close();
@@ -267,7 +277,7 @@ export function ActionMenu({
         aria-haspopup="menu"
         aria-expanded={open}
         aria-controls={open ? (hasRegions ? `${id}-items` : id) : undefined}
-        onClick={() => setOpen(!open)}
+        onClick={() => (open ? close() : setOpen(true))}
         onKeyDown={(event) => {
           if (event.key === "ArrowDown") {
             event.preventDefault();
@@ -308,10 +318,12 @@ export function ActionMenu({
           role={hasRegions ? "group" : "menu"}
           aria-label={label}
           onBlur={(event) => {
+            if (action.isRunning()) return;
             const target = event.relatedTarget as Node | null;
             if (
               !event.currentTarget.contains(target) &&
-              !trigger.current?.contains(target)
+              !trigger.current?.contains(target) &&
+              !action.containsFeedback(target)
             )
               close();
           }}
@@ -433,7 +445,7 @@ export function ActionMenu({
                         {group.label}
                       </MenuGroupLabel>
                     )}
-                    {group.items.map((item) => (
+                    {group.items.map((item, itemIndex) => (
                       <MenuItem
                         key={item.label}
                         type="button"
@@ -444,7 +456,15 @@ export function ActionMenu({
                         }
                         aria-checked={item.checked}
                         aria-label={item.label}
-                        disabled={item.disabled}
+                        disabled={
+                          item.disabled ||
+                          (action.pending &&
+                            action.activeKey !== `${index}:${itemIndex}`)
+                        }
+                        loading={
+                          action.pending &&
+                          action.activeKey === `${index}:${itemIndex}`
+                        }
                         data-danger={item.danger}
                         icon={item.icon}
                         trailing={
@@ -460,8 +480,12 @@ export function ActionMenu({
                           )
                         }
                         onClick={(event) => {
-                          close(true);
-                          item.run(event.currentTarget);
+                          const button = event.currentTarget;
+                          action.invoke(
+                            () => item.run(button),
+                            button,
+                            `${index}:${itemIndex}`,
+                          );
                         }}
                       >
                         <span>{item.label}</span>
@@ -473,6 +497,7 @@ export function ActionMenu({
               {status && <small role="status">{status}</small>}
             </MenuScrollArea>
           </MenuFrame>
+          {action.feedback}
         </MenuSurface>
       )}
     </div>

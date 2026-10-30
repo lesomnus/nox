@@ -69,6 +69,17 @@ try {
     join(temporary, "main.tsx"),
     `
     import { createRoot } from "react-dom/client";
+    import { ActionError, useAsyncAction, type ActionErrorProps, type AsyncActionState } from "@lesomnus/nox";
+    const feedback: ActionErrorProps = {id: "save-error", title: "Save failed", anchor: null, placement: "top-start", highlightTrigger: false, onDismiss: () => {}, showRetry: true, onRetry: () => {}, pending: false, children: "Could not save"};
+    function AsyncSave() {
+      const save: AsyncActionState<[name: string]> = useAsyncAction(async (name: string) => { void name; });
+      if (false) {
+        // @ts-expect-error Action arguments remain typed through the published declarations.
+        void save.run(42);
+      }
+      return <div><button onClick={() => void save.run("Workspace")} disabled={save.pending}>Save</button>{save.error && <ActionError {...feedback} pending={save.pending} onRetry={() => void save.run("Workspace")} />}</div>;
+    }
+    void AsyncSave;
     import { CompactNumber, type CompactNumberProps } from "@lesomnus/nox";
     const byteNumber: CompactNumberProps = {value: 55, baseUnit: "B", label: "55 bytes", className: "editor-number"};
     // @ts-expect-error Integer mode does not have a unit cell.
@@ -151,7 +162,7 @@ try {
     const invalidCalendar: CalendarProps = { mode: "range", label: "Invalid", value: [] };
     void invalidCalendar;
     const progress: ProgressProps = { value: 42, variant: "bordered", animated: false, sparkleOptions: { duration: 2000 } };
-    const datePicker: DatePickerProps = { label: "Date", defaultValue: "2026-10-24", min: "2026-01-01", max: "2026-12-31", name: "date", locale: "en-US", weekStartsOn: 1, onChange: value => { void value; }, ref: node => { void node?.focus(); } };
+    const datePicker: DatePickerProps = { label: "Date", defaultValue: "2026-10-24", min: "2026-01-01", max: "2026-12-31", name: "date", locale: "en-US", weekStartsOn: 1, awaitAction: true, onChange: async value => { await Promise.resolve(value); }, ref: node => { void node?.focus(); } };
     const holiday: DatePickerDateInfo = { disabled: true, label: "Holiday", description: "Closed", marker: "•", style: { color: "currentColor" } };
     const windowSelection: DatePickerSelectionResolver = dateWindowSelection({ before: 1, after: 1 });
     const multipleDates: DatePickerProps = { mode: "multiple", label: "Dates", defaultValue: [], getDateInfo: () => holiday, getSelectionDates: windowSelection, onChange: dates => { void dates.join(","); } };
@@ -160,6 +171,18 @@ try {
     // @ts-expect-error Selection modes require their matching value shapes.
     const invalidDateMode: DatePickerProps = { mode: "multiple", label: "Invalid", value: "2026-10-21" };
     void invalidDateMode;
+    import { useShake, SHAKE_PRESETS, type ShakeOptions, type ShakeTargets, type ShakePreset } from "@lesomnus/nox";
+    const shakeOptions: ShakeOptions = {presets: SHAKE_PRESETS, distance: 2, duration: 300, maxDelay: 30};
+    const shakePreset: ShakePreset = {name: "custom", points: [[0,0],[-1,0],[0,0]]};
+    function ShakeConsumer() {
+      const {shake,cancel} = useShake();
+      const target: ShakeTargets = null;
+      return <button onClick={() => { shake(target, shakeOptions); cancel(); }}>Shake</button>;
+    }
+    void ShakeConsumer; void shakePreset;
+    const customPinMotion: PinInputProps = {label:"PIN",errorShake:shakeOptions};
+    const noPinMotion: PinInputProps = {label:"PIN",errorShake:false};
+    void customPinMotion; void noPinMotion;
     const pin: PinInputProps = { label: "Device code", groups: [4,4], mode: "alphanumeric", name: "device_code" };
     void MenuSurface;
     void MenuIcon;
@@ -168,8 +191,11 @@ try {
     const menuItem: MenuItemProps = { role: "menuitem", icon: <svg viewBox="0 0 24 24"><path d="M4 12h16" /></svg>, trailing: "Open", onClick: (event) => event.currentTarget.focus() };
     const splitTree: SplitNode = {kind:"split",id:"root",axis:"horizontal",ratio:0.5,first:{kind:"pane",id:"a"},second:{kind:"pane",id:"b"}};
     const prefixMenu: PrefixValueMenuProps = {label:"Effort",prefix:"Effort",prefixClassName:"prefix",value:"medium",options:[{value:"medium",label:"Medium"}],hideSelected:true,choose:() => {}};
-    import { ValueMenu, type ValueMenuProps } from "@lesomnus/nox";
-    const selectedMenu: ValueMenuProps = {label:"Aligned effort",value:"medium",options:[{value:"medium",label:"Medium"}],alignItemWithTrigger:true,choose:() => {}};
+    import { ActionMenu, type ActionMenuItem, ValueMenu, type ValueMenuProps } from "@lesomnus/nox";
+    const asyncMenuItems: ActionMenuItem[] = [{label:"Save",run:async button => { void button; return {saved:true}; }}];
+    const asyncActions = <ActionMenu label="Save actions" awaitAction items={asyncMenuItems} />;
+    void asyncActions;
+    const selectedMenu: ValueMenuProps = {label:"Aligned effort",value:"medium",options:[{value:"medium",label:"Medium"}],alignItemWithTrigger:true,awaitAction:true,choose:async () => {}};
     const auroraPalette: AuroraPalette = ["#23b04a", "#2596e9", "#b14ccd"];
     const aurora: AuroraGlowProps = {active: true, paused: false, speed: 0.75, strength: 0.4, seed: 12, palette: auroraPalette};
     const sparkle: InkSparkleProps = { duration: 2000, origin: [-8, 40], centerMotion: "fixed", loop: true, sparkleColor: [0.25, 0.5, 0.75, 0.2] };

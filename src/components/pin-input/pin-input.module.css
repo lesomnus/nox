@@ -62,7 +62,7 @@
   width: var(--ui-pin-input-slot-width);
   min-width: 0;
   height: var(--ui-pin-input-slot-height);
-  border: 1px solid var(--ui-shade-60);
+  border: 1px solid var(--ui-pin-input-border-color, var(--ui-shade-60));
   border-radius: var(--ui-pin-input-radius);
   background: var(--ui-shade-24);
   color: var(--ui-shade-237);
@@ -75,10 +75,10 @@
   font-family: var(--ui-font-mono);
 }
 .root:hover:not([data-disabled]) .slot {
-  border-color: var(--ui-shade-115);
+  border-color: var(--ui-pin-input-border-color, var(--ui-shade-115));
 }
 .root:focus-within .slot[data-active] {
-  border-color: var(--ui-shade-204);
+  border-color: var(--ui-pin-input-border-color, var(--ui-shade-204));
   outline: 2px solid color-mix(in srgb, var(--ui-shade-160) 35%, transparent);
   outline-offset: 2px;
 }
@@ -92,7 +92,9 @@
   background: var(--ui-shade-204);
   animation: caret 1s step-end infinite;
 }
-.root[data-invalid] .slot {
+.root[data-invalid] .slot,
+.root[data-invalid]:hover .slot,
+.root[data-invalid]:focus-within .slot[data-active] {
   border-color: var(--ui-pin-input-error-color);
 }
 .root[data-disabled] {

@@ -30,7 +30,20 @@ export function Switch({
         if (!pending) onChange(!checked);
       }}
     >
-      <span aria-hidden="true" />
+      {/* A shared viewport avoids HTML thumb-box rounding at fractional scales. */}
+      <svg
+        className={styles.thumb_layer}
+        viewBox="0 0 40 22"
+        aria-hidden="true"
+      >
+        <circle
+          className={styles.thumb}
+          data-switch-thumb=""
+          cx="11"
+          cy="11"
+          r="8"
+        />
+      </svg>
       {pending && (
         <InkSparkle
           className={styles.ink_sparkle}

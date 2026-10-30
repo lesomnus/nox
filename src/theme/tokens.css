@@ -43,6 +43,8 @@
 }
 :root[data-ui-theme="light"],
 :root[data-theme="light"] {
+  --ui-pin-input-success-color: #2f8250;
+  --ui-action-error-color: #9c3737;
   --ui-button-hover-background: var(--ui-shade-34);
   --ui-aurora-strength: 0.3;
   --ui-shade-0: #ffffff;
@@ -152,6 +154,22 @@
   --ui-pin-input-gap: var(--ui-space);
   --ui-pin-input-radius: calc(1.5 * var(--ui-space));
   --ui-pin-input-error-color: #db7070;
+  --ui-pin-input-success-color: #70b584;
+  --ui-action-error-color: var(--ui-pin-input-error-color);
+  --ui-action-error-border: color-mix(
+    in srgb,
+    var(--ui-action-error-color) 40%,
+    transparent
+  );
+  --ui-action-error-background: color-mix(
+    in srgb,
+    color-mix(in srgb, var(--ui-shade-16) 84%, var(--ui-action-error-color)) 62%,
+    transparent
+  );
+  --ui-action-error-blur: var(--ui-dropdown-blur);
+  --ui-action-error-title-size: 11px;
+  --ui-action-error-trigger-border: var(--ui-action-error-color);
+  --ui-action-error-trigger-border-width: 1px;
   --ui-icon-size: 20px;
   --ui-icon-size-small: 14px;
   --ui-segmented-inline-item-width: 16px;

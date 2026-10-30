@@ -19,6 +19,15 @@ const meta = {
   component: DatePicker,
   tags: ["autodocs"],
   args: { label: "Date", name: "date", defaultValue: "2026-10-24" },
+  argTypes: {
+    mode: {
+      control: "select",
+      options: ["single", "multiple", "range"],
+      type: { name: "string" },
+    },
+    closeOnSelect: { control: "boolean", type: { name: "boolean" } },
+    awaitAction: { control: "boolean", type: { name: "boolean" } },
+  },
   parameters: {
     docs: {
       description: {
@@ -32,6 +41,15 @@ type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {};
 export const Empty: Story = { args: { defaultValue: null } };
+export const AwaitSelection: Story = {
+  args: { awaitAction: true },
+  render: (args) => (
+    <DatePicker
+      {...args}
+      onChange={() => new Promise<void>((resolve) => setTimeout(resolve, 600))}
+    />
+  ),
+};
 export const Restricted: Story = {
   args: {
     label: "Deadline",

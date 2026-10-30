@@ -25,6 +25,7 @@ import {
   MenuItem,
 } from "../menu-surface/menu-item";
 import { MenuScrollArea } from "../menu-surface/menu-scroll-area";
+import { useMenuAction } from "../menu-surface/use-menu-action";
 import { useUI } from "../../providers/ui-provider";
 
 export type ValueOption = {
@@ -66,6 +67,7 @@ export function ValueMenu({
   searchable = false,
   hideSelected = false,
   alignItemWithTrigger = false,
+  awaitAction = false,
 }: {
   label: string;
   /** Always visible above/below the value rows, regardless of opening direction. */
@@ -81,7 +83,9 @@ export function ValueMenu({
   variant?: "default" | "compact";
   disabled?: boolean;
   disabledReason?: string;
-  choose: (value: string) => void;
+  choose: (value: string) => unknown;
+  /** Await choose before closing; rejection keeps feedback on the chosen option. */
+  awaitAction?: boolean;
   searchable?: boolean;
   /** Exclude the selected value from choices; the aligned current/search row stays. */
   hideSelected?: boolean;
@@ -101,6 +105,7 @@ export function ValueMenu({
   const [open, setOpen] = useState(false);
   const [up, setUp] = useState(true);
   const [itemAligned, setItemAligned] = useState(false);
+  const action = useMenuAction(awaitAction, close);
   const sections = groups ?? [{ items }];
   const selected = sections
     .flatMap((section) => section.items)
@@ -132,6 +137,7 @@ export function ValueMenu({
     setOpen(true);
   }
   function close(restore = false) {
+    action.clear();
     setOpen(false);
     setItemAligned(false);
     setQuery("");
@@ -282,7 +288,8 @@ export function ValueMenu({
     const outside = (e: PointerEvent) => {
       if (
         !root.current?.contains(e.target as Node) &&
-        !menu.current?.contains(e.target as Node)
+        !menu.current?.contains(e.target as Node) &&
+        !action.containsFeedback(e.target as Node)
       )
         close();
     };
@@ -316,8 +323,18 @@ export function ValueMenu({
         } else {
           const option = options.find((item) => !item.disabled);
           if (option) {
-            if (option.value !== value) choose(option.value);
-            close(true);
+            if (option.value === value) close(true);
+            else {
+              const row = menu.current?.querySelector<HTMLElement>(
+                `[role="option"][data-option-value="${CSS.escape(option.value)}"]`,
+              );
+              row?.focus({ preventScroll: true });
+              action.invoke(
+                () => choose(option.value),
+                row ?? search.current!,
+                option.value,
+              );
+            }
           }
         }
         return;
@@ -375,9 +392,11 @@ export function ValueMenu({
       data-item-aligned={(open && itemAligned) || undefined}
       onKeyDown={key}
       onBlur={(e) => {
+        if (action.isRunning()) return;
         if (
           !e.currentTarget.contains(e.relatedTarget as Node | null) &&
-          !menu.current?.contains(e.relatedTarget as Node | null)
+          !menu.current?.contains(e.relatedTarget as Node | null) &&
+          !action.containsFeedback(e.relatedTarget as Node | null)
         )
           close();
       }}
@@ -423,9 +442,11 @@ export function ValueMenu({
             key(e);
           }}
           onBlur={(e) => {
+            if (action.isRunning()) return;
             if (
               !root.current?.contains(e.relatedTarget as Node | null) &&
-              !e.currentTarget.contains(e.relatedTarget as Node | null)
+              !e.currentTarget.contains(e.relatedTarget as Node | null) &&
+              !action.containsFeedback(e.relatedTarget as Node | null)
             )
               close();
           }}
@@ -446,6 +467,7 @@ export function ValueMenu({
                   aria-autocomplete="list"
                   aria-controls={`${id}-results`}
                   value={query}
+                  readOnly={action.pending}
                   onChange={(e) => {
                     setQuery(e.target.value);
                     setQueryEdited(true);
@@ -460,7 +482,7 @@ export function ValueMenu({
                 data-option-value={value}
                 data-muted={!!isMuted}
                 tabIndex={-1}
-                disabled={selected?.disabled}
+                disabled={selected?.disabled || action.pending}
                 onClick={() => close(true)}
               >
                 <span className="meta-value">{text}</span>
@@ -514,13 +536,26 @@ export function ValueMenu({
                             role="option"
                             tabIndex={-1}
                             aria-selected={choice.value === value}
-                            disabled={choice.disabled}
+                            disabled={
+                              choice.disabled ||
+                              (action.pending &&
+                                action.activeKey !== choice.value)
+                            }
+                            loading={
+                              action.pending &&
+                              action.activeKey === choice.value
+                            }
                             title={choice.label}
                             icon={choice.icon}
                             data-muted={!!choice.muted}
-                            onClick={() => {
-                              close(true);
-                              if (choice.value !== value) choose(choice.value);
+                            onClick={(event) => {
+                              if (choice.value === value) close(true);
+                              else
+                                action.invoke(
+                                  () => choose(choice.value),
+                                  event.currentTarget,
+                                  choice.value,
+                                );
                             }}
                           >
                             <ValueLabel
@@ -536,6 +571,7 @@ export function ValueMenu({
               </MenuScrollArea>
             </div>
           </MenuFrame>
+          {action.feedback}
         </MenuSurface>
       )}
     </div>

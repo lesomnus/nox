@@ -10,6 +10,8 @@ import {
   type ValueOptionGroup,
 } from "@lesomnus/nox";
 import styles from "./menu-features.stories.module.css";
+import { ActionFailureExample } from "../../stories/handler-failures/actions";
+import { SelectionFailureExample } from "../../stories/handler-failures/selections";
 
 const meta = {
   title: "Menus/Features",
@@ -43,6 +45,7 @@ const meta = {
           triggerContent="Actions"
           disabled={args.disabled}
           disabledReason={args.disabledReason}
+          awaitAction={args.awaitAction}
           groups={groups.map((group) => ({
             label: group.label ?? "",
             items: group.items.map((item) => ({
@@ -61,6 +64,22 @@ const meta = {
 } satisfies Meta<typeof ValueMenu>;
 export default meta;
 type Story = StoryObj<typeof meta>;
+
+export const AwaitAction: Story = {
+  args: { awaitAction: true, searchable: false, alignItemWithTrigger: false },
+  argTypes: { awaitAction: { control: "boolean" } },
+  render: (args) => (
+    <div className={styles.comparison}>
+      <ActionFailureExample kind="menu" awaitAction={args.awaitAction} />
+      <SelectionFailureExample
+        kind="value-menu"
+        awaitAction={args.awaitAction}
+        searchable={args.searchable}
+        alignItemWithTrigger={args.alignItemWithTrigger}
+      />
+    </div>
+  ),
+};
 
 export const Disabled: Story = {
   args: { disabled: true, disabledReason: "Settings require an idle session" },

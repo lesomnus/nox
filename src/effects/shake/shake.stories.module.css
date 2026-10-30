@@ -1,0 +1,21 @@
+.example {
+  display: grid;
+  gap: calc(3 * var(--ui-space));
+  max-width: 100%;
+}
+.targets,
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--ui-space);
+}
+.target {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 44px;
+  border: 1px solid var(--ui-shade-60);
+  border-radius: var(--ui-space);
+  background: var(--ui-shade-24);
+  font-family: var(--ui-font-mono);
+}

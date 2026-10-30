@@ -42,6 +42,9 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {};
+export const Headerless: Story = {
+  args: { hideHeading: true, bodyPadding: 0 },
+};
 export const Confirmation: Story = {
   args: {
     title: "Stop session",

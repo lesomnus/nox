@@ -1,0 +1,54 @@
+.error.error {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: var(--ui-space) calc(2 * var(--ui-space));
+  padding: calc(2 * var(--ui-space));
+  border: 1px solid var(--ui-action-error-border);
+  border-radius: var(--ui-space);
+  color: var(--ui-shade-237);
+  background: var(--ui-action-error-background);
+  -webkit-backdrop-filter: blur(var(--ui-action-error-blur));
+  backdrop-filter: blur(var(--ui-action-error-blur));
+  box-shadow: none;
+  font: inherit;
+  overflow-wrap: anywhere;
+}
+.header {
+  display: flex;
+  align-items: center;
+  gap: calc(2 * var(--ui-space));
+}
+.title {
+  flex: 1;
+  min-width: 0;
+  font-size: var(--ui-action-error-title-size);
+  font-weight: 700;
+  line-height: 1.4;
+}
+.close.close {
+  flex: none;
+  width: 24px;
+  height: 20px;
+  min-height: 20px;
+  padding: 2px;
+}
+.body {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--ui-space) calc(2 * var(--ui-space));
+}
+:global([data-action-error-open="true"][data-action-error-highlight="true"]) {
+  /* Keep the error stroke through the control's own hover and variant shadows. */
+  box-shadow: inset 0 0 0 var(--ui-action-error-trigger-border-width)
+    var(--ui-action-error-trigger-border) !important;
+}
+.error[data-action-error-overlay] {
+  width: max-content;
+  max-width: min(360px, calc(100dvw - 4 * var(--ui-space)));
+}
+.message {
+  flex: 1;
+  min-width: min(16ch, 100%);
+}

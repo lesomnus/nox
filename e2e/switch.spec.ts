@@ -64,11 +64,11 @@ for (const checked of [false, true]) {
     await expect(canvas).toHaveAttribute("data-renderer", "webgl2");
     await expect(control).toHaveAttribute("aria-checked", String(checked));
     await expect(control).toHaveAttribute("aria-busy", "true");
-    await expect(control.locator("span")).toHaveCSS(
+    await expect(control.locator("[data-switch-thumb]")).toHaveCSS(
       "transform",
       "matrix(1, 0, 0, 1, 9, 0)",
     );
-    await expect(control.locator("span")).toHaveCSS("z-index", "1");
+    await expect(control.locator("svg")).toHaveCSS("z-index", "1");
     await expect(canvas).toHaveCSS("z-index", "0");
     const pixels = await canvas.evaluate((node) => {
       const gl = (node as HTMLCanvasElement).getContext("webgl2")!;
@@ -102,7 +102,9 @@ for (const checked of [false, true]) {
     expect(pixels.error).toBe(0);
     expect(pixels.center).toEqual([checked ? 48 : -8, 11]);
     const frozen = await control.screenshot();
-    const bounds = (await control.locator("span").boundingBox())!;
+    const bounds = (await control
+      .locator("[data-switch-thumb]")
+      .boundingBox())!;
     const clip = { x: bounds.x + 4, y: bounds.y + 4, width: 8, height: 8 };
     const thumb = await page.screenshot({ clip });
     await page.waitForTimeout(120);

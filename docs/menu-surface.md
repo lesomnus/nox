@@ -112,6 +112,7 @@ PrefixValueMenu supports the same choices and search behavior as ValueMenu.
 | Current state                                      | `items[].checked`                             | `value` and `choose`                                             |
 | Hide selected choice                               | —                                             | `hideSelected` (off by default)                                  |
 | Disabled items                                     | `items[].disabled`                            | `options[].disabled`                                             |
+| Wait for successful handler completion             | `awaitAction` for `run`                       | `awaitAction` for `choose`                                       |
 | Disabled trigger with explanation                  | `disabled`, `disabledReason`                  | `disabled`, `disabledReason`                                     |
 | Shortcut keycaps                                   | `items[].shortcut`                            | —                                                                |
 | Dangerous actions and status footer                | `items[].danger`, `status`                    | —                                                                |
@@ -129,6 +130,14 @@ Groups replace the flat item list when supplied. Both menus use
 `{ label, items }` groups. Icons are caller-supplied React nodes; use decorative
 SVGs with `aria-hidden="true"`. Shortcut keycaps display a binding, while the
 host application implements the actual shortcut.
+
+Enable `awaitAction` to keep either menu open during a request. Return its Promise
+from `run` or `choose`; throwing or rejecting keeps the menu open and anchors the
+shared ActionError to the chosen row. The active row shows pending feedback and
+duplicate actions are blocked. Success closes the menu. The default remains
+immediate closing. PrefixValueMenu forwards the option too. See
+Menus/Features/AwaitAction and [handler failures](./handler-failures.md) for recovery
+and manual-dismissal behavior.
 
 For example, ActionMenu already supports grouped commands with icons and
 individually disabled items:
