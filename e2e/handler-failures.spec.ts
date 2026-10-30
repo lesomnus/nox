@@ -457,12 +457,16 @@ test("error feedback fits narrow themes and keeps retry focus while pending", as
         border: css.borderTopWidth,
         blur: css.backdropFilter,
         background: css.backgroundColor,
+        color: css.color,
       };
     });
     expect(appearance.position).toBe("fixed");
-    expect(appearance.border).toBe("0px");
+    expect(parseFloat(appearance.border)).toBeGreaterThan(0);
     expect(appearance.blur).toMatch(/^blur\([1-9]/);
-    expect(appearance.background).toMatch(/(?:\/|,)\s*0\.18\s*\)/);
+    expect(appearance.background).toMatch(/(?:\/|,)\s*0\.\d+\s*\)/);
+    expect(appearance.color).toBe(
+      await button.evaluate((node) => getComputedStyle(node).color),
+    );
     const errorId = await alert.getAttribute("id");
     expect(
       (await button.getAttribute("aria-describedby"))?.split(" "),

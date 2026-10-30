@@ -55,8 +55,9 @@ provided. Set `showRetry` together with `onRetry` to display it. Storybook's
 shared recipes expose this opt-in through the `showRetry` control. The shared
 menu surface keeps it clear of clipping and inside an anchor's open Dialog,
 where its Retry button remains interactive. Scroll and resize reposition it.
-The borderless surface uses a translucent red tint and backdrop blur in both
-themes. It stays mounted during retry and clears on success or reset; there is
+The surface uses a subtle red border and a tinted translucent background with
+backdrop blur in both themes. Text uses the normal foreground color. It stays
+mounted during retry and clears on success or reset; there is
 no timed dismissal. Omitting `anchor` retains inline composition; `anchor={null}`
 waits for a trigger instead of temporarily inserting a layout box.
 Render it only on failure, inside a modal body or outside a menu that closes.

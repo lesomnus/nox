@@ -4,9 +4,9 @@
   flex-wrap: wrap;
   gap: var(--ui-space) calc(2 * var(--ui-space));
   padding: calc(2 * var(--ui-space));
-  border: 0;
+  border: 1px solid var(--ui-action-error-border);
   border-radius: var(--ui-space);
-  color: var(--ui-action-error-color);
+  color: var(--ui-shade-237);
   background: var(--ui-action-error-background);
   -webkit-backdrop-filter: blur(var(--ui-action-error-blur));
   backdrop-filter: blur(var(--ui-action-error-blur));
