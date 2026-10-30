@@ -3,7 +3,9 @@ import { expect, test, type Locator } from "@playwright/test";
 async function spacing(control: Locator) {
   return control.evaluate((node) => {
     const track = node.getBoundingClientRect();
-    const thumb = node.querySelector("span")!.getBoundingClientRect();
+    const thumb = node
+      .querySelector("[data-switch-thumb]")!
+      .getBoundingClientRect();
     return {
       track: {
         x: track.x,
