@@ -241,7 +241,9 @@ for (const component of ["datepicker", "calendar"]) {
     await expect(page.getByRole("alert")).toBeVisible();
     await expect(page.getByLabel("Saved value")).toHaveText("2026-10-21");
     if (component === "datepicker") {
-      const date = page.getByRole("gridcell", { name: /October 24, 2026/ });
+      const date = page
+        .getByRole("gridcell", { name: /October 24, 2026/ })
+        .getByRole("button");
       await expect(
         page.getByRole("dialog", { name: "Calendar for Schedule" }),
       ).toBeVisible();
