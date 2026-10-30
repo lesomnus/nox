@@ -70,7 +70,7 @@ try {
     `
     import { createRoot } from "react-dom/client";
     import { ActionError, useAsyncAction, type ActionErrorProps, type AsyncActionState } from "@lesomnus/nox";
-    const feedback: ActionErrorProps = {id: "save-error", onRetry: () => {}, pending: false, children: "Could not save"};
+    const feedback: ActionErrorProps = {id: "save-error", anchor: null, placement: "bottom-start", onRetry: () => {}, pending: false, children: "Could not save"};
     function AsyncSave() {
       const save: AsyncActionState<[name: string]> = useAsyncAction(async (name: string) => { void name; });
       if (false) {

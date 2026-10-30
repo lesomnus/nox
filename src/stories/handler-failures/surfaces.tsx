@@ -31,6 +31,7 @@ export function SurfaceFailureExample({
   const cancel = useRef<HTMLButtonElement>(null);
   const surface = useRef<HTMLDialogElement>(null);
   const opener = useRef<HTMLButtonElement>(null);
+  const submit = useRef<HTMLButtonElement>(null);
   const save = useAsyncAction(async () => {
     await failOnce();
     setSaved(true);
@@ -41,7 +42,12 @@ export function SurfaceFailureExample({
   };
   const actions = (
     <>
-      <Button type="button" loading={save.pending} onClick={() => void run()}>
+      <Button
+        ref={submit}
+        type="button"
+        loading={save.pending}
+        onClick={() => void run()}
+      >
         Save changes
       </Button>
       <Button
@@ -61,7 +67,11 @@ export function SurfaceFailureExample({
         closes without saving.
       </p>
       {save.error && (
-        <ActionError pending={save.pending} onRetry={() => void run()}>
+        <ActionError
+          anchor={submit.current}
+          pending={save.pending}
+          onRetry={() => void run()}
+        >
           Save failed. Your changes are still here.
         </ActionError>
       )}
@@ -197,6 +207,7 @@ export function LayoutFailureExample({ resize = false }: { resize?: boolean }) {
       </Button>
       {save.error && (
         <ActionError
+          anchor={submit.current}
           pending={save.pending}
           onRetry={() => {
             submit.current?.focus();

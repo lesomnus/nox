@@ -143,12 +143,16 @@ export function ActionFailureExample({
         )}
       </div>
       {clipboardFailed && (
-        <ActionError>
+        <ActionError anchor={trigger.current}>
           Clipboard permission was denied. Allow access, then copy again.
         </ActionError>
       )}
       {action.error && (
-        <ActionError pending={action.pending} onRetry={() => void run()}>
+        <ActionError
+          anchor={trigger.current}
+          pending={action.pending}
+          onRetry={() => void run()}
+        >
           {kind === "copy"
             ? "Copied, but recording the copy failed. Retry only records it; the clipboard is already updated."
             : kind === "link" || kind === "anchor"

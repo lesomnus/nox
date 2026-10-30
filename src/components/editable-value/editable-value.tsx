@@ -1,7 +1,14 @@
 import styles from "./editable-value.module.css";
-import { useLayoutEffect, useRef, useState, type CSSProperties } from "react";
+import {
+  useId,
+  useLayoutEffect,
+  useRef,
+  useState,
+  type CSSProperties,
+} from "react";
 import { createPortal } from "react-dom";
 import { Button } from "../button/button";
+import { ActionError } from "../action-error/action-error";
 import {
   dialogClassName,
   dialogAppearanceClassName,
@@ -95,6 +102,7 @@ function ValueEditor({
   const [draft, setDraft] = useState(value);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
+  const errorId = useId();
   const [position, setPosition] = useState<CSSProperties>();
   useLayoutEffect(() => {
     const element = labelOrigin?.element;
@@ -163,7 +171,6 @@ function ValueEditor({
     }
     saving.current = true;
     setBusy(true);
-    setError("");
     try {
       await save(next);
       if (alive.current) close();
@@ -214,7 +221,7 @@ function ValueEditor({
           ref={input}
           aria-label={label}
           aria-invalid={!!error}
-          aria-describedby={error ? "editable-value-error" : undefined}
+          aria-describedby={error ? errorId : undefined}
           value={draft}
           readOnly={busy}
           onChange={(event) => {
@@ -226,9 +233,15 @@ function ValueEditor({
         />
         <div className={`${dialogAppearanceClassName} editable-value-overlay`}>
           {error && (
-            <p id="editable-value-error" role="alert">
+            <ActionError
+              id={errorId}
+              anchor={input.current}
+              placement="top-start"
+              pending={busy}
+              onRetry={() => void submit()}
+            >
               {error}
-            </p>
+            </ActionError>
           )}
           <div className="editable-value-actions">
             <Button type="button" disabled={busy} onClick={close}>

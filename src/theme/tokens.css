@@ -154,6 +154,12 @@
   --ui-pin-input-radius: calc(1.5 * var(--ui-space));
   --ui-pin-input-error-color: #db7070;
   --ui-action-error-color: var(--ui-pin-input-error-color);
+  --ui-action-error-background: color-mix(
+    in srgb,
+    var(--ui-action-error-color) 18%,
+    transparent
+  );
+  --ui-action-error-blur: var(--ui-dropdown-blur);
   --ui-icon-size: 20px;
   --ui-icon-size-small: 14px;
   --ui-segmented-inline-item-width: 16px;

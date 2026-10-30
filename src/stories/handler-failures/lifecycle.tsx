@@ -13,6 +13,7 @@ function Probe({
 }) {
   const action = useAsyncAction(execute);
   const firstRun = useRef(action.run);
+  const trigger = useRef<HTMLButtonElement>(null);
   return (
     <>
       <output aria-label="Pending">{String(action.pending)}</output>
@@ -21,6 +22,7 @@ function Probe({
       </output>
       <div className={styles.row}>
         <Button
+          ref={trigger}
           type="button"
           onClick={() => {
             void action.run("payload").then(result);
@@ -34,7 +36,7 @@ function Probe({
         </Button>
       </div>
       {action.error && (
-        <ActionError>
+        <ActionError anchor={trigger.current}>
           {action.error.message}
           <span> Cause: {String(action.error.cause)}</span>
         </ActionError>

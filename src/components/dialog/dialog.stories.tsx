@@ -1,6 +1,7 @@
 import { useRef, useState } from "react";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import {
+  ActionError,
   Button,
   Dialog,
   DialogBody,
@@ -140,11 +141,11 @@ function Operation({ failFirst = false }: { failFirst?: boolean }) {
   const pending = useRef(false);
   const cancel = useRef<HTMLButtonElement>(null);
   const dialog = useRef<HTMLDialogElement>(null);
+  const submit = useRef<HTMLButtonElement>(null);
   async function save() {
     if (pending.current) return;
     pending.current = true;
     setBusy(true);
-    setFailed(false);
     dialog.current?.focus();
     await new Promise((resolve) => setTimeout(resolve, 500));
     if (failFirst && attempt.current++ === 0) setFailed(true);
@@ -184,10 +185,23 @@ function Operation({ failFirst = false }: { failFirst?: boolean }) {
             Pending state, failures and retry are defined by this example's
             caller.
           </p>
-          {failed && <p role="alert">Save failed. Try again.</p>}
+          {failed && (
+            <ActionError
+              anchor={submit.current}
+              pending={busy}
+              onRetry={() => void save()}
+            >
+              Save failed. Try again.
+            </ActionError>
+          )}
         </DialogBody>
         <DialogFooter>
-          <Button loading={busy} disabled={busy} onClick={() => void save()}>
+          <Button
+            ref={submit}
+            loading={busy}
+            disabled={busy}
+            onClick={() => void save()}
+          >
             Save changes
           </Button>
           <Button ref={cancel} disabled={busy} onClick={() => setOpen(false)}>

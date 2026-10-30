@@ -47,6 +47,7 @@ export function PopoverFailureExample() {
       </div>
       {load.error && (
         <ActionError
+          anchor={trigger.current}
           pending={load.pending}
           onRetry={() => {
             void load.run().then((ok) => {
@@ -91,6 +92,7 @@ export function SuggestionFailureExample() {
 }
 
 export function TableFailureExample() {
+  const trigger = useRef<HTMLButtonElement>(null);
   const [present, setPresent] = useState(true);
   const failOnce = useFailOnce();
   const remove = useAsyncAction(async () => {
@@ -112,6 +114,7 @@ export function TableFailureExample() {
               <TableCell>Quarterly report</TableCell>
               <TableCell>
                 <Button
+                  ref={trigger}
                   type="button"
                   loading={remove.pending}
                   onClick={() => void remove.run()}
@@ -124,7 +127,11 @@ export function TableFailureExample() {
         </TableBody>
       </Table>
       {remove.error && (
-        <ActionError pending={remove.pending} onRetry={() => void remove.run()}>
+        <ActionError
+          anchor={trigger.current}
+          pending={remove.pending}
+          onRetry={() => void remove.run()}
+        >
           Could not delete this report. The row is unchanged.
         </ActionError>
       )}

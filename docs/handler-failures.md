@@ -1,7 +1,7 @@
 # Recoverable event handler failures
 
 Use `useAsyncAction` when an event starts work that can throw or reject. Compose
-`ActionError` next to the affected control. Both are optional: native events and
+`ActionError` anchored to the affected control. Both are optional: native events and
 controlled values keep their existing contracts. Shared recipes live in
 Patterns/HandlerFailures, organized by recovery behavior rather than repeated
 on every component page. Each recipe fails its first request and succeeds on
@@ -10,17 +10,26 @@ equivalent controls or surfaces within a recipe. Component pages document their
 own APIs; ActionError also demonstrates its appearance, retry and localization.
 
 ```tsx
+const trigger = useRef<HTMLButtonElement>(null);
 const publish = useAsyncAction(async () => {
   await api.publishReport();
 });
 
 return (
   <>
-    <Button loading={publish.pending} onClick={() => void publish.run()}>
+    <Button
+      ref={trigger}
+      loading={publish.pending}
+      onClick={() => void publish.run()}
+    >
       Publish report
     </Button>
     {publish.error && (
-      <ActionError pending={publish.pending} onRetry={() => void publish.run()}>
+      <ActionError
+        anchor={trigger.current}
+        pending={publish.pending}
+        onRetry={() => void publish.run()}
+      >
         Could not publish. Your report is still available.
       </ActionError>
     )}
@@ -42,11 +51,20 @@ feedback only, without canceling work. The caller owns cancellation and side
 effects inside its callback; the hook suppresses only its own state updates and
 success result after unmount. No automatic retry, rollback or logging occurs.
 
-`ActionError` provides an inline alert, optional retry and pending feedback.
+`ActionError` provides an alert, optional retry and pending feedback. Pass
+`anchor` to overlay it beside the triggering control without changing layout;
+`placement` prefers a side and flips or shifts at viewport edges. The shared
+menu surface keeps it clear of clipping and inside an anchor's open Dialog,
+where its Retry button remains interactive. Scroll and resize reposition it.
+The borderless surface uses a translucent red tint and backdrop blur in both
+themes. It stays mounted during retry and clears on success or reset; there is
+no timed dismissal. Omitting `anchor` retains inline composition; `anchor={null}`
+waits for a trigger instead of temporarily inserting a layout box.
 Render it only on failure, inside a modal body or outside a menu that closes.
 Supply a safe application message; diagnostic objects need not reach the UI.
 Default messages and Retry use UIProvider; `retryLabel` overrides the latter.
-Connect its native `id` with `aria-describedby` where available. When success
+Anchored feedback connects its `id` to the trigger's `aria-describedby` and
+preserves existing descriptions. Inline feedback can be connected manually. When success
 removes focused feedback, restore a persistent control's focus or let the closing
 Dialog/Drawer restore its opener.
 

@@ -15,6 +15,7 @@ export function useFailOnce() {
 export function useCommit<Value>(initial: Value) {
   const [value, setValue] = useState(initial);
   const controlRef = useRef<HTMLDivElement>(null);
+  const anchor = useRef<HTMLElement | null>(null);
   const requested = useRef(initial);
   const failOnce = useFailOnce();
   const action = useAsyncAction(async (next: Value) => {
@@ -24,6 +25,15 @@ export function useCommit<Value>(initial: Value) {
   });
   const id = useId();
   const change = async (next: Value) => {
+    const root = controlRef.current;
+    const focused = document.activeElement;
+    if (focused instanceof HTMLElement && root?.contains(focused))
+      anchor.current = focused;
+    else if (!anchor.current?.isConnected)
+      anchor.current =
+        root?.querySelector<HTMLElement>(
+          'button:not(:disabled), input:not(:disabled), [tabindex="0"]',
+        ) ?? root;
     await action.run(next);
     requestAnimationFrame(() => {
       if (document.activeElement !== document.body) return;
@@ -45,6 +55,7 @@ export function useCommit<Value>(initial: Value) {
     change: (next: Value) => void change(next),
     feedback: action.error && (
       <ActionError
+        anchor={anchor.current ?? controlRef.current}
         id={id}
         pending={action.pending}
         onRetry={() => void change(requested.current)}

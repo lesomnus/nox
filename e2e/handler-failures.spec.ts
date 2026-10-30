@@ -63,9 +63,16 @@ for (const [component, label] of [
     page,
   }) => {
     await page.goto(story(component));
+    const frame = page.getByRole("region", { name: /failure example$/ });
+    const bounds = await frame.boundingBox();
     await page.getByRole("button", { name: label, exact: true }).click();
     if (component === "confirmbutton")
       await page.getByRole("button", { name: "Confirm publish" }).click();
+    await expect(page.getByRole("alert")).toHaveAttribute(
+      "data-action-error-overlay",
+      "true",
+    );
+    expect(await frame.boundingBox()).toEqual(bounds);
     await retry(page);
     await expect(page.getByRole("status")).toHaveText("Action completed");
     await expect(page.getByRole("alert")).toHaveCount(0);
@@ -181,7 +188,10 @@ test("EditableValue keeps its editor open and its draft after save rejects", asy
   await expect(dialog.getByRole("alert")).toContainText("Connection lost");
   await expect(input).toHaveValue("Edited workspace");
   await expect(page.getByLabel("Saved value")).toHaveText("My workspace");
-  await dialog.getByRole("button", { name: "Confirm" }).click();
+  const again = dialog.getByRole("button", { name: "Retry", exact: true });
+  await again.click();
+  await expect(again).toHaveAttribute("aria-busy", "true");
+  await expect(again).toBeFocused();
   await expect(dialog).toHaveCount(0);
   await expect(page.getByLabel("Saved value")).toHaveText("Edited workspace");
 });
@@ -239,10 +249,25 @@ for (const component of ["dialog", "drawer", "card"]) {
     );
     const opener = page.getByRole("button", { name: "Open editor" });
     await opener.click();
+    const surface =
+      component === "card"
+        ? page.locator(".floating-card").first()
+        : page.getByRole("dialog", { name: "Edit workspace" });
+    await surface.evaluate(async (node) => {
+      await Promise.all(
+        node
+          .getAnimations({ subtree: true })
+          .map((a) => a.finished.catch(() => {})),
+      );
+    });
+    const bounds = await surface.boundingBox();
     if (component === "card")
       await page.getByRole("button", { name: "Close editor" }).click();
     else await page.keyboard.press("Escape");
     await expect(page.getByRole("alert")).toBeVisible();
+    expect(await surface.boundingBox()).toEqual(bounds);
+    if (component !== "card")
+      await expect(surface.getByRole("alert")).toBeVisible();
     await expect(
       page.getByRole("button", { name: "Save changes" }),
     ).toBeVisible();
@@ -393,9 +418,39 @@ test("error feedback fits narrow themes and keeps retry focus while pending", as
   for (const theme of ["dark", "light"]) {
     await page.goto(`${story("button")}&globals=theme:${theme}`);
     const button = page.getByRole("button", { name: "Publish report" });
+    await button.evaluate((node) =>
+      node.setAttribute("aria-describedby", "existing-help"),
+    );
+    const bounds = await button.boundingBox();
     await button.click();
-    await expect(page.getByRole("alert")).toBeVisible();
+    const alert = page.getByRole("alert");
+    await expect(alert).toBeVisible();
+    expect(await button.boundingBox()).toEqual(bounds);
+    const appearance = await alert.evaluate((node) => {
+      const css = getComputedStyle(node);
+      return {
+        position: css.position,
+        border: css.borderTopWidth,
+        blur: css.backdropFilter,
+        background: css.backgroundColor,
+      };
+    });
+    expect(appearance.position).toBe("fixed");
+    expect(appearance.border).toBe("0px");
+    expect(appearance.blur).toMatch(/^blur\([1-9]/);
+    expect(appearance.background).toMatch(/(?:\/|,)\s*0\.18\s*\)/);
+    const errorId = await alert.getAttribute("id");
+    expect(
+      (await button.getAttribute("aria-describedby"))?.split(" "),
+    ).toContain(errorId);
     await page.screenshot({ path: info.outputPath(`error-${theme}.png`) });
+    const texture = await page.addStyleTag({
+      content: `body { background-image: repeating-linear-gradient(90deg, transparent 0 2px, color-mix(in srgb, var(--ui-shade-237) 30%, transparent) 2px 3px) !important; }`,
+    });
+    await page.screenshot({
+      path: info.outputPath(`error-glass-${theme}.png`),
+    });
+    await texture.evaluate((node) => node.parentNode?.removeChild(node));
     expect(
       await page.evaluate(() => document.documentElement.scrollWidth),
     ).toBeLessThanOrEqual(360);
@@ -406,5 +461,6 @@ test("error feedback fits narrow themes and keeps retry focus while pending", as
     await expect(page.getByRole("alert")).toHaveAttribute("aria-busy", "true");
     await expect(page.getByRole("status")).toHaveText("Action completed");
     await expect(button).toBeFocused();
+    await expect(button).toHaveAttribute("aria-describedby", "existing-help");
   }
 });

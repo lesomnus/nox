@@ -58,6 +58,7 @@ export function FormFailureExample() {
       {save.error && (
         <ActionError
           id={`${id}-error`}
+          anchor={submit.current}
           pending={save.pending}
           onRetry={() => {
             submit.current?.focus();
@@ -135,6 +136,7 @@ export function PinFailureExample() {
       {verify.error && (
         <ActionError
           id={id}
+          anchor={input.current}
           pending={verify.pending}
           onRetry={() => void run(requested.current)}
         >
@@ -244,6 +246,7 @@ export function DraftFailureExample({
       </Button>
       {save.error && (
         <ActionError
+          anchor={submit.current}
           pending={save.pending}
           onRetry={() => {
             submit.current?.focus();

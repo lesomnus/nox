@@ -1,15 +1,22 @@
-.error {
+.error.error {
   display: flex;
   align-items: center;
   flex-wrap: wrap;
   gap: var(--ui-space) calc(2 * var(--ui-space));
   padding: calc(2 * var(--ui-space));
-  border: 1px solid
-    color-mix(in srgb, var(--ui-action-error-color) 40%, transparent);
+  border: 0;
   border-radius: var(--ui-space);
   color: var(--ui-action-error-color);
+  background: var(--ui-action-error-background);
+  -webkit-backdrop-filter: blur(var(--ui-action-error-blur));
+  backdrop-filter: blur(var(--ui-action-error-blur));
+  box-shadow: none;
   font: inherit;
   overflow-wrap: anywhere;
+}
+.error[data-action-error-overlay] {
+  width: max-content;
+  max-width: min(360px, calc(100dvw - 4 * var(--ui-space)));
 }
 .message {
   flex: 1;
