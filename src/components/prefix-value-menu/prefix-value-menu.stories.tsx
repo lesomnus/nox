@@ -1,4 +1,3 @@
-import { SelectionFailureExample } from "../../stories/handler-failures/selections";
 import { useState } from "react";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { PrefixValueMenu } from "@lesomnus/nox";
@@ -51,8 +50,4 @@ export const ItemAligned: Story = { args: { alignItemWithTrigger: true } };
 export const HideSelected: Story = { args: { hideSelected: true } };
 export const TextPrefix: Story = {
   args: { prefix: "Effort" },
-};
-
-export const FailureAndRetry = {
-  render: () => <SelectionFailureExample kind="prefix-menu" />,
 };

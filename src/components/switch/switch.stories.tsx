@@ -1,4 +1,3 @@
-import { SelectionFailureExample } from "../../stories/handler-failures/selections";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { useArgs } from "storybook/preview-api";
 import { useEffect, useRef, useState } from "react";
@@ -64,8 +63,4 @@ export const AsyncTransition: Story = {
       />
     );
   },
-};
-
-export const FailureAndRetry = {
-  render: () => <SelectionFailureExample />,
 };

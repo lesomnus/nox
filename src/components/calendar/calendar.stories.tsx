@@ -1,4 +1,3 @@
-import { DateFailureExample } from "../../stories/handler-failures/editors";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { useState } from "react";
 import {
@@ -171,8 +170,4 @@ export const Bounded: Story = {
     min: "2026-01-01",
     max: "2026-12-31",
   },
-};
-
-export const FailureAndRetry = {
-  render: () => <DateFailureExample calendar />,
 };

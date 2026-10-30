@@ -1,4 +1,3 @@
-import { DraftFailureExample } from "../../stories/handler-failures/editors";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { useArgs } from "storybook/preview-api";
 import { useState } from "react";
@@ -90,8 +89,4 @@ export const Form: Story = {
       </form>
     );
   },
-};
-
-export const FailureAndRetry = {
-  render: () => <DraftFailureExample kind="slider" />,
 };

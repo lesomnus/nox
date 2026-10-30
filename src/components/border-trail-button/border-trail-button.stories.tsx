@@ -1,4 +1,3 @@
-import { ActionFailureExample } from "../../stories/handler-failures/actions";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { useRef, useState } from "react";
 import { BorderTrailButton, Button } from "@lesomnus/nox";
@@ -147,8 +146,4 @@ export const Interaction: Story = {
       </div>
     );
   },
-};
-
-export const FailureAndRetry = {
-  render: () => <ActionFailureExample kind="border-trail" />,
 };

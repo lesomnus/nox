@@ -9,7 +9,7 @@ Package: `@lesomnus/nox` · Repository: [lesomnus/nox](https://github.com/lesomn
 [Browse Storybook](https://lesomnus.github.io/nox/)
 
 For recoverable event handlers, see [handler failures](docs/handler-failures.md):
-`useAsyncAction`, `ActionError` and the FailureAndRetry component stories.
+`useAsyncAction`, `ActionError` and the shared Patterns/HandlerFailures recipes.
 
 ## Develop
 

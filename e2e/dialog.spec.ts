@@ -82,7 +82,7 @@ test("forms choose initial focus, wrap keyboard navigation and submit without bu
 test("caller-owned pending policy blocks dismissal and failure can retry", async ({
   page,
 }) => {
-  await page.goto(story("failure-and-retry"));
+  await page.goto(`${story("async-action")}&args=failFirst:true`);
   await page.getByRole("button", { name: "Open operation" }).click();
   const dialog = page.getByRole("dialog", { name: "Save workspace" });
   await expect(

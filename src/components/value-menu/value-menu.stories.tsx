@@ -1,4 +1,3 @@
-import { SelectionFailureExample } from "../../stories/handler-failures/selections";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { useArgs } from "storybook/preview-api";
 import { useState } from "react";
@@ -129,8 +128,4 @@ export const SelectionEvents: Story = {
       </div>
     );
   },
-};
-
-export const FailureAndRetry = {
-  render: () => <SelectionFailureExample kind="value-menu" />,
 };

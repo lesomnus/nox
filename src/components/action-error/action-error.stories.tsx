@@ -1,6 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { ActionError, UIProvider } from "@lesomnus/nox";
-import { ActionFailureExample } from "../../stories/handler-failures/actions";
 import guide from "../../../docs/handler-failures.md?raw";
 const meta = {
   title: "Components/ActionError",
@@ -40,4 +39,3 @@ export const Localized: Story = {
     </UIProvider>
   ),
 };
-export const HandlerFailure: Story = { render: () => <ActionFailureExample /> };

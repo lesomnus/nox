@@ -1,4 +1,3 @@
-import { ActionFailureExample } from "../../stories/handler-failures/actions";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { Button, ButtonAnchor, PanelItemAnchor } from "@lesomnus/nox";
 import { useRef, useState } from "react";
@@ -258,12 +257,4 @@ export const LinkInteraction: Story = {
       </nav>
     );
   },
-};
-
-export const FailureAndRetry = {
-  render: () => <ActionFailureExample />,
-};
-
-export const LinkFailureAndRetry = {
-  render: () => <ActionFailureExample kind="anchor" />,
 };

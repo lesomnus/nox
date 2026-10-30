@@ -1,4 +1,3 @@
-import { SurfaceFailureExample } from "../../stories/handler-failures/surfaces";
 import { useRef, useState } from "react";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import {
@@ -199,8 +198,10 @@ function Operation({ failFirst = false }: { failFirst?: boolean }) {
     </>
   );
 }
-export const AsyncAction: Story = { render: () => <Operation /> };
-export const FailureAndRetry: Story = { render: () => <Operation failFirst /> };
+export const AsyncAction: StoryObj<{ failFirst: boolean }> = {
+  args: { failFirst: false },
+  render: (args) => <Operation {...args} />,
+};
 
 export const LongContent: Story = {
   render: function LongContent(args) {
@@ -285,8 +286,4 @@ export const Nested: Story = {
       </>
     );
   },
-};
-
-export const HandlerFailure = {
-  render: () => <SurfaceFailureExample />,
 };

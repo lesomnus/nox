@@ -132,29 +132,3 @@ export function TableFailureExample() {
     </Example>
   );
 }
-
-export function SynchronousFailureExample() {
-  const [saved, setSaved] = useState(false);
-  const attempts = useRef(0);
-  const save = useAsyncAction(() => {
-    if (attempts.current++ === 0) throw new Error("Storage is full.");
-    setSaved(true);
-  });
-  return (
-    <Example title="Synchronous handler">
-      <Button
-        type="button"
-        loading={save.pending}
-        onClick={() => void save.run()}
-      >
-        Save preference
-      </Button>
-      {save.error && (
-        <ActionError pending={save.pending} onRetry={() => void save.run()}>
-          {save.error.message}
-        </ActionError>
-      )}
-      {saved && <p role="status">Preference saved</p>}
-    </Example>
-  );
-}

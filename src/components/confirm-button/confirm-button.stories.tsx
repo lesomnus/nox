@@ -1,4 +1,3 @@
-import { ActionFailureExample } from "../../stories/handler-failures/actions";
 import { useState } from "react";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { ConfirmButton } from "@lesomnus/nox";
@@ -42,7 +41,3 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 export const Default: Story = {};
 export const Disabled: Story = { args: { disabled: true } };
-
-export const FailureAndRetry = {
-  render: () => <ActionFailureExample kind="confirm" />,
-};

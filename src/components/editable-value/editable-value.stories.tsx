@@ -1,7 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { useState } from "react";
 import { EditableValue } from "@lesomnus/nox";
-import { EditableFailureExample } from "../../stories/handler-failures/editors";
 const meta = {
   title: "Components/EditableValue",
   component: EditableValue,
@@ -21,6 +20,3 @@ const meta = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 export const Default: Story = {};
-export const FailureAndRetry: Story = {
-  render: () => <EditableFailureExample />,
-};

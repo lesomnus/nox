@@ -2,9 +2,12 @@
 
 Use `useAsyncAction` when an event starts work that can throw or reject. Compose
 `ActionError` next to the affected control. Both are optional: native events and
-controlled values keep their existing contracts. Every FailureAndRetry example
-fails its first request and succeeds on retry, without a real network service.
-The Patterns/HandlerFailures gallery compares recovery policies.
+controlled values keep their existing contracts. Shared recipes live in
+Patterns/HandlerFailures, organized by recovery behavior rather than repeated
+on every component page. Each recipe fails its first request and succeeds on
+retry, without a real network service. Use Storybook Controls to switch between
+equivalent controls or surfaces within a recipe. Component pages document their
+own APIs; ActionError also demonstrates its appearance, retry and localization.
 
 ```tsx
 const publish = useAsyncAction(async () => {

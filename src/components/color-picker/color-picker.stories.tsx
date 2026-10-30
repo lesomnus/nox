@@ -1,4 +1,3 @@
-import { DraftFailureExample } from "../../stories/handler-failures/editors";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { useArgs } from "storybook/preview-api";
 import { useId, useState } from "react";
@@ -312,8 +311,4 @@ export const IndependentRoots: Story = {
       </div>
     );
   },
-};
-
-export const FailureAndRetry = {
-  render: () => <DraftFailureExample />,
 };

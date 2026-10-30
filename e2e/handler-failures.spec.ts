@@ -1,7 +1,46 @@
 import { expect, test, type Page } from "@playwright/test";
 
-const story = (component: string, name = "failure-and-retry") =>
-  `/iframe.html?id=components-${component}--${name}&viewMode=story`;
+const recipes: Record<string, [string, string?]> = {
+  button: ["action", "kind:button"],
+  bordertrailbutton: ["action", "kind:border-trail"],
+  confirmbutton: ["action", "kind:confirm"],
+  filechip: ["action", "kind:file-chip"],
+  actionmenu: ["menu-action"],
+  copybutton: ["copy-callback"],
+  linkbutton: ["link-action", "kind:link"],
+  switch: ["selection", "kind:switch"],
+  togglebutton: ["selection", "kind:toggle"],
+  checkbox: ["selection", "kind:checkbox"],
+  radio: ["selection", "kind:radio"],
+  segmentedcontrol: ["selection", "kind:segments"],
+  valuemenu: ["menu-choice", "kind:value-menu"],
+  prefixvaluemenu: ["menu-choice", "kind:prefix-menu"],
+  form: ["form-submit"],
+  editablevalue: ["inline-save"],
+  pininput: ["code-complete"],
+  datepicker: ["date-change", "control:date-picker"],
+  calendar: ["date-change", "control:calendar"],
+  colorpicker: ["draft-save", "kind:color"],
+  slider: ["draft-save", "kind:slider"],
+  settingslider: ["draft-save", "kind:setting-slider"],
+  dialog: ["save-before-close", "surface:dialog"],
+  drawer: ["save-before-close", "surface:drawer"],
+  card: ["save-before-close", "surface:card"],
+  popover: ["popover-open"],
+  suggestiongrid: ["suggestion-choice"],
+  table: ["row-action"],
+  resizehandle: ["layout-save", "layout:resize"],
+  splitlayout: ["layout-save", "layout:split"],
+};
+const story = (component: string, name?: string) => {
+  if (component === "actionerror")
+    return `/iframe.html?id=components-actionerror--${name}&viewMode=story`;
+  const [recipe, args] =
+    component === "button" && name === "link-failure-and-retry"
+      ? ["link-action", "kind:anchor"]
+      : recipes[component];
+  return `/iframe.html?id=patterns-handlerfailures--${recipe}&viewMode=story${args ? `&args=${args}` : ""}`;
+};
 const errors = new WeakMap<Page, string[]>();
 test.beforeEach(async ({ page }) => {
   const messages: string[] = [];
@@ -216,16 +255,11 @@ for (const component of ["dialog", "drawer", "card"]) {
   });
 }
 
-for (const [component, title] of [
-  ["resizehandle", "layout"],
-  ["splitlayout", "layout"],
-]) {
+for (const component of ["resizehandle", "splitlayout"]) {
   test(`${component} preserves local layout on persistence failure`, async ({
     page,
   }) => {
-    await page.goto(
-      `/iframe.html?id=${title}-${component}--failure-and-retry&viewMode=story`,
-    );
+    await page.goto(story(component));
     const separator = page.getByRole("separator").first();
     await separator.press("ArrowRight");
     const value = await separator.getAttribute("aria-valuenow");
@@ -279,12 +313,14 @@ test("synchronous failures are handled locally and the error surface translates"
   page,
 }) => {
   await page.goto(
-    "/iframe.html?id=patterns-handlerfailures--synchronous-throw&viewMode=story",
+    "/iframe.html?id=patterns-handlerfailures--lifecycle&viewMode=story",
   );
-  await page.getByRole("button", { name: "Save preference" }).click();
-  await expect(page.getByRole("alert")).toContainText("Storage is full");
-  await retry(page);
-  await expect(page.getByRole("status")).toHaveText("Preference saved");
+  await page.getByLabel("Handler mode").selectOption("sync");
+  await page.getByRole("button", { name: "Run twice" }).click();
+  await expect(page.getByRole("alert")).toContainText("Synchronous failure");
+  await expect(page.getByLabel("Result")).toHaveText("false");
+  await page.getByRole("button", { name: "Clear feedback" }).click();
+  await expect(page.getByRole("alert")).toHaveCount(0);
   await page.goto(story("actionerror", "localized"));
   await expect(page.getByRole("alert")).toContainText("작업에 실패했습니다");
   await expect(page.getByRole("button", { name: "재시도" })).toBeVisible();

@@ -1,4 +1,3 @@
-import { ActionFailureExample } from "../../stories/handler-failures/actions";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { CopyButton } from "@lesomnus/nox";
 const meta = {
@@ -11,7 +10,3 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 export const Default: Story = {};
 export const Disabled: Story = { args: { disabled: true } };
-
-export const FailureAndRetry = {
-  render: () => <ActionFailureExample kind="copy" />,
-};

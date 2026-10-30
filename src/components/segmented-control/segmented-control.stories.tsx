@@ -1,4 +1,3 @@
-import { SelectionFailureExample } from "../../stories/handler-failures/selections";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { useArgs } from "storybook/preview-api";
 import { SegmentedControl } from "@lesomnus/nox";
@@ -94,8 +93,4 @@ export const TabInput: Story = {
       { value: "tab", label: "Tab" },
     ],
   },
-};
-
-export const FailureAndRetry = {
-  render: () => <SelectionFailureExample kind="segments" />,
 };
