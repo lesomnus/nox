@@ -1,3 +1,4 @@
+import { TableFailureExample } from "../../stories/handler-failures/other";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { useState } from "react";
 import {
@@ -328,4 +329,8 @@ export const Loading: Story = {
       </Table>
     </SkeletonGroup>
   ),
+};
+
+export const FailureAndRetry = {
+  render: () => <TableFailureExample />,
 };

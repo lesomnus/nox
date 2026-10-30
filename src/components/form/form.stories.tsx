@@ -1,3 +1,4 @@
+import { FormFailureExample } from "../../stories/handler-failures/editors";
 import { useId, useState } from "react";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import {
@@ -142,4 +143,8 @@ export const InCard: Story = {
       </>
     );
   },
+};
+
+export const FailureAndRetry = {
+  render: () => <FormFailureExample />,
 };

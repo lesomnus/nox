@@ -1,3 +1,4 @@
+import { SelectionFailureExample } from "../../stories/handler-failures/selections";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { ToggleButton, Button } from "@lesomnus/nox";
 import { useRef, useState } from "react";
@@ -89,4 +90,8 @@ export const Interaction: Story = {
       </form>
     );
   },
+};
+
+export const FailureAndRetry = {
+  render: () => <SelectionFailureExample kind="toggle" />,
 };

@@ -1,3 +1,4 @@
+import { ActionFailureExample } from "../../stories/handler-failures/actions";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { useState } from "react";
 import { FileChip, fileChipText } from "./file-chip";
@@ -116,4 +117,8 @@ export const TextLayout: Story = {
       </p>
     </div>
   ),
+};
+
+export const FailureAndRetry = {
+  render: () => <ActionFailureExample kind="file-chip" />,
 };

@@ -43,6 +43,7 @@
 }
 :root[data-ui-theme="light"],
 :root[data-theme="light"] {
+  --ui-action-error-color: #9c3737;
   --ui-button-hover-background: var(--ui-shade-34);
   --ui-aurora-strength: 0.3;
   --ui-shade-0: #ffffff;
@@ -152,6 +153,7 @@
   --ui-pin-input-gap: var(--ui-space);
   --ui-pin-input-radius: calc(1.5 * var(--ui-space));
   --ui-pin-input-error-color: #db7070;
+  --ui-action-error-color: var(--ui-pin-input-error-color);
   --ui-icon-size: 20px;
   --ui-icon-size-small: 14px;
   --ui-segmented-inline-item-width: 16px;

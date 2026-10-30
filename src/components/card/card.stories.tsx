@@ -1,3 +1,4 @@
+import { SurfaceFailureExample } from "../../stories/handler-failures/surfaces";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { Button, Card, CardActions, ScrollArea } from "@lesomnus/nox";
 
@@ -96,3 +97,7 @@ export const Filled: Story = {
 };
 export const CustomPadding: Story = { args: { bodyPadding: 8 } };
 export const WithoutFooter: Story = { args: { footer: undefined } };
+
+export const FailureAndRetry = {
+  render: () => <SurfaceFailureExample card />,
+};

@@ -1,3 +1,4 @@
+import { PopoverFailureExample } from "../../stories/handler-failures/other";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { useState } from "react";
 import { Button } from "../button/button";
@@ -160,4 +161,8 @@ export const InDialog: Story = {
       </>
     );
   },
+};
+
+export const FailureAndRetry = {
+  render: () => <PopoverFailureExample />,
 };

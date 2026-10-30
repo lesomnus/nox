@@ -1,3 +1,4 @@
+import { ActionFailureExample } from "../../stories/handler-failures/actions";
 import { useState } from "react";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { ActionMenu, Button } from "@lesomnus/nox";
@@ -116,4 +117,8 @@ export const OutsideScrollbar: Story = {
       </div>
     ),
   ],
+};
+
+export const FailureAndRetry = {
+  render: () => <ActionFailureExample kind="menu" />,
 };

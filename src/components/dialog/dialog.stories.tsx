@@ -1,3 +1,4 @@
+import { SurfaceFailureExample } from "../../stories/handler-failures/surfaces";
 import { useRef, useState } from "react";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import {
@@ -284,4 +285,8 @@ export const Nested: Story = {
       </>
     );
   },
+};
+
+export const HandlerFailure = {
+  render: () => <SurfaceFailureExample />,
 };

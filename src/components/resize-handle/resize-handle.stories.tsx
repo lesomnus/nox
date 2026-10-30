@@ -1,3 +1,4 @@
+import { LayoutFailureExample } from "../../stories/handler-failures/surfaces";
 import { useState } from "react";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { ResizeHandle } from "@lesomnus/nox";
@@ -56,3 +57,7 @@ const meta = {
 } satisfies Meta<typeof ResizeHandle>;
 export default meta;
 export const Horizontal: StoryObj<typeof meta> = {};
+
+export const FailureAndRetry = {
+  render: () => <LayoutFailureExample resize />,
+};

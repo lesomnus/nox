@@ -1,3 +1,4 @@
+import { SelectionFailureExample } from "../../stories/handler-failures/selections";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { useId, useState } from "react";
 import { Checkbox } from "@lesomnus/nox";
@@ -92,4 +93,8 @@ export const Group: Story = {
       </form>
     );
   },
+};
+
+export const FailureAndRetry = {
+  render: () => <SelectionFailureExample kind="checkbox" />,
 };

@@ -1,0 +1,17 @@
+.error {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--ui-space) calc(2 * var(--ui-space));
+  padding: calc(2 * var(--ui-space));
+  border: 1px solid
+    color-mix(in srgb, var(--ui-action-error-color) 40%, transparent);
+  border-radius: var(--ui-space);
+  color: var(--ui-action-error-color);
+  font: inherit;
+  overflow-wrap: anywhere;
+}
+.message {
+  flex: 1;
+  min-width: min(16ch, 100%);
+}

@@ -1,3 +1,4 @@
+import { DateFailureExample } from "../../stories/handler-failures/editors";
 import { useState } from "react";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import guide from "../../../docs/date-picker.md?raw";
@@ -294,4 +295,8 @@ export const ControlledRange: Story = {
       </form>
     );
   },
+};
+
+export const FailureAndRetry = {
+  render: () => <DateFailureExample />,
 };

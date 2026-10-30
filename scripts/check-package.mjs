@@ -69,6 +69,17 @@ try {
     join(temporary, "main.tsx"),
     `
     import { createRoot } from "react-dom/client";
+    import { ActionError, useAsyncAction, type ActionErrorProps, type AsyncActionState } from "@lesomnus/nox";
+    const feedback: ActionErrorProps = {id: "save-error", onRetry: () => {}, pending: false, children: "Could not save"};
+    function AsyncSave() {
+      const save: AsyncActionState<[name: string]> = useAsyncAction(async (name: string) => { void name; });
+      if (false) {
+        // @ts-expect-error Action arguments remain typed through the published declarations.
+        void save.run(42);
+      }
+      return <div><button onClick={() => void save.run("Workspace")} disabled={save.pending}>Save</button>{save.error && <ActionError {...feedback} pending={save.pending} onRetry={() => void save.run("Workspace")} />}</div>;
+    }
+    void AsyncSave;
     import { CompactNumber, type CompactNumberProps } from "@lesomnus/nox";
     const byteNumber: CompactNumberProps = {value: 55, baseUnit: "B", label: "55 bytes", className: "editor-number"};
     // @ts-expect-error Integer mode does not have a unit cell.

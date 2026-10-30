@@ -1,3 +1,4 @@
+import { DraftFailureExample } from "../../stories/handler-failures/editors";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { useArgs } from "storybook/preview-api";
 import { SettingSlider } from "@lesomnus/nox";
@@ -34,3 +35,7 @@ export const Default: Story = {};
 export const Inherited: Story = { args: { value: undefined } };
 export const AboveRange: Story = { args: { value: 12 } };
 export const Disabled: Story = { args: { disabled: true } };
+
+export const FailureAndRetry = {
+  render: () => <DraftFailureExample kind="setting-slider" />,
+};

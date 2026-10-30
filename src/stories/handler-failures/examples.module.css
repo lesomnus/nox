@@ -1,0 +1,35 @@
+.example {
+  display: grid;
+  gap: 12px;
+  width: min(480px, 85vw);
+  min-width: 0;
+}
+.example h3,
+.example p {
+  margin: 0;
+}
+.example > p,
+.example output {
+  color: var(--ui-muted);
+}
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+}
+.row label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.panes {
+  height: 160px;
+  display: flex;
+  min-width: 0;
+}
+.pane {
+  flex: 1;
+  padding: 16px;
+  background: var(--ui-shade-32);
+}

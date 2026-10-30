@@ -1,3 +1,4 @@
+import { PinFailureExample } from "../../stories/handler-failures/editors";
 import { useId, useRef, useState } from "react";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { Button, PinInput } from "@lesomnus/nox";
@@ -146,4 +147,8 @@ export const NativeForm: Story = {
       </form>
     );
   },
+};
+
+export const FailureAndRetry = {
+  render: () => <PinFailureExample />,
 };

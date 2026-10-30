@@ -1,3 +1,4 @@
+import { SuggestionFailureExample } from "../../stories/handler-failures/other";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { useState } from "react";
 import {
@@ -123,4 +124,8 @@ export const Radial: Story = {
       </div>
     );
   },
+};
+
+export const FailureAndRetry = {
+  render: () => <SuggestionFailureExample />,
 };

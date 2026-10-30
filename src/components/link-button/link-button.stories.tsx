@@ -1,3 +1,4 @@
+import { ActionFailureExample } from "../../stories/handler-failures/actions";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { LinkButton } from "@lesomnus/nox";
 
@@ -24,4 +25,8 @@ export const NewTab: Story = {
     rel: "noreferrer",
     children: "Nox repository",
   },
+};
+
+export const FailureAndRetry = {
+  render: () => <ActionFailureExample kind="link" />,
 };

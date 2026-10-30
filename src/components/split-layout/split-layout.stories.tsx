@@ -1,3 +1,4 @@
+import { LayoutFailureExample } from "../../stories/handler-failures/surfaces";
 import { useEffect, useState } from "react";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { SplitLayout, setSplitRatio, type SplitNode } from "@lesomnus/nox";
@@ -163,4 +164,8 @@ export const OffsetJunctions: StoryObj<typeof meta> = {
       },
     },
   },
+};
+
+export const FailureAndRetry = {
+  render: () => <LayoutFailureExample />,
 };

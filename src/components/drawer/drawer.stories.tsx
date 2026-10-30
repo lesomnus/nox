@@ -1,3 +1,4 @@
+import { SurfaceFailureExample } from "../../stories/handler-failures/surfaces";
 import { StrictMode, useRef, useState } from "react";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import {
@@ -163,4 +164,8 @@ export const StrictLifecycle: Story = {
       <Example {...args} />
     </StrictMode>
   ),
+};
+
+export const FailureAndRetry = {
+  render: () => <SurfaceFailureExample drawer />,
 };

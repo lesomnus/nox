@@ -20,6 +20,7 @@ export type UIMessage =
   | "Confirm"
   | "Working…"
   | "Action failed. Please try again."
+  | "Retry"
   | "Edit {label}"
   | "{label} choices"
   | "Inherited: {value}"
