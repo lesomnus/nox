@@ -29,6 +29,10 @@ buttons and pending/error state. `CardActions` groups actions on the right and
 leaves each Button's variant unchanged. Native section attributes, `style`,
 `className`, section refs and `bodyTabIndex` are forwarded.
 
+When the body is the first child (a headerless Card), its top inset matches the
+horizontal body inset using the same control-inset token. This is space between
+the body surface and Card frame, independent of `bodyPadding`.
+
 By default, height follows content. `fill` fills a bounded parent's height and
 turns the body into a flex column with clipped overflow. Compose Nox ScrollArea
 inside for long content; the heading and footer stay fixed. `bodyPadding` only

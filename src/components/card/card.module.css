@@ -60,6 +60,9 @@
   );
   background: var(--ui-dialog-body-background);
 }
+.card.card > :global(.card-body):first-child {
+  margin-block-start: var(--ui-control-inset);
+}
 .card.card
   :global(.card-body)
   :where(
