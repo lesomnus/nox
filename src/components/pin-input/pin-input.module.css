@@ -92,7 +92,9 @@
   background: var(--ui-shade-204);
   animation: caret 1s step-end infinite;
 }
-.root[data-invalid] .slot {
+.root[data-invalid] .slot,
+.root[data-invalid]:hover .slot,
+.root[data-invalid]:focus-within .slot[data-active] {
   border-color: var(--ui-pin-input-error-color);
 }
 .root[data-disabled] {

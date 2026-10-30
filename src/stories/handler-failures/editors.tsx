@@ -135,6 +135,7 @@ export function PinFailureExample({
         length={6}
         readOnly={verify.pending}
         aria-busy={verify.pending}
+        aria-invalid={!!verify.error}
         aria-describedby={verify.error ? id : undefined}
         onChange={(next) => {
           setCode(next);
@@ -148,6 +149,7 @@ export function PinFailureExample({
           onDismiss={verify.reset}
           id={id}
           anchor={input.current}
+          highlightTrigger={false}
           showRetry={showRetry}
           pending={verify.pending}
           onRetry={() => void run(requested.current)}

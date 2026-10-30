@@ -16,6 +16,7 @@ import {
   type PinInputMode,
 } from "./pin-input-model";
 import styles from "./pin-input.module.css";
+import { useShake, type ShakeOptions } from "../../effects/shake/use-shake";
 
 export type { PinInputMode } from "./pin-input-model";
 
@@ -43,6 +44,8 @@ export type PinInputProps = Omit<
   onChange?: (value: string) => void;
   onComplete?: (value: string) => void;
   masked?: boolean;
+  /** Animate independent slots on failure; false disables, an object customizes motion. */
+  errorShake?: boolean | ShakeOptions;
   /** Native input ref for focus, labels, form validity and selection. */
   ref?: Ref<HTMLInputElement>;
 };
@@ -59,6 +62,7 @@ export function PinInput({
   onChange,
   onComplete,
   masked = false,
+  errorShake = true,
   className = "",
   style,
   ref,
@@ -89,6 +93,21 @@ export function PinInput({
   const [selection, setSelection] = useState({ start: 0, end: 0 });
   const pendingSelection = useRef<readonly [number, number] | null>(null);
   const currentValue = useRef(code);
+  const invalid = Boolean(
+    props["aria-invalid"] && props["aria-invalid"] !== "false",
+  );
+  const busy = Boolean(props["aria-busy"] && props["aria-busy"] !== "false");
+  const shakeEnabled = errorShake !== false;
+  const { shake, cancel } = useShake();
+  useEffect(() => {
+    if (invalid && !busy && shakeEnabled)
+      shake(
+        slots.current,
+        typeof errorShake === "object" ? errorShake : undefined,
+      );
+    else cancel();
+    // Option changes apply to the next failure, not every focus/selection render.
+  }, [invalid, busy, shakeEnabled, shake, cancel]);
   const attach = useCallback(
     (node: HTMLInputElement | null) => {
       input.current = node;
@@ -154,7 +173,6 @@ export function PinInput({
   const displayCode =
     composition === null ? code : normalizePin(composition, mode, count);
   const active = Math.min(selection.start, code.length, count - 1);
-  const invalid = props["aria-invalid"] && props["aria-invalid"] !== "false";
   let offset = 0;
   return (
     <div

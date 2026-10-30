@@ -52,6 +52,14 @@ pattern. `autoComplete` defaults to `one-time-code`; `inputMode` defaults to
 `numeric` or `text` according to the mode. The caller owns error text,
 verification requests and any completion-driven navigation.
 
+`aria-invalid` colors every slot's border, including while hovered or focused.
+By default, becoming invalid triggers an independent randomized shake per slot;
+an `aria-busy` request that finishes while still invalid replays it. Set
+`errorShake={false}` to disable motion or pass shared `ShakeOptions` to customize
+it. The native input remains stationary and reduced-motion preferences are
+respected. See [the reusable Shake effect guide](./shake.md) for composition and
+request-failure examples.
+
 ## Editing
 
 Typing advances the visible caret. Clicking or tapping a filled slot selects

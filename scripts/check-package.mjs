@@ -171,6 +171,18 @@ try {
     // @ts-expect-error Selection modes require their matching value shapes.
     const invalidDateMode: DatePickerProps = { mode: "multiple", label: "Invalid", value: "2026-10-21" };
     void invalidDateMode;
+    import { useShake, SHAKE_PRESETS, type ShakeOptions, type ShakeTargets, type ShakePreset } from "@lesomnus/nox";
+    const shakeOptions: ShakeOptions = {presets: SHAKE_PRESETS, distance: 2, duration: 300, maxDelay: 30};
+    const shakePreset: ShakePreset = {name: "custom", points: [[0,0],[-1,0],[0,0]]};
+    function ShakeConsumer() {
+      const {shake,cancel} = useShake();
+      const target: ShakeTargets = null;
+      return <button onClick={() => { shake(target, shakeOptions); cancel(); }}>Shake</button>;
+    }
+    void ShakeConsumer; void shakePreset;
+    const customPinMotion: PinInputProps = {label:"PIN",errorShake:shakeOptions};
+    const noPinMotion: PinInputProps = {label:"PIN",errorShake:false};
+    void customPinMotion; void noPinMotion;
     const pin: PinInputProps = { label: "Device code", groups: [4,4], mode: "alphanumeric", name: "device_code" };
     void MenuSurface;
     void MenuIcon;

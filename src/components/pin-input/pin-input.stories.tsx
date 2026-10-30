@@ -10,9 +10,15 @@ const meta = {
     label: "Verification code",
     length: 6,
     mode: "numeric",
+    errorShake: true,
     disabled: false,
   },
   argTypes: {
+    errorShake: {
+      control: "boolean",
+      type: { name: "boolean" },
+      table: { type: { summary: "boolean | ShakeOptions" } },
+    },
     mode: { control: "select", options: ["numeric", "alphanumeric"] },
     length: { control: { type: "number", min: 1, max: 16 } },
   },
