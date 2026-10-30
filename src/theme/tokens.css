@@ -165,6 +165,9 @@
     transparent
   );
   --ui-action-error-blur: var(--ui-dropdown-blur);
+  --ui-action-error-title-size: 11px;
+  --ui-action-error-trigger-border: var(--ui-action-error-color);
+  --ui-action-error-trigger-border-width: 1px;
   --ui-icon-size: 20px;
   --ui-icon-size-small: 14px;
   --ui-segmented-inline-item-width: 16px;

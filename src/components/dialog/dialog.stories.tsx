@@ -187,6 +187,7 @@ function Operation({ failFirst = false }: { failFirst?: boolean }) {
           </p>
           {failed && (
             <ActionError
+              onDismiss={() => setFailed(false)}
               anchor={submit.current}
               pending={busy}
               onRetry={() => void save()}

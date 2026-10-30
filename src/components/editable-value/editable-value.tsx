@@ -234,6 +234,7 @@ function ValueEditor({
         <div className={`${dialogAppearanceClassName} editable-value-overlay`}>
           {error && (
             <ActionError
+              onDismiss={() => setError("")}
               id={errorId}
               anchor={input.current}
               placement="top-start"

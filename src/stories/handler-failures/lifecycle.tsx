@@ -36,7 +36,7 @@ function Probe({
         </Button>
       </div>
       {action.error && (
-        <ActionError anchor={trigger.current}>
+        <ActionError onDismiss={action.reset} anchor={trigger.current}>
           {action.error.message}
           <span> Cause: {String(action.error.cause)}</span>
         </ActionError>

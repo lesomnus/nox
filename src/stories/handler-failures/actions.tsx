@@ -145,12 +145,16 @@ export function ActionFailureExample({
         )}
       </div>
       {clipboardFailed && (
-        <ActionError anchor={trigger.current}>
+        <ActionError
+          anchor={trigger.current}
+          onDismiss={() => setClipboardFailed(false)}
+        >
           Clipboard permission was denied. Allow access, then copy again.
         </ActionError>
       )}
       {action.error && (
         <ActionError
+          onDismiss={action.reset}
           anchor={trigger.current}
           showRetry={showRetry}
           pending={action.pending}

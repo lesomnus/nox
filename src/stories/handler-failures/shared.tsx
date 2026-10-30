@@ -55,6 +55,7 @@ export function useCommit<Value>(initial: Value, showRetry = false) {
     change: (next: Value) => void change(next),
     feedback: action.error && (
       <ActionError
+        onDismiss={action.reset}
         showRetry={showRetry}
         anchor={anchor.current ?? controlRef.current}
         id={id}

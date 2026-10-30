@@ -1,0 +1,25 @@
+.examples {
+  display: grid;
+  gap: calc(3 * var(--ui-space));
+  padding-block: calc(12 * var(--ui-space));
+}
+.examples p {
+  margin: 0;
+  color: var(--ui-muted);
+}
+.triggers {
+  display: flex;
+  flex-wrap: wrap;
+  gap: calc(2 * var(--ui-space));
+}
+.customBorder {
+  --ui-action-error-trigger-border: var(--ui-shade-237);
+  --ui-action-error-trigger-border-width: 2px;
+}
+.customBackground.customBackground[data-action-error-open="true"] {
+  background: color-mix(
+    in srgb,
+    var(--ui-shade-32) 75%,
+    var(--ui-action-error-color)
+  );
+}

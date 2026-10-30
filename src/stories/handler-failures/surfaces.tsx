@@ -70,6 +70,7 @@ export function SurfaceFailureExample({
       </p>
       {save.error && (
         <ActionError
+          onDismiss={save.reset}
           anchor={submit.current}
           showRetry={showRetry}
           pending={save.pending}
@@ -216,6 +217,7 @@ export function LayoutFailureExample({
       </Button>
       {save.error && (
         <ActionError
+          onDismiss={save.reset}
           anchor={submit.current}
           showRetry={showRetry}
           pending={save.pending}

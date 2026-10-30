@@ -19,6 +19,8 @@ export type UIMessage =
   | "Cancel"
   | "Confirm"
   | "Working…"
+  | "Action failed"
+  | "Dismiss error"
   | "Action failed. Please try again."
   | "Retry"
   | "Edit {label}"

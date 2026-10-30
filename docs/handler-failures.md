@@ -25,7 +25,12 @@ return (
       Publish report
     </Button>
     {publish.error && (
-      <ActionError anchor={trigger.current} pending={publish.pending}>
+      <ActionError
+        title="Publish failed"
+        anchor={trigger.current}
+        pending={publish.pending}
+        onDismiss={publish.reset}
+      >
         Could not publish. Your report is still available.
       </ActionError>
     )}
@@ -47,7 +52,12 @@ feedback only, without canceling work. The caller owns cancellation and side
 effects inside its callback; the hook suppresses only its own state updates and
 success result after unmount. No automatic retry, rollback or logging occurs.
 
-`ActionError` provides an alert, optional retry and pending feedback. Pass
+`ActionError` provides an alert with a compact bold `title`, a dismiss button,
+optional retry and pending feedback. Its default title is "Action failed".
+Pass `onDismiss={action.reset}` to clear the caller's failure feedback without
+canceling a request or losing an edited draft. Without `onDismiss`, the mounted
+error can still be dismissed locally; unmount it between separate failures.
+Dismissal returns focus to the anchor. Pass
 `anchor` to overlay it beside the triggering control without changing layout;
 `placement` defaults to `top-start`, above the trigger, and flips or shifts at
 viewport edges. Retry is hidden by default, even when an `onRetry` handler is
@@ -67,6 +77,32 @@ Anchored feedback connects its `id` to the trigger's `aria-describedby` and
 preserves existing descriptions. Inline feedback can be connected manually. When success
 removes focused feedback, restore a persistent control's focus or let the closing
 Dialog/Drawer restore its opener.
+
+### Trigger appearance
+
+While an anchored error is visible, its control receives
+`data-action-error-open="true"` and an inset red stroke that keeps its dimensions
+unchanged. The stroke uses `--ui-action-error-trigger-border` and
+`--ui-action-error-trigger-border-width`; override them on a control or an ancestor.
+Set `highlightTrigger={false}` to opt out of this stroke. The open-state attribute
+remains available for any component-specific treatment, without a fixed list of
+appearance presets:
+
+```css
+.saveButton {
+  --ui-action-error-trigger-border: var(--ui-shade-237);
+}
+
+.saveButton[data-action-error-open="true"] {
+  background: var(--ui-button-hover-background);
+}
+```
+
+The state attributes and added accessible description are removed when the error
+is dismissed, unmounted, or moved to another anchor. Existing descriptions and
+other errors on the same anchor are preserved. Changing these styles does not
+move surrounding content. Components/ActionError/TriggerStyling demonstrates the
+default stroke, overridden tokens and a background-only treatment.
 
 | Family                                                  | Example recovery policy                                                                                                                      |
 | ------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |

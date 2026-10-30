@@ -61,6 +61,7 @@ export function FormFailureExample({
       </Form>
       {save.error && (
         <ActionError
+          onDismiss={save.reset}
           id={`${id}-error`}
           anchor={submit.current}
           showRetry={showRetry}
@@ -144,6 +145,7 @@ export function PinFailureExample({
       />
       {verify.error && (
         <ActionError
+          onDismiss={verify.reset}
           id={id}
           anchor={input.current}
           showRetry={showRetry}
@@ -260,6 +262,7 @@ export function DraftFailureExample({
       </Button>
       {save.error && (
         <ActionError
+          onDismiss={save.reset}
           anchor={submit.current}
           showRetry={showRetry}
           pending={save.pending}

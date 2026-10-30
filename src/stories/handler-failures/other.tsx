@@ -51,6 +51,7 @@ export function PopoverFailureExample({
       </div>
       {load.error && (
         <ActionError
+          onDismiss={load.reset}
           anchor={trigger.current}
           showRetry={showRetry}
           pending={load.pending}
@@ -141,6 +142,7 @@ export function TableFailureExample({
       </Table>
       {remove.error && (
         <ActionError
+          onDismiss={remove.reset}
           anchor={trigger.current}
           showRetry={showRetry}
           pending={remove.pending}
