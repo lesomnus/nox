@@ -1,6 +1,8 @@
 import { useId, useRef, useState } from "react";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { Button, PinInput } from "@lesomnus/nox";
+import guide from "../../../docs/pin-input.md?raw";
+import { PinFailureExample } from "../../stories/handler-failures/editors";
 
 const meta = {
   title: "Components/PinInput",
@@ -25,8 +27,7 @@ const meta = {
   parameters: {
     docs: {
       description: {
-        component:
-          "One accessible native input presented as character slots. Typing advances the visible caret; click a slot to replace it, use arrows/Home/End, or paste a complete formatted code from any slot. Numeric and uppercase alphanumeric modes support OTP autofill. groups={[4,4]} displays a device code with a visual separator while keeping one unformatted value.",
+        component: guide,
       },
     },
   },
@@ -78,6 +79,18 @@ const meta = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 export const Default: Story = {};
+export const Verification: Story = {
+  parameters: {
+    controls: { disable: true },
+    docs: {
+      description: {
+        story:
+          "Complete all slots to verify automatically. The first request fails; edit the code and complete it again to succeed. During the request the native input is disabled. Failure uses the built-in Invalid shake, success gives every slot a green border, and editing clears either result. This shares its implementation with Patterns/HandlerFailures/CodeComplete; see the component guide for the complete recipe.",
+      },
+    },
+  },
+  render: () => <PinFailureExample />,
+};
 export const FourDigits: Story = { args: { length: 4, label: "PIN" } };
 export const DeviceCode: Story = {
   args: { label: "Device code", mode: "alphanumeric", groups: [4, 4] },

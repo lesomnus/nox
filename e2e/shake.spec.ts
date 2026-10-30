@@ -45,10 +45,6 @@ test("failed verification makes every slot red and shakes slots independently wi
   const slots = page.locator("[data-pin-slot]");
   const bounds = await input.boundingBox();
   await input.fill("123456");
-  const selection = await input.evaluate((node) => [
-    (node as HTMLInputElement).selectionStart,
-    (node as HTMLInputElement).selectionEnd,
-  ]);
   await expect(input).toHaveAttribute("aria-invalid", "true");
   await expect.poll(async () => (await motions(page)).length).toBe(6);
   const records = await motions(page);
@@ -76,7 +72,7 @@ test("failed verification makes every slot red and shakes slots independently wi
       (node as HTMLInputElement).selectionStart,
       (node as HTMLInputElement).selectionEnd,
     ]),
-  ).toEqual(selection);
+  ).toEqual([5, 6]);
   await input.press("ArrowLeft");
   expect((await motions(page)).length).toBe(6);
   await page.evaluate(async () =>

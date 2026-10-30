@@ -28,6 +28,12 @@
   display: flex;
   min-width: 0;
 }
+.verifiedCode {
+  --ui-pin-input-border-color: var(--ui-pin-input-success-color);
+}
+.verificationStatus {
+  min-block-size: 1lh;
+}
 .pane {
   flex: 1;
   padding: 16px;

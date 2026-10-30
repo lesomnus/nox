@@ -1,4 +1,4 @@
-import { useId, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import {
   ActionError,
   Button,
@@ -16,6 +16,7 @@ import {
   type RgbColor,
 } from "@lesomnus/nox";
 import { Example, useCommit, useFailOnce } from "./shared";
+import styles from "./examples.module.css";
 
 export function FormFailureExample({
   showRetry = false,
@@ -121,11 +122,18 @@ export function PinFailureExample({
   const verify = useAsyncAction(async (next: string) => {
     requested.current = next;
     await failOnce();
-    setVerified(true);
   });
   const run = async (next: string) => {
-    if (await verify.run(next)) input.current?.focus();
+    if (await verify.run(next)) setVerified(true);
   };
+  useEffect(() => {
+    if (
+      !verify.pending &&
+      requested.current &&
+      document.activeElement === document.body
+    )
+      input.current?.focus({ preventScroll: true });
+  }, [verify.pending]);
   return (
     <Example title="PinInput">
       <PinInput
@@ -133,7 +141,8 @@ export function PinFailureExample({
         label="Verification code"
         value={code}
         length={6}
-        readOnly={verify.pending}
+        disabled={verify.pending}
+        className={verified ? styles.verifiedCode : undefined}
         aria-busy={verify.pending}
         aria-invalid={!!verify.error}
         aria-describedby={verify.error ? id : undefined}
@@ -157,7 +166,15 @@ export function PinFailureExample({
           Verification could not reach the server. Your code is preserved.
         </ActionError>
       )}
-      {verified && <p role="status">Code verified</p>}
+      <output role="status" className={styles.verificationStatus}>
+        {verify.pending
+          ? "Verifying code…"
+          : verified
+            ? "Code verified"
+            : verify.error
+              ? "Verification failed"
+              : "Enter a complete code"}
+      </output>
     </Example>
   );
 }
