@@ -144,16 +144,6 @@ export function ValueMenu({
     if (restore) trigger()?.focus({ preventScroll: true });
   }
   useLayoutEffect(() => {
-    const el = root.current;
-    if (!el) return;
-    const measure = () =>
-      el.style.setProperty("--value-width", `${el.clientWidth}px`);
-    measure();
-    const observer = new ResizeObserver(measure);
-    observer.observe(el);
-    return () => observer.disconnect();
-  }, []);
-  useLayoutEffect(() => {
     if (!open || !root.current || !menu.current) return;
     const position = () => {
       if (!root.current || !menu.current) return;

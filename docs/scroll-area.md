@@ -72,5 +72,10 @@ Geometry, color, motion, gap and fade defaults live in `src/theme/tokens.css`.
 Reduced motion disables visual transitions. Content fetching, virtualization
 and ancestor clipping policy belong to the caller.
 
+Changing edge-fade values are written to the top/bottom overlay slots rather
+than the common container, keeping them out of the scrollable content's inherited
+styles. Geometry is read before painting either fade. ResizeObserver supplies
+the initial measurement; equal geometry does not request another React render.
+
 Storybook **Layout/ScrollArea** covers long/short/no overflow, growing content,
 horizontal scrolling, outside handles, zero/negative offsets and no overflow.
