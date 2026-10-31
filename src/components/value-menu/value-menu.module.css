@@ -49,6 +49,11 @@
   text-align: left;
   color: inherit;
 }
+/* On close this trigger replaces a hovered menu row. Apply its hover fill
+   immediately so the reverse handoff does not replay the background fade. */
+.value_menu :global(.setting-trigger:not(:disabled):hover) {
+  transition-duration: 0s;
+}
 :is(.value_menu, .setting_menu)
   :global(.setting-trigger)
   :global(.button-content) {
