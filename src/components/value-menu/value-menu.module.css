@@ -192,6 +192,9 @@
 .setting_menu[data-align-item-with-trigger="true"]
   :global([role="option"][aria-selected="true"]:not(:disabled):hover) {
   background: var(--ui-selected);
+  /* This row replaces an already-hovered trigger. Apply its hover fill
+     immediately instead of replaying the resting-to-hover background fade. */
+  transition-duration: 0s;
 }
 
 .setting_menu :global(.setting-search-row) {

@@ -44,7 +44,9 @@ color, so a host page cannot make dark menus unreadable. Shade and dropdown
 tokens are the source of truth for appearance. `--ui-menu-selected-background`
 controls the resting fill of checked actions and aligned selected options. It
 uses shade32 (#202020) in dark mode, retaining the previous light selection fill;
-hover fills remain unchanged.
+hover fills remain unchanged. Aligned selected options apply their hover fill
+immediately so a newly mounted row does not flash its resting color when it
+replaces an already-hovered trigger.
 
 ValueMenu includes the selected choice in its list by default and marks it with
 `aria-selected`. Set `hideSelected` to omit it, including from search results.
