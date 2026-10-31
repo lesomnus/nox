@@ -16,6 +16,24 @@ export function positionSelectedMenu(
   if (!list || !option || !label || !value) return false;
 
   const css = getComputedStyle(popup);
+  // CSS positioning and scroll offsets use unzoomed pixels, while client
+  // rectangles include CSS zoom. Keep all geometry in the popup's CSS space.
+  const zoom =
+    popup.currentCSSZoom ||
+    popup.getBoundingClientRect().width / parseFloat(css.width) ||
+    1;
+  const rect = (node: HTMLElement) => {
+    const bounds = node.getBoundingClientRect();
+    return {
+      top: bounds.top / zoom,
+      bottom: bounds.bottom / zoom,
+      left: bounds.left / zoom,
+      width: bounds.width / zoom,
+      height: bounds.height / zoom,
+    };
+  };
+  const viewportWidth = window.innerWidth / zoom;
+  const viewportHeight = window.innerHeight / zoom;
   const edge =
     parseFloat(css.getPropertyValue("--ui-menu-viewport-inset")) || 0;
   const topInset = parseFloat(css.paddingTop) + parseFloat(css.borderTopWidth);
@@ -25,7 +43,7 @@ export function positionSelectedMenu(
     parseFloat(css.paddingLeft) + parseFloat(css.borderLeftWidth);
   const rightInset =
     parseFloat(css.paddingRight) + parseFloat(css.borderRightWidth);
-  const bounds = trigger.getBoundingClientRect();
+  const bounds = rect(trigger);
   // The popup is portaled, so Form's control sizing is not inherited there.
   // Size only the selected replacement; surrounding choices keep menu spacing.
   const control = getComputedStyle(trigger);
@@ -36,42 +54,36 @@ export function positionSelectedMenu(
       `--selected-option-padding-${side.toLowerCase()}`,
       `${parseFloat(control[`padding${side}`]) + parseFloat(control[`border${side}Width`])}px`,
     );
-  const width = Math.max(0, window.innerWidth - 2 * edge);
+  const width = Math.max(0, viewportWidth - 2 * edge);
   popup.style.setProperty(
     "--menu-width",
     `${Math.min(width, Math.max(bounds.width + leftInset + rightInset, minMenuWidth))}px`,
   );
-  popup.style.left = `${clamp(bounds.left - leftInset, edge, window.innerWidth - edge - popup.getBoundingClientRect().width)}px`;
+  popup.style.left = `${clamp(bounds.left - leftInset, edge, viewportWidth - edge - rect(popup).width)}px`;
   popup.style.bottom = "auto";
   popup.style.top = `${edge}px`;
 
   const header = popup.querySelector<HTMLElement>('[data-menu-fixed="header"]');
   const footer = popup.querySelector<HTMLElement>('[data-menu-fixed="footer"]');
-  const before = topInset + (header?.getBoundingClientRect().height ?? 0);
-  const after = bottomInset + (footer?.getBoundingClientRect().height ?? 0);
-  const available = Math.max(0, window.innerHeight - 2 * edge - before - after);
+  const before = topInset + (header ? rect(header).height : 0);
+  const after = bottomInset + (footer ? rect(footer).height : 0);
+  const available = Math.max(0, viewportHeight - 2 * edge - before - after);
   popup.style.setProperty("--options-height", `${available}px`);
 
-  const anchor = value.getBoundingClientRect();
+  const anchor = rect(value);
   const center = anchor.top + anchor.height / 2;
-  const row = option.getBoundingClientRect();
-  const text = label.getBoundingClientRect();
+  const row = rect(option);
+  const text = rect(label);
   // Align the actual text, including any icon beside the label.
-  popup.style.left = `${clamp(parseFloat(popup.style.left) + anchor.left - text.left, edge, window.innerWidth - edge - popup.getBoundingClientRect().width)}px`;
+  popup.style.left = `${clamp(parseFloat(popup.style.left) + anchor.left - text.left, edge, viewportWidth - edge - rect(popup).width)}px`;
   const contentCenter =
-    text.top +
-    text.height / 2 -
-    list.getBoundingClientRect().top +
-    list.scrollTop;
+    text.top + text.height / 2 - rect(list).top + list.scrollTop;
   const above = Math.min(contentCenter, center - edge - before);
   const below = Math.min(
     list.scrollHeight - contentCenter,
-    window.innerHeight - edge - center - after,
+    viewportHeight - edge - center - after,
   );
-  const height = Math.max(
-    0,
-    Math.min(list.getBoundingClientRect().height, above + below),
-  );
+  const height = Math.max(0, Math.min(rect(list).height, above + below));
   const rows =
     parseFloat(css.getPropertyValue("--ui-menu-align-min-rows")) || 1;
   const minimum = Math.min(list.scrollHeight, row.height * rows);
@@ -87,10 +99,10 @@ export function positionSelectedMenu(
     );
     popup.style.setProperty("--options-height", `${height}px`);
     list.scrollTop = contentCenter - visibleAbove;
-    const actual = label.getBoundingClientRect();
-    popup.style.top = `${center - (actual.top + actual.height / 2 - popup.getBoundingClientRect().top)}px`;
-    const frame = popup.getBoundingClientRect();
-    const selected = option.getBoundingClientRect();
+    const actual = rect(label);
+    popup.style.top = `${center - (actual.top + actual.height / 2 - rect(popup).top)}px`;
+    const frame = rect(popup);
+    const selected = rect(option);
     popup.style.setProperty(
       "--menu-reveal-top",
       `${Math.max(0, selected.top - frame.top - topInset)}px`,
@@ -107,20 +119,20 @@ export function positionSelectedMenu(
   const spaceAbove = clamp(
     bounds.top - edge - gap,
     0,
-    window.innerHeight - 2 * edge,
+    viewportHeight - 2 * edge,
   );
   const spaceBelow = clamp(
-    window.innerHeight - edge - bounds.bottom - gap,
+    viewportHeight - edge - bounds.bottom - gap,
     0,
-    window.innerHeight - 2 * edge,
+    viewportHeight - 2 * edge,
   );
   const upwards = spaceAbove > spaceBelow;
   popup.style.setProperty(
     "--options-height",
     `${Math.max(0, (upwards ? spaceAbove : spaceBelow) - before - after)}px`,
   );
-  const popupHeight = popup.getBoundingClientRect().height;
-  popup.style.top = `${clamp(upwards ? bounds.top - gap - popupHeight : bounds.bottom + gap, edge, window.innerHeight - edge - popupHeight)}px`;
+  const popupHeight = rect(popup).height;
+  popup.style.top = `${clamp(upwards ? bounds.top - gap - popupHeight : bounds.bottom + gap, edge, viewportHeight - edge - popupHeight)}px`;
   option.scrollIntoView({ block: "nearest" });
   popup.dataset.itemAlignment = "edge";
   return false;
