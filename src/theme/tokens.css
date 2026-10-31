@@ -253,6 +253,7 @@
   --ui-scroll-area-fade-depth: 24px;
   --ui-scroll-area-fade-extension: 72px;
   --ui-dialog-enter-duration: 240ms;
+  --ui-dialog-exit-duration: 180ms;
   --ui-menu-reveal-duration: 360ms;
   --ui-menu-reveal-easing: cubic-bezier(0.22, 0.61, 0.36, 1);
   --ui-dialog-enter-easing: cubic-bezier(0.16, 1, 0.3, 1);

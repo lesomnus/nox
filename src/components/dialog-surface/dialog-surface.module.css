@@ -9,6 +9,9 @@
   background: var(--ui-dialog-backdrop);
   animation: backdrop-enter var(--ui-dialog-enter-duration) ease-out both;
 }
+.dialog[data-closing="true"]::backdrop {
+  animation: backdrop-exit var(--ui-dialog-exit-duration) ease-in both;
+}
 .appearance {
   background: var(--ui-dialog-background);
   -webkit-backdrop-filter: blur(var(--ui-dialog-blur));
@@ -151,6 +154,9 @@
 .surface[data-anchored="true"] {
   transform-origin: top left;
 }
+.surface[data-closing="true"] {
+  animation: exit var(--ui-dialog-exit-duration) ease-in both;
+}
 .surface[data-motion="from-right"] {
   animation-name: enter-from-right;
 }
@@ -189,9 +195,25 @@
     transform: none;
   }
 }
+@keyframes exit {
+  from {
+    opacity: 1;
+    transform: none;
+  }
+  to {
+    opacity: 0;
+    transform: translate(
+        var(--enter-x, 0px),
+        var(--enter-y, var(--ui-dialog-enter-offset))
+      )
+      scale(0.985);
+  }
+}
 @media (prefers-reduced-motion: reduce) {
   .entrance,
-  .dialog::backdrop {
+  .dialog::backdrop,
+  .dialog[data-closing="true"]::backdrop,
+  .surface[data-closing="true"] {
     animation: none;
   }
   .entrance[data-enter-effect="fade"],
@@ -211,5 +233,13 @@
   }
   to {
     opacity: 1;
+  }
+}
+@keyframes backdrop-exit {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
   }
 }

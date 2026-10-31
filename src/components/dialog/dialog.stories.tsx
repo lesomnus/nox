@@ -52,6 +52,36 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 export const Default: Story = {};
 
+export const ClosingMotion: Story = {
+  render: function ClosingMotion(args) {
+    const [open, setOpen] = useState(false);
+    const [closed, setClosed] = useState(0);
+    return (
+      <>
+        <Button onClick={() => setOpen(true)}>Open dialog</Button>
+        <p role="status">Completed closes: {closed}</p>
+        <Dialog
+          {...args}
+          open={open}
+          onClose={() => setOpen(false)}
+          onClosed={() => setClosed((count) => count + 1)}
+        >
+          <DialogHeader>
+            <DialogTitle>Closing animation</DialogTitle>
+          </DialogHeader>
+          <DialogBody>
+            The surface and backdrop fade out together. The page stays modal
+            until the animation finishes, then focus returns to the opener.
+          </DialogBody>
+          <DialogFooter>
+            <Button onClick={() => setOpen(false)}>Close</Button>
+          </DialogFooter>
+        </Dialog>
+      </>
+    );
+  },
+};
+
 export const CustomFooter: Story = {
   render: function CustomFooter(args) {
     const [open, setOpen] = useState(false);
