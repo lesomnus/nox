@@ -11,6 +11,10 @@ Package: `@lesomnus/nox` · Repository: [lesomnus/nox](https://github.com/lesomn
 For recoverable event handlers, see [handler failures](docs/handler-failures.md):
 `useAsyncAction`, `ActionError` and the shared Patterns/HandlerFailures recipes.
 
+[`CardStack`](docs/card-stack.md) supplies a reusable animated FIFO card queue:
+keyed advancement/refill, back-first dismissal, glass surfaces and bounded
+body scrolling. Content, trigger policy and data stay with the host application.
+
 ## Develop
 
 Node 22.12+ (CI uses Node 24), npm 11.
