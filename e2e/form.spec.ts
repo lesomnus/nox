@@ -279,3 +279,49 @@ for (const zoom of [1.25, 1.5]) {
     }
   });
 }
+
+for (const [value, top, bottom] of [
+  ["High", 4, 18],
+  ["Low", 18, 4],
+] as const) {
+  test(`item alignment uses actual ${value} row extents with asymmetric padding`, async ({
+    page,
+  }) => {
+    await page.goto("/iframe.html?id=components-form--in-card&viewMode=story");
+    const trigger = page.getByRole("combobox", {
+      name: "Priority",
+      exact: true,
+    });
+    await trigger.click();
+    await page.getByRole("option", { name: value, exact: true }).click();
+    await trigger.evaluate(
+      (node, { top, bottom }) =>
+        Object.assign(node.style, {
+          paddingTop: `${top}px`,
+          paddingBottom: `${bottom}px`,
+        }),
+      { top, bottom },
+    );
+    await trigger.click();
+    const popup = page.locator(".setting-menu");
+    await expect(popup).toHaveAttribute("data-item-alignment", "selected");
+    const selected = popup.getByRole("option", { name: value, exact: true });
+    await expect
+      .poll(async () => {
+        const a = (await trigger.boundingBox())!,
+          b = (await selected.boundingBox())!;
+        const label = (await trigger.locator(".meta-value").boundingBox())!,
+          match = (await selected
+            .locator(".setting-match-label")
+            .boundingBox())!;
+        return Math.max(
+          ...(["x", "y", "width", "height"] as const).map((key) =>
+            Math.abs(a[key] - b[key]),
+          ),
+          Math.abs(label.y - match.y),
+        );
+      })
+      .toBeLessThan(0.1);
+    await page.keyboard.press("Escape");
+  });
+}

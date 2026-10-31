@@ -8,12 +8,15 @@ export function positionSelectedMenu(
   minMenuWidth: number,
 ) {
   const list = popup.querySelector<HTMLElement>(".setting-options");
+  const content = list?.querySelector<HTMLElement>(
+    '[data-scroll-area="content"]',
+  );
   const option = popup.querySelector<HTMLElement>(
     '[role="option"][aria-selected="true"]',
   );
   const label = option?.querySelector<HTMLElement>(".setting-match-label");
   const value = trigger.querySelector<HTMLElement>(".meta-value");
-  if (!list || !option || !label || !value) return false;
+  if (!list || !content || !option || !label || !value) return false;
 
   const css = getComputedStyle(popup);
   // CSS positioning and scroll offsets use unzoomed pixels, while client
@@ -76,22 +79,32 @@ export function positionSelectedMenu(
   const text = rect(label);
   // Align the actual text, including any icon beside the label.
   popup.style.left = `${clamp(parseFloat(popup.style.left) + anchor.left - text.left, edge, viewportWidth - edge - rect(popup).width)}px`;
-  const contentCenter =
-    text.top + text.height / 2 - rect(list).top + list.scrollTop;
-  const above = Math.min(contentCenter, center - edge - before);
-  const below = Math.min(
-    list.scrollHeight - contentCenter,
-    viewportHeight - edge - center - after,
+  const contents = rect(content);
+  const textCenter = text.top + text.height / 2;
+  const contentCenter = textCenter - contents.top;
+  const contentBelow = contents.bottom - textCenter;
+  const availableAbove = center - edge - before;
+  const availableBelow = viewportHeight - edge - center - after;
+  const above = Math.min(contentCenter, availableAbove);
+  const below = Math.min(contentBelow, availableBelow);
+  // Measure the natural content at subpixel precision. scrollHeight rounds to
+  // integers, and adding two center distances can introduce cancellation error.
+  const clippedAbove = Math.max(0, contentCenter - availableAbove);
+  const clippedBelow = Math.max(0, contentBelow - availableBelow);
+  const height = Math.max(
+    0,
+    Math.min(rect(list).height, contents.height - clippedAbove - clippedBelow),
   );
-  const height = Math.max(0, Math.min(rect(list).height, above + below));
   const rows =
     parseFloat(css.getPropertyValue("--ui-menu-align-min-rows")) || 1;
-  const minimum = Math.min(list.scrollHeight, row.height * rows);
-
-  // scrollHeight is integer-rounded; viewport/row bounds retain subpixels.
-  // A fitting short list must not fall back just because its height rounded up.
-  const fitsMinimum = height >= minimum - 0.5;
-  if (above >= row.height / 2 && below >= row.height / 2 && fitsMinimum) {
+  const minimum = Math.min(contents.height, row.height * rows);
+  // The label need not be exactly at the row midpoint (padding, line boxes and
+  // zoom all affect it). Only compare the row's actual extents to screen space;
+  // the content before/after its own label is not a screen-space constraint.
+  const fitsRow =
+    availableAbove >= textCenter - row.top &&
+    availableBelow >= row.bottom - textCenter;
+  if (fitsRow && height >= minimum) {
     const visibleAbove = clamp(
       height / 2,
       Math.max(0, height - below),

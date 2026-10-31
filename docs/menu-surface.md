@@ -60,9 +60,11 @@ hidden only while its aligned replacement is visible; its size stays fixed.
 The selected option copies the trigger's width, height, corner radius and content
 insets, including Form's larger padded controls. Other choices keep their normal
 menu spacing. Resizing the trigger while open updates its replacement too;
-viewport constraints still take priority when the trigger cannot fit. Integer
-scroll-height rounding is accounted for so fractional control sizes do not
-unnecessarily switch to edge placement on reopening. Open selectors measure
+viewport constraints still take priority when the trigger cannot fit. Fit checks
+use the natural content rectangle at subpixel precision and the selected row's
+actual extents around its label. They do not compare an integer-rounded
+scrollHeight or assume the label is exactly at half the row height, so zoom and
+asymmetric padding cannot falsely trigger edge placement. Open selectors measure
 resting trigger content, excluding the button's transient press scale. Client
 rectangles are converted back to the popup's CSS pixel space, so CSS zoom does
 not double the selected row's dimensions or incorrectly switch to edge placement
