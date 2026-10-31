@@ -63,7 +63,10 @@ menu spacing. Resizing the trigger while open updates its replacement too;
 viewport constraints still take priority when the trigger cannot fit. Integer
 scroll-height rounding is accounted for so fractional control sizes do not
 unnecessarily switch to edge placement on reopening. Open selectors measure
-resting trigger content, excluding the button's transient press scale.
+resting trigger content, excluding the button's transient press scale. Client
+rectangles are converted back to the popup's CSS pixel space, so CSS zoom does
+not double the selected row's dimensions or incorrectly switch to edge placement
+when reopening after a selection change.
 The aligned value stays fully visible and stationary throughout opening. The
 surface reveals upward and downward from the selected row while surrounding
 items fade in. The selected row defines both opening directions; this mode

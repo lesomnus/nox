@@ -70,6 +70,12 @@ for (const theme of ["dark", "light"]) {
       name: "Details",
       exact: true,
     });
+    await expect(
+      menu.getByRole("menuitem", { name: "Stop", exact: true }),
+    ).toHaveCSS(
+      "font-weight",
+      await details.evaluate((node) => getComputedStyle(node).fontWeight),
+    );
     await expect(details).toHaveCSS(
       "color",
       theme === "dark" ? "rgb(237, 237, 237)" : "rgb(18, 18, 18)",

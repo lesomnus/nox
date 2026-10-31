@@ -32,10 +32,6 @@
   padding-top: var(--ui-space);
   border-top: 1px solid var(--ui-shade-54);
 }
-.action_menu_popup [data-danger="true"] {
-  font-weight: 600;
-}
-
 .action_menu_popup[data-placement="right"] {
   transform-origin: top left;
 }
