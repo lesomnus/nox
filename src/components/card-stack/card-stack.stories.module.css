@@ -24,14 +24,21 @@
   font-size: 12px;
 }
 .canvas {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  justify-content: flex-end;
+  gap: calc(3 * var(--ui-space));
   flex: 1;
   min-height: 0;
   padding: calc(4 * var(--ui-space));
   overflow: hidden;
-  color: var(--ui-shade-65);
+  color: var(--ui-shade-136);
 }
 .canvas p {
+  flex-shrink: 0;
   max-width: 52ch;
+  margin: 0;
 }
 .dock {
   margin: calc(3 * var(--ui-space));
