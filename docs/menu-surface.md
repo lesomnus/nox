@@ -23,6 +23,12 @@ content; `label` supplies the accessible selector name. `prefixClassName` styles
 the leading slot. The old `IconValueMenu` name and `icon`/`iconClassName` props
 remain as a deprecated compatibility wrapper over this same implementation.
 
+Button-backed popup surfaces follow the trigger's corner radii, adding their
+padding and border insets so the curves are concentric. A 10px Form trigger with
+2px menu padding and a 1px border therefore uses a 13px outer radius. The glass
+backdrop uses the same radius, and resizing the trigger updates the surface.
+An explicit `MenuSurface` style.borderRadius remains an override.
+
 ## Shared surface and supported features
 
 All three use `MenuSurface` for the portal, themed foreground, translucent

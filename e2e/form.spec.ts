@@ -120,6 +120,7 @@ test("card forms share control heights, keep metadata first and submit native fi
     await trigger.click();
     const popup = page.locator(".setting-menu");
     await expect(popup).toHaveAttribute("data-item-alignment", "selected");
+    await expect(popup).toHaveCSS("border-top-left-radius", "13px");
     await expect
       .poll(async () => {
         const row = (await popup
@@ -189,6 +190,10 @@ test("selected form options follow live trigger padding and width changes", asyn
   });
   await assertFrame();
   await expect(selected).toHaveCSS("border-radius", "16px");
+  await expect(page.locator(".setting-menu")).toHaveCSS(
+    "border-top-left-radius",
+    "19px",
+  );
   await page.screenshot({ path: info.outputPath("selected-form-option.png") });
   await page.keyboard.press("Escape");
   await expect(trigger).toBeFocused();
