@@ -274,16 +274,32 @@
   );
   --ui-dialog-action-min-width: 72px;
   --ui-dialog-trigger-opacity: 0.6;
+  --ui-card-stack-width: 320px;
+  --ui-card-stack-max-height: 360px;
+  --ui-card-stack-gap: calc(2 * var(--ui-space));
+  --ui-card-stack-step: calc(2 * var(--ui-space));
+  --ui-card-stack-radius: 7px;
+  --ui-card-stack-padding: calc(2 * var(--ui-space));
+  --ui-card-stack-font-size: 12px;
+  --ui-card-stack-border-width: 1px;
+  --ui-card-stack-border-color: var(--ui-shade-54);
+  --ui-card-stack-background: var(--ui-dropdown-background);
+  --ui-card-stack-blur: var(--ui-dropdown-blur);
+  --ui-card-stack-layer: 6;
+  --ui-card-stack-motion-duration: 240ms;
+  --ui-card-stack-promotion-duration: 360ms;
+  --ui-card-stack-promotion-delay: 100ms;
+  --ui-card-stack-stagger: 60ms;
+  --ui-card-stack-exit-depth-speed: 0.35;
+  --ui-card-stack-easing: cubic-bezier(0.22, 0.7, 0.25, 1);
   --ui-control-inset: 2px;
   --ui-badged-icon-gap: 1.5px;
   --ui-control-inline-inset: 6px;
-  --ui-form-control-background: var(--ui-dialog-input-background);
-  --ui-form-control-border: color-mix(
-    in srgb,
-    var(--ui-form-control-background) 92%,
-    var(--ui-shade-237)
-  );
-  --ui-form-control-radius: 6px;
+  --ui-form-control-background: var(--ui-shade-17);
+  --ui-form-control-border: transparent;
+  --ui-form-control-radius: 10px;
+  --ui-form-control-padding-block: calc(3 * var(--ui-space));
+  --ui-form-control-padding-inline: calc(3 * var(--ui-space));
   --ui-hover: var(--ui-shade-40);
   --ui-button-hover-background: var(--ui-shade-48);
   --ui-button-background-duration: 160ms;

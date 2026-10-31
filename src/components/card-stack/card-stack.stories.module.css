@@ -1,0 +1,112 @@
+.stage {
+  position: relative;
+  isolation: isolate;
+  display: flex;
+  flex-direction: column;
+  width: 100vw;
+  height: 100dvh;
+  min-height: 480px;
+  background: var(--ui-shade-20);
+  color: var(--ui-shade-237);
+}
+.header {
+  padding: calc(3 * var(--ui-space));
+}
+.actions,
+.trigger {
+  display: flex;
+  align-items: center;
+  gap: var(--ui-space);
+}
+.header p {
+  margin: var(--ui-space) 0 0;
+  color: var(--ui-muted);
+  font-size: 12px;
+}
+.canvas {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  justify-content: flex-end;
+  gap: calc(3 * var(--ui-space));
+  flex: 1;
+  min-height: 0;
+  padding: calc(4 * var(--ui-space));
+  overflow: hidden;
+  color: var(--ui-shade-136);
+}
+.canvas p {
+  flex-shrink: 0;
+  max-width: 52ch;
+  margin: 0;
+}
+.dock {
+  margin: calc(3 * var(--ui-space));
+  padding: var(--ui-control-inset);
+  border: 1px solid var(--ui-shade-54);
+  border-radius: 10px;
+  background: var(--ui-shade-17);
+}
+.trigger {
+  width: max-content;
+  margin-left: auto;
+}
+.trigger button {
+  min-height: 28px;
+  padding: var(--ui-space) calc(2 * var(--ui-space));
+}
+.entry {
+  display: block;
+  box-sizing: border-box;
+  resize: none;
+  width: 100%;
+  height: 90px;
+  margin-top: var(--ui-control-inset);
+  padding: calc(3 * var(--ui-space));
+  border: 1px solid var(--ui-shade-58);
+  border-radius: 8px;
+  color: inherit;
+  background: var(--ui-shade-24);
+  font: inherit;
+}
+.count {
+  padding-inline: var(--ui-space);
+  font-size: 12px;
+}
+.body {
+  display: flex;
+  flex-direction: column;
+  gap: calc(2 * var(--ui-space));
+  min-width: 0;
+}
+.body p {
+  margin: 0;
+}
+.body pre {
+  margin: 0;
+  padding: calc(2 * var(--ui-space));
+  border-radius: var(--ui-space);
+  background: var(--ui-shade-0);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  font: 12px var(--ui-font-mono);
+}
+.underlay {
+  position: absolute;
+  left: 10%;
+  right: 10%;
+  bottom: 150px;
+  padding: calc(4 * var(--ui-space));
+  border: 1px solid var(--ui-shade-54);
+  border-radius: var(--ui-dialog-radius);
+  color: var(--ui-shade-136);
+  background: var(--ui-shade-28);
+  z-index: 2;
+}
+.primitive {
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+  height: 80dvh;
+  padding: calc(4 * var(--ui-space));
+}

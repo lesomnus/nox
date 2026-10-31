@@ -1,0 +1,225 @@
+.stack,
+.stack * {
+  box-sizing: border-box;
+}
+.stack {
+  font-family: var(
+    --ui-card-stack-font-family,
+    var(--card-stack-font-family, inherit)
+  );
+  color: var(--ui-card-stack-color, var(--card-stack-color, inherit));
+  position: absolute;
+  width: min(var(--ui-card-stack-width), calc(100% - 4 * var(--ui-space)));
+  max-height: min(
+    var(--ui-card-stack-max-height),
+    max(
+      0px,
+      calc(
+        var(--card-stack-space, 50dvh) - var(--ui-card-stack-step) *
+          var(--card-stack-back-slots)
+      )
+    )
+  );
+  column-gap: var(--ui-card-stack-gap);
+  visibility: hidden;
+  isolation: isolate;
+  z-index: var(--ui-card-stack-layer);
+}
+.stack[data-positioned="true"] {
+  visibility: visible;
+}
+.surface {
+  border: var(--ui-card-stack-border-width) solid
+    var(--ui-card-stack-border-color);
+  border-radius: var(--ui-card-stack-radius);
+  background: var(--ui-card-stack-background);
+  -webkit-backdrop-filter: blur(var(--ui-card-stack-blur));
+  backdrop-filter: blur(var(--ui-card-stack-blur));
+}
+.backClip {
+  position: absolute;
+  top: calc(-1 * var(--card-stack-back-slots) * var(--ui-card-stack-step));
+  inset-inline: 0;
+  height: calc(
+    var(--card-stack-body-height) + var(--card-stack-back-slots) *
+      var(--ui-card-stack-step) + var(--card-stack-clip-offset)
+  );
+  overflow: clip;
+  pointer-events: none;
+  z-index: calc(-1 * var(--card-stack-depth));
+}
+.back {
+  display: flex;
+  position: absolute;
+  top: calc(
+    var(--ui-card-stack-step) *
+      (var(--card-stack-back-slots) - var(--card-stack-depth))
+  );
+  inset-inline: 0;
+  height: var(--card-stack-body-height);
+  padding: var(--ui-card-stack-padding);
+  overflow: hidden;
+  font-size: var(--ui-card-stack-font-size);
+  pointer-events: none;
+  transform-origin: center top;
+  transform: scaleX(calc(1 - 0.035 * var(--card-stack-depth)));
+  transition:
+    top var(--ui-card-stack-motion-duration) var(--ui-card-stack-easing),
+    transform var(--ui-card-stack-motion-duration) var(--ui-card-stack-easing);
+  animation: back-arrive var(--ui-card-stack-motion-duration)
+    var(--ui-card-stack-easing) both;
+  animation-delay: calc(var(--ui-card-stack-stagger) * var(--card-stack-depth));
+}
+.stack[data-closing="true"] .back {
+  animation-name: back-depart;
+  animation-delay: calc(
+    var(--ui-card-stack-stagger) *
+      (var(--card-stack-back-count) - var(--card-stack-depth))
+  );
+  animation-duration: calc(
+    var(--ui-card-stack-motion-duration) /
+      (1 + var(--ui-card-stack-exit-depth-speed) * var(--card-stack-depth))
+  );
+}
+.back[data-back-motion="advance"] {
+  transition: none;
+  animation-name: back-advance;
+  animation-duration: var(--ui-card-stack-promotion-duration);
+  animation-delay: calc(
+    var(--ui-card-stack-promotion-delay) + var(--ui-card-stack-stagger) *
+      var(--card-stack-depth)
+  );
+}
+.back[data-back-motion="refill"] {
+  animation-delay: calc(
+    var(--ui-card-stack-promotion-delay) + var(--ui-card-stack-stagger) *
+      (var(--card-stack-depth) - 1)
+  );
+}
+.request {
+  position: relative;
+  z-index: 0;
+  display: flex;
+  min-height: 0;
+  max-height: inherit;
+  padding: var(--ui-card-stack-padding);
+  overflow: hidden;
+  font-size: var(--ui-card-stack-font-size);
+  transform-origin: center top;
+  animation: arrive var(--ui-card-stack-motion-duration)
+    var(--ui-card-stack-easing);
+}
+.request[data-motion="promote"] {
+  animation-name: promote;
+  animation-duration: var(--ui-card-stack-promotion-duration);
+  animation-delay: var(--ui-card-stack-promotion-delay);
+  animation-fill-mode: both;
+}
+.departureClip {
+  position: absolute;
+  inset-inline: 0;
+  top: calc(100% - var(--card-stack-leaving-height));
+  height: calc(
+    var(--card-stack-leaving-height) + var(--card-stack-clip-offset)
+  );
+  overflow: clip;
+  pointer-events: none;
+  z-index: 2;
+}
+.leaving {
+  position: absolute;
+  inset-inline: 0;
+  top: 0;
+  pointer-events: none;
+  animation: depart var(--ui-card-stack-motion-duration)
+    var(--ui-card-stack-easing) forwards;
+}
+.stack[data-closing="true"] .leaving {
+  animation-delay: calc(
+    var(--ui-card-stack-stagger) * var(--card-stack-back-count)
+  );
+  animation-fill-mode: both;
+}
+.scroll {
+  --ui-scroll-area-background: transparent;
+  max-height: inherit;
+}
+@keyframes arrive {
+  from {
+    opacity: 0;
+    transform: translateY(20px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+@keyframes promote {
+  from {
+    opacity: 1;
+    transform: translateY(
+        calc(-1 * var(--ui-card-stack-step) * var(--card-stack-entry-depth))
+      )
+      scale(calc(1 - 0.035 * var(--card-stack-entry-depth)));
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+@keyframes back-arrive {
+  from {
+    opacity: 0;
+    transform: translateY(24px)
+      scaleX(calc(0.96 - 0.035 * var(--card-stack-depth)));
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scaleX(calc(1 - 0.035 * var(--card-stack-depth)));
+  }
+}
+@keyframes back-advance {
+  from {
+    transform: translateY(
+        calc(
+          var(--ui-card-stack-step) *
+            (var(--card-stack-depth) - var(--card-stack-from-depth))
+        )
+      )
+      scaleX(calc(1 - 0.035 * var(--card-stack-from-depth)));
+  }
+  to {
+    transform: translateY(0) scaleX(calc(1 - 0.035 * var(--card-stack-depth)));
+  }
+}
+@keyframes depart {
+  to {
+    transform: translateY(
+        calc(
+          100% + var(--card-stack-exit-offset) + var(--card-stack-exit-radius)
+        )
+      )
+      scale(0.95);
+  }
+}
+@keyframes back-depart {
+  from {
+    transform: translateY(0) scaleX(calc(1 - 0.035 * var(--card-stack-depth)));
+  }
+  to {
+    transform: translateY(
+        calc(
+          100% + var(--card-stack-exit-offset) + var(--card-stack-exit-radius) +
+            var(--ui-card-stack-step) * var(--card-stack-depth)
+        )
+      )
+      scaleX(calc(0.96 - 0.035 * var(--card-stack-depth)));
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .stack .request.request,
+  .stack .back.back {
+    animation: none;
+    transition: none;
+  }
+}

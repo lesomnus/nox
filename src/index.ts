@@ -18,6 +18,7 @@ export * from "./components/page-toolbar/page-toolbar";
 export * from "./components/section-layout/section-layout";
 export * from "./components/dialog-surface/dialog-surface";
 export * from "./components/card/card";
+export * from "./components/card-stack/card-stack";
 export * from "./components/dialog-trigger/dialog-trigger";
 export * from "./components/confirm-button/confirm-button";
 export * from "./components/action-menu/action-menu";

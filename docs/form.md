@@ -1,8 +1,9 @@
 # Form
 
 `Form` presents always-editable fields using the same layout and typography as
-`DescriptionList`. Its native controls use `EditableValue`'s padded hit area and
-text alignment, with a persistent background from the dialog input palette.
+`DescriptionList`. Its control surfaces follow the cxz session/account creation
+forms: 12px padding, 10px radius, shade-17 background and no visible resting border.
+Keyboard focus has a 2px outline with a 2px offset.
 Layout styles are shared with `DescriptionList`; they are not separate copies.
 Design values live in the CSS and theme tokens.
 
@@ -35,11 +36,17 @@ Use `as="fieldset"` to group fields inside an existing form, including a native
 Submission, validation, values, network requests and error messages belong to
 the caller. No form state or schema library is required.
 
-`--ui-form-control-background`, `--ui-form-control-border` and
-`--ui-form-control-radius` customize the control surface. The subtle inset border
-is lighter than the input in dark themes and darker in light themes, without
-changing control geometry. The shared field layout keeps label and value text aligned
-when controls have larger padded hit areas.
+`--ui-form-control-background`, `--ui-form-control-border`,
+`--ui-form-control-radius`, `--ui-form-control-padding-block` and
+`--ui-form-control-padding-inline` customize the surface. The border token defaults
+to transparent; setting a color adds an inset stroke without changing geometry.
 
-See `Components/Form/Default` for the compact fields and `Components/Form/InCard`
+FormField's label stays one radius inside the control's left edge, at the end of
+the rounded corner, even when the radius is customized. Input text padding is
+independent of that alignment. Controls extend across this label inset while
+staying within their column; vertical spacing leaves the label clear of the input.
+ValueMenu uses the same height and text inset as native inputs. DescriptionList
+and EditableValue retain their existing compact layout.
+
+See `Components/Form/Default` for the fields and `Components/Form/InCard`
 for a dialog-style form with a pair of value menus and full-width text fields.
