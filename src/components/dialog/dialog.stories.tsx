@@ -3,6 +3,7 @@ import type { Meta, StoryObj } from "@storybook/react-vite";
 import {
   ActionError,
   Button,
+  Card,
   Dialog,
   DialogBody,
   DialogDescription,
@@ -51,6 +52,34 @@ const meta = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 export const Default: Story = {};
+
+export const CustomCard: Story = {
+  render: function CustomCard(args) {
+    const [open, setOpen] = useState(false);
+    return (
+      <>
+        <Button onClick={() => setOpen(true)}>Open dialog</Button>
+        <Dialog
+          {...args}
+          open={open}
+          onClose={() => setOpen(false)}
+          frame={false}
+          anchored
+          aria-label="Custom card"
+          decoration={<span data-custom-decoration="true" aria-hidden="true" />}
+        >
+          <Card
+            title="Custom card"
+            close={() => setOpen(false)}
+            closeLabel="Close"
+          >
+            Caller-owned Card with the shared modal, focus and motion lifecycle.
+          </Card>
+        </Dialog>
+      </>
+    );
+  },
+};
 
 export const ClosingMotion: Story = {
   render: function ClosingMotion(args) {

@@ -3,6 +3,26 @@ import { expect, test } from "@playwright/test";
 const story = (name: string) =>
   `/iframe.html?id=components-dialog--${name}&viewMode=story`;
 
+test("caller-owned Card and decoration share the modal lifecycle without a duplicate frame", async ({
+  page,
+}) => {
+  await page.goto(story("custom-card"));
+  const launch = page.getByRole("button", { name: "Open dialog", exact: true });
+  await launch.click();
+  const dialog = page.getByRole("dialog", { name: "Custom card" });
+  await expect(dialog.locator(".floating-card")).toHaveCount(1);
+  const surface = dialog.locator('[data-motion="default"]');
+  await expect(surface).toHaveAttribute("data-anchored", "true");
+  await expect(surface).toHaveCSS("transform-origin", "0px 0px");
+  await expect(surface.locator("[data-custom-decoration]")).toHaveCount(0);
+  await expect(dialog.locator(":scope > [data-custom-decoration]")).toHaveCount(
+    1,
+  );
+  await dialog.getByRole("button", { name: "Close", exact: true }).click();
+  await expect(page.locator("dialog")).toHaveCount(0);
+  await expect(launch).toBeFocused();
+});
+
 test("exit keeps the native modal until surface and backdrop finish, then restores focus once", async ({
   page,
 }) => {

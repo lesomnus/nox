@@ -76,5 +76,13 @@ retaining its freely composed Header/Body/Footer and native modal behavior;
 there is no need to nest an extra Card inside Dialog. See [Card](card.md).
 `DialogSurface` remains the shared appearance/motion layer.
 
+If existing content already supplies its own Card, use `frame={false}` to render
+it directly inside the shared animated surface without a second frame. `anchored`
+sets the surface's transform origin to its upper-left corner. `decoration` renders
+noninteractive content outside that surface, for example a `DialogTrigger` copy
+that should stay at its original viewport position. These options keep the same
+native modal boundary, focus handling, backdrop and close lifecycle. The Custom
+Card story demonstrates this composition.
+
 Storybook includes information, custom footer actions, forms, caller-owned async
 actions with retry, long content and a dialog without a footer.

@@ -8,6 +8,7 @@ import {
   type ComponentProps,
   type Dispatch,
   type RefObject,
+  type ReactNode,
   type SetStateAction,
 } from "react";
 import { createPortal } from "react-dom";
@@ -35,6 +36,12 @@ export type DialogProps = Omit<
   /** Allow Escape and backdrop dismissal. Business policy belongs to the caller. */
   dismissible?: boolean;
   initialFocus?: RefObject<HTMLElement | null>;
+  /** Use the standard Card frame; false when children supply their own Card. */
+  frame?: boolean;
+  /** Keep surface motion anchored to its upper-left corner. */
+  anchored?: boolean;
+  /** Noninteractive decoration outside the animated surface, such as DialogTrigger. */
+  decoration?: ReactNode;
 };
 
 /** A controlled native modal boundary. Content, actions and async work belong to the host. */
@@ -44,6 +51,9 @@ export function Dialog({
   onClosed,
   dismissible = true,
   initialFocus,
+  frame = true,
+  anchored = false,
+  decoration,
   children,
   className = "",
   ref,
@@ -211,8 +221,13 @@ export function Dialog({
       }}
     >
       <Labels.Provider value={{ setTitle, setDescription }}>
-        <DialogSurface ref={surface} closing={!open}>
-          <div className={`${styles.content} floating-card`}>{children}</div>
+        {decoration}
+        <DialogSurface ref={surface} closing={!open} anchored={anchored}>
+          {frame ? (
+            <div className={`${styles.content} floating-card`}>{children}</div>
+          ) : (
+            children
+          )}
         </DialogSurface>
       </Labels.Provider>
     </dialog>,
