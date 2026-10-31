@@ -1,7 +1,7 @@
 import { expect, test } from "@playwright/test";
 
 for (const theme of ["dark", "light"]) {
-  test(`form controls match Editable description geometry in ${theme}`, async ({
+  test(`form controls use creation padding and preserve radius-aligned labels in ${theme}`, async ({
     page,
   }) => {
     await page.goto(
@@ -13,10 +13,7 @@ for (const theme of ["dark", "light"]) {
       const control = root.querySelector("dd button")!;
       const bounds = control.getBoundingClientRect();
       return {
-        x: bounds.x - box.x,
-        y: bounds.y - box.y,
         width: bounds.width,
-        height: bounds.height,
         font: getComputedStyle(control).font,
         labelFont: getComputedStyle(term).font,
         gap: getComputedStyle(root).gap,
@@ -31,22 +28,41 @@ for (const theme of ["dark", "light"]) {
       const term = root.querySelector("label")!;
       const control = root.querySelector("input")!;
       const bounds = control.getBoundingClientRect();
+      const label = term.getBoundingClientRect();
+      const style = getComputedStyle(control);
       return {
         x: bounds.x - box.x,
-        y: bounds.y - box.y,
         width: bounds.width,
         height: bounds.height,
-        font: getComputedStyle(control).font,
+        font: style.font,
         labelFont: getComputedStyle(term).font,
         gap: getComputedStyle(root).gap,
+        padding: style.padding,
+        radius: parseFloat(style.borderTopLeftRadius),
+        labelInset: label.left - bounds.left,
+        labelGap: bounds.top - label.bottom,
+        border: style.borderWidth,
       };
     });
-    expect(actual).toEqual(expected);
+    expect(actual.font).toBe(expected.font);
+    expect(actual.labelFont).toBe(expected.labelFont);
+    expect(actual.gap).toBe(expected.gap);
+    expect(actual.width).toBe(expected.width);
+    expect(actual.x).toBe(0);
+    expect(actual.padding).toBe("12px");
+    expect(actual.radius).toBe(10);
+    expect(actual.labelInset).toBe(actual.radius);
+    expect(actual.labelGap).toBe(4);
+    expect(actual.border).toBe("0px");
+    expect(actual.height).toBe(42);
     const name = page.getByRole("textbox", { name: "Name", exact: true });
     const background = await name.evaluate(
       (el) => getComputedStyle(el).backgroundColor,
     );
     expect(background).not.toBe("rgba(0, 0, 0, 0)");
+    expect(background).toBe(
+      theme === "dark" ? "rgb(17, 17, 17)" : "rgb(251, 251, 251)",
+    );
     await page.mouse.move(0, 0);
     await expect(name).toHaveCSS("background-color", background);
     await form.locator("label").first().click();
@@ -56,6 +72,26 @@ for (const theme of ["dark", "light"]) {
     await expect(
       page.getByRole("textbox", { name: "State", exact: true }),
     ).toBeFocused();
+    await expect(
+      page.getByRole("textbox", { name: "State", exact: true }),
+    ).toHaveCSS("outline-width", "2px");
+    await expect(
+      page.getByRole("textbox", { name: "State", exact: true }),
+    ).toHaveCSS("outline-offset", "2px");
+
+    await form.evaluate((root) =>
+      root.style.setProperty("--ui-form-control-radius", "16px"),
+    );
+    const customized = await form.evaluate((root) => {
+      const label = root.querySelector("label")!.getBoundingClientRect();
+      const input = root.querySelector("input")!.getBoundingClientRect();
+      return {
+        inset: label.left - input.left,
+        x: input.left - root.getBoundingClientRect().left,
+        width: input.width,
+      };
+    });
+    expect(customized).toEqual({ inset: 16, x: 0, width: actual.width });
   });
 }
 

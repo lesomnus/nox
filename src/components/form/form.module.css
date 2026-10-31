@@ -4,6 +4,12 @@
   padding: 0;
   border: 0;
 }
+.field {
+  /* Keep the label at the end of the control's rounded corner. The control
+     expands back across this inset; its own text padding is independent. */
+  padding-inline: var(--ui-form-control-radius);
+  row-gap: var(--ui-space);
+}
 .field[data-full-width] {
   grid-column: 1 / -1;
 }
@@ -18,9 +24,9 @@
     :global(.value-menu)
   ) {
   box-sizing: border-box;
-  width: calc(100% + 2 * var(--ui-control-inline-inset));
+  width: calc(100% + 2 * var(--ui-form-control-radius));
   min-width: 0;
-  margin: calc(-1 * var(--ui-space)) calc(-1 * var(--ui-control-inline-inset));
+  margin: 0 calc(-1 * var(--ui-form-control-radius));
 }
 .control
   > :is(
@@ -28,7 +34,8 @@
     textarea,
     select
   ) {
-  padding: var(--ui-space) var(--ui-control-inline-inset);
+  padding: var(--ui-form-control-padding-block)
+    var(--ui-form-control-padding-inline);
   border: 0;
   background: var(--ui-form-control-background);
   font: inherit;
@@ -45,8 +52,10 @@
   border-radius: var(--ui-form-control-radius);
   box-shadow: inset 0 0 0 1px var(--ui-form-control-border);
 }
-.control > :is(input, textarea, select):focus-visible {
-  box-shadow: inset 0 0 0 1px var(--ui-shade-160);
+.control > :is(input, textarea, select):focus-visible,
+.control > :global(.value-menu) :global(.setting-trigger):focus-visible {
+  outline: 2px solid var(--ui-shade-160);
+  outline-offset: 2px;
 }
 .control > textarea {
   resize: vertical;
@@ -57,7 +66,10 @@
 .control > :global(.value-menu) {
   --value-background: var(--ui-form-control-background);
   /* Center the menu's fixed text line in the same frame as native inputs. */
-  --value-padding-block: max(0px, calc(var(--ui-space) - (20px - 1.5em) / 2));
-  --value-padding-inline: var(--ui-control-inline-inset);
+  --value-padding-block: max(
+    0px,
+    calc(var(--ui-form-control-padding-block) - (20px - 1.5em) / 2)
+  );
+  --value-padding-inline: var(--ui-form-control-padding-inline);
   flex: none;
 }
