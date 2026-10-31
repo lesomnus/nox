@@ -211,3 +211,35 @@ test("selected form options follow live trigger padding and width changes", asyn
   await page.keyboard.press("Escape");
   await expect(trigger).toBeFocused();
 });
+
+test("fractional control heights retain selected-item alignment after changing and reopening", async ({
+  page,
+}) => {
+  await page.goto("/iframe.html?id=components-form--in-card&viewMode=story");
+  const form = page.getByRole("form", { name: "Item form" });
+  const trigger = page.getByRole("combobox", { name: "Priority", exact: true });
+  await trigger.click();
+  await page.getByRole("option", { name: "Low", exact: true }).click();
+  await form.evaluate((node) =>
+    node.style.setProperty("--ui-form-control-padding-block", "11.875px"),
+  );
+  for (const next of ["High", "Normal", "Low"]) {
+    await trigger.click();
+    const popup = page.locator(".setting-menu");
+    await expect(popup).toHaveAttribute("data-item-alignment", "selected");
+    const selected = popup.locator('[role="option"][aria-selected="true"]');
+    await expect
+      .poll(async () => {
+        const a = (await trigger.boundingBox())!,
+          b = (await selected.boundingBox())!;
+        return Math.max(
+          ...(["x", "y", "width", "height"] as const).map((key) =>
+            Math.abs(a[key] - b[key]),
+          ),
+        );
+      })
+      .toBeLessThan(0.1);
+    await popup.getByRole("option", { name: next, exact: true }).click();
+    await expect(popup).toHaveCount(0);
+  }
+});

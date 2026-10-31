@@ -27,6 +27,13 @@
 .value_menu[data-variant="compact"] {
   --value-background: transparent;
 }
+/* Position against resting content geometry, not the click's press-scale
+   transition. A residual icon/text offset otherwise survives reopening. */
+.value_menu.value_menu
+  :global(.setting-trigger[aria-expanded="true"] .button-content) {
+  transform: none;
+  transition: none;
+}
 .value_menu[data-item-aligned="true"]
   :global(.setting-trigger .button-content) {
   opacity: 0;

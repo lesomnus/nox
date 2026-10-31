@@ -76,7 +76,10 @@ export function positionSelectedMenu(
     parseFloat(css.getPropertyValue("--ui-menu-align-min-rows")) || 1;
   const minimum = Math.min(list.scrollHeight, row.height * rows);
 
-  if (above >= row.height / 2 && below >= row.height / 2 && height >= minimum) {
+  // scrollHeight is integer-rounded; viewport/row bounds retain subpixels.
+  // A fitting short list must not fall back just because its height rounded up.
+  const fitsMinimum = height >= minimum - 0.5;
+  if (above >= row.height / 2 && below >= row.height / 2 && fitsMinimum) {
     const visibleAbove = clamp(
       height / 2,
       Math.max(0, height - below),
