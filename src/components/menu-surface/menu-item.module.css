@@ -15,7 +15,7 @@
   color: var(--ui-shade-255);
 }
 .item[aria-checked="true"] {
-  background: var(--ui-selected);
+  background: var(--ui-menu-selected-background);
 }
 .trailing {
   display: inline-flex;

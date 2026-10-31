@@ -178,7 +178,7 @@
 }
 .setting_menu[data-align-item-with-trigger="true"]
   :global([role="option"][aria-selected="true"]) {
-  background: var(--ui-selected);
+  background: var(--ui-menu-selected-background);
   width: min(100%, var(--selected-option-width, 100%));
   height: var(--selected-option-height, auto);
   min-height: var(--selected-option-height, var(--value-row-height));
@@ -186,6 +186,12 @@
     var(--selected-option-padding-right, var(--value-padding-inline))
     var(--selected-option-padding-bottom, var(--value-padding-block))
     var(--selected-option-padding-left, var(--value-padding-inline));
+}
+
+/* Selection rests darker; retain the existing selected-row hover fill. */
+.setting_menu[data-align-item-with-trigger="true"]
+  :global([role="option"][aria-selected="true"]:not(:disabled):hover) {
+  background: var(--ui-selected);
 }
 
 .setting_menu :global(.setting-search-row) {

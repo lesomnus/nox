@@ -41,7 +41,10 @@ All three use `MenuSurface` for the portal, themed foreground, translucent
 background, backdrop blur, padding and frame. The surface copies the trigger's
 typography instead of inheriting the host document's font. It owns its foreground
 color, so a host page cannot make dark menus unreadable. Shade and dropdown
-tokens are the source of truth for appearance.
+tokens are the source of truth for appearance. `--ui-menu-selected-background`
+controls the resting fill of checked actions and aligned selected options. It
+uses shade32 (#202020) in dark mode, retaining the previous light selection fill;
+hover fills remain unchanged.
 
 ValueMenu includes the selected choice in its list by default and marks it with
 `aria-selected`. Set `hideSelected` to omit it, including from search results.
