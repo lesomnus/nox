@@ -120,3 +120,61 @@ for (const kind of ["action", "value"] as const) {
     await expect(trigger).toBeFocused();
   });
 }
+
+for (const theme of ["dark", "light"]) {
+  test(`menu rows derive all corners from the surface and its insets in ${theme}`, async ({
+    page,
+  }, info) => {
+    await page.emulateMedia({ reducedMotion: "reduce" });
+    await page.goto(
+      `/iframe.html?id=menus--overview&viewMode=story&globals=theme:${theme}`,
+    );
+    const trigger = page.getByRole("button", { name: "Actions", exact: true });
+    await trigger.evaluate((node) => {
+      node.style.borderRadius = "12px 10px 8px 6px";
+    });
+    await trigger.click();
+    const menu = page.locator(".action-menu-popup");
+    await expect(menu).toHaveCSS("border-radius", "15px 13px 11px 9px");
+    for (const row of await menu.getByRole("menuitem").all()) {
+      await expect(row).toHaveCSS("border-radius", "12px 10px 8px 6px");
+    }
+    const last = menu.getByRole("menuitem").last();
+    await last.hover();
+    await last.focus();
+    await expect(last).toHaveCSS("border-radius", "12px 10px 8px 6px");
+    await expect(menu.locator('[data-scroll-area="viewport"]')).toHaveCSS(
+      "border-radius",
+      "12px 10px 8px 6px",
+    );
+    await page.screenshot({ path: info.outputPath("menu-inner-corners.png") });
+
+    // An explicit outer shape and uneven padding must also constrain every row.
+    await menu.evaluate((node) =>
+      Object.assign(node.style, {
+        borderRadius: "10px 8px 4px 2px",
+        padding: "4px 6px",
+      }),
+    );
+    await expect(last).toHaveCSS("border-top-left-radius", "3px 5px");
+    await expect(last).toHaveCSS("border-top-right-radius", "1px 3px");
+    await expect(last).toHaveCSS("border-bottom-right-radius", "0px");
+    await expect(last).toHaveCSS("border-bottom-left-radius", "0px");
+    await page.keyboard.press("Escape");
+    await page.getByRole("combobox", { name: "Effort", exact: true }).click();
+    const values = page.locator(".setting-menu");
+    await expect(values).toHaveCSS("border-radius", "9px");
+    await expect(values.getByRole("option").first()).toHaveCSS(
+      "border-radius",
+      "6px",
+    );
+    await expect(values.locator('[data-scroll-area="viewport"]')).toHaveCSS(
+      "border-bottom-left-radius",
+      "6px",
+    );
+    await expect(values.locator('[data-scroll-area="viewport"]')).toHaveCSS(
+      "border-top-left-radius",
+      "0px",
+    );
+  });
+}

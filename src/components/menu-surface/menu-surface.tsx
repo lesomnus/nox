@@ -41,6 +41,16 @@ export function MenuSurface({
         if (style?.[property] === undefined)
           node.style[property] = typography[property];
       }
+      const corners = [
+        ["TopLeft", "Left", "Top"],
+        ["TopRight", "Right", "Top"],
+        ["BottomRight", "Right", "Bottom"],
+        ["BottomLeft", "Left", "Bottom"],
+      ] as const;
+      const frame = getComputedStyle(node);
+      const inset = (side: "Top" | "Right" | "Bottom" | "Left") =>
+        parseFloat(frame[`padding${side}`]) +
+        parseFloat(frame[`border${side}Width`]);
       if (style?.borderRadius !== undefined) {
         node.style.setProperty(
           "--menu-surface-radius",
@@ -51,16 +61,6 @@ export function MenuSurface({
       } else if (
         anchor.matches('button, a[href], [role="button"], [role="combobox"]')
       ) {
-        const frame = getComputedStyle(node);
-        const inset = (side: "Top" | "Right" | "Bottom" | "Left") =>
-          parseFloat(frame[`padding${side}`]) +
-          parseFloat(frame[`border${side}Width`]);
-        const corners = [
-          ["TopLeft", "Left", "Top"],
-          ["TopRight", "Right", "Top"],
-          ["BottomRight", "Right", "Bottom"],
-          ["BottomLeft", "Left", "Bottom"],
-        ] as const;
         const radii = corners.map(([corner, horizontal, vertical]) => {
           const [x, y = x] = typography[`border${corner}Radius`].split(" ");
           return [
@@ -74,6 +74,25 @@ export function MenuSurface({
           `${radii.map(([x]) => x).join(" ")} / ${radii.map(([, y]) => y).join(" ")}`,
         );
       }
+      // Read the final surface shape, including explicit overrides. Every row
+      // and the scrolling clip use its inset curve, rather than Button's radius.
+      const radii = corners.map(([corner, horizontal, vertical]) => {
+        const [x, y = x] = frame[`border${corner}Radius`].split(" ");
+        const inner = [
+          `max(0px, calc(${x} - ${inset(horizontal)}px))`,
+          `max(0px, calc(${y} - ${inset(vertical)}px))`,
+        ];
+        const name = corner.replace(
+          /[A-Z]/g,
+          (letter) => `-${letter.toLowerCase()}`,
+        );
+        node.style.setProperty(`--menu-inner${name}-radius`, inner.join(" "));
+        return inner;
+      });
+      node.style.setProperty(
+        "--menu-inner-radius",
+        `${radii.map(([x]) => x).join(" ")} / ${radii.map(([, y]) => y).join(" ")}`,
+      );
     };
     sync();
     const observer = new ResizeObserver(sync);

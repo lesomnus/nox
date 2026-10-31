@@ -31,7 +31,6 @@ export function positionSelectedMenu(
   const control = getComputedStyle(trigger);
   popup.style.setProperty("--selected-option-width", `${bounds.width}px`);
   popup.style.setProperty("--selected-option-height", `${bounds.height}px`);
-  popup.style.setProperty("--selected-option-radius", control.borderRadius);
   for (const side of ["Top", "Right", "Bottom", "Left"] as const)
     popup.style.setProperty(
       `--selected-option-padding-${side.toLowerCase()}`,

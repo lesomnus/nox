@@ -27,6 +27,7 @@ for (const kind of ["actions", "values", "search"] as const) {
         footer: await footer.boundingBox(),
       };
       const viewport = popup.locator('[data-scroll-area="viewport"]');
+      await expect(viewport).toHaveCSS("border-radius", "0px");
       await expect
         .poll(() =>
           viewport.evaluate((el) => el.scrollHeight > el.clientHeight),

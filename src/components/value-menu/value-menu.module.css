@@ -179,7 +179,6 @@
     var(--selected-option-padding-right, var(--value-padding-inline))
     var(--selected-option-padding-bottom, var(--value-padding-block))
     var(--selected-option-padding-left, var(--value-padding-inline));
-  border-radius: var(--selected-option-radius, 6px);
 }
 
 .setting_menu :global(.setting-search-row) {
@@ -187,6 +186,7 @@
   align-items: center;
   gap: var(--ui-space);
   height: var(--value-row-height);
+  border-radius: var(--menu-inner-radius, 6px);
   padding: var(--value-padding-block) var(--value-padding-inline);
 }
 
@@ -197,7 +197,7 @@
   padding: 0;
   border: 0;
   height: 20px;
-  border-radius: 6px;
+  border-radius: inherit;
   background: transparent;
   color: var(--ui-shade-237);
   font: inherit;
@@ -232,4 +232,23 @@
 
 .setting_menu:global(.opens-up) :global([data-menu-body]) {
   flex-direction: column-reverse;
+}
+
+/* A current-value/search row precedes choices (or follows them when opening up).
+   Only the outside end of the viewport shares the surface's curved clip. */
+.setting_menu:not([data-align-item-with-trigger="true"]) .choices {
+  --menu-clip-top-left-radius: 0px;
+  --menu-clip-top-right-radius: 0px;
+}
+.setting_menu:global(.opens-up) .choices {
+  --menu-clip-top-left-radius: var(
+    --menu-body-top-left-radius,
+    var(--menu-inner-top-left-radius, 6px)
+  );
+  --menu-clip-top-right-radius: var(
+    --menu-body-top-right-radius,
+    var(--menu-inner-top-right-radius, 6px)
+  );
+  --menu-clip-bottom-left-radius: 0px;
+  --menu-clip-bottom-right-radius: 0px;
 }

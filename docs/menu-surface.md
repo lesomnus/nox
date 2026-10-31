@@ -27,7 +27,13 @@ Button-backed popup surfaces follow the trigger's corner radii, adding their
 padding and border insets so the curves are concentric. A 10px Form trigger with
 2px menu padding and a 1px border therefore uses a 13px outer radius. The glass
 backdrop uses the same radius, and resizing the trigger updates the surface.
-An explicit `MenuSurface` style.borderRadius remains an override.
+All MenuItem rows, including unselected, hovered, checked and focused rows,
+use the outer radius minus the frame inset (10px in this example). The scrolling
+viewport and fades use the same inner curve at exposed ends; ends beside a fixed
+header/footer or current-value/search row stay flat. External scrollbars remain
+outside this clip. An explicit `MenuSurface` style.borderRadius remains an
+override, and its inner radii shrink with the actual padding/border, clamped at
+zero. Standalone MenuItem retains its 6px fallback.
 
 ## Shared surface and supported features
 
