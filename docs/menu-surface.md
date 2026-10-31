@@ -45,6 +45,10 @@ on its trigger. Earlier options extend above it and later options below it,
 without changing their source order or adding a duplicate current-value row.
 The selected row is highlighted and focused. The trigger's painted content is
 hidden only while its aligned replacement is visible; its size stays fixed.
+The selected option copies the trigger's width, height, corner radius and content
+insets, including Form's larger padded controls. Other choices keep their normal
+menu spacing. Resizing the trigger while open updates its replacement too;
+viewport constraints still take priority when the trigger cannot fit.
 The aligned value stays fully visible and stationary throughout opening. The
 surface reveals upward and downward from the selected row while surrounding
 items fade in. The selected row defines both opening directions; this mode

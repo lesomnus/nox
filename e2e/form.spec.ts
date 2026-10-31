@@ -116,9 +116,22 @@ test("card forms share control heights, keep metadata first and submit native fi
   await page.screenshot({ path: testInfo.outputPath("form-in-card.png") });
   for (const trigger of [priority, status]) {
     const anchor = (await trigger.locator(".meta-value").boundingBox())!;
+    const frame = (await trigger.boundingBox())!;
     await trigger.click();
     const popup = page.locator(".setting-menu");
     await expect(popup).toHaveAttribute("data-item-alignment", "selected");
+    await expect
+      .poll(async () => {
+        const row = (await popup
+          .locator('[role="option"][aria-selected="true"]')
+          .boundingBox())!;
+        return Math.max(
+          ...(["x", "y", "width", "height"] as const).map((key) =>
+            Math.abs(row[key] - frame[key]),
+          ),
+        );
+      })
+      .toBeLessThan(0.5);
     const selected = popup.locator(
       '[aria-selected="true"] .setting-match-label',
     );
@@ -146,4 +159,37 @@ test("card forms share control heights, keep metadata first and submit native fi
   await page.getByRole("button", { name: "Reset", exact: true }).click();
   await expect(name).toHaveValue("My workspace");
   await expect(priority).toHaveText("Normal");
+});
+
+test("selected form options follow live trigger padding and width changes", async ({
+  page,
+}, info) => {
+  await page.goto("/iframe.html?id=components-form--in-card&viewMode=story");
+  const trigger = page.getByRole("combobox", { name: "Priority", exact: true });
+  await trigger.click();
+  const selected = page.getByRole("option", { name: "Normal", exact: true });
+  const assertFrame = async () => {
+    await expect
+      .poll(async () => {
+        const a = (await trigger.boundingBox())!,
+          b = (await selected.boundingBox())!;
+        return Math.max(
+          ...(["x", "y", "width", "height"] as const).map((key) =>
+            Math.abs(a[key] - b[key]),
+          ),
+        );
+      })
+      .toBeLessThan(0.5);
+  };
+  await assertFrame();
+  await page.getByRole("form", { name: "Item form" }).evaluate((node) => {
+    node.style.width = "280px";
+    node.style.setProperty("--ui-form-control-padding-block", "16px");
+    node.style.setProperty("--ui-form-control-radius", "16px");
+  });
+  await assertFrame();
+  await expect(selected).toHaveCSS("border-radius", "16px");
+  await page.screenshot({ path: info.outputPath("selected-form-option.png") });
+  await page.keyboard.press("Escape");
+  await expect(trigger).toBeFocused();
 });

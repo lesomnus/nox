@@ -26,6 +26,17 @@ export function positionSelectedMenu(
   const rightInset =
     parseFloat(css.paddingRight) + parseFloat(css.borderRightWidth);
   const bounds = trigger.getBoundingClientRect();
+  // The popup is portaled, so Form's control sizing is not inherited there.
+  // Size only the selected replacement; surrounding choices keep menu spacing.
+  const control = getComputedStyle(trigger);
+  popup.style.setProperty("--selected-option-width", `${bounds.width}px`);
+  popup.style.setProperty("--selected-option-height", `${bounds.height}px`);
+  popup.style.setProperty("--selected-option-radius", control.borderRadius);
+  for (const side of ["Top", "Right", "Bottom", "Left"] as const)
+    popup.style.setProperty(
+      `--selected-option-padding-${side.toLowerCase()}`,
+      `${parseFloat(control[`padding${side}`]) + parseFloat(control[`border${side}Width`])}px`,
+    );
   const width = Math.max(0, window.innerWidth - 2 * edge);
   popup.style.setProperty(
     "--menu-width",
@@ -46,8 +57,7 @@ export function positionSelectedMenu(
   const center = anchor.top + anchor.height / 2;
   const row = option.getBoundingClientRect();
   const text = label.getBoundingClientRect();
-  // Form controls can use different padding from the portaled option rows.
-  // Align the text itself rather than assuming the two frames share an inset.
+  // Align the actual text, including any icon beside the label.
   popup.style.left = `${clamp(parseFloat(popup.style.left) + anchor.left - text.left, edge, window.innerWidth - edge - popup.getBoundingClientRect().width)}px`;
   const contentCenter =
     text.top +
