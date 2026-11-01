@@ -1,5 +1,49 @@
 import { expect, test } from "@playwright/test";
 
+test("searchable value rows preserve custom form padding across the portal", async ({
+  page,
+}) => {
+  await page.goto(
+    "/iframe.html?id=components-valuemenu--searchable&viewMode=story",
+  );
+  const trigger = page.locator(".setting-trigger");
+  await trigger.evaluate((node) => {
+    node.style.padding = "11px 12px";
+    node.style.height = "42px";
+    node.parentElement!.style.height = "42px";
+  });
+  await trigger.click();
+  const search = page.locator(".setting-search");
+  const row = page.locator(".setting-search-row");
+  for (const padding of ["11px 12px", "15px 16px"]) {
+    await trigger.evaluate((node, padding) => {
+      node.style.padding = padding;
+      const height = `${20 + 2 * parseFloat(padding)}px`;
+      node.style.height = height;
+      node.parentElement!.style.height = height;
+    }, padding);
+    await expect(row).toHaveCSS("padding", padding);
+    await expect
+      .poll(async () => {
+        const anchor = (await trigger.locator(".meta-value").boundingBox())!;
+        const replacement = (await search.boundingBox())!;
+        const control = (await trigger.boundingBox())!;
+        const current = (await row.boundingBox())!;
+        return Math.max(
+          Math.abs(anchor.x - replacement.x),
+          Math.abs(
+            anchor.y +
+              anchor.height / 2 -
+              replacement.y -
+              replacement.height / 2,
+          ),
+          Math.abs(control.height - current.height),
+        );
+      })
+      .toBeLessThan(0.5);
+  }
+});
+
 for (const theme of ["dark", "light"]) {
   test(`form controls use creation padding and preserve radius-aligned labels in ${theme}`, async ({
     page,
