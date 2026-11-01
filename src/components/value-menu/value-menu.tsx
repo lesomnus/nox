@@ -156,6 +156,14 @@ export function ValueMenu({
       setItemAligned(false);
       const rect = root.current.getBoundingClientRect();
       const popup = menu.current;
+      const currentRow = popup.querySelector<HTMLElement>(".setting-current");
+      const control = trigger();
+      if (currentRow && control) {
+        const controlStyle = getComputedStyle(control);
+        currentRow.style.padding = controlStyle.padding;
+        currentRow.style.height = controlStyle.height;
+        currentRow.style.minHeight = controlStyle.minHeight;
+      }
       const style = getComputedStyle(popup);
       const inset =
         parseFloat(style.paddingLeft) + parseFloat(style.borderLeftWidth);
