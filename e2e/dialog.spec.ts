@@ -3,6 +3,141 @@ import { expect, test } from "@playwright/test";
 const story = (name: string) =>
   `/iframe.html?id=components-dialog--${name}&viewMode=story`;
 
+test("caller-owned Card and decoration share the modal lifecycle without a duplicate frame", async ({
+  page,
+}) => {
+  await page.goto(story("custom-card"));
+  const launch = page.getByRole("button", { name: "Open dialog", exact: true });
+  await launch.click();
+  const dialog = page.getByRole("dialog", { name: "Custom card" });
+  await expect(dialog.locator(".floating-card")).toHaveCount(1);
+  const surface = dialog.locator('[data-motion="default"]');
+  await expect(surface).toHaveAttribute("data-anchored", "true");
+  await expect(surface).toHaveCSS("transform-origin", "0px 0px");
+  await expect(surface.locator("[data-custom-decoration]")).toHaveCount(0);
+  await expect(dialog.locator(":scope > [data-custom-decoration]")).toHaveCount(
+    1,
+  );
+  await dialog.getByRole("button", { name: "Close", exact: true }).click();
+  await expect(page.locator("dialog")).toHaveCount(0);
+  await expect(launch).toBeFocused();
+});
+
+test("exit keeps the native modal until surface and backdrop finish, then restores focus once", async ({
+  page,
+}) => {
+  await page.goto(story("closing-motion"));
+  const launch = page.getByRole("button", { name: "Open dialog", exact: true });
+  await launch.click();
+  const dialog = page.locator("dialog");
+  await dialog.evaluate(async (node) => {
+    await Promise.all(
+      node
+        .getAnimations({ subtree: true })
+        .map((animation) => animation.finished),
+    );
+    node.style.setProperty("--ui-dialog-exit-duration", "2s");
+    // Caller content must not hold the modal open indefinitely.
+    const body = node.querySelector(".dialog-body")!;
+    body.animate([{ opacity: 0.8 }, { opacity: 1 }], {
+      duration: 1000,
+      iterations: Infinity,
+    });
+  });
+  await dialog.getByRole("button", { name: "Close", exact: true }).click();
+  await expect(dialog).toHaveAttribute("data-closing", "true");
+  const state = await dialog.evaluate((node: HTMLDialogElement) => {
+    const surface = node.querySelector<HTMLElement>('[data-motion="default"]')!;
+    const animations = node
+      .getAnimations({ subtree: true })
+      .filter((animation) => {
+        const target = (animation.effect as KeyframeEffect | null)?.target;
+        return target === node || target === surface;
+      });
+    for (const animation of animations) {
+      animation.pause();
+      animation.currentTime = 1000;
+    }
+    return {
+      modal: node.matches(":modal"),
+      open: node.open,
+      inert: node.inert,
+      opacity: Number(getComputedStyle(surface).opacity),
+      backdropOpacity: Number(getComputedStyle(node, "::backdrop").opacity),
+      animations: animations.length,
+    };
+  });
+  expect(state).toMatchObject({
+    modal: true,
+    open: true,
+    inert: true,
+    animations: 2,
+  });
+  expect(state.opacity).toBeGreaterThan(0);
+  expect(state.opacity).toBeLessThan(1);
+  expect(state.backdropOpacity).toBeGreaterThan(0);
+  expect(state.backdropOpacity).toBeLessThan(1);
+  await expect(page.getByRole("status", { includeHidden: true })).toHaveText(
+    "Completed closes: 0",
+  );
+  await launch.evaluate((node: HTMLButtonElement) => node.focus());
+  await expect(launch).not.toBeFocused();
+  await dialog.evaluate((node) => {
+    const surface = node.querySelector('[data-motion="default"]')!;
+    for (const animation of surface.getAnimations()) animation.finish();
+  });
+  await expect(dialog).toHaveJSProperty("open", true);
+  await expect(page.getByRole("status", { includeHidden: true })).toHaveText(
+    "Completed closes: 0",
+  );
+  await dialog.evaluate((node) => {
+    for (const animation of node.getAnimations({ subtree: true })) {
+      if ((animation.effect as KeyframeEffect | null)?.target === node)
+        animation.finish();
+    }
+  });
+  await expect(dialog).toHaveCount(0);
+  await expect(launch).toBeFocused();
+  await expect(page.getByRole("status")).toHaveText("Completed closes: 1");
+});
+
+test("reopening cancels pending exit cleanup and reduced motion skips the exit", async ({
+  page,
+}) => {
+  await page.goto(story("closing-motion"));
+  const launch = page.getByRole("button", { name: "Open dialog", exact: true });
+  await launch.click();
+  const dialog = page.locator("dialog");
+  await dialog.evaluate((node) =>
+    node.style.setProperty("--ui-dialog-exit-duration", "2s"),
+  );
+  await dialog.getByRole("button", { name: "Close", exact: true }).click();
+  await expect(dialog).toHaveAttribute("data-closing", "true");
+  // Model a new controlled open request from outside the inert page.
+  await launch.evaluate((node: HTMLButtonElement) => node.click());
+  await expect(dialog).toHaveAttribute("data-closing", "false");
+  await dialog.evaluate(async (node) => {
+    await Promise.all(
+      node
+        .getAnimations({ subtree: true })
+        .map((animation) => animation.finished),
+    );
+  });
+  await expect(dialog).toBeVisible();
+  await expect(page.getByRole("status", { includeHidden: true })).toHaveText(
+    "Completed closes: 0",
+  );
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await expect(dialog.locator('[data-motion="default"]')).toHaveCSS(
+    "animation-name",
+    "none",
+  );
+  await dialog.getByRole("button", { name: "Close", exact: true }).click();
+  await expect(dialog).toHaveCount(0);
+  await expect(launch).toBeFocused();
+  await expect(page.getByRole("status")).toHaveText("Completed closes: 1");
+});
+
 test("composed labels, modal focus and opener restoration work through reopen and native close", async ({
   page,
 }) => {

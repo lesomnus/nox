@@ -26,7 +26,7 @@ const meta = {
     docs: {
       description: {
         component:
-          "Always-editable fields sharing DescriptionList's typography and layout, including EditableValue's padded control geometry. Controls keep a filled background rather than appearing only on hover. Use native inputs and textareas, or compose ValueMenu. Form preserves native validation, submission and refs; as=fieldset groups fields inside an existing form. FormField htmlFor associates native labels, and fullWidth spans the grid. Form owns no data schema or request lifecycle.",
+          "Always-editable fields sharing DescriptionList's typography and column layout. Controls use the cxz creation forms' 12px padding, 10px radius, shade-17 background and borderless resting surface. Labels remain inset by the corner radius, independently of input text padding. ValueMenu keeps the same height and text inset as native inputs. Native validation, submission, refs and as=fieldset grouping stay intact. FormField htmlFor associates native labels, and fullWidth spans the grid. Form owns no data schema or request lifecycle.",
       },
     },
   },

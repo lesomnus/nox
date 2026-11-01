@@ -78,6 +78,8 @@ export function ScrollArea({
     [viewportRef],
   );
   const content = useRef<HTMLDivElement>(null);
+  const topFade = useRef<HTMLDivElement>(null);
+  const bottomFade = useRef<HTMLDivElement>(null);
   const rail = useRef<HTMLDivElement>(null);
   const horizontalRail = useRef<HTMLDivElement>(null);
   const drag = useRef<{ pointer: number; y: number; top: number } | null>(null);
@@ -104,7 +106,8 @@ export function ScrollArea({
     if (!el || !rail.current) return;
     const style = getComputedStyle(rail.current);
     const available = el.clientHeight;
-    const max = Math.max(0, el.scrollHeight - available);
+    const scrollHeight = el.scrollHeight;
+    const max = Math.max(0, scrollHeight - available);
     const railMin =
       parseFloat(style.getPropertyValue("--ui-scroll-area-rail-min-size")) || 0;
     const railMax =
@@ -130,35 +133,21 @@ export function ScrollArea({
       parseFloat(style.getPropertyValue("--ui-scroll-area-thumb-max-ratio")) ||
       1;
     const top = clamp(el.scrollTop, 0, max);
-    region.current?.style.setProperty(
-      "--ui-scroll-area-top-hidden",
-      `${top}px`,
-    );
-    region.current?.style.setProperty(
-      "--ui-scroll-area-bottom-hidden",
-      `${max - top}px`,
-    );
-    region.current?.style.setProperty(
-      "--ui-scroll-area-top-opacity",
-      top > 0 ? "1" : "0",
-    );
-    region.current?.style.setProperty(
-      "--ui-scroll-area-bottom-opacity",
-      max > top ? "1" : "0",
-    );
     const thumb = Math.min(
       height,
       // Keep both drawing and drag travel based on the same capped size.
       // Short rails still retain a usable minimum grab area.
       Math.max(32, Math.min(maxSize, height * clamp(maxRatio, 0, 1))),
-      Math.max(32, (height * el.clientHeight) / (el.scrollHeight || 1)),
+      Math.max(32, (height * available) / (scrollHeight || 1)),
     );
-    setView({
-      top,
-      max,
-      height,
-      thumb,
-    });
+    setView((old) =>
+      old.top === top &&
+      old.max === max &&
+      old.height === height &&
+      old.thumb === thumb
+        ? old
+        : { top, max, height, thumb },
+    );
     if (horizontalScrollbar) {
       const availableWidth = el.clientWidth;
       const maxHorizontal = Math.max(0, el.scrollWidth - availableWidth);
@@ -168,26 +157,50 @@ export function ScrollArea({
         availableWidth * clamp(railRatio, 0, 1),
         railMin + maxHorizontal * railGrowth,
       );
-      setHorizontalView({
-        left: clamp(el.scrollLeft, 0, maxHorizontal),
-        max: maxHorizontal,
+      const left = clamp(el.scrollLeft, 0, maxHorizontal);
+      const horizontalThumb = Math.min(
         width,
-        thumb: Math.min(
-          width,
-          Math.max(32, Math.min(maxSize, width * clamp(maxRatio, 0, 1))),
-          Math.max(32, (width * availableWidth) / (el.scrollWidth || 1)),
+        Math.max(32, Math.min(maxSize, width * clamp(maxRatio, 0, 1))),
+        Math.max(
+          32,
+          (width * availableWidth) / (maxHorizontal + availableWidth || 1),
         ),
-      });
+      );
+      setHorizontalView((old) =>
+        old.left === left &&
+        old.max === maxHorizontal &&
+        old.width === width &&
+        old.thumb === horizontalThumb
+          ? old
+          : { left, max: maxHorizontal, width, thumb: horizontalThumb },
+      );
     }
+    // Paint after all geometry reads, and keep changing values out of content.
+    topFade.current?.style.setProperty(
+      "--ui-scroll-area-top-hidden",
+      `${top}px`,
+    );
+    bottomFade.current?.style.setProperty(
+      "--ui-scroll-area-bottom-hidden",
+      `${max - top}px`,
+    );
+    topFade.current?.style.setProperty(
+      "--ui-scroll-area-top-opacity",
+      top > 0 ? "1" : "0",
+    );
+    bottomFade.current?.style.setProperty(
+      "--ui-scroll-area-bottom-opacity",
+      max > top ? "1" : "0",
+    );
   }
   function paintMotion(strength: number) {
     // Extend the edge where content leaves the viewport, without re-rendering
     // the session list on every animation frame.
-    region.current?.style.setProperty(
+    topFade.current?.style.setProperty(
       "--ui-scroll-area-top-motion",
       `${Math.max(0, strength)}`,
     );
-    region.current?.style.setProperty(
+    bottomFade.current?.style.setProperty(
       "--ui-scroll-area-bottom-motion",
       `${Math.max(0, -strength)}`,
     );
@@ -224,7 +237,6 @@ export function ScrollArea({
     const observer = new ResizeObserver(measure);
     observer.observe(pane.current!);
     observer.observe(content.current!);
-    measure();
     return () => {
       observer.disconnect();
       cancelAnimationFrame(motionRaf.current);
@@ -381,10 +393,14 @@ export function ScrollArea({
         </div>
       </div>
       <div
+        ref={topFade}
+        data-scroll-area="top-fade"
         className={`${slot("fade")} ${slot("topFade")}`}
         aria-hidden="true"
       />
       <div
+        ref={bottomFade}
+        data-scroll-area="bottom-fade"
         className={`${slot("fade")} ${slot("bottomFade")}`}
         aria-hidden="true"
       />

@@ -3,9 +3,32 @@
   --ui-scroll-area-content-inset: 0px;
   flex: 0 1 auto;
   background: transparent;
+  border-top-left-radius: var(
+    --menu-clip-top-left-radius,
+    var(--menu-body-top-left-radius, var(--menu-inner-top-left-radius, 6px))
+  );
+  border-top-right-radius: var(
+    --menu-clip-top-right-radius,
+    var(--menu-body-top-right-radius, var(--menu-inner-top-right-radius, 6px))
+  );
+  border-bottom-right-radius: var(
+    --menu-clip-bottom-right-radius,
+    var(
+      --menu-body-bottom-right-radius,
+      var(--menu-inner-bottom-right-radius, 6px)
+    )
+  );
+  border-bottom-left-radius: var(
+    --menu-clip-bottom-left-radius,
+    var(
+      --menu-body-bottom-left-radius,
+      var(--menu-inner-bottom-left-radius, 6px)
+    )
+  );
 }
 .area .viewport {
   height: auto;
+  border-radius: inherit;
   max-height: min(
     var(--ui-menu-scroll-max-height),
     var(--menu-scroll-max-height, var(--ui-menu-scroll-max-height))

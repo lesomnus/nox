@@ -27,6 +27,13 @@
 .value_menu[data-variant="compact"] {
   --value-background: transparent;
 }
+/* Position against resting content geometry, not the click's press-scale
+   transition. A residual icon/text offset otherwise survives reopening. */
+.value_menu.value_menu
+  :global(.setting-trigger[aria-expanded="true"] .button-content) {
+  transform: none;
+  transition: none;
+}
 .value_menu[data-item-aligned="true"]
   :global(.setting-trigger .button-content) {
   opacity: 0;
@@ -41,6 +48,11 @@
   line-height: 20px;
   text-align: left;
   color: inherit;
+}
+/* On close this trigger replaces a hovered menu row. Apply its hover fill
+   immediately so the reverse handoff does not replay the background fade. */
+.value_menu :global(.setting-trigger:not(:disabled):hover) {
+  transition-duration: 0s;
 }
 :is(.value_menu, .setting_menu)
   :global(.setting-trigger)
@@ -171,7 +183,23 @@
 }
 .setting_menu[data-align-item-with-trigger="true"]
   :global([role="option"][aria-selected="true"]) {
+  background: var(--ui-menu-selected-background);
+  width: min(100%, var(--selected-option-width, 100%));
+  height: var(--selected-option-height, auto);
+  min-height: var(--selected-option-height, var(--value-row-height));
+  padding: var(--selected-option-padding-top, var(--value-padding-block))
+    var(--selected-option-padding-right, var(--value-padding-inline))
+    var(--selected-option-padding-bottom, var(--value-padding-block))
+    var(--selected-option-padding-left, var(--value-padding-inline));
+}
+
+/* Selection rests darker; retain the existing selected-row hover fill. */
+.setting_menu[data-align-item-with-trigger="true"]
+  :global([role="option"][aria-selected="true"]:not(:disabled):hover) {
   background: var(--ui-selected);
+  /* This row replaces an already-hovered trigger. Apply its hover fill
+     immediately instead of replaying the resting-to-hover background fade. */
+  transition-duration: 0s;
 }
 
 .setting_menu :global(.setting-search-row) {
@@ -179,6 +207,7 @@
   align-items: center;
   gap: var(--ui-space);
   height: var(--value-row-height);
+  border-radius: var(--menu-inner-radius, 6px);
   padding: var(--value-padding-block) var(--value-padding-inline);
 }
 
@@ -189,7 +218,7 @@
   padding: 0;
   border: 0;
   height: 20px;
-  border-radius: 6px;
+  border-radius: inherit;
   background: transparent;
   color: var(--ui-shade-237);
   font: inherit;
@@ -224,4 +253,23 @@
 
 .setting_menu:global(.opens-up) :global([data-menu-body]) {
   flex-direction: column-reverse;
+}
+
+/* A current-value/search row precedes choices (or follows them when opening up).
+   Only the outside end of the viewport shares the surface's curved clip. */
+.setting_menu:not([data-align-item-with-trigger="true"]) .choices {
+  --menu-clip-top-left-radius: 0px;
+  --menu-clip-top-right-radius: 0px;
+}
+.setting_menu:global(.opens-up) .choices {
+  --menu-clip-top-left-radius: var(
+    --menu-body-top-left-radius,
+    var(--menu-inner-top-left-radius, 6px)
+  );
+  --menu-clip-top-right-radius: var(
+    --menu-body-top-right-radius,
+    var(--menu-inner-top-right-radius, 6px)
+  );
+  --menu-clip-bottom-left-radius: 0px;
+  --menu-clip-bottom-right-radius: 0px;
 }

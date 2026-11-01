@@ -23,13 +23,31 @@ content; `label` supplies the accessible selector name. `prefixClassName` styles
 the leading slot. The old `IconValueMenu` name and `icon`/`iconClassName` props
 remain as a deprecated compatibility wrapper over this same implementation.
 
+Button-backed popup surfaces follow the trigger's corner radii, adding their
+padding and border insets so the curves are concentric. A 10px Form trigger with
+2px menu padding and a 1px border therefore uses a 13px outer radius. The glass
+backdrop uses the same radius, and resizing the trigger updates the surface.
+All MenuItem rows, including unselected, hovered, checked and focused rows,
+use the outer radius minus the frame inset (10px in this example). The scrolling
+viewport and fades use the same inner curve at exposed ends; ends beside a fixed
+header/footer or current-value/search row stay flat. External scrollbars remain
+outside this clip. An explicit `MenuSurface` style.borderRadius remains an
+override, and its inner radii shrink with the actual padding/border, clamped at
+zero. Standalone MenuItem retains its 6px fallback.
+
 ## Shared surface and supported features
 
 All three use `MenuSurface` for the portal, themed foreground, translucent
 background, backdrop blur, padding and frame. The surface copies the trigger's
 typography instead of inheriting the host document's font. It owns its foreground
 color, so a host page cannot make dark menus unreadable. Shade and dropdown
-tokens are the source of truth for appearance.
+tokens are the source of truth for appearance. `--ui-menu-selected-background`
+controls the resting fill of checked actions and aligned selected options. It
+uses shade32 (#202020) in dark mode, retaining the previous light selection fill;
+hover fills remain unchanged. ValueMenu triggers and aligned selected options
+apply their hover fill immediately so replacing one with the other on opening or
+closing does not flash a resting color. This also covers reselecting the current
+value; ordinary hover-out transitions remain.
 
 ValueMenu includes the selected choice in its list by default and marks it with
 `aria-selected`. Set `hideSelected` to omit it, including from search results.
@@ -45,6 +63,18 @@ on its trigger. Earlier options extend above it and later options below it,
 without changing their source order or adding a duplicate current-value row.
 The selected row is highlighted and focused. The trigger's painted content is
 hidden only while its aligned replacement is visible; its size stays fixed.
+The selected option copies the trigger's width, height, corner radius and content
+insets, including Form's larger padded controls. Other choices keep their normal
+menu spacing. Resizing the trigger while open updates its replacement too;
+viewport constraints still take priority when the trigger cannot fit. Fit checks
+use the natural content rectangle at subpixel precision and the selected row's
+actual extents around its label. They do not compare an integer-rounded
+scrollHeight or assume the label is exactly at half the row height, so zoom and
+asymmetric padding cannot falsely trigger edge placement. Open selectors measure
+resting trigger content, excluding the button's transient press scale. Client
+rectangles are converted back to the popup's CSS pixel space, so CSS zoom does
+not double the selected row's dimensions or incorrectly switch to edge placement
+when reopening after a selection change.
 The aligned value stays fully visible and stationary throughout opening. The
 surface reveals upward and downward from the selected row while surrounding
 items fade in. The selected row defines both opening directions; this mode

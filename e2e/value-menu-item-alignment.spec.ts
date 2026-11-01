@@ -386,3 +386,47 @@ test("item-aligned menus remain in a native dialog and Escape dismisses only the
   await expect(dialog.getByRole("listbox")).toHaveCount(0);
   await expect(trigger).toBeFocused();
 });
+
+test("icon selections reopen on the resting trigger frame after a held pointer press", async ({
+  page,
+}) => {
+  await page.goto("/iframe.html?id=menus--item-alignment&viewMode=story");
+  await page
+    .getByRole("button", { name: "Groups and icons", exact: true })
+    .click();
+  const trigger = page.getByRole("combobox", {
+    name: "Selected item",
+    exact: true,
+  });
+  for (const next of ["Maximum", "Low", "Medium"]) {
+    const anchor = (await trigger.boundingBox())!;
+    const label = (await trigger.locator(".meta-value").boundingBox())!;
+    await page.mouse.move(
+      anchor.x + anchor.width / 2,
+      anchor.y + anchor.height / 2,
+    );
+    await page.mouse.down();
+    await page.waitForTimeout(120);
+    await page.mouse.up();
+    const popup = page.locator(".setting-menu");
+    const selected = popup.locator('[role="option"][aria-selected="true"]');
+    await expect(selected).toBeFocused();
+    await expect
+      .poll(async () => {
+        const row = (await selected.boundingBox())!,
+          text = (await selected
+            .locator(".setting-match-label")
+            .boundingBox())!;
+        return Math.max(
+          Math.abs(row.x - anchor.x),
+          Math.abs(row.y - anchor.y),
+          Math.abs(text.x - label.x),
+          Math.abs(text.y - label.y),
+        );
+      })
+      .toBeLessThan(0.1);
+    await popup.getByRole("option", { name: next, exact: true }).click();
+    await expect(popup).toHaveCount(0);
+    await expect(trigger).toHaveText(next);
+  }
+});

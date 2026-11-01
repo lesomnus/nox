@@ -377,3 +377,43 @@ test("standalone content growth keeps the rail centered and viewportRef/onScroll
     .not.toBe("0");
   expect(api).toEqual([]);
 });
+
+test("scroll fades update without invalidating the content subtree", async ({
+  page,
+}) => {
+  await page.goto(
+    "/iframe.html?id=layout-scrollarea--short-overflow&viewMode=story",
+  );
+  const area = page.locator('[data-scroll-area="root"]');
+  const viewport = area.locator('[data-scroll-area="viewport"]');
+  const top = area.locator('[data-scroll-area="top-fade"]');
+  const bottom = area.locator('[data-scroll-area="bottom-fade"]');
+  await expect(top).toHaveCSS("opacity", "0");
+  await expect(bottom).toHaveCSS("opacity", "1");
+  await viewport.evaluate((el) => {
+    el.scrollTop = (el.scrollHeight - el.clientHeight) / 2;
+  });
+  await expect(top).toHaveCSS("opacity", "1");
+  await expect(bottom).toHaveCSS("opacity", "1");
+  const result = await viewport.evaluate((el) => ({
+    inherited: ["top", "bottom"].flatMap((edge) =>
+      ["hidden", "opacity", "motion"].map((value) =>
+        getComputedStyle(el).getPropertyValue(
+          `--ui-scroll-area-${edge}-${value}`,
+        ),
+      ),
+    ),
+    top: parseFloat(
+      el
+        .parentElement!.querySelector<HTMLElement>(
+          '[data-scroll-area="top-fade"]',
+        )!
+        .style.getPropertyValue("--ui-scroll-area-top-hidden"),
+    ),
+    scroll: el.scrollTop,
+  }));
+  expect(result.inherited).toEqual(["", "", "", "", "", ""]);
+  expect(result.top).toBeCloseTo(result.scroll, 0);
+  await area.getByRole("scrollbar").press("End");
+  await expect(bottom).toHaveCSS("opacity", "0");
+});

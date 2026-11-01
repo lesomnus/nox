@@ -1,7 +1,7 @@
 import { expect, test } from "@playwright/test";
 
 for (const theme of ["dark", "light"]) {
-  test(`form controls match Editable description geometry in ${theme}`, async ({
+  test(`form controls use creation padding and preserve radius-aligned labels in ${theme}`, async ({
     page,
   }) => {
     await page.goto(
@@ -13,10 +13,7 @@ for (const theme of ["dark", "light"]) {
       const control = root.querySelector("dd button")!;
       const bounds = control.getBoundingClientRect();
       return {
-        x: bounds.x - box.x,
-        y: bounds.y - box.y,
         width: bounds.width,
-        height: bounds.height,
         font: getComputedStyle(control).font,
         labelFont: getComputedStyle(term).font,
         gap: getComputedStyle(root).gap,
@@ -31,22 +28,41 @@ for (const theme of ["dark", "light"]) {
       const term = root.querySelector("label")!;
       const control = root.querySelector("input")!;
       const bounds = control.getBoundingClientRect();
+      const label = term.getBoundingClientRect();
+      const style = getComputedStyle(control);
       return {
         x: bounds.x - box.x,
-        y: bounds.y - box.y,
         width: bounds.width,
         height: bounds.height,
-        font: getComputedStyle(control).font,
+        font: style.font,
         labelFont: getComputedStyle(term).font,
         gap: getComputedStyle(root).gap,
+        padding: style.padding,
+        radius: parseFloat(style.borderTopLeftRadius),
+        labelInset: label.left - bounds.left,
+        labelGap: bounds.top - label.bottom,
+        border: style.borderWidth,
       };
     });
-    expect(actual).toEqual(expected);
+    expect(actual.font).toBe(expected.font);
+    expect(actual.labelFont).toBe(expected.labelFont);
+    expect(actual.gap).toBe(expected.gap);
+    expect(actual.width).toBe(expected.width);
+    expect(actual.x).toBe(0);
+    expect(actual.padding).toBe("12px");
+    expect(actual.radius).toBe(10);
+    expect(actual.labelInset).toBe(actual.radius);
+    expect(actual.labelGap).toBe(4);
+    expect(actual.border).toBe("0px");
+    expect(actual.height).toBe(42);
     const name = page.getByRole("textbox", { name: "Name", exact: true });
     const background = await name.evaluate(
       (el) => getComputedStyle(el).backgroundColor,
     );
     expect(background).not.toBe("rgba(0, 0, 0, 0)");
+    expect(background).toBe(
+      theme === "dark" ? "rgb(17, 17, 17)" : "rgb(251, 251, 251)",
+    );
     await page.mouse.move(0, 0);
     await expect(name).toHaveCSS("background-color", background);
     await form.locator("label").first().click();
@@ -56,6 +72,26 @@ for (const theme of ["dark", "light"]) {
     await expect(
       page.getByRole("textbox", { name: "State", exact: true }),
     ).toBeFocused();
+    await expect(
+      page.getByRole("textbox", { name: "State", exact: true }),
+    ).toHaveCSS("outline-width", "2px");
+    await expect(
+      page.getByRole("textbox", { name: "State", exact: true }),
+    ).toHaveCSS("outline-offset", "2px");
+
+    await form.evaluate((root) =>
+      root.style.setProperty("--ui-form-control-radius", "16px"),
+    );
+    const customized = await form.evaluate((root) => {
+      const label = root.querySelector("label")!.getBoundingClientRect();
+      const input = root.querySelector("input")!.getBoundingClientRect();
+      return {
+        inset: label.left - input.left,
+        x: input.left - root.getBoundingClientRect().left,
+        width: input.width,
+      };
+    });
+    expect(customized).toEqual({ inset: 16, x: 0, width: actual.width });
   });
 }
 
@@ -80,9 +116,30 @@ test("card forms share control heights, keep metadata first and submit native fi
   await page.screenshot({ path: testInfo.outputPath("form-in-card.png") });
   for (const trigger of [priority, status]) {
     const anchor = (await trigger.locator(".meta-value").boundingBox())!;
+    const frame = (await trigger.boundingBox())!;
     await trigger.click();
     const popup = page.locator(".setting-menu");
     await expect(popup).toHaveAttribute("data-item-alignment", "selected");
+    await expect(popup).toHaveCSS("border-top-left-radius", "13px");
+    for (const option of await popup.getByRole("option").all()) {
+      await expect(option).toHaveCSS("border-radius", "10px");
+    }
+    await expect(popup.locator('[data-scroll-area="viewport"]')).toHaveCSS(
+      "border-radius",
+      "10px",
+    );
+    await expect
+      .poll(async () => {
+        const row = (await popup
+          .locator('[role="option"][aria-selected="true"]')
+          .boundingBox())!;
+        return Math.max(
+          ...(["x", "y", "width", "height"] as const).map((key) =>
+            Math.abs(row[key] - frame[key]),
+          ),
+        );
+      })
+      .toBeLessThan(0.5);
     const selected = popup.locator(
       '[aria-selected="true"] .setting-match-label',
     );
@@ -111,3 +168,160 @@ test("card forms share control heights, keep metadata first and submit native fi
   await expect(name).toHaveValue("My workspace");
   await expect(priority).toHaveText("Normal");
 });
+
+test("selected form options follow live trigger padding and width changes", async ({
+  page,
+}, info) => {
+  await page.goto("/iframe.html?id=components-form--in-card&viewMode=story");
+  const trigger = page.getByRole("combobox", { name: "Priority", exact: true });
+  await trigger.click();
+  const selected = page.getByRole("option", { name: "Normal", exact: true });
+  const assertFrame = async () => {
+    await expect
+      .poll(async () => {
+        const a = (await trigger.boundingBox())!,
+          b = (await selected.boundingBox())!;
+        return Math.max(
+          ...(["x", "y", "width", "height"] as const).map((key) =>
+            Math.abs(a[key] - b[key]),
+          ),
+        );
+      })
+      .toBeLessThan(0.5);
+  };
+  await assertFrame();
+  await page.getByRole("form", { name: "Item form" }).evaluate((node) => {
+    node.style.width = "280px";
+    node.style.setProperty("--ui-form-control-padding-block", "16px");
+    node.style.setProperty("--ui-form-control-radius", "16px");
+  });
+  await assertFrame();
+  for (const option of await page.getByRole("option").all()) {
+    await expect(option).toHaveCSS("border-radius", "16px");
+  }
+  const other = page.locator('[role="option"][aria-selected="false"]').first();
+  await other.hover();
+  await other.focus();
+  await expect(other).toHaveCSS("border-radius", "16px");
+  await expect(page.locator(".setting-menu")).toHaveCSS(
+    "border-top-left-radius",
+    "19px",
+  );
+  await page.screenshot({ path: info.outputPath("selected-form-option.png") });
+  await page.keyboard.press("Escape");
+  await expect(trigger).toBeFocused();
+});
+
+test("fractional control heights retain selected-item alignment after changing and reopening", async ({
+  page,
+}) => {
+  await page.goto("/iframe.html?id=components-form--in-card&viewMode=story");
+  const form = page.getByRole("form", { name: "Item form" });
+  const trigger = page.getByRole("combobox", { name: "Priority", exact: true });
+  await trigger.click();
+  await page.getByRole("option", { name: "Low", exact: true }).click();
+  await form.evaluate((node) =>
+    node.style.setProperty("--ui-form-control-padding-block", "11.875px"),
+  );
+  for (const next of ["High", "Normal", "Low"]) {
+    await trigger.click();
+    const popup = page.locator(".setting-menu");
+    await expect(popup).toHaveAttribute("data-item-alignment", "selected");
+    const selected = popup.locator('[role="option"][aria-selected="true"]');
+    await expect
+      .poll(async () => {
+        const a = (await trigger.boundingBox())!,
+          b = (await selected.boundingBox())!;
+        return Math.max(
+          ...(["x", "y", "width", "height"] as const).map((key) =>
+            Math.abs(a[key] - b[key]),
+          ),
+        );
+      })
+      .toBeLessThan(0.1);
+    await popup.getByRole("option", { name: next, exact: true }).click();
+    await expect(popup).toHaveCount(0);
+  }
+});
+
+for (const zoom of [1.25, 1.5]) {
+  test(`selected form items reopen on the trigger at CSS zoom ${zoom}`, async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 1600, height: 1000 });
+    await page.goto("/iframe.html?id=components-form--in-card&viewMode=story");
+    await page.getByRole("form", { name: "Item form" }).waitFor();
+    await page.evaluate((zoom) => {
+      document.body.style.zoom = String(zoom);
+    }, zoom);
+    const trigger = page.getByRole("combobox", {
+      name: "Priority",
+      exact: true,
+    });
+    for (const next of ["Low", "High", "Normal"]) {
+      await trigger.click();
+      const popup = page.locator(".setting-menu");
+      await expect(popup).toHaveAttribute("data-item-alignment", "selected");
+      const selected = popup.locator('[role="option"][aria-selected="true"]');
+      await expect
+        .poll(async () => {
+          const a = (await trigger.boundingBox())!,
+            b = (await selected.boundingBox())!;
+          return Math.max(
+            ...(["x", "y", "width", "height"] as const).map((key) =>
+              Math.abs(a[key] - b[key]),
+            ),
+          );
+        })
+        .toBeLessThan(0.1);
+      await popup.getByRole("option", { name: next, exact: true }).click();
+      await expect(popup).toHaveCount(0);
+    }
+  });
+}
+
+for (const [value, top, bottom] of [
+  ["High", 4, 18],
+  ["Low", 18, 4],
+] as const) {
+  test(`item alignment uses actual ${value} row extents with asymmetric padding`, async ({
+    page,
+  }) => {
+    await page.goto("/iframe.html?id=components-form--in-card&viewMode=story");
+    const trigger = page.getByRole("combobox", {
+      name: "Priority",
+      exact: true,
+    });
+    await trigger.click();
+    await page.getByRole("option", { name: value, exact: true }).click();
+    await trigger.evaluate(
+      (node, { top, bottom }) =>
+        Object.assign(node.style, {
+          paddingTop: `${top}px`,
+          paddingBottom: `${bottom}px`,
+        }),
+      { top, bottom },
+    );
+    await trigger.click();
+    const popup = page.locator(".setting-menu");
+    await expect(popup).toHaveAttribute("data-item-alignment", "selected");
+    const selected = popup.getByRole("option", { name: value, exact: true });
+    await expect
+      .poll(async () => {
+        const a = (await trigger.boundingBox())!,
+          b = (await selected.boundingBox())!;
+        const label = (await trigger.locator(".meta-value").boundingBox())!,
+          match = (await selected
+            .locator(".setting-match-label")
+            .boundingBox())!;
+        return Math.max(
+          ...(["x", "y", "width", "height"] as const).map((key) =>
+            Math.abs(a[key] - b[key]),
+          ),
+          Math.abs(label.y - match.y),
+        );
+      })
+      .toBeLessThan(0.1);
+    await page.keyboard.press("Escape");
+  });
+}

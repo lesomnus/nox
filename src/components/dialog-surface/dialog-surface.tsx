@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import type { ReactNode, Ref } from "react";
 import styles from "./dialog-surface.module.css";
 
 export const dialogClassName = styles.dialog;
@@ -11,14 +11,17 @@ export function DialogSurface({
   anchored = false,
   motion = "default",
   closing = false,
+  ref,
 }: {
   children: ReactNode;
   anchored?: boolean;
   motion?: "default" | "from-right";
   closing?: boolean;
+  ref?: Ref<HTMLDivElement>;
 }) {
   return (
     <div
+      ref={ref}
       className={`${styles.surface} ${styles.appearance} ${styles.entrance}`}
       data-anchored={anchored}
       data-motion={motion}

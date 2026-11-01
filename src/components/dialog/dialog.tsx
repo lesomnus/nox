@@ -8,6 +8,7 @@ import {
   type ComponentProps,
   type Dispatch,
   type RefObject,
+  type ReactNode,
   type SetStateAction,
 } from "react";
 import { createPortal } from "react-dom";
@@ -30,17 +31,29 @@ export type DialogProps = Omit<
   open: boolean;
   /** Requests that the host set open=false; controlled updates do not call this. */
   onClose: () => void;
+  /** Called after a controlled close finishes and focus returns to the opener. */
+  onClosed?: () => void;
   /** Allow Escape and backdrop dismissal. Business policy belongs to the caller. */
   dismissible?: boolean;
   initialFocus?: RefObject<HTMLElement | null>;
+  /** Use the standard Card frame; false when children supply their own Card. */
+  frame?: boolean;
+  /** Keep surface motion anchored to its upper-left corner. */
+  anchored?: boolean;
+  /** Noninteractive decoration outside the animated surface, such as DialogTrigger. */
+  decoration?: ReactNode;
 };
 
 /** A controlled native modal boundary. Content, actions and async work belong to the host. */
 export function Dialog({
   open,
   onClose,
+  onClosed,
   dismissible = true,
   initialFocus,
+  frame = true,
+  anchored = false,
+  decoration,
   children,
   className = "",
   ref,
@@ -51,15 +64,20 @@ export function Dialog({
   ...props
 }: DialogProps) {
   const dialog = useRef<HTMLDialogElement>(null);
+  const surface = useRef<HTMLDivElement>(null);
   const outside = useRef(false);
+  const lifecycle = useRef(0);
+  const [present, setPresent] = useState(open);
+  const visible = open || present;
   const [title, setTitle] = useState<string>();
   const [description, setDescription] = useState<string>();
-  const focus = useRef(initialFocus);
+  const latest = useRef({ open, initialFocus, onClosed });
   useLayoutEffect(() => {
-    focus.current = initialFocus;
-  }, [initialFocus]);
+    latest.current = { open, initialFocus, onClosed };
+  });
   useLayoutEffect(() => {
-    if (!open || !dialog.current) return;
+    if (!visible || !dialog.current) return;
+    const generation = ++lifecycle.current;
     const node = dialog.current;
     const origin =
       document.activeElement instanceof HTMLElement
@@ -80,14 +98,44 @@ export function Dialog({
       if (label?.id) node.setAttribute(attribute, label.id);
     }
     node.showModal();
-    const target = focus.current?.current;
+    const target = latest.current.initialFocus?.current;
     if (target && node.contains(target)) target.focus({ preventScroll: true });
     return () => {
       node.close();
-      if (origin?.isConnected) origin.focus({ preventScroll: true });
+      // StrictMode can attach the same modal again before this microtask runs.
+      queueMicrotask(() => {
+        if (lifecycle.current !== generation) return;
+        if (origin?.isConnected) origin.focus({ preventScroll: true });
+        if (!latest.current.open) latest.current.onClosed?.();
+      });
     };
-  }, [open]);
-  if (!open) return null;
+  }, [visible]);
+  useLayoutEffect(() => {
+    if (open) {
+      setPresent(true);
+      return;
+    }
+    if (!present) return;
+    let canceled = false;
+    // Only wait for the surface and native backdrop, never caller-owned content
+    // such as a looping progress animation. Reduced motion has no animations.
+    // Native ::backdrop animations are only included with subtree=true.
+    const animations = dialog
+      .current!.getAnimations({ subtree: true })
+      .filter((animation) => {
+        const target = (animation.effect as KeyframeEffect | null)?.target;
+        return target === dialog.current || target === surface.current;
+      });
+    void Promise.all(
+      animations.map((animation) => animation.finished.catch(() => {})),
+    ).then(() => {
+      if (!canceled) setPresent(false);
+    });
+    return () => {
+      canceled = true;
+    };
+  }, [open, present]);
+  if (!visible) return null;
   return createPortal(
     <dialog
       {...props}
@@ -97,6 +145,9 @@ export function Dialog({
         if (ref) ref.current = node;
       }}
       tabIndex={-1}
+      data-closing={!open}
+      aria-hidden={!open || props["aria-hidden"]}
+      inert={!open || props.inert}
       className={`${dialogClassName} ${styles.dialog} dialog ${className}`}
       aria-labelledby={
         props["aria-labelledby"] ?? (props["aria-label"] ? undefined : title)
@@ -105,19 +156,24 @@ export function Dialog({
       onClose={(event) => {
         // Also synchronize native dialog.close()/form method=dialog with the host.
         // Ignore close events from StrictMode cleanup followed by reopening.
-        if (event.currentTarget.isConnected && !event.currentTarget.open)
+        if (
+          event.currentTarget.isConnected &&
+          !event.currentTarget.open &&
+          open
+        )
           onClose();
       }}
       onCancel={(event) => {
         onCancel?.(event);
         const canceled = event.defaultPrevented;
         event.preventDefault();
-        if (!canceled && dismissible) onClose();
+        if (!canceled && dismissible && open) onClose();
       }}
       onPointerDown={(event) => {
         onPointerDown?.(event);
         outside.current =
           !event.defaultPrevented &&
+          open &&
           event.target === event.currentTarget &&
           beyond(event.currentTarget, event.clientX, event.clientY);
       }}
@@ -165,8 +221,13 @@ export function Dialog({
       }}
     >
       <Labels.Provider value={{ setTitle, setDescription }}>
-        <DialogSurface>
-          <div className={`${styles.content} floating-card`}>{children}</div>
+        {decoration}
+        <DialogSurface ref={surface} closing={!open} anchored={anchored}>
+          {frame ? (
+            <div className={`${styles.content} floating-card`}>{children}</div>
+          ) : (
+            children
+          )}
         </DialogSurface>
       </Labels.Provider>
     </dialog>,

@@ -5,6 +5,7 @@
     var(--menu-item-padding-inline, var(--ui-menu-item-padding-inline));
   text-align: left;
   font-size: inherit;
+  border-radius: var(--menu-inner-radius, 6px);
 }
 .item :global(.button-content) {
   justify-content: flex-start;
@@ -14,7 +15,7 @@
   color: var(--ui-shade-255);
 }
 .item[aria-checked="true"] {
-  background: var(--ui-selected);
+  background: var(--ui-menu-selected-background);
 }
 .trailing {
   display: inline-flex;
