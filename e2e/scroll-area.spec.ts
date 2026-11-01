@@ -417,3 +417,65 @@ test("scroll fades update without invalidating the content subtree", async ({
   await area.getByRole("scrollbar").press("End");
   await expect(bottom).toHaveCSS("opacity", "0");
 });
+
+for (const policy of ["auto", "contain", "none"]) {
+  for (const horizontal of [false, true]) {
+    test(`${horizontal ? "horizontal" : "vertical"} rail honors ${policy} at the scroll boundary`, async ({
+      page,
+    }) => {
+      await page.setViewportSize({ width: 500, height: 500 });
+      await page.goto(
+        "/iframe.html?id=layout-scrollarea--outside-both-axes&viewMode=story",
+      );
+      const area = page.locator('[data-scroll-area="root"]');
+      const viewport = area.locator('[data-scroll-area="viewport"]');
+      await expect(area.getByRole("scrollbar")).toHaveCount(2);
+      await viewport.evaluate((node, policy) => {
+        node.style.overscrollBehavior = policy;
+        document.body.style.width = "1000px";
+        document.body.style.height = "1400px";
+        const story = document.getElementById("storybook-root")!;
+        Object.assign(story.style, {
+          position: "absolute",
+          top: "40px",
+          left: "40px",
+          width: "260px",
+        });
+        window.scrollTo(0, 0);
+      }, policy);
+      const thumb = area.getByRole("scrollbar", {
+        name: horizontal ? "Scroll columns" : "Scroll entries",
+        exact: true,
+      });
+      await thumb.press("End");
+      const track = area.locator(
+        `[data-scroll-area="${horizontal ? "horizontal-rail" : "rail"}"]`,
+      );
+      const rect = (await track.boundingBox())!;
+      await page.mouse.move(rect.x + rect.width / 2, rect.y + rect.height / 2);
+      const position = () =>
+        page.evaluate(
+          (horizontal) => (horizontal ? window.scrollX : window.scrollY),
+          horizontal,
+        );
+      await page.mouse.wheel(horizontal ? 120 : 0, horizontal ? 0 : 120);
+      if (policy === "auto") {
+        await expect.poll(position).toBeGreaterThan(0);
+      } else {
+        // Give the compositor time to apply a wheel event to the outer page.
+        await page.waitForTimeout(150);
+        expect(await position()).toBe(0);
+      }
+      await expect
+        .poll(() =>
+          viewport.evaluate((node, horizontal) => {
+            const remaining = horizontal
+              ? node.scrollWidth - node.clientWidth - node.scrollLeft
+              : node.scrollHeight - node.clientHeight - node.scrollTop;
+            return Math.abs(remaining);
+          }, horizontal),
+        )
+        .toBeLessThan(1);
+    });
+  }
+}

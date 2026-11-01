@@ -247,7 +247,8 @@ export function ScrollArea({
     function wheel(event: WheelEvent) {
       const el = pane.current;
       if (!el || event.ctrlKey || event.defaultPrevented) return;
-      const line = parseFloat(getComputedStyle(el).lineHeight) || 16;
+      const computed = getComputedStyle(el);
+      const line = parseFloat(computed.lineHeight) || 16;
       const dx =
         event.deltaX *
         (event.deltaMode === 1
@@ -264,12 +265,23 @@ export function ScrollArea({
             : 1);
       const left = el.scrollLeft;
       const top = el.scrollTop;
+      const horizontalDelta = event.shiftKey && !dx ? dy : dx;
+      const verticalDelta = event.shiftKey && !dx ? 0 : dy;
       el.scrollBy({
-        left: event.shiftKey && !dx ? dy : dx,
-        top: event.shiftKey && !dx ? 0 : dy,
+        left: horizontalDelta,
+        top: verticalDelta,
         behavior: "instant",
       });
-      if (left !== el.scrollLeft || top !== el.scrollTop)
+      // Rails are siblings of the native viewport, so its overscroll policy
+      // cannot stop their wheel events from reaching a scrollable ancestor.
+      const contains = (policy: string) =>
+        policy === "contain" || policy === "none";
+      if (
+        left !== el.scrollLeft ||
+        top !== el.scrollTop ||
+        (horizontalDelta && contains(computed.overscrollBehaviorX)) ||
+        (verticalDelta && contains(computed.overscrollBehaviorY))
+      )
         event.preventDefault();
     }
     for (const track of tracks)

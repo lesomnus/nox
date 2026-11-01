@@ -63,6 +63,10 @@ clamped to the scroll range. Keep holding to drag from there. Pressing the handl
 itself retains its grab position. Both axes focus their scrollbar for subsequent
 keyboard navigation; an area without overflow has no interactive rail.
 Wheel and trackpad events over either rail scroll the native viewport too.
+At the boundary, rail wheel events follow the viewport's `overscroll-behavior`
+for the requested axis: `contain` and `none` keep the parent from scrolling;
+`auto` allows native chaining. Set the policy on `viewportClassName` or through
+`viewportRef`. `none` also suppresses the viewport's native overscroll affordance.
 
 Override `--ui-scroll-area-background` to match the containing surface and fades.
 Backdrop blur applies only inside the thin translucent rail line through
