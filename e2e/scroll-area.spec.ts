@@ -506,51 +506,53 @@ for (const policy of ["auto", "contain", "none"]) {
   }
 }
 
-test("contained viewport leaves a nested native scroller usable at the outer boundary", async ({
-  page,
-}) => {
-  await page.goto(
-    "/iframe.html?id=layout-scrollarea--long-list&viewMode=story",
-  );
-  const viewport = page.locator('[data-scroll-area="viewport"]');
-  await expect(viewport).toBeVisible();
-  await viewport.evaluate((node) => {
-    node.style.overscrollBehavior = "none";
-    const nested = document.createElement("div");
-    nested.dataset.nestedScroll = "true";
-    Object.assign(nested.style, { height: "100px", overflow: "auto" });
-    const body = document.createElement("div");
-    Object.assign(body.style, { height: "600px" });
-    body.textContent = "Nested scrolling";
-    nested.append(body);
-    node.firstElementChild!.append(nested);
-    node.scrollTop = node.scrollHeight;
+for (const wheelBehavior of ["native", "instant"] as const) {
+  test(`${wheelBehavior} viewport leaves a nested native scroller usable at the outer boundary`, async ({
+    page,
+  }) => {
+    await page.goto(
+      `/iframe.html?id=layout-scrollarea--long-list&viewMode=story&args=wheelBehavior:${wheelBehavior}`,
+    );
+    const viewport = page.locator('[data-scroll-area="viewport"]');
+    await expect(viewport).toBeVisible();
+    await viewport.evaluate((node) => {
+      node.style.overscrollBehavior = "none";
+      const nested = document.createElement("div");
+      nested.dataset.nestedScroll = "true";
+      Object.assign(nested.style, { height: "100px", overflow: "auto" });
+      const body = document.createElement("div");
+      Object.assign(body.style, { height: "600px" });
+      body.textContent = "Nested scrolling";
+      nested.append(body);
+      node.firstElementChild!.append(nested);
+      node.scrollTop = node.scrollHeight;
+    });
+    const nested = viewport.locator('[data-nested-scroll="true"]');
+    await nested.hover();
+    await page.mouse.wheel(0, 80);
+    await expect
+      .poll(() => nested.evaluate((node) => node.scrollTop))
+      .toBeGreaterThan(0);
+    const result = await nested.evaluate((node) => {
+      const wheel = () =>
+        new WheelEvent("wheel", {
+          deltaY: 0.25,
+          bubbles: true,
+          cancelable: true,
+        });
+      const moving = wheel();
+      node.firstElementChild!.dispatchEvent(moving);
+      node.scrollTop = node.scrollHeight;
+      const boundary = wheel();
+      node.firstElementChild!.dispatchEvent(boundary);
+      return {
+        moving: moving.defaultPrevented,
+        boundary: boundary.defaultPrevented,
+      };
+    });
+    expect(result).toEqual({ moving: false, boundary: true });
   });
-  const nested = viewport.locator('[data-nested-scroll="true"]');
-  await nested.hover();
-  await page.mouse.wheel(0, 80);
-  await expect
-    .poll(() => nested.evaluate((node) => node.scrollTop))
-    .toBeGreaterThan(0);
-  const result = await nested.evaluate((node) => {
-    const wheel = () =>
-      new WheelEvent("wheel", {
-        deltaY: 0.25,
-        bubbles: true,
-        cancelable: true,
-      });
-    const moving = wheel();
-    node.firstElementChild!.dispatchEvent(moving);
-    node.scrollTop = node.scrollHeight;
-    const boundary = wheel();
-    node.firstElementChild!.dispatchEvent(boundary);
-    return {
-      moving: moving.defaultPrevented,
-      boundary: boundary.defaultPrevented,
-    };
-  });
-  expect(result).toEqual({ moving: false, boundary: true });
-});
+}
 
 test("fractional native bottom offsets hide the final fade", async ({
   page,
@@ -568,4 +570,103 @@ test("fractional native bottom offsets hide the final fade", async ({
     "opacity",
     "0",
   );
+});
+
+test("instant wheel handles the first event inside the viewport and keeps a continuing tail settled", async ({
+  page,
+}) => {
+  await page.goto(
+    "/iframe.html?id=layout-scrollarea--instant-wheel&viewMode=story",
+  );
+  const viewport = page.locator('[data-scroll-area="viewport"]');
+  await expect(page.getByRole("scrollbar")).toHaveCount(2);
+  await viewport.evaluate((node) => {
+    node.style.overscrollBehavior = "none";
+    node.addEventListener(
+      "wheel",
+      (event) => {
+        node.dataset.firstWheelConsumed = String(event.defaultPrevented);
+      },
+      { once: true },
+    );
+  });
+  await viewport.hover();
+  await page.mouse.wheel(0, 32);
+  await expect(viewport).toHaveAttribute("data-first-wheel-consumed", "true");
+  await expect.poll(() => viewport.evaluate((node) => node.scrollTop)).toBe(32);
+  const modes = await viewport.evaluate((node) => {
+    const fire = (init: WheelEventInit) => {
+      const event = new WheelEvent("wheel", {
+        bubbles: true,
+        cancelable: true,
+        ...init,
+      });
+      node.dispatchEvent(event);
+      return event.defaultPrevented;
+    };
+    const start = node.scrollTop;
+    const lineSize = parseFloat(getComputedStyle(node).lineHeight) || 16;
+    const line = fire({ deltaY: 2, deltaMode: 1 });
+    const lineTop = node.scrollTop;
+    const maxLeft = node.scrollWidth - node.clientWidth;
+    const page = fire({ deltaX: 1, deltaMode: 2 });
+    const pageLeft = node.scrollLeft;
+    node.scrollLeft = 0;
+    const shift = fire({ deltaY: 5, shiftKey: true });
+    const shifted = { left: node.scrollLeft, top: node.scrollTop };
+    const ctrl = fire({ deltaY: 4, ctrlKey: true });
+    const noncancelable = fire({ deltaY: 4, cancelable: false });
+    return {
+      start,
+      lineSize,
+      line,
+      lineTop,
+      maxLeft,
+      page,
+      pageLeft,
+      width: node.clientWidth,
+      shift,
+      shifted,
+      ctrl,
+      noncancelable,
+      finalTop: node.scrollTop,
+    };
+  });
+  expect(modes.line).toBe(true);
+  expect(modes.lineTop).toBeCloseTo(modes.start + 2 * modes.lineSize, 0);
+  expect(modes.page).toBe(true);
+  expect(modes.pageLeft).toBe(Math.min(modes.width, modes.maxLeft));
+  expect(modes.shift).toBe(true);
+  expect(modes.shifted).toEqual({ left: 5, top: modes.lineTop });
+  expect(modes.ctrl).toBe(false);
+  expect(modes.noncancelable).toBe(false);
+  expect(modes.finalTop).toBe(modes.lineTop);
+  const fractional = await viewport.evaluate((node) => {
+    node.scrollTop = 0;
+    const consumed: boolean[] = [];
+    for (let n = 0; n < 16; n++) {
+      const event = new WheelEvent("wheel", {
+        deltaY: 0.125,
+        bubbles: true,
+        cancelable: true,
+      });
+      node.dispatchEvent(event);
+      consumed.push(event.defaultPrevented);
+    }
+    return { top: node.scrollTop, consumed };
+  });
+  expect(fractional.top).toBe(2);
+  expect(fractional.consumed.every(Boolean)).toBe(true);
+  for (const delta of [120, 120, 120, 1, 0.5, 0.25, 0.125, 0.125])
+    await page.mouse.wheel(0, delta);
+  const samples = await viewport.evaluate(async (node) => {
+    const top: number[] = [];
+    for (let frame = 0; frame < 16; frame++) {
+      await new Promise(requestAnimationFrame);
+      top.push(node.scrollTop);
+    }
+    return { top, max: node.scrollHeight - node.clientHeight };
+  });
+  expect(Math.max(...samples.top) - Math.min(...samples.top)).toBe(0);
+  expect(samples.top[0]).toBe(samples.max);
 });

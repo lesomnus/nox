@@ -37,6 +37,8 @@ export type ScrollAreaProps = Omit<
   scrollbarOffset?: number;
   /** Show an additional horizontal scrollbar when content overflows. */
   horizontalScrollbar?: boolean;
+  /** Native wheel animation, or immediate scrolling from the first wheel event. */
+  wheelBehavior?: "native" | "instant";
   horizontalScrollbarLabel?: string;
   viewportRef?: RefObject<HTMLDivElement | null>;
   viewportClassName?: string;
@@ -45,14 +47,15 @@ export type ScrollAreaProps = Omit<
   onScroll?: UIEventHandler<HTMLDivElement>;
 };
 
-// Native scrolling keeps wheel, touch and focus navigation predictable; only
-// its visual handle is custom, sharing the conversation handle's appearance.
+// A native viewport preserves touch, focus and keyboard navigation. Callers can
+// opt out of browser wheel animation while retaining the event's own deltas.
 export function ScrollArea({
   children,
   viewportRef,
   scrollbarLabel = "Scroll",
   scrollbarOffset,
   horizontalScrollbar = false,
+  wheelBehavior = "native",
   horizontalScrollbarLabel = "Scroll horizontally",
   className = "",
   classNames = {},
@@ -247,39 +250,8 @@ export function ScrollArea({
   useEffect(() => {
     const tracks = [rail.current, horizontalRail.current];
     const el = pane.current!;
-    function boundaryWheel(event: WheelEvent) {
-      if (event.ctrlKey || event.defaultPrevented) return;
-      const dx = event.shiftKey && !event.deltaX ? event.deltaY : event.deltaX;
-      const dy = event.shiftKey && !event.deltaX ? 0 : event.deltaY;
-      if (!dx && !dy) return;
-      const computed = getComputedStyle(el);
-      const blocked = (
-        delta: number,
-        position: number,
-        max: number,
-        policy: string,
-      ) =>
-        !delta ||
-        ((policy === "contain" || policy === "none") &&
-          (delta > 0 ? position >= max - 1 : position <= 1));
-      if (
-        !blocked(
-          dx,
-          el.scrollLeft,
-          el.scrollWidth - el.clientWidth,
-          computed.overscrollBehaviorX,
-        ) ||
-        !blocked(
-          dy,
-          el.scrollTop,
-          el.scrollHeight - el.clientHeight,
-          computed.overscrollBehaviorY,
-        )
-      )
-        return;
-      // A containing viewport must still let a nested native scroller consume
-      // the input. Check only at our own boundary, leaving ordinary wheel
-      // scrolling to the browser.
+    const remainder = { x: 0, y: 0, left: el.scrollLeft, top: el.scrollTop };
+    function nestedScrolls(event: WheelEvent, dx: number, dy: number) {
       for (const target of event.composedPath()) {
         if (target === el) break;
         if (!(target instanceof HTMLElement)) continue;
@@ -307,8 +279,41 @@ export function ScrollArea({
             style.overflowY,
           )
         )
-          return;
+          return true;
       }
+      return false;
+    }
+    function boundaryWheel(event: WheelEvent) {
+      if (event.ctrlKey || event.defaultPrevented) return;
+      const dx = event.shiftKey && !event.deltaX ? event.deltaY : event.deltaX;
+      const dy = event.shiftKey && !event.deltaX ? 0 : event.deltaY;
+      if (!dx && !dy) return;
+      const computed = getComputedStyle(el);
+      const blocked = (
+        delta: number,
+        position: number,
+        max: number,
+        policy: string,
+      ) =>
+        !delta ||
+        ((policy === "contain" || policy === "none") &&
+          (delta > 0 ? position >= max - 1 : position <= 1));
+      if (
+        !blocked(
+          dx,
+          el.scrollLeft,
+          el.scrollWidth - el.clientWidth,
+          computed.overscrollBehaviorX,
+        ) ||
+        !blocked(
+          dy,
+          el.scrollTop,
+          el.scrollHeight - el.clientHeight,
+          computed.overscrollBehaviorY,
+        ) ||
+        nestedScrolls(event, dx, dy)
+      )
+        return;
       // Free-spinning wheels can keep sending input after native smooth
       // scrolling has reached the edge. End that animation at the true native
       // limit rather than starting another clamped scroll animation.
@@ -322,6 +327,13 @@ export function ScrollArea({
     function wheel(event: WheelEvent) {
       const el = pane.current;
       if (!el || event.ctrlKey || event.defaultPrevented) return;
+      const fromViewport = event.currentTarget === el;
+      // An existing native gesture can enter from another target after the
+      // browser has stopped offering cancelable events. Do not scroll twice.
+      if (fromViewport && !event.cancelable) {
+        boundaryWheel(event);
+        return;
+      }
       const computed = getComputedStyle(el);
       const line = parseFloat(computed.lineHeight) || 16;
       const dx =
@@ -342,18 +354,43 @@ export function ScrollArea({
       const top = el.scrollTop;
       const horizontalDelta = event.shiftKey && !dx ? dy : dx;
       const verticalDelta = event.shiftKey && !dx ? 0 : dy;
+      if (fromViewport && nestedScrolls(event, horizontalDelta, verticalDelta))
+        return;
+      if (left !== remainder.left || top !== remainder.top)
+        remainder.x = remainder.y = 0;
+      const maxLeft = Math.max(0, el.scrollWidth - el.clientWidth);
+      const maxTop = Math.max(0, el.scrollHeight - el.clientHeight);
+      const targetLeft =
+        left + (horizontalDelta ? horizontalDelta + remainder.x : 0);
+      const targetTop = top + (verticalDelta ? verticalDelta + remainder.y : 0);
       el.scrollBy({
-        left: horizontalDelta,
-        top: verticalDelta,
+        left: targetLeft - left,
+        top: targetTop - top,
         behavior: "instant",
       });
+      // Native offsets can round each move to device pixels. Carry the missed
+      // fraction into the next input without retaining pressure past an edge.
+      if (horizontalDelta)
+        remainder.x =
+          targetLeft < 0 || targetLeft > maxLeft
+            ? 0
+            : targetLeft - el.scrollLeft;
+      if (verticalDelta)
+        remainder.y =
+          targetTop < 0 || targetTop > maxTop ? 0 : targetTop - el.scrollTop;
+      remainder.left = el.scrollLeft;
+      remainder.top = el.scrollTop;
       // Rails are siblings of the native viewport, so its overscroll policy
       // cannot stop their wheel events from reaching a scrollable ancestor.
       const contains = (policy: string) =>
         policy === "contain" || policy === "none";
+      const movable = (delta: number, position: number, max: number) =>
+        delta > 0 ? position < max - 1 : delta < 0 && position > 1;
       if (
         left !== el.scrollLeft ||
         top !== el.scrollTop ||
+        movable(horizontalDelta, left, maxLeft) ||
+        movable(verticalDelta, top, maxTop) ||
         (horizontalDelta && contains(computed.overscrollBehaviorX)) ||
         (verticalDelta && contains(computed.overscrollBehaviorY))
       )
@@ -361,12 +398,13 @@ export function ScrollArea({
     }
     for (const track of tracks)
       track?.addEventListener("wheel", wheel, { passive: false });
-    el.addEventListener("wheel", boundaryWheel, { passive: false });
+    const viewportWheel = wheelBehavior === "instant" ? wheel : boundaryWheel;
+    el.addEventListener("wheel", viewportWheel, { passive: false });
     return () => {
-      el.removeEventListener("wheel", boundaryWheel);
+      el.removeEventListener("wheel", viewportWheel);
       for (const track of tracks) track?.removeEventListener("wheel", wheel);
     };
-  }, [horizontalOverflow]);
+  }, [horizontalOverflow, wheelBehavior]);
 
   const travel = Math.max(0, view.height - view.thumb);
   const horizontalTravel = Math.max(

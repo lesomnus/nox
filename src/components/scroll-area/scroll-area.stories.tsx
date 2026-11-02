@@ -15,11 +15,13 @@ const meta = {
   tags: ["autodocs"],
   args: {
     scrollbarLabel: "Scroll entries",
+    wheelBehavior: "native",
     style: { height: 320 },
     children: entries(60),
   },
   argTypes: {
     scrollbarOffset: { control: "number" },
+    wheelBehavior: { control: "select", options: ["native", "instant"] },
   },
   parameters: {
     docs: { description: { component: docs } },
@@ -140,4 +142,9 @@ export const InsetOffset: StoryObj<typeof meta> = {
 export const InsetBothAxes: StoryObj<typeof meta> = {
   ...OutsideBothAxes,
   args: { ...OutsideBothAxes.args, scrollbarOffset: -16 },
+};
+
+export const InstantWheel: StoryObj<typeof meta> = {
+  ...OutsideBothAxes,
+  args: { ...OutsideBothAxes.args, wheelBehavior: "instant" },
 };
