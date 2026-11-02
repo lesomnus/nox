@@ -576,7 +576,7 @@ test("instant wheel handles the first event inside the viewport and keeps a cont
   page,
 }) => {
   await page.goto(
-    "/iframe.html?id=layout-scrollarea--instant-wheel&viewMode=story",
+    "/iframe.html?id=layout-scrollarea--instant-wheel&viewMode=story&args=wheelSmoothing:0",
   );
   const viewport = page.locator('[data-scroll-area="viewport"]');
   await expect(page.getByRole("scrollbar")).toHaveCount(2);
@@ -669,4 +669,139 @@ test("instant wheel handles the first event inside the viewport and keeps a cont
   });
   expect(Math.max(...samples.top) - Math.min(...samples.top)).toBe(0);
   expect(samples.top[0]).toBe(samples.max);
+});
+
+test("instant smoothing merges wheel input into one monotonic target", async ({
+  page,
+}) => {
+  await page.goto(
+    "/iframe.html?id=layout-scrollarea--instant-wheel&viewMode=story",
+  );
+  const viewport = page.locator('[data-scroll-area="viewport"]');
+  await expect(page.getByRole("scrollbar")).toHaveCount(2);
+  const result = await viewport.evaluate(async (node) => {
+    node.style.overscrollBehavior = "none";
+    const fire = () => {
+      const wheel = new WheelEvent("wheel", {
+        deltaY: 80,
+        bubbles: true,
+        cancelable: true,
+      });
+      node.dispatchEvent(wheel);
+      return wheel.defaultPrevented;
+    };
+    const first = fire();
+    const immediate = node.scrollTop;
+    const samples: number[] = [];
+    let second = false;
+    for (let frame = 0; frame < 42; frame++) {
+      await new Promise(requestAnimationFrame);
+      if (frame === 2) second = fire();
+      samples.push(node.scrollTop);
+    }
+    return { first, second, immediate, samples };
+  });
+  expect(result.first).toBe(true);
+  expect(result.second).toBe(true);
+  expect(result.immediate).toBe(0);
+  expect(result.samples.some((value) => value > 0 && value < 80)).toBe(true);
+  expect(result.samples.at(-1)).toBe(160);
+  for (let index = 1; index < result.samples.length; index++) {
+    expect(result.samples[index]).toBeGreaterThanOrEqual(
+      result.samples[index - 1],
+    );
+    expect(result.samples[index]).toBeLessThanOrEqual(160);
+  }
+});
+
+test("smoothed wheel settles at a clamped edge, reverses and yields to external input", async ({
+  page,
+}) => {
+  await page.goto(
+    "/iframe.html?id=layout-scrollarea--instant-wheel&viewMode=story",
+  );
+  const viewport = page.locator('[data-scroll-area="viewport"]');
+  await expect(page.getByRole("scrollbar")).toHaveCount(2);
+  const boundary = await viewport.evaluate(async (node) => {
+    node.style.overscrollBehavior = "none";
+    node.scrollTop = node.scrollHeight - node.clientHeight - 60;
+    const fire = (deltaY: number) =>
+      node.dispatchEvent(
+        new WheelEvent("wheel", { deltaY, bubbles: true, cancelable: true }),
+      );
+    fire(10000);
+    const samples: number[] = [];
+    for (let frame = 0; frame < 42; frame++) {
+      await new Promise(requestAnimationFrame);
+      if (frame % 3 === 0) fire(10000);
+      samples.push(node.scrollTop);
+    }
+    const max = node.scrollHeight - node.clientHeight;
+    fire(-24);
+    const reverse: number[] = [];
+    for (let frame = 0; frame < 38; frame++) {
+      await new Promise(requestAnimationFrame);
+      reverse.push(node.scrollTop);
+    }
+    return { samples, max, reverse };
+  });
+  expect(boundary.samples.at(-1)).toBe(boundary.max);
+  for (let index = 1; index < boundary.samples.length; index++)
+    expect(boundary.samples[index]).toBeGreaterThanOrEqual(
+      boundary.samples[index - 1],
+    );
+  expect(boundary.reverse.some((top) => top < boundary.max)).toBe(true);
+  expect(boundary.reverse.at(-1)).toBe(boundary.max - 24);
+  for (let index = 1; index < boundary.reverse.length; index++)
+    expect(boundary.reverse[index]).toBeLessThanOrEqual(
+      boundary.reverse[index - 1],
+    );
+  const interrupted = await viewport.evaluate(async (node) => {
+    node.scrollTop = 0;
+    const fire = () =>
+      node.dispatchEvent(
+        new WheelEvent("wheel", {
+          deltaY: 120,
+          bubbles: true,
+          cancelable: true,
+        }),
+      );
+    fire();
+    node.dispatchEvent(
+      new KeyboardEvent("keydown", { key: "Home", bubbles: true }),
+    );
+    for (let frame = 0; frame < 20; frame++)
+      await new Promise(requestAnimationFrame);
+    const keyboard = node.scrollTop;
+    fire();
+    await new Promise(requestAnimationFrame);
+    node.scrollTop = 100;
+    const samples: number[] = [];
+    for (let frame = 0; frame < 30; frame++) {
+      await new Promise(requestAnimationFrame);
+      samples.push(node.scrollTop);
+    }
+    return { keyboard, samples };
+  });
+  expect(interrupted.keyboard).toBe(0);
+  expect(interrupted.samples.every((top) => top === 100)).toBe(true);
+});
+
+test("reduced motion disables instant-wheel easing", async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.goto(
+    "/iframe.html?id=layout-scrollarea--instant-wheel&viewMode=story",
+  );
+  const viewport = page.locator('[data-scroll-area="viewport"]');
+  await expect(page.getByRole("scrollbar")).toHaveCount(2);
+  const immediate = await viewport.evaluate((node) => {
+    const wheel = new WheelEvent("wheel", {
+      deltaY: 80,
+      bubbles: true,
+      cancelable: true,
+    });
+    node.dispatchEvent(wheel);
+    return { top: node.scrollTop, consumed: wheel.defaultPrevented };
+  });
+  expect(immediate).toEqual({ top: 80, consumed: true });
 });

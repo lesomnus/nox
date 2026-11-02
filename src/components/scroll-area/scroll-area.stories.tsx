@@ -16,12 +16,14 @@ const meta = {
   args: {
     scrollbarLabel: "Scroll entries",
     wheelBehavior: "native",
+    wheelSmoothing: 70,
     style: { height: 320 },
     children: entries(60),
   },
   argTypes: {
     scrollbarOffset: { control: "number" },
     wheelBehavior: { control: "select", options: ["native", "instant"] },
+    wheelSmoothing: { control: { type: "range", min: 0, max: 200, step: 10 } },
   },
   parameters: {
     docs: { description: { component: docs } },

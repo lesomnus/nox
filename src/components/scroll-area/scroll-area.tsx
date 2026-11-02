@@ -13,6 +13,7 @@ import {
   type PointerEvent,
 } from "react";
 import styles from "./scroll-area.module.css";
+import { WheelScroller } from "./wheel-scroller";
 const clamp = (value: number, min: number, max: number) =>
   Math.max(min, Math.min(max, value));
 export type ScrollAreaSlot =
@@ -37,8 +38,10 @@ export type ScrollAreaProps = Omit<
   scrollbarOffset?: number;
   /** Show an additional horizontal scrollbar when content overflows. */
   horizontalScrollbar?: boolean;
-  /** Native wheel animation, or immediate scrolling from the first wheel event. */
+  /** Native wheel animation, or JS-controlled scrolling from the first event. */
   wheelBehavior?: "native" | "instant";
+  /** JS smoothing time constant in ms for instant mode; 0 disables it. Default 70. */
+  wheelSmoothing?: number;
   horizontalScrollbarLabel?: string;
   viewportRef?: RefObject<HTMLDivElement | null>;
   viewportClassName?: string;
@@ -56,6 +59,7 @@ export function ScrollArea({
   scrollbarOffset,
   horizontalScrollbar = false,
   wheelBehavior = "native",
+  wheelSmoothing = 70,
   horizontalScrollbarLabel = "Scroll horizontally",
   className = "",
   classNames = {},
@@ -93,6 +97,7 @@ export function ScrollArea({
   } | null>(null);
   const motion = useRef({ top: 0, time: 0, strength: 0 });
   const motionRaf = useRef(0);
+  const wheelScroller = useRef<WheelScroller | null>(null);
   const [near, setNear] = useState(false);
   const [dragging, setDragging] = useState(false);
   const [view, setView] = useState({ top: 0, max: 0, height: 0, thumb: 0 });
@@ -251,6 +256,16 @@ export function ScrollArea({
     const tracks = [rail.current, horizontalRail.current];
     const el = pane.current!;
     const remainder = { x: 0, y: 0, left: el.scrollLeft, top: el.scrollTop };
+    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const smoothing = Number.isFinite(wheelSmoothing)
+      ? Math.max(0, wheelSmoothing)
+      : 70;
+    const animator =
+      wheelBehavior === "instant"
+        ? new WheelScroller(el, () => (reducedMotion.matches ? 0 : smoothing))
+        : null;
+    wheelScroller.current = animator;
+    const interrupt = () => animator?.cancel();
     function nestedScrolls(event: WheelEvent, dx: number, dy: number) {
       for (const target of event.composedPath()) {
         if (target === el) break;
@@ -326,11 +341,16 @@ export function ScrollArea({
     }
     function wheel(event: WheelEvent) {
       const el = pane.current;
-      if (!el || event.ctrlKey || event.defaultPrevented) return;
+      if (!el || event.defaultPrevented) return;
+      if (event.ctrlKey) {
+        interrupt();
+        return;
+      }
       const fromViewport = event.currentTarget === el;
       // An existing native gesture can enter from another target after the
       // browser has stopped offering cancelable events. Do not scroll twice.
       if (fromViewport && !event.cancelable) {
+        interrupt();
         boundaryWheel(event);
         return;
       }
@@ -354,8 +374,29 @@ export function ScrollArea({
       const top = el.scrollTop;
       const horizontalDelta = event.shiftKey && !dx ? dy : dx;
       const verticalDelta = event.shiftKey && !dx ? 0 : dy;
-      if (fromViewport && nestedScrolls(event, horizontalDelta, verticalDelta))
+      if (
+        fromViewport &&
+        nestedScrolls(event, horizontalDelta, verticalDelta)
+      ) {
+        interrupt();
         return;
+      }
+      const contains = (policy: string) =>
+        policy === "contain" || policy === "none";
+      const movable = (delta: number, position: number, max: number) =>
+        delta > 0 ? position < max - 1 : delta < 0 && position > 1;
+      if (animator) {
+        const moved = animator.scrollBy(horizontalDelta, verticalDelta);
+        if (
+          moved ||
+          movable(horizontalDelta, left, el.scrollWidth - el.clientWidth) ||
+          movable(verticalDelta, top, el.scrollHeight - el.clientHeight) ||
+          (horizontalDelta && contains(computed.overscrollBehaviorX)) ||
+          (verticalDelta && contains(computed.overscrollBehaviorY))
+        )
+          event.preventDefault();
+        return;
+      }
       if (left !== remainder.left || top !== remainder.top)
         remainder.x = remainder.y = 0;
       const maxLeft = Math.max(0, el.scrollWidth - el.clientWidth);
@@ -382,10 +423,6 @@ export function ScrollArea({
       remainder.top = el.scrollTop;
       // Rails are siblings of the native viewport, so its overscroll policy
       // cannot stop their wheel events from reaching a scrollable ancestor.
-      const contains = (policy: string) =>
-        policy === "contain" || policy === "none";
-      const movable = (delta: number, position: number, max: number) =>
-        delta > 0 ? position < max - 1 : delta < 0 && position > 1;
       if (
         left !== el.scrollLeft ||
         top !== el.scrollTop ||
@@ -400,11 +437,21 @@ export function ScrollArea({
       track?.addEventListener("wheel", wheel, { passive: false });
     const viewportWheel = wheelBehavior === "instant" ? wheel : boundaryWheel;
     el.addEventListener("wheel", viewportWheel, { passive: false });
+    el.addEventListener("pointerdown", interrupt, { passive: true });
+    el.addEventListener("keydown", interrupt);
+    el.addEventListener("focusin", interrupt);
+    window.addEventListener("blur", interrupt);
     return () => {
+      animator?.cancel();
+      if (wheelScroller.current === animator) wheelScroller.current = null;
       el.removeEventListener("wheel", viewportWheel);
+      el.removeEventListener("pointerdown", interrupt);
+      el.removeEventListener("keydown", interrupt);
+      el.removeEventListener("focusin", interrupt);
+      window.removeEventListener("blur", interrupt);
       for (const track of tracks) track?.removeEventListener("wheel", wheel);
     };
-  }, [horizontalOverflow, wheelBehavior]);
+  }, [horizontalOverflow, wheelBehavior, wheelSmoothing]);
 
   const travel = Math.max(0, view.height - view.thumb);
   const horizontalTravel = Math.max(
@@ -418,6 +465,7 @@ export function ScrollArea({
     if (!el || event.button !== 0 || !range.max || !distance) return;
     const track = event.currentTarget;
     const thumb = track.querySelector<HTMLDivElement>('[role="scrollbar"]')!;
+    wheelScroller.current?.cancel();
     event.preventDefault();
     thumb.focus({ preventScroll: true });
     if (!thumb.contains(event.target as Node)) {
@@ -567,6 +615,7 @@ export function ScrollArea({
               };
               const next = positions[event.key];
               if (next === undefined) return;
+              wheelScroller.current?.cancel();
               event.preventDefault();
               el.scrollTop = next;
             }}
@@ -613,6 +662,7 @@ export function ScrollArea({
               };
               const next = positions[event.key];
               if (next === undefined) return;
+              wheelScroller.current?.cancel();
               event.preventDefault();
               el.scrollLeft = next;
             }}

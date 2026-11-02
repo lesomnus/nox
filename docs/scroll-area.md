@@ -50,15 +50,22 @@ handle unless its content overflows.
 
 ## Composition and control
 
-`wheelBehavior` defaults to `"native"`. Use `"instant"` for a scroll region that
-must avoid browser-generated wheel animation, such as a sticky table. It handles
-the first cancelable wheel event as well as the rest of the sequence, applying
-the event's pixel, line or page delta immediately with native clamping. Shift
-continues to scroll horizontally. Fractional deltas accumulate across inputs so
-small trackpad or wheel-tail movement is retained. Ctrl+wheel stays native, and
-nested scrollers can consume their own input. Events from an already non-cancelable gesture use
-the boundary guard instead of applying a second scroll. Keyboard, focus and
-touch navigation remain native in both modes.
+`wheelBehavior` defaults to `"native"`. Use `"instant"` to own a wheel sequence
+from its first cancelable event and avoid browser-generated wheel animation.
+Each frame still writes the native scroll offset with `behavior: "instant"`.
+
+In this mode, `wheelSmoothing` controls JS easing with a time constant in
+milliseconds (default **70**). Set it to **0** for immediate movement. Successive
+inputs accumulate into one clamped target; an exponential approach cannot
+overshoot it or retain pressure beyond a boundary. Reversing direction drops
+the unfinished movement in the old direction. Fractional input is preserved.
+Reduced-motion preference disables easing. Dragging, keyboard/focus/pointer
+interaction, or an external scroll cancels pending motion.
+
+Shift continues to scroll horizontally. Ctrl+wheel stays native, and nested
+scrollers can consume their own input. An already non-cancelable incoming gesture
+uses the boundary guard instead of applying a second scroll. Keyboard, focus
+and touch navigation remain native in both modes.
 
 `viewportRef` exposes the native scroll element. `onScroll` receives that
 viewport's scroll events. `className`, `viewportClassName`, `contentClassName`
