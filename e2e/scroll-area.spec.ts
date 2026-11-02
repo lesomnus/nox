@@ -58,10 +58,14 @@ for (const offset of [-16, 12]) {
         .poll(async () => Math.abs((await position()) - expected))
         .toBeLessThan(1);
       await expect(thumb).toBeFocused();
-      const moved = (await handle.boundingBox())!;
-      expect(
-        horizontal ? moved.x + moved.width / 2 : moved.y + moved.height / 2,
-      ).toBeCloseTo(horizontal ? x : y, 0);
+      await expect
+        .poll(async () => {
+          const moved = (await handle.boundingBox())!;
+          return horizontal
+            ? moved.x + moved.width / 2
+            : moved.y + moved.height / 2;
+        })
+        .toBeCloseTo(horizontal ? x : y, 0);
       await page.mouse.move(
         horizontal ? box.x + box.width + 30 : x,
         horizontal ? y : box.y + box.height + 30,
@@ -416,4 +420,388 @@ test("scroll fades update without invalidating the content subtree", async ({
   expect(result.top).toBeCloseTo(result.scroll, 0);
   await area.getByRole("scrollbar").press("End");
   await expect(bottom).toHaveCSS("opacity", "0");
+});
+
+for (const policy of ["auto", "contain", "none"]) {
+  for (const horizontal of [false, true]) {
+    test(`${horizontal ? "horizontal" : "vertical"} rail honors ${policy} at the scroll boundary`, async ({
+      page,
+    }) => {
+      await page.setViewportSize({ width: 500, height: 500 });
+      await page.goto(
+        "/iframe.html?id=layout-scrollarea--outside-both-axes&viewMode=story",
+      );
+      const area = page.locator('[data-scroll-area="root"]');
+      const viewport = area.locator('[data-scroll-area="viewport"]');
+      await expect(area.getByRole("scrollbar")).toHaveCount(2);
+      await viewport.evaluate((node, policy) => {
+        node.style.overscrollBehavior = policy;
+        document.body.style.width = "1000px";
+        document.body.style.height = "1400px";
+        const story = document.getElementById("storybook-root")!;
+        Object.assign(story.style, {
+          position: "absolute",
+          top: "40px",
+          left: "40px",
+          width: "260px",
+        });
+        window.scrollTo(0, 0);
+      }, policy);
+      const thumb = area.getByRole("scrollbar", {
+        name: horizontal ? "Scroll columns" : "Scroll entries",
+        exact: true,
+      });
+      await thumb.press("End");
+      const nativeBoundary = await viewport.evaluate((node, horizontal) => {
+        const wheel = new WheelEvent("wheel", {
+          deltaX: horizontal ? 0.25 : 0,
+          deltaY: horizontal ? 0 : 0.25,
+          bubbles: true,
+          cancelable: true,
+        });
+        node.firstElementChild!.dispatchEvent(wheel);
+        const zoom = new WheelEvent("wheel", {
+          deltaY: 1,
+          ctrlKey: true,
+          bubbles: true,
+          cancelable: true,
+        });
+        node.dispatchEvent(zoom);
+        return {
+          prevented: wheel.defaultPrevented,
+          zoomPrevented: zoom.defaultPrevented,
+        };
+      }, horizontal);
+      expect(nativeBoundary.prevented).toBe(policy !== "auto");
+      expect(nativeBoundary.zoomPrevented).toBe(false);
+      const track = area.locator(
+        `[data-scroll-area="${horizontal ? "horizontal-rail" : "rail"}"]`,
+      );
+      const rect = (await track.boundingBox())!;
+      await page.mouse.move(rect.x + rect.width / 2, rect.y + rect.height / 2);
+      const position = () =>
+        page.evaluate(
+          (horizontal) => (horizontal ? window.scrollX : window.scrollY),
+          horizontal,
+        );
+      await page.mouse.wheel(horizontal ? 120 : 0, horizontal ? 0 : 120);
+      if (policy === "auto") {
+        await expect.poll(position).toBeGreaterThan(0);
+      } else {
+        // Give the compositor time to apply a wheel event to the outer page.
+        await page.waitForTimeout(150);
+        expect(await position()).toBe(0);
+      }
+      await expect
+        .poll(() =>
+          viewport.evaluate((node, horizontal) => {
+            const remaining = horizontal
+              ? node.scrollWidth - node.clientWidth - node.scrollLeft
+              : node.scrollHeight - node.clientHeight - node.scrollTop;
+            return Math.abs(remaining);
+          }, horizontal),
+        )
+        .toBeLessThan(1);
+    });
+  }
+}
+
+for (const wheelBehavior of ["native", "instant"] as const) {
+  test(`${wheelBehavior} viewport leaves a nested native scroller usable at the outer boundary`, async ({
+    page,
+  }) => {
+    await page.goto(
+      `/iframe.html?id=layout-scrollarea--long-list&viewMode=story&args=wheelBehavior:${wheelBehavior}`,
+    );
+    const viewport = page.locator('[data-scroll-area="viewport"]');
+    await expect(viewport).toBeVisible();
+    await viewport.evaluate((node) => {
+      node.style.overscrollBehavior = "none";
+      const nested = document.createElement("div");
+      nested.dataset.nestedScroll = "true";
+      Object.assign(nested.style, { height: "100px", overflow: "auto" });
+      const body = document.createElement("div");
+      Object.assign(body.style, { height: "600px" });
+      body.textContent = "Nested scrolling";
+      nested.append(body);
+      node.firstElementChild!.append(nested);
+      node.scrollTop = node.scrollHeight;
+    });
+    const nested = viewport.locator('[data-nested-scroll="true"]');
+    await nested.hover();
+    await page.mouse.wheel(0, 80);
+    await expect
+      .poll(() => nested.evaluate((node) => node.scrollTop))
+      .toBeGreaterThan(0);
+    const result = await nested.evaluate((node) => {
+      const wheel = () =>
+        new WheelEvent("wheel", {
+          deltaY: 0.25,
+          bubbles: true,
+          cancelable: true,
+        });
+      const moving = wheel();
+      node.firstElementChild!.dispatchEvent(moving);
+      node.scrollTop = node.scrollHeight;
+      const boundary = wheel();
+      node.firstElementChild!.dispatchEvent(boundary);
+      return {
+        moving: moving.defaultPrevented,
+        boundary: boundary.defaultPrevented,
+      };
+    });
+    expect(result).toEqual({ moving: false, boundary: true });
+  });
+}
+
+test("fractional native bottom offsets hide the final fade", async ({
+  page,
+}) => {
+  await page.goto(
+    "/iframe.html?id=layout-scrollarea--long-list&viewMode=story",
+  );
+  const viewport = page.locator('[data-scroll-area="viewport"]');
+  await expect(viewport).toBeVisible();
+  await viewport.evaluate((node) => {
+    document.body.style.zoom = "0.9";
+    node.scrollTop = node.scrollHeight;
+  });
+  await expect(page.locator('[data-scroll-area="bottom-fade"]')).toHaveCSS(
+    "opacity",
+    "0",
+  );
+});
+
+test("instant wheel handles the first event inside the viewport and keeps a continuing tail settled", async ({
+  page,
+}) => {
+  await page.goto(
+    "/iframe.html?id=layout-scrollarea--instant-wheel&viewMode=story&args=wheelSmoothing:0",
+  );
+  const viewport = page.locator('[data-scroll-area="viewport"]');
+  await expect(page.getByRole("scrollbar")).toHaveCount(2);
+  await viewport.evaluate((node) => {
+    node.style.overscrollBehavior = "none";
+    node.addEventListener(
+      "wheel",
+      (event) => {
+        node.dataset.firstWheelConsumed = String(event.defaultPrevented);
+      },
+      { once: true },
+    );
+  });
+  await viewport.hover();
+  await page.mouse.wheel(0, 32);
+  await expect(viewport).toHaveAttribute("data-first-wheel-consumed", "true");
+  await expect.poll(() => viewport.evaluate((node) => node.scrollTop)).toBe(32);
+  const modes = await viewport.evaluate((node) => {
+    const fire = (init: WheelEventInit) => {
+      const event = new WheelEvent("wheel", {
+        bubbles: true,
+        cancelable: true,
+        ...init,
+      });
+      node.dispatchEvent(event);
+      return event.defaultPrevented;
+    };
+    const start = node.scrollTop;
+    const lineSize = parseFloat(getComputedStyle(node).lineHeight) || 16;
+    const line = fire({ deltaY: 2, deltaMode: 1 });
+    const lineTop = node.scrollTop;
+    const maxLeft = node.scrollWidth - node.clientWidth;
+    const page = fire({ deltaX: 1, deltaMode: 2 });
+    const pageLeft = node.scrollLeft;
+    node.scrollLeft = 0;
+    const shift = fire({ deltaY: 5, shiftKey: true });
+    const shifted = { left: node.scrollLeft, top: node.scrollTop };
+    const ctrl = fire({ deltaY: 4, ctrlKey: true });
+    const noncancelable = fire({ deltaY: 4, cancelable: false });
+    return {
+      start,
+      lineSize,
+      line,
+      lineTop,
+      maxLeft,
+      page,
+      pageLeft,
+      width: node.clientWidth,
+      shift,
+      shifted,
+      ctrl,
+      noncancelable,
+      finalTop: node.scrollTop,
+    };
+  });
+  expect(modes.line).toBe(true);
+  expect(modes.lineTop).toBeCloseTo(modes.start + 2 * modes.lineSize, 0);
+  expect(modes.page).toBe(true);
+  expect(modes.pageLeft).toBe(Math.min(modes.width, modes.maxLeft));
+  expect(modes.shift).toBe(true);
+  expect(modes.shifted).toEqual({ left: 5, top: modes.lineTop });
+  expect(modes.ctrl).toBe(false);
+  expect(modes.noncancelable).toBe(false);
+  expect(modes.finalTop).toBe(modes.lineTop);
+  const fractional = await viewport.evaluate((node) => {
+    node.scrollTop = 0;
+    const consumed: boolean[] = [];
+    for (let n = 0; n < 16; n++) {
+      const event = new WheelEvent("wheel", {
+        deltaY: 0.125,
+        bubbles: true,
+        cancelable: true,
+      });
+      node.dispatchEvent(event);
+      consumed.push(event.defaultPrevented);
+    }
+    return { top: node.scrollTop, consumed };
+  });
+  expect(fractional.top).toBe(2);
+  expect(fractional.consumed.every(Boolean)).toBe(true);
+  for (const delta of [120, 120, 120, 1, 0.5, 0.25, 0.125, 0.125])
+    await page.mouse.wheel(0, delta);
+  const samples = await viewport.evaluate(async (node) => {
+    const top: number[] = [];
+    for (let frame = 0; frame < 16; frame++) {
+      await new Promise(requestAnimationFrame);
+      top.push(node.scrollTop);
+    }
+    return { top, max: node.scrollHeight - node.clientHeight };
+  });
+  expect(Math.max(...samples.top) - Math.min(...samples.top)).toBe(0);
+  expect(samples.top[0]).toBe(samples.max);
+});
+
+test("instant smoothing merges wheel input into one monotonic target", async ({
+  page,
+}) => {
+  await page.goto(
+    "/iframe.html?id=layout-scrollarea--instant-wheel&viewMode=story",
+  );
+  const viewport = page.locator('[data-scroll-area="viewport"]');
+  await expect(page.getByRole("scrollbar")).toHaveCount(2);
+  const result = await viewport.evaluate(async (node) => {
+    node.style.overscrollBehavior = "none";
+    const fire = () => {
+      const wheel = new WheelEvent("wheel", {
+        deltaY: 80,
+        bubbles: true,
+        cancelable: true,
+      });
+      node.dispatchEvent(wheel);
+      return wheel.defaultPrevented;
+    };
+    const first = fire();
+    const immediate = node.scrollTop;
+    const samples: number[] = [];
+    let second = false;
+    for (let frame = 0; frame < 42; frame++) {
+      await new Promise(requestAnimationFrame);
+      if (frame === 2) second = fire();
+      samples.push(node.scrollTop);
+    }
+    return { first, second, immediate, samples };
+  });
+  expect(result.first).toBe(true);
+  expect(result.second).toBe(true);
+  expect(result.immediate).toBe(0);
+  expect(result.samples.some((value) => value > 0 && value < 80)).toBe(true);
+  expect(result.samples.at(-1)).toBe(160);
+  for (let index = 1; index < result.samples.length; index++) {
+    expect(result.samples[index]).toBeGreaterThanOrEqual(
+      result.samples[index - 1],
+    );
+    expect(result.samples[index]).toBeLessThanOrEqual(160);
+  }
+});
+
+test("smoothed wheel settles at a clamped edge, reverses and yields to external input", async ({
+  page,
+}) => {
+  await page.goto(
+    "/iframe.html?id=layout-scrollarea--instant-wheel&viewMode=story",
+  );
+  const viewport = page.locator('[data-scroll-area="viewport"]');
+  await expect(page.getByRole("scrollbar")).toHaveCount(2);
+  const boundary = await viewport.evaluate(async (node) => {
+    node.style.overscrollBehavior = "none";
+    node.scrollTop = node.scrollHeight - node.clientHeight - 60;
+    const fire = (deltaY: number) =>
+      node.dispatchEvent(
+        new WheelEvent("wheel", { deltaY, bubbles: true, cancelable: true }),
+      );
+    fire(10000);
+    const samples: number[] = [];
+    for (let frame = 0; frame < 42; frame++) {
+      await new Promise(requestAnimationFrame);
+      if (frame % 3 === 0) fire(10000);
+      samples.push(node.scrollTop);
+    }
+    const max = node.scrollHeight - node.clientHeight;
+    fire(-24);
+    const reverse: number[] = [];
+    for (let frame = 0; frame < 38; frame++) {
+      await new Promise(requestAnimationFrame);
+      reverse.push(node.scrollTop);
+    }
+    return { samples, max, reverse };
+  });
+  expect(boundary.samples.at(-1)).toBe(boundary.max);
+  for (let index = 1; index < boundary.samples.length; index++)
+    expect(boundary.samples[index]).toBeGreaterThanOrEqual(
+      boundary.samples[index - 1],
+    );
+  expect(boundary.reverse.some((top) => top < boundary.max)).toBe(true);
+  expect(boundary.reverse.at(-1)).toBe(boundary.max - 24);
+  for (let index = 1; index < boundary.reverse.length; index++)
+    expect(boundary.reverse[index]).toBeLessThanOrEqual(
+      boundary.reverse[index - 1],
+    );
+  const interrupted = await viewport.evaluate(async (node) => {
+    node.scrollTop = 0;
+    const fire = () =>
+      node.dispatchEvent(
+        new WheelEvent("wheel", {
+          deltaY: 120,
+          bubbles: true,
+          cancelable: true,
+        }),
+      );
+    fire();
+    node.dispatchEvent(
+      new KeyboardEvent("keydown", { key: "Home", bubbles: true }),
+    );
+    for (let frame = 0; frame < 20; frame++)
+      await new Promise(requestAnimationFrame);
+    const keyboard = node.scrollTop;
+    fire();
+    await new Promise(requestAnimationFrame);
+    node.scrollTop = 100;
+    const samples: number[] = [];
+    for (let frame = 0; frame < 30; frame++) {
+      await new Promise(requestAnimationFrame);
+      samples.push(node.scrollTop);
+    }
+    return { keyboard, samples };
+  });
+  expect(interrupted.keyboard).toBe(0);
+  expect(interrupted.samples.every((top) => top === 100)).toBe(true);
+});
+
+test("reduced motion disables instant-wheel easing", async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.goto(
+    "/iframe.html?id=layout-scrollarea--instant-wheel&viewMode=story",
+  );
+  const viewport = page.locator('[data-scroll-area="viewport"]');
+  await expect(page.getByRole("scrollbar")).toHaveCount(2);
+  const immediate = await viewport.evaluate((node) => {
+    const wheel = new WheelEvent("wheel", {
+      deltaY: 80,
+      bubbles: true,
+      cancelable: true,
+    });
+    node.dispatchEvent(wheel);
+    return { top: node.scrollTop, consumed: wheel.defaultPrevented };
+  });
+  expect(immediate).toEqual({ top: 80, consumed: true });
 });

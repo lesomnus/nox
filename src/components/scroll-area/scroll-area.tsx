@@ -13,6 +13,7 @@ import {
   type PointerEvent,
 } from "react";
 import styles from "./scroll-area.module.css";
+import { WheelScroller } from "./wheel-scroller";
 const clamp = (value: number, min: number, max: number) =>
   Math.max(min, Math.min(max, value));
 export type ScrollAreaSlot =
@@ -37,6 +38,10 @@ export type ScrollAreaProps = Omit<
   scrollbarOffset?: number;
   /** Show an additional horizontal scrollbar when content overflows. */
   horizontalScrollbar?: boolean;
+  /** Native wheel animation, or JS-controlled scrolling from the first event. */
+  wheelBehavior?: "native" | "instant";
+  /** JS smoothing time constant in ms for instant mode; 0 disables it. Default 70. */
+  wheelSmoothing?: number;
   horizontalScrollbarLabel?: string;
   viewportRef?: RefObject<HTMLDivElement | null>;
   viewportClassName?: string;
@@ -45,14 +50,16 @@ export type ScrollAreaProps = Omit<
   onScroll?: UIEventHandler<HTMLDivElement>;
 };
 
-// Native scrolling keeps wheel, touch and focus navigation predictable; only
-// its visual handle is custom, sharing the conversation handle's appearance.
+// A native viewport preserves touch, focus and keyboard navigation. Callers can
+// opt out of browser wheel animation while retaining the event's own deltas.
 export function ScrollArea({
   children,
   viewportRef,
   scrollbarLabel = "Scroll",
   scrollbarOffset,
   horizontalScrollbar = false,
+  wheelBehavior = "native",
+  wheelSmoothing = 70,
   horizontalScrollbarLabel = "Scroll horizontally",
   className = "",
   classNames = {},
@@ -90,6 +97,7 @@ export function ScrollArea({
   } | null>(null);
   const motion = useRef({ top: 0, time: 0, strength: 0 });
   const motionRaf = useRef(0);
+  const wheelScroller = useRef<WheelScroller | null>(null);
   const [near, setNear] = useState(false);
   const [dragging, setDragging] = useState(false);
   const [view, setView] = useState({ top: 0, max: 0, height: 0, thumb: 0 });
@@ -132,7 +140,9 @@ export function ScrollArea({
     const maxRatio =
       parseFloat(style.getPropertyValue("--ui-scroll-area-thumb-max-ratio")) ||
       1;
-    const top = clamp(el.scrollTop, 0, max);
+    const rawTop = clamp(el.scrollTop, 0, max);
+    // Native scroll offsets can be fractional while client/scrollHeight round.
+    const top = max - rawTop < 1 ? max : rawTop;
     const thumb = Math.min(
       height,
       // Keep both drawing and drag travel based on the same capped size.
@@ -244,10 +254,108 @@ export function ScrollArea({
   }, [horizontalScrollbar]);
   useEffect(() => {
     const tracks = [rail.current, horizontalRail.current];
+    const el = pane.current!;
+    const remainder = { x: 0, y: 0, left: el.scrollLeft, top: el.scrollTop };
+    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const smoothing = Number.isFinite(wheelSmoothing)
+      ? Math.max(0, wheelSmoothing)
+      : 70;
+    const animator =
+      wheelBehavior === "instant"
+        ? new WheelScroller(el, () => (reducedMotion.matches ? 0 : smoothing))
+        : null;
+    wheelScroller.current = animator;
+    const interrupt = () => animator?.cancel();
+    function nestedScrolls(event: WheelEvent, dx: number, dy: number) {
+      for (const target of event.composedPath()) {
+        if (target === el) break;
+        if (!(target instanceof HTMLElement)) continue;
+        const style = getComputedStyle(target);
+        const canScroll = (
+          delta: number,
+          position: number,
+          max: number,
+          overflow: string,
+        ) =>
+          delta &&
+          /^(auto|scroll)$/.test(overflow) &&
+          (delta > 0 ? position < max - 1 : position > 1);
+        if (
+          canScroll(
+            dx,
+            target.scrollLeft,
+            target.scrollWidth - target.clientWidth,
+            style.overflowX,
+          ) ||
+          canScroll(
+            dy,
+            target.scrollTop,
+            target.scrollHeight - target.clientHeight,
+            style.overflowY,
+          )
+        )
+          return true;
+      }
+      return false;
+    }
+    function boundaryWheel(event: WheelEvent) {
+      if (event.ctrlKey || event.defaultPrevented) return;
+      const dx = event.shiftKey && !event.deltaX ? event.deltaY : event.deltaX;
+      const dy = event.shiftKey && !event.deltaX ? 0 : event.deltaY;
+      if (!dx && !dy) return;
+      const computed = getComputedStyle(el);
+      const blocked = (
+        delta: number,
+        position: number,
+        max: number,
+        policy: string,
+      ) =>
+        !delta ||
+        ((policy === "contain" || policy === "none") &&
+          (delta > 0 ? position >= max - 1 : position <= 1));
+      if (
+        !blocked(
+          dx,
+          el.scrollLeft,
+          el.scrollWidth - el.clientWidth,
+          computed.overscrollBehaviorX,
+        ) ||
+        !blocked(
+          dy,
+          el.scrollTop,
+          el.scrollHeight - el.clientHeight,
+          computed.overscrollBehaviorY,
+        ) ||
+        nestedScrolls(event, dx, dy)
+      )
+        return;
+      // Free-spinning wheels can keep sending input after native smooth
+      // scrolling has reached the edge. End that animation at the true native
+      // limit rather than starting another clamped scroll animation.
+      event.preventDefault();
+      el.scrollTo({
+        left: dx ? (dx > 0 ? el.scrollWidth : 0) : el.scrollLeft,
+        top: dy ? (dy > 0 ? el.scrollHeight : 0) : el.scrollTop,
+        behavior: "instant",
+      });
+    }
     function wheel(event: WheelEvent) {
       const el = pane.current;
-      if (!el || event.ctrlKey || event.defaultPrevented) return;
-      const line = parseFloat(getComputedStyle(el).lineHeight) || 16;
+      if (!el || event.defaultPrevented) return;
+      if (event.ctrlKey) {
+        interrupt();
+        return;
+      }
+      const fromViewport = event.currentTarget === el;
+      // An existing native gesture can enter from another target after the
+      // browser has stopped offering cancelable events. Do not scroll twice.
+      if (fromViewport && !event.cancelable) {
+        interrupt();
+        boundaryWheel(event);
+        return;
+      }
+      const computed = getComputedStyle(el);
+      const line = parseFloat(computed.lineHeight) || 16;
       const dx =
         event.deltaX *
         (event.deltaMode === 1
@@ -264,20 +372,86 @@ export function ScrollArea({
             : 1);
       const left = el.scrollLeft;
       const top = el.scrollTop;
+      const horizontalDelta = event.shiftKey && !dx ? dy : dx;
+      const verticalDelta = event.shiftKey && !dx ? 0 : dy;
+      if (
+        fromViewport &&
+        nestedScrolls(event, horizontalDelta, verticalDelta)
+      ) {
+        interrupt();
+        return;
+      }
+      const contains = (policy: string) =>
+        policy === "contain" || policy === "none";
+      const movable = (delta: number, position: number, max: number) =>
+        delta > 0 ? position < max - 1 : delta < 0 && position > 1;
+      if (animator) {
+        const moved = animator.scrollBy(horizontalDelta, verticalDelta);
+        if (
+          moved ||
+          movable(horizontalDelta, left, el.scrollWidth - el.clientWidth) ||
+          movable(verticalDelta, top, el.scrollHeight - el.clientHeight) ||
+          (horizontalDelta && contains(computed.overscrollBehaviorX)) ||
+          (verticalDelta && contains(computed.overscrollBehaviorY))
+        )
+          event.preventDefault();
+        return;
+      }
+      if (left !== remainder.left || top !== remainder.top)
+        remainder.x = remainder.y = 0;
+      const maxLeft = Math.max(0, el.scrollWidth - el.clientWidth);
+      const maxTop = Math.max(0, el.scrollHeight - el.clientHeight);
+      const targetLeft =
+        left + (horizontalDelta ? horizontalDelta + remainder.x : 0);
+      const targetTop = top + (verticalDelta ? verticalDelta + remainder.y : 0);
       el.scrollBy({
-        left: event.shiftKey && !dx ? dy : dx,
-        top: event.shiftKey && !dx ? 0 : dy,
+        left: targetLeft - left,
+        top: targetTop - top,
         behavior: "instant",
       });
-      if (left !== el.scrollLeft || top !== el.scrollTop)
+      // Native offsets can round each move to device pixels. Carry the missed
+      // fraction into the next input without retaining pressure past an edge.
+      if (horizontalDelta)
+        remainder.x =
+          targetLeft < 0 || targetLeft > maxLeft
+            ? 0
+            : targetLeft - el.scrollLeft;
+      if (verticalDelta)
+        remainder.y =
+          targetTop < 0 || targetTop > maxTop ? 0 : targetTop - el.scrollTop;
+      remainder.left = el.scrollLeft;
+      remainder.top = el.scrollTop;
+      // Rails are siblings of the native viewport, so its overscroll policy
+      // cannot stop their wheel events from reaching a scrollable ancestor.
+      if (
+        left !== el.scrollLeft ||
+        top !== el.scrollTop ||
+        movable(horizontalDelta, left, maxLeft) ||
+        movable(verticalDelta, top, maxTop) ||
+        (horizontalDelta && contains(computed.overscrollBehaviorX)) ||
+        (verticalDelta && contains(computed.overscrollBehaviorY))
+      )
         event.preventDefault();
     }
     for (const track of tracks)
       track?.addEventListener("wheel", wheel, { passive: false });
+    const viewportWheel = wheelBehavior === "instant" ? wheel : boundaryWheel;
+    el.addEventListener("wheel", viewportWheel, { passive: false });
+    el.addEventListener("pointerdown", interrupt, { passive: true });
+    el.addEventListener("keydown", interrupt);
+    el.addEventListener("focusin", interrupt);
+    window.addEventListener("blur", interrupt);
     return () => {
+      animator?.cancel();
+      if (wheelScroller.current === animator) wheelScroller.current = null;
+      el.removeEventListener("wheel", viewportWheel);
+      el.removeEventListener("pointerdown", interrupt);
+      el.removeEventListener("keydown", interrupt);
+      el.removeEventListener("focusin", interrupt);
+      window.removeEventListener("blur", interrupt);
       for (const track of tracks) track?.removeEventListener("wheel", wheel);
     };
-  }, [horizontalOverflow]);
+  }, [horizontalOverflow, wheelBehavior, wheelSmoothing]);
 
   const travel = Math.max(0, view.height - view.thumb);
   const horizontalTravel = Math.max(
@@ -291,6 +465,7 @@ export function ScrollArea({
     if (!el || event.button !== 0 || !range.max || !distance) return;
     const track = event.currentTarget;
     const thumb = track.querySelector<HTMLDivElement>('[role="scrollbar"]')!;
+    wheelScroller.current?.cancel();
     event.preventDefault();
     thumb.focus({ preventScroll: true });
     if (!thumb.contains(event.target as Node)) {
@@ -440,6 +615,7 @@ export function ScrollArea({
               };
               const next = positions[event.key];
               if (next === undefined) return;
+              wheelScroller.current?.cancel();
               event.preventDefault();
               el.scrollTop = next;
             }}
@@ -486,6 +662,7 @@ export function ScrollArea({
               };
               const next = positions[event.key];
               if (next === undefined) return;
+              wheelScroller.current?.cancel();
               event.preventDefault();
               el.scrollLeft = next;
             }}

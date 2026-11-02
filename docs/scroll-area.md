@@ -50,6 +50,23 @@ handle unless its content overflows.
 
 ## Composition and control
 
+`wheelBehavior` defaults to `"native"`. Use `"instant"` to own a wheel sequence
+from its first cancelable event and avoid browser-generated wheel animation.
+Each frame still writes the native scroll offset with `behavior: "instant"`.
+
+In this mode, `wheelSmoothing` controls JS easing with a time constant in
+milliseconds (default **70**). Set it to **0** for immediate movement. Successive
+inputs accumulate into one clamped target; an exponential approach cannot
+overshoot it or retain pressure beyond a boundary. Reversing direction drops
+the unfinished movement in the old direction. Fractional input is preserved.
+Reduced-motion preference disables easing. Dragging, keyboard/focus/pointer
+interaction, or an external scroll cancels pending motion.
+
+Shift continues to scroll horizontally. Ctrl+wheel stays native, and nested
+scrollers can consume their own input. An already non-cancelable incoming gesture
+uses the boundary guard instead of applying a second scroll. Keyboard, focus
+and touch navigation remain native in both modes.
+
 `viewportRef` exposes the native scroll element. `onScroll` receives that
 viewport's scroll events. `className`, `viewportClassName`, `contentClassName`
 and `classNames` customize slots without replacing scrolling behavior.
@@ -63,6 +80,15 @@ clamped to the scroll range. Keep holding to drag from there. Pressing the handl
 itself retains its grab position. Both axes focus their scrollbar for subsequent
 keyboard navigation; an area without overflow has no interactive rail.
 Wheel and trackpad events over either rail scroll the native viewport too.
+At the boundary, rail wheel events follow the viewport's `overscroll-behavior`
+for the requested axis: `contain` and `none` keep the parent from scrolling;
+`auto` allows native chaining. Set the policy on `viewportClassName` or through
+`viewportRef`. `none` also suppresses the viewport's native overscroll affordance.
+Contained viewports also consume continuing wheel input once all requested axes
+are at an edge, snapping the native position to that limit to end a lingering
+smooth-scroll animation. Ordinary scrolling, Ctrl+wheel, and nested scrollers
+that can still consume the input retain their native behavior. The final pixel
+of fractional native offsets counts as the edge for fades and boundary handling.
 
 Override `--ui-scroll-area-background` to match the containing surface and fades.
 Backdrop blur applies only inside the thin translucent rail line through
