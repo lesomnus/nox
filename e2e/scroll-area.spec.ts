@@ -58,10 +58,14 @@ for (const offset of [-16, 12]) {
         .poll(async () => Math.abs((await position()) - expected))
         .toBeLessThan(1);
       await expect(thumb).toBeFocused();
-      const moved = (await handle.boundingBox())!;
-      expect(
-        horizontal ? moved.x + moved.width / 2 : moved.y + moved.height / 2,
-      ).toBeCloseTo(horizontal ? x : y, 0);
+      await expect
+        .poll(async () => {
+          const moved = (await handle.boundingBox())!;
+          return horizontal
+            ? moved.x + moved.width / 2
+            : moved.y + moved.height / 2;
+        })
+        .toBeCloseTo(horizontal ? x : y, 0);
       await page.mouse.move(
         horizontal ? box.x + box.width + 30 : x,
         horizontal ? y : box.y + box.height + 30,
@@ -448,6 +452,28 @@ for (const policy of ["auto", "contain", "none"]) {
         exact: true,
       });
       await thumb.press("End");
+      const nativeBoundary = await viewport.evaluate((node, horizontal) => {
+        const wheel = new WheelEvent("wheel", {
+          deltaX: horizontal ? 0.25 : 0,
+          deltaY: horizontal ? 0 : 0.25,
+          bubbles: true,
+          cancelable: true,
+        });
+        node.firstElementChild!.dispatchEvent(wheel);
+        const zoom = new WheelEvent("wheel", {
+          deltaY: 1,
+          ctrlKey: true,
+          bubbles: true,
+          cancelable: true,
+        });
+        node.dispatchEvent(zoom);
+        return {
+          prevented: wheel.defaultPrevented,
+          zoomPrevented: zoom.defaultPrevented,
+        };
+      }, horizontal);
+      expect(nativeBoundary.prevented).toBe(policy !== "auto");
+      expect(nativeBoundary.zoomPrevented).toBe(false);
       const track = area.locator(
         `[data-scroll-area="${horizontal ? "horizontal-rail" : "rail"}"]`,
       );
@@ -479,3 +505,67 @@ for (const policy of ["auto", "contain", "none"]) {
     });
   }
 }
+
+test("contained viewport leaves a nested native scroller usable at the outer boundary", async ({
+  page,
+}) => {
+  await page.goto(
+    "/iframe.html?id=layout-scrollarea--long-list&viewMode=story",
+  );
+  const viewport = page.locator('[data-scroll-area="viewport"]');
+  await expect(viewport).toBeVisible();
+  await viewport.evaluate((node) => {
+    node.style.overscrollBehavior = "none";
+    const nested = document.createElement("div");
+    nested.dataset.nestedScroll = "true";
+    Object.assign(nested.style, { height: "100px", overflow: "auto" });
+    const body = document.createElement("div");
+    Object.assign(body.style, { height: "600px" });
+    body.textContent = "Nested scrolling";
+    nested.append(body);
+    node.firstElementChild!.append(nested);
+    node.scrollTop = node.scrollHeight;
+  });
+  const nested = viewport.locator('[data-nested-scroll="true"]');
+  await nested.hover();
+  await page.mouse.wheel(0, 80);
+  await expect
+    .poll(() => nested.evaluate((node) => node.scrollTop))
+    .toBeGreaterThan(0);
+  const result = await nested.evaluate((node) => {
+    const wheel = () =>
+      new WheelEvent("wheel", {
+        deltaY: 0.25,
+        bubbles: true,
+        cancelable: true,
+      });
+    const moving = wheel();
+    node.firstElementChild!.dispatchEvent(moving);
+    node.scrollTop = node.scrollHeight;
+    const boundary = wheel();
+    node.firstElementChild!.dispatchEvent(boundary);
+    return {
+      moving: moving.defaultPrevented,
+      boundary: boundary.defaultPrevented,
+    };
+  });
+  expect(result).toEqual({ moving: false, boundary: true });
+});
+
+test("fractional native bottom offsets hide the final fade", async ({
+  page,
+}) => {
+  await page.goto(
+    "/iframe.html?id=layout-scrollarea--long-list&viewMode=story",
+  );
+  const viewport = page.locator('[data-scroll-area="viewport"]');
+  await expect(viewport).toBeVisible();
+  await viewport.evaluate((node) => {
+    document.body.style.zoom = "0.9";
+    node.scrollTop = node.scrollHeight;
+  });
+  await expect(page.locator('[data-scroll-area="bottom-fade"]')).toHaveCSS(
+    "opacity",
+    "0",
+  );
+});

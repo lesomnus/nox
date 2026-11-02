@@ -132,7 +132,9 @@ export function ScrollArea({
     const maxRatio =
       parseFloat(style.getPropertyValue("--ui-scroll-area-thumb-max-ratio")) ||
       1;
-    const top = clamp(el.scrollTop, 0, max);
+    const rawTop = clamp(el.scrollTop, 0, max);
+    // Native scroll offsets can be fractional while client/scrollHeight round.
+    const top = max - rawTop < 1 ? max : rawTop;
     const thumb = Math.min(
       height,
       // Keep both drawing and drag travel based on the same capped size.
@@ -244,6 +246,79 @@ export function ScrollArea({
   }, [horizontalScrollbar]);
   useEffect(() => {
     const tracks = [rail.current, horizontalRail.current];
+    const el = pane.current!;
+    function boundaryWheel(event: WheelEvent) {
+      if (event.ctrlKey || event.defaultPrevented) return;
+      const dx = event.shiftKey && !event.deltaX ? event.deltaY : event.deltaX;
+      const dy = event.shiftKey && !event.deltaX ? 0 : event.deltaY;
+      if (!dx && !dy) return;
+      const computed = getComputedStyle(el);
+      const blocked = (
+        delta: number,
+        position: number,
+        max: number,
+        policy: string,
+      ) =>
+        !delta ||
+        ((policy === "contain" || policy === "none") &&
+          (delta > 0 ? position >= max - 1 : position <= 1));
+      if (
+        !blocked(
+          dx,
+          el.scrollLeft,
+          el.scrollWidth - el.clientWidth,
+          computed.overscrollBehaviorX,
+        ) ||
+        !blocked(
+          dy,
+          el.scrollTop,
+          el.scrollHeight - el.clientHeight,
+          computed.overscrollBehaviorY,
+        )
+      )
+        return;
+      // A containing viewport must still let a nested native scroller consume
+      // the input. Check only at our own boundary, leaving ordinary wheel
+      // scrolling to the browser.
+      for (const target of event.composedPath()) {
+        if (target === el) break;
+        if (!(target instanceof HTMLElement)) continue;
+        const style = getComputedStyle(target);
+        const canScroll = (
+          delta: number,
+          position: number,
+          max: number,
+          overflow: string,
+        ) =>
+          delta &&
+          /^(auto|scroll)$/.test(overflow) &&
+          (delta > 0 ? position < max - 1 : position > 1);
+        if (
+          canScroll(
+            dx,
+            target.scrollLeft,
+            target.scrollWidth - target.clientWidth,
+            style.overflowX,
+          ) ||
+          canScroll(
+            dy,
+            target.scrollTop,
+            target.scrollHeight - target.clientHeight,
+            style.overflowY,
+          )
+        )
+          return;
+      }
+      // Free-spinning wheels can keep sending input after native smooth
+      // scrolling has reached the edge. End that animation at the true native
+      // limit rather than starting another clamped scroll animation.
+      event.preventDefault();
+      el.scrollTo({
+        left: dx ? (dx > 0 ? el.scrollWidth : 0) : el.scrollLeft,
+        top: dy ? (dy > 0 ? el.scrollHeight : 0) : el.scrollTop,
+        behavior: "instant",
+      });
+    }
     function wheel(event: WheelEvent) {
       const el = pane.current;
       if (!el || event.ctrlKey || event.defaultPrevented) return;
@@ -286,7 +361,9 @@ export function ScrollArea({
     }
     for (const track of tracks)
       track?.addEventListener("wheel", wheel, { passive: false });
+    el.addEventListener("wheel", boundaryWheel, { passive: false });
     return () => {
+      el.removeEventListener("wheel", boundaryWheel);
       for (const track of tracks) track?.removeEventListener("wheel", wheel);
     };
   }, [horizontalOverflow]);

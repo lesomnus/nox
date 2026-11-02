@@ -67,6 +67,11 @@ At the boundary, rail wheel events follow the viewport's `overscroll-behavior`
 for the requested axis: `contain` and `none` keep the parent from scrolling;
 `auto` allows native chaining. Set the policy on `viewportClassName` or through
 `viewportRef`. `none` also suppresses the viewport's native overscroll affordance.
+Contained viewports also consume continuing wheel input once all requested axes
+are at an edge, snapping the native position to that limit to end a lingering
+smooth-scroll animation. Ordinary scrolling, Ctrl+wheel, and nested scrollers
+that can still consume the input retain their native behavior. The final pixel
+of fractional native offsets counts as the edge for fades and boundary handling.
 
 Override `--ui-scroll-area-background` to match the containing surface and fades.
 Backdrop blur applies only inside the thin translucent rail line through
