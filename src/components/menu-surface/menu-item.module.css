@@ -11,6 +11,10 @@
   justify-content: flex-start;
   gap: var(--ui-space);
 }
+.item.item:focus-visible {
+  /* Keep the ring inside the row instead of clipping it at the scroll edges. */
+  outline-offset: -2px;
+}
 .item:not(:disabled):hover {
   color: var(--ui-shade-255);
 }

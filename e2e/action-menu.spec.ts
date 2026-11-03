@@ -56,6 +56,11 @@ test("row groups scroll with the menu body and skip disabled actions with horizo
   await expect(actions.nth(2)).toBeFocused();
   await actions.nth(2).press("ArrowLeft");
   await expect(actions.nth(0)).toBeFocused();
+  const outlineExtent = await actions.nth(0).evaluate((node) => {
+    const style = getComputedStyle(node);
+    return parseFloat(style.outlineWidth) + parseFloat(style.outlineOffset);
+  });
+  expect(outlineExtent).toBeLessThanOrEqual(0);
   const footer = page.locator('[data-menu-fixed="footer"]');
   const viewport = menu.locator('[data-scroll-area="viewport"]');
   const before = await footer.boundingBox();
