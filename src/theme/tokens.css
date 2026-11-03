@@ -223,6 +223,9 @@
   --ui-border-trail-sheen-strength: 0.65;
   --ui-border-trail-sheen-color: #fff;
   --ui-menu-selected-background: var(--ui-shade-32);
+  --ui-action-menu-width: 198px;
+  --ui-menu-item-line-height: 20px;
+  --ui-menu-shortcut-character-width: 8px;
   --ui-menu-item-padding-block: 6px;
   --ui-menu-item-padding-inline: 10px;
   --ui-menu-scroll-max-height: 240px;

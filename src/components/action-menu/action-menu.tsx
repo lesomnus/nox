@@ -16,6 +16,7 @@ import { MenuSurface } from "../menu-surface/menu-surface";
 import {
   MenuFrame,
   menuFixedHeight,
+  menuColumnMultiple,
   hasMenuRegion,
 } from "../menu-surface/menu-frame";
 import { MenuScrollArea } from "../menu-surface/menu-scroll-area";
@@ -159,6 +160,23 @@ export function ActionMenu({
       const outside = Math.max(0, offset ?? 0);
       const rightInset = inset + outside;
       const style = getComputedStyle(popup);
+      const horizontalChrome =
+        parseFloat(style.paddingLeft) +
+        parseFloat(style.paddingRight) +
+        parseFloat(style.borderLeftWidth) +
+        parseFloat(style.borderRightWidth);
+      // Resolve the CSS width afresh so a constrained menu grows back on resize.
+      popup.style.width = "";
+      const columns = menuColumnMultiple(popup);
+      const preferredWidth =
+        Math.ceil(
+          (popup.getBoundingClientRect().width - horizontalChrome) / columns,
+        ) * columns;
+      const availableWidth =
+        Math.floor(
+          (window.innerWidth - inset - rightInset - horizontalChrome) / columns,
+        ) * columns;
+      popup.style.width = `${Math.max(0, Math.min(preferredWidth, availableWidth)) + horizontalChrome}px`;
       const chrome =
         parseFloat(style.paddingTop) +
         parseFloat(style.paddingBottom) +
@@ -173,10 +191,10 @@ export function ActionMenu({
         chrome +
         fixed;
       const constrainHeight = (available: number) => {
-        popup.style.maxHeight = `${Math.max(0, available)}px`;
+        popup.style.maxHeight = `${Math.floor(Math.max(0, available))}px`;
         popup.style.setProperty(
           "--menu-scroll-max-height",
-          `${Math.max(0, available - chrome - fixed)}px`,
+          `${Math.floor(Math.max(0, available - chrome - fixed))}px`,
         );
       };
       popup.style.bottom = "auto";
@@ -489,7 +507,19 @@ export function ActionMenu({
                                 ? [item.shortcut]
                                 : item.shortcut
                               ).map((key, index) => (
-                                <kbd key={index}>{key}</kbd>
+                                <kbd
+                                  key={index}
+                                  style={
+                                    {
+                                      "--shortcut-characters": Math.max(
+                                        1,
+                                        key.length,
+                                      ),
+                                    } as CSSProperties
+                                  }
+                                >
+                                  {key}
+                                </kbd>
                               ))}
                             </span>
                           )
@@ -503,7 +533,7 @@ export function ActionMenu({
                           );
                         }}
                       >
-                        <span>{item.label}</span>
+                        <span className={styles.label}>{item.label}</span>
                       </MenuItem>
                     ))}
                   </div>

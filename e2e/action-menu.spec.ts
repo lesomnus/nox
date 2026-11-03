@@ -50,6 +50,8 @@ test("row groups scroll with the menu body and skip disabled actions with horizo
   for (const box of boxes) {
     expect(box.y).toBe(boxes[0].y);
     expect(box.width).toBeCloseTo(boxes[0].width, 1);
+    expect(Number.isInteger(box.width)).toBe(true);
+    expect(Number.isInteger(box.height)).toBe(true);
   }
   await expect(actions.nth(0)).toBeFocused();
   await actions.nth(0).press("ArrowRight");

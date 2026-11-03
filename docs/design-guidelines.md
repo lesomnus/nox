@@ -58,6 +58,17 @@ For uniformly inset rounded controls, prefer an outer corner radius equal to
 the inner radius plus padding and border thickness. Keep actual measurements
 in the CSS tokens rather than duplicating them as independent constants.
 
+## Integer menu geometry
+
+Use whole CSS pixels for resting menu and control dimensions. Keep text in
+stable label slots with explicit pixel line heights; glyph advances should not
+size buttons or shortcut keycaps. ActionMenu uses a 198px default surface: its
+192px interior divides into three 64px actions. Fit narrower viewports by
+rounding the interior to a multiple of every action-row column count, and round
+viewport height limits down. Keep shortcut keycaps 20px tall so rows retain
+their 32px height. ScrollArea rounds its drawn rail and thumb sizes while
+retaining native fractional scroll offsets and shared drawing/drag metrics.
+
 ## Fixed-width numeric displays
 
 Use shared numeric components rather than formatting metrics independently.

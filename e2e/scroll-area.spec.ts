@@ -23,6 +23,8 @@ for (const offset of [-16, 12]) {
       const grab = (await thumb.boundingBox())!;
       const length = horizontal ? box.width : box.height;
       const thumbLength = horizontal ? grab.width : grab.height;
+      expect(Number.isInteger(length)).toBe(true);
+      expect(Number.isInteger(thumbLength)).toBe(true);
       const x = box.x + box.width * (horizontal ? 0.65 : 0.5);
       const y = box.y + box.height * (horizontal ? 0.5 : 0.65);
       await page.mouse.move(0, 0);
