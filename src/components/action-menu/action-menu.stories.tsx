@@ -27,6 +27,17 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 export const More: Story = {};
+export const Controlled: Story = {
+  render: function Controlled(args) {
+    const [open, setOpen] = useState(false);
+    return (
+      <>
+        <Button onClick={() => setOpen(true)}>Open menu</Button>
+        <ActionMenu {...args} open={open} onOpenChange={setOpen} />
+      </>
+    );
+  },
+};
 export const RowActions: Story = {
   render: function RowActions() {
     const [last, setLast] = useState("None");

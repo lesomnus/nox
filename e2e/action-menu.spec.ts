@@ -1,5 +1,31 @@
 import { expect, test } from "@playwright/test";
 
+test("controlled visibility follows external state and reports dismissal requests", async ({
+  page,
+}) => {
+  await page.goto(
+    "/iframe.html?id=components-actionmenu--controlled&viewMode=story",
+  );
+  const trigger = page.getByRole("button", { name: "More", exact: true });
+  const menu = page.getByRole("menu", { name: "More", exact: true });
+  await expect(trigger).toHaveAttribute("aria-expanded", "false");
+  await page.getByRole("button", { name: "Open menu", exact: true }).click();
+  await expect(menu).toBeVisible();
+  await trigger.click();
+  await expect(menu).toHaveCount(0);
+  await trigger.click();
+  await expect(menu).toBeVisible();
+  await menu.getByRole("menuitem", { name: "Details", exact: true }).click();
+  await expect(menu).toHaveCount(0);
+  await trigger.click();
+  await page.keyboard.press("Escape");
+  await expect(menu).toHaveCount(0);
+  await expect(trigger).toBeFocused();
+  await trigger.click();
+  await page.mouse.click(0, 0);
+  await expect(menu).toHaveCount(0);
+});
+
 test("row groups scroll with the menu body and skip disabled actions with horizontal keys", async ({
   page,
 }) => {

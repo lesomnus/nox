@@ -2,6 +2,7 @@ import styles from "./action-menu.module.css";
 import dialogStyles from "../dialog-surface/dialog-surface.module.css";
 import {
   Fragment,
+  useCallback,
   useEffect,
   useId,
   useLayoutEffect,
@@ -77,6 +78,8 @@ export function ActionMenu({
   triggerClassName = "",
   scrollbarOffset,
   awaitAction = false,
+  open: controlledOpen,
+  onOpenChange,
 }: {
   label: string;
   /** Always visible above/below the scrolling action list. */
@@ -101,6 +104,10 @@ export function ActionMenu({
   scrollbarOffset?: number;
   /** Keep the menu open while run settles; rejection stays beside the clicked item. */
   awaitAction?: boolean;
+  /** Controlled visibility; omit to let the trigger and dismissal manage it. */
+  open?: boolean;
+  /** Reports trigger, selection and dismissal requests, including in controlled mode. */
+  onOpenChange?: (open: boolean) => void;
 }) {
   const offset = Number.isFinite(scrollbarOffset) ? scrollbarOffset : undefined;
   const actionGroups: ActionMenuGroup[] = groups ?? [{ label: "", items }];
@@ -115,7 +122,15 @@ export function ActionMenu({
       : typeof motion === "string"
         ? motion
         : undefined;
-  const [open, setOpen] = useState(false);
+  const [localOpen, setLocalOpen] = useState(false);
+  const open = controlledOpen ?? localOpen;
+  const setOpen = useCallback(
+    (value: boolean) => {
+      if (controlledOpen === undefined) setLocalOpen(value);
+      onOpenChange?.(value);
+    },
+    [controlledOpen, onOpenChange],
+  );
   const trigger = useRef<HTMLDivElement>(null);
   const menu = useRef<HTMLDivElement>(null);
   const viewport = useRef<HTMLDivElement>(null);
@@ -263,7 +278,7 @@ export function ActionMenu({
       document.removeEventListener("pointerdown", outside);
       window.removeEventListener("resize", resize);
     };
-  }, [open]);
+  }, [open, setOpen]);
   return (
     <div className={`${styles.action_menu} action-menu`} ref={trigger}>
       <Button
