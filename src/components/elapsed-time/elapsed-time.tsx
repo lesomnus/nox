@@ -19,6 +19,9 @@ export function ElapsedTime({
   direction,
   duration,
   characterDelay,
+  animateInitial,
+  shouldAnimate,
+  maxSlideSteps,
   maxFlipSteps,
   flipEasing,
   flipCharacters,
@@ -61,6 +64,9 @@ export function ElapsedTime({
         direction={direction}
         duration={duration}
         characterDelay={characterDelay}
+        animateInitial={animateInitial}
+        shouldAnimate={shouldAnimate}
+        maxSlideSteps={maxSlideSteps}
         maxFlipSteps={maxFlipSteps}
         flipEasing={flipEasing}
         flipCharacters={flipCharacters}

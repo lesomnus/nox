@@ -1,5 +1,77 @@
 import { expect, test } from "@playwright/test";
 
+test("loading digits slide through zero and bounded samples within one duration", async ({
+  page,
+}) => {
+  await page.goto(
+    "/iframe.html?id=components-compactnumber--loading-slide&viewMode=story",
+  );
+  const number = page.locator('[data-mode="compact"]');
+  await expect(number).toHaveText("----·");
+  const width = (await number.boundingBox())!.width;
+  await page.clock.install();
+  const now = await page.evaluate(() => Date.now());
+  await page.clock.pauseAt(new Date(now + 50));
+  await page
+    .getByRole("button", { name: "Load value", exact: true })
+    .evaluate((node: HTMLButtonElement) => node.click());
+  await expect(number).toHaveAttribute("aria-label", "9999999");
+  const digit = number.locator('[data-slide-steps="4"]').first();
+  await expect(digit.locator('[data-slide-step="1"]').first()).toHaveText("-");
+  await expect(digit.locator('[data-slide-step="1"]').last()).toHaveText("0");
+  await page.clock.runFor(151);
+  await expect(digit.locator('[data-slide-step="2"]').last()).toHaveText("3");
+  await page.clock.runFor(150);
+  await expect(digit.locator('[data-slide-step="3"]').last()).toHaveText("6");
+  await page.clock.runFor(150);
+  await expect(digit.locator('[data-slide-step="4"]').last()).toHaveText("9");
+  await page.clock.runFor(310);
+  await expect(number.locator("[data-changing]")).toHaveCount(0);
+  await expect(number).toHaveText("9.99M");
+  expect((await number.boundingBox())!.width).toBeCloseTo(width, 2);
+});
+
+test("new values cancel intermediate slides and reduced motion skips them", async ({
+  page,
+}) => {
+  await page.goto(
+    "/iframe.html?id=components-compactnumber--loading-slide&viewMode=story",
+  );
+  const number = page.locator('[data-mode="compact"]');
+  await expect(number).toHaveText("----·");
+  await page.clock.install();
+  const now = await page.evaluate(() => Date.now());
+  await page.clock.pauseAt(new Date(now + 50));
+  const click = (name: string) =>
+    page
+      .getByRole("button", { name, exact: true })
+      .evaluate((node: HTMLButtonElement) => node.click());
+  await click("Load value");
+  await page.clock.runFor(151);
+  await click("Update value");
+  await page.clock.runFor(800);
+  await expect(number).toHaveText("6.54M");
+  await expect(number.locator("[data-changing]")).toHaveCount(0);
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await click("Clear value");
+  await expect(number).toHaveText("----·");
+  await click("Load value");
+  await expect(number).toHaveText("9.99M");
+  await expect(number.locator("[data-changing]")).toHaveCount(0);
+});
+
+for (const [story, text] of [
+  ["readable-millions", "6.54M"],
+  ["readable-thousands", "12.3K"],
+]) {
+  test(`${story} prefers readable units`, async ({ page }) => {
+    await page.goto(
+      `/iframe.html?id=components-compactnumber--${story}&viewMode=story`,
+    );
+    await expect(page.locator('[data-mode="compact"]')).toHaveText(text);
+  });
+}
+
 test("base-unit labels replace only the unscaled unit cell", async ({
   page,
 }) => {

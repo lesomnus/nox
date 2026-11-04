@@ -4,6 +4,7 @@ import {
   flipPath,
   flipStepTimings,
   textDirection,
+  slidePath,
 } from "./text-motion";
 
 describe("formatted value motion", () => {
@@ -168,5 +169,26 @@ describe("bounded character flips", () => {
     expect(flipPath("a", "Z", "down", 8)).toEqual(["Z"]);
     expect(flipPath("A", "D", "down", 8, "")).toEqual(["D"]);
     expect(flipPath("A", "A", "down", 8)).toEqual([]);
+  });
+});
+
+describe("bounded digit slides", () => {
+  it("reveals an unknown digit through zero and samples a bounded path", () => {
+    expect(slidePath("-", "9", "down", 4)).toEqual(["0", "3", "6", "9"]);
+    expect(slidePath(" ", "3", "down", 4)).toEqual(["0", "1", "2", "3"]);
+    expect(slidePath("-", "0", "down", 4)).toEqual(["0"]);
+  });
+  it("follows direction and rollover without extra turns", () => {
+    expect(slidePath("0", "9", "down", 3)).toEqual(["3", "6", "9"]);
+    expect(slidePath("9", "0", "up", 3)).toEqual(["6", "3", "0"]);
+    expect(slidePath("9", "1", "down", 4)).toEqual(["0", "1"]);
+    expect(slidePath("0", "8", "up", 4)).toEqual(["9", "8"]);
+  });
+  it("keeps text direct and normalizes step limits", () => {
+    expect(slidePath("A", "Z", "down", 4)).toEqual(["Z"]);
+    expect(slidePath("0", "9", "down")).toEqual(["9"]);
+    expect(slidePath("7", "7", "down", 4)).toEqual([]);
+    for (const limit of [0, -1, NaN, Infinity, 1.9])
+      expect(slidePath("-", "9", "down", limit)).toEqual(["9"]);
   });
 });

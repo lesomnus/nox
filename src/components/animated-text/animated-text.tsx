@@ -15,6 +15,7 @@ import {
   flipStepTimings,
   isFlipCharacter,
   textDirection,
+  slidePath,
   type TextMotionOptions,
   type TextFlipEasing,
 } from "./text-motion";
@@ -80,6 +81,7 @@ export function AnimatedText({
   characterDelay = 0,
   animateInitial = false,
   shouldAnimate,
+  maxSlideSteps = 1,
   maxFlipSteps = 1,
   flipEasing = "ease-in-out",
   flipCharacters,
@@ -163,7 +165,14 @@ export function AnimatedText({
                     flipCharacters,
                   ),
             )
-          : [],
+          : Array.from(text, (character, index) =>
+              slidePath(
+                from[index] ?? " ",
+                character,
+                physicalDirection,
+                maxSlideSteps,
+              ),
+            ),
       to: text,
       direction: physicalDirection,
       id,
@@ -182,6 +191,7 @@ export function AnimatedText({
     direction,
     milliseconds,
     reduced,
+    maxSlideSteps,
     maxFlipSteps,
     flipEasing,
     flipCharacters,
@@ -249,6 +259,11 @@ export function AnimatedText({
                   data-flip-steps={
                     animate && card ? active.paths[index].length : undefined
                   }
+                  data-slide-steps={
+                    animate && motion === "slide"
+                      ? active.paths[index].length
+                      : undefined
+                  }
                   style={
                     animate
                       ? ({
@@ -261,18 +276,12 @@ export function AnimatedText({
                   {animate && (
                     <Fragment key={active.id}>
                       {motion === "slide" ? (
-                        <>
-                          <span
-                            className={`${styles.layer} ${styles.outgoing}`}
-                          >
-                            {old}
-                          </span>
-                          <span
-                            className={`${styles.layer} ${styles.incoming}`}
-                          >
-                            {character}
-                          </span>
-                        </>
+                        <SlideFrames
+                          from={old!}
+                          path={active.paths[index]}
+                          duration={milliseconds}
+                          delay={active.delays[index]}
+                        />
                       ) : (
                         <FlipFrames
                           from={old!}
@@ -289,6 +298,51 @@ export function AnimatedText({
             })}
       </span>
     </span>
+  );
+}
+
+function SlideFrames({
+  from,
+  path,
+  duration,
+  delay,
+}: {
+  from: string;
+  path: string[];
+  duration: number;
+  delay: number;
+}) {
+  const [step, setStep] = useState(0);
+  const interval = duration / path.length;
+  useLayoutEffect(() => {
+    const timers = path
+      .slice(1)
+      .map((_, index) =>
+        setTimeout(() => setStep(index + 1), delay + (index + 1) * interval),
+      );
+    return () => timers.forEach(clearTimeout);
+  }, [path, delay, interval]);
+  const style = {
+    "--animated-text-duration": `${interval}ms`,
+    "--animated-text-delay": `${step === 0 ? delay : 0}ms`,
+  } as CSSProperties;
+  return (
+    <Fragment key={step}>
+      <span
+        className={`${styles.layer} ${styles.outgoing}`}
+        style={style}
+        data-slide-step={step + 1}
+      >
+        {step === 0 ? from : path[step - 1]}
+      </span>
+      <span
+        className={`${styles.layer} ${styles.incoming}`}
+        style={style}
+        data-slide-step={step + 1}
+      >
+        {path[step]}
+      </span>
+    </Fragment>
   );
 }
 

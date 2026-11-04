@@ -21,6 +21,9 @@ export function DateTime({
   direction,
   duration,
   characterDelay,
+  animateInitial,
+  shouldAnimate,
+  maxSlideSteps,
   maxFlipSteps,
   flipEasing,
   flipCharacters,
@@ -41,6 +44,9 @@ export function DateTime({
       direction={direction}
       duration={duration}
       characterDelay={characterDelay}
+      animateInitial={animateInitial}
+      shouldAnimate={shouldAnimate}
+      maxSlideSteps={maxSlideSteps}
       maxFlipSteps={maxFlipSteps}
       flipEasing={flipEasing}
       flipCharacters={flipCharacters}

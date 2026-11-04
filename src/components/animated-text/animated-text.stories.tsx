@@ -13,6 +13,7 @@ const meta = {
     motion: { control: "select", options: ["none", "slide", "flip"] },
     direction: { control: "select", options: ["auto", "up", "down"] },
     maxFlipSteps: { control: { type: "number", min: 1, max: 26, step: 1 } },
+    maxSlideSteps: { control: { type: "number", min: 1, max: 10, step: 1 } },
     flipEasing: { control: "select", options: ["ease-in-out", "linear"] },
     characterDelay: {
       type: "number",

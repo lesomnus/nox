@@ -9,6 +9,27 @@ replace the active transition rather than queuing old values, and the accessible
 name always contains the current value. Reduced-motion preferences disable the
 transitions.
 
+## Bounded digit slides
+
+Set `maxSlideSteps` to show intermediate digits with slide motion. It caps the
+number of slides per changed digit, including the final landing; the default
+1 keeps direct slides. Each sequence shares the same total `duration`, so a
+distant digit never takes longer. A missing digit (`-` or a blank) first reveals
+zero, then samples evenly spaced digits: with a cap of 4, `- → 9` visits
+`0, 3, 6, 9`. Existing digits follow the selected physical direction and wrap
+through `0–9`. Text, punctuation and units use one direct slide.
+
+```tsx
+<CompactNumber value={value} motion="slide" maxSlideSteps={4} duration={600} />
+```
+
+Keep the same component mounted with `value={NaN}` while a compact value is
+unknown. Its `----·` placeholder then slides into the first result. A new value
+cancels any old steps, reduced motion skips all intermediate frames, and
+character delays apply only before the first step. Offscreen values should
+commit immediately through `shouldAnimate`. Storybook **CompactNumber →
+LoadingSlide** demonstrates loading, updates and reset with a stable width.
+
 ## Text and one-way flaps
 
 Text uses the same component as numbers. For an airport-style board that never

@@ -65,12 +65,8 @@ export function formatCompactNumber(
     index = 0;
     while (index < units.length - 1 && value >= units[index + 1][0]) index++;
   }
-  let scaled = Number((value / units[index][0]).toPrecision(3));
-  if (scaled >= 1000 && index < units.length - 1) {
-    index++;
-    scaled = Number((value / units[index][0]).toPrecision(3));
-  }
-  if (value > 0 && scaled < 0.005)
+  const scaled = value / units[index][0];
+  if (value > 0 && scaled < 0.01)
     return { digits: "<001", leading: "", unit: units[index][1] };
   const decimals =
     index === 3 && Number.isInteger(value)
@@ -80,23 +76,14 @@ export function formatCompactNumber(
         : scaled < 100
           ? 1
           : 0;
-  let text = scaled.toFixed(decimals);
+  const factor = 10 ** decimals;
+  const shifted = scaled * factor;
+  // Keep the canonical magnitude and three readable significant digits. Do not
+  // demote M to K to retain precision or round into a unit the value hasn't reached.
+  const truncated = Math.floor(shifted + Number.EPSILON * shifted) / factor;
+  const text = truncated.toFixed(decimals);
   if (text.length > 4)
     return { digits: ">999", leading: "", unit: units[index][1] };
-  // A lower unit can retain four significant digits rather than three. Use it
-  // when it fits and actually reduces rounding loss; keep the normal unit on ties.
-  if (index > 0) {
-    const lower = Math.round(value / units[index - 1][0]);
-    if (
-      lower > 0 &&
-      lower <= 9999 &&
-      Math.abs(value - lower * units[index - 1][0]) <
-        Math.abs(value - Number(text) * units[index][0])
-    ) {
-      index--;
-      text = String(lower);
-    }
-  }
   return {
     leading: "0".repeat(4 - text.length),
     digits: text,
@@ -117,6 +104,7 @@ export function CompactNumber(props: CompactNumberProps) {
     direction,
     duration,
     characterDelay,
+    maxSlideSteps,
     maxFlipSteps,
     flipEasing,
     flipCharacters,
@@ -151,6 +139,7 @@ export function CompactNumber(props: CompactNumberProps) {
           direction={direction}
           duration={duration}
           characterDelay={characterDelay}
+          maxSlideSteps={maxSlideSteps}
           maxFlipSteps={maxFlipSteps}
           flipEasing={flipEasing}
           flipCharacters={flipCharacters}

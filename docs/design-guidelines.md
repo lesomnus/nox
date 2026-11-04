@@ -85,6 +85,11 @@ motion through AnimatedText's shared preference handling.
 ## Fixed-width numeric displays
 
 Use shared numeric components rather than formatting metrics independently.
+CompactNumber uses canonical SI magnitudes and up to three significant digits,
+truncating extra decimals: `6547000 → 6.54M`, `12345 → 12.3K`. Do not choose a
+smaller unit to retain extra precision. Unloaded compact values use `----·`.
+Animate changes to fetched data; locally determined calendar dates and their
+relative-age labels stay static.
 Keep significant digits at the normal foreground brightness, padding zeroes
 at `--ui-shade-65`, and units at the intermediate brightness used by
 `CompactNumber` (78% foreground mixed with the background). Use tabular

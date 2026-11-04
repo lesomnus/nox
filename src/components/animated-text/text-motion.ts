@@ -32,6 +32,8 @@ export type TextMotionOptions = {
   duration?: number;
   /** Stagger changed characters by this interval, or compute each start delay in ms. */
   characterDelay?: TextCharacterDelay;
+  /** Maximum slides per changed digit, including the final landing. Defaults to 1. */
+  maxSlideSteps?: number;
   /** Maximum flips per changed character within duration, including the final flip. */
   maxFlipSteps?: number;
   /** Sequence cadence: accelerate then decelerate (default), or keep every flip equal. */
@@ -113,6 +115,30 @@ const characterGroups = [
   "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
   "abcdefghijklmnopqrstuvwxyz",
 ];
+
+/** Digits share a bounded travel time; an unknown digit starts by revealing zero. */
+export function slidePath(
+  previous: string,
+  next: string,
+  direction: "up" | "down",
+  maxSteps = 1,
+): string[] {
+  if (previous === next) return [];
+  const limit = Number.isFinite(maxSteps)
+    ? Math.max(1, Math.floor(maxSteps))
+    : 1;
+  if (limit === 1 || !/^[0-9]$/.test(next)) return [next];
+  if (/^[0-9]$/.test(previous))
+    return flipPath(previous, next, direction, limit, "0123456789");
+  const target = Number(next);
+  const steps = Math.min(limit - 1, target);
+  return [
+    "0",
+    ...Array.from({ length: steps }, (_, index) =>
+      String(Math.ceil((target * (index + 1)) / steps)),
+    ),
+  ];
+}
 
 /** Sample a bounded path through a cyclic character sequence, always landing on next. */
 export function flipPath(
