@@ -10,7 +10,10 @@
   border-radius: 6px;
   min-height: 32px;
   border: 0;
-  background: var(--button-background, transparent);
+  background: var(
+    --nox-row-button-background,
+    var(--button-background, transparent)
+  );
   color: inherit;
   padding: 6px 10px;
   cursor: pointer;
@@ -19,7 +22,46 @@
 }
 .button:not(:disabled):hover,
 .button:not(:disabled):where([aria-haspopup="menu"][aria-expanded="true"]) {
-  background: var(--button-hover-background, var(--ui-button-hover-background));
+  background: var(
+    --nox-row-button-hover-background,
+    var(--button-hover-background, var(--ui-button-hover-background))
+  );
+}
+.button[data-row-aware] {
+  background: var(--nox-row-button-background);
+  --nox-row-button-base: var(
+    --button-background,
+    var(--ui-table-button-background)
+  );
+  --nox-row-button-selection: calc(
+    var(--nox-table-row-selected, 0) * var(--ui-table-button-selected-lift)
+  );
+  --nox-row-button-row-hover: calc(
+    var(--nox-table-row-hovered, 0) * var(--ui-table-button-row-hover-lift)
+  );
+  --nox-row-button-lift: calc(
+    var(--ui-table-button-tone-direction) *
+      (var(--nox-row-button-selection) + var(--nox-row-button-row-hover))
+  );
+  --nox-row-button-hover-lift: calc(
+    var(--ui-table-button-tone-direction) *
+      (
+        var(--nox-row-button-selection) +
+          max(
+            var(--nox-row-button-row-hover),
+            var(--ui-table-button-hover-lift)
+          )
+      )
+  );
+  --nox-row-button-background: rgb(
+    from var(--nox-row-button-base) calc(r + var(--nox-row-button-lift))
+      calc(g + var(--nox-row-button-lift)) calc(b + var(--nox-row-button-lift))
+  );
+  --nox-row-button-hover-background: rgb(
+    from var(--nox-row-button-base) calc(r + var(--nox-row-button-hover-lift))
+      calc(g + var(--nox-row-button-hover-lift))
+      calc(b + var(--nox-row-button-hover-lift))
+  );
 }
 .button[data-variant="solid"] {
   --button-background: var(--ui-button-solid-background);

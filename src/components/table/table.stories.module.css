@@ -54,3 +54,9 @@
   clip-path: inset(50%);
   white-space: nowrap;
 }
+.customBase {
+  --button-background: var(--ui-shade-17);
+}
+.rowAware {
+  min-width: 700px;
+}
