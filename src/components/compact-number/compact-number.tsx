@@ -135,6 +135,10 @@ export function CompactNumber(props: CompactNumberProps) {
           comparisonValue={value}
           motion={motion}
           animateInitial={animateInitial}
+          initialValue={
+            "-".repeat(digits) +
+            (mode === "integer" ? "" : (props.baseUnit ?? "·"))
+          }
           shouldAnimate={shouldAnimate}
           direction={direction}
           duration={duration}

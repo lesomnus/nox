@@ -68,6 +68,28 @@ export const LoadingSlide: Story = {
     );
   },
 };
+export const InitialSlide: Story = {
+  args: {
+    value: 6_547_000,
+    motion: "slide",
+    animateInitial: true,
+    maxSlideSteps: 4,
+    duration: 600,
+    characterDelay: 100,
+  },
+};
+export const InitialIntegerSlide: Story = {
+  args: {
+    value: 9,
+    mode: "integer",
+    digits: 3,
+    motion: "slide",
+    animateInitial: true,
+    maxSlideSteps: 4,
+    duration: 600,
+    characterDelay: 100,
+  },
+};
 export const SmallCost: Story = {
   args: { value: 0.0001, label: "Cost: $0.0001" },
 };

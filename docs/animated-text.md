@@ -30,6 +30,13 @@ character delays apply only before the first step. Offscreen values should
 commit immediately through `shouldAnimate`. Storybook **CompactNumber →
 LoadingSlide** demonstrates loading, updates and reset with a stable width.
 
+`animateInitial` can also reveal a value already known at mount. `initialValue`
+sets its visible starting text instead of blank cells; it is sampled once and
+does not reset later transitions. CompactNumber automatically starts from a
+sized dash placeholder (`----·` or one dash per integer digit), and DurationDisplay
+starts from `--d--h--m`. These placeholders remain painted throughout any
+initial spatial or character delay, until the first slide begins.
+
 ## Text and one-way flaps
 
 Text uses the same component as numbers. For an airport-style board that never

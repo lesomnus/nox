@@ -1,5 +1,45 @@
 import { expect, test } from "@playwright/test";
 
+for (const [component, story, placeholder] of [
+  ["compactnumber", "initial-slide", "----·"],
+  ["compactnumber", "initial-integer-slide", "---"],
+  ["durationdisplay", "initial-slide", "------"],
+]) {
+  test(`${component} ${story} paints sized dashes while the first value waits to slide`, async ({
+    page,
+  }) => {
+    await page.goto(
+      `/iframe.html?id=components-${component}--${story}&viewMode=story&args=duration:60000;characterDelay:10000`,
+    );
+    const value = page.getByRole("img").first();
+    await expect(value.locator("[data-changing]")).toHaveCount(
+      placeholder.length,
+    );
+    const outgoing = await value
+      .locator("[data-changing]")
+      .evaluateAll((cells) =>
+        cells.map((cell) => {
+          const layer = cell.children[1] as HTMLElement;
+          for (const animation of layer.getAnimations()) {
+            animation.pause();
+            animation.currentTime = 0;
+          }
+          return {
+            text: layer.textContent,
+            visible: getComputedStyle(layer).visibility,
+            width: layer.getBoundingClientRect().width,
+          };
+        }),
+      );
+    expect(outgoing.map(({ text }) => text).join("")).toBe(placeholder);
+    expect(
+      outgoing.every(
+        ({ visible, width }) => visible === "visible" && width > 0,
+      ),
+    ).toBe(true);
+  });
+}
+
 test("loading digits slide through zero and bounded samples within one duration", async ({
   page,
 }) => {

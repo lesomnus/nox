@@ -57,6 +57,7 @@ export function DurationDisplay({
               motion={motion}
               aria-hidden="true"
               value={`${digits.padStart(2, "0")}${units[index]}`}
+              initialValue={`--${units[index]}`}
               comparisonValue={durationMs}
               characterClassName={(_character, position) =>
                 index === 0 && digits === "0"

@@ -39,6 +39,8 @@ export type AnimatedTextProps = Omit<
     value: string | number;
     /** Semantic numeric value, used for direction when formatted fields wrap. */
     comparisonValue?: number;
+    /** Visual starting text for animateInitial; sampled once at mount. Defaults to blank cells. */
+    initialValue?: string;
     characterClassName?: (
       character: string,
       index: number,
@@ -80,6 +82,7 @@ export function AnimatedText({
   duration = 360,
   characterDelay = 0,
   animateInitial = false,
+  initialValue,
   shouldAnimate,
   maxSlideSteps = 1,
   maxFlipSteps = 1,
@@ -100,7 +103,9 @@ export function AnimatedText({
   );
   const root = useRef<HTMLSpanElement>(null);
   const previous = useRef({
-    text: animateInitial ? " ".repeat(Array.from(text).length) : text,
+    text: animateInitial
+      ? (initialValue ?? " ".repeat(Array.from(text).length))
+      : text,
     order: comparisonValue,
   });
   const order = useRef(comparisonValue);
