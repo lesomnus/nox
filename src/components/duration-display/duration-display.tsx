@@ -1,5 +1,9 @@
 import numeric from "../compact-number/compact-number.module.css";
 import styles from "./duration-display.module.css";
+import {
+  AnimatedText,
+  type TextMotionOptions,
+} from "../animated-text/animated-text";
 
 /** Fixed nine-cell day/hour/minute display; ++d means more than 99 days. */
 export function formatDurationParts(
@@ -21,7 +25,9 @@ export function DurationDisplay({
   durationMs,
   rounding = "floor",
   label,
-}: {
+  motion = "none",
+  ...motionOptions
+}: TextMotionOptions & {
   durationMs?: number;
   rounding?: "floor" | "ceil";
   label?: string;
@@ -45,11 +51,32 @@ export function DurationDisplay({
           className={index === 0 && digits === "0" ? styles.zeroDay : undefined}
           aria-hidden="true"
         >
-          <span className={numeric.leading}>
-            {"0".repeat(2 - digits.length)}
-          </span>
-          <span>{digits}</span>
-          <span className={numeric.unit}>{units[index]}</span>
+          {motion !== "none" ? (
+            <AnimatedText
+              {...motionOptions}
+              motion={motion}
+              aria-hidden="true"
+              value={`${digits.padStart(2, "0")}${units[index]}`}
+              comparisonValue={durationMs}
+              characterClassName={(_character, position) =>
+                index === 0 && digits === "0"
+                  ? numeric.leading
+                  : position === 2
+                    ? numeric.unit
+                    : position < 2 - digits.length
+                      ? numeric.leading
+                      : undefined
+              }
+            />
+          ) : (
+            <>
+              <span className={numeric.leading}>
+                {"0".repeat(2 - digits.length)}
+              </span>
+              <span>{digits}</span>
+              <span className={numeric.unit}>{units[index]}</span>
+            </>
+          )}
         </span>
       ))}
     </span>

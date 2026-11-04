@@ -1,5 +1,6 @@
 import {
   Fragment,
+  useEffect,
   useLayoutEffect,
   useMemo,
   useRef,
@@ -18,6 +19,7 @@ import {
   type TextFlipEasing,
 } from "./text-motion";
 import styles from "./animated-text.module.css";
+import { cancelWhenHidden } from "./motion-visibility";
 
 export type {
   TextMotion,
@@ -76,6 +78,8 @@ export function AnimatedText({
   direction = "auto",
   duration = 360,
   characterDelay = 0,
+  animateInitial = false,
+  shouldAnimate,
   maxFlipSteps = 1,
   flipEasing = "ease-in-out",
   flipCharacters,
@@ -92,9 +96,14 @@ export function AnimatedText({
     reducedMotion,
     serverMotion,
   );
-  const previous = useRef({ text, order: comparisonValue });
+  const root = useRef<HTMLSpanElement>(null);
+  const previous = useRef({
+    text: animateInitial ? " ".repeat(Array.from(text).length) : text,
+    order: comparisonValue,
+  });
   const order = useRef(comparisonValue);
   const delayOption = useRef(characterDelay);
+  const animateOption = useRef(shouldAnimate);
   const sequence = useRef(0);
   const [transition, setTransition] = useState<Transition>();
   // Order can change between display ticks without interrupting a transition.
@@ -105,7 +114,8 @@ export function AnimatedText({
   // callback only when a new value transitions; do not restart an active one.
   useLayoutEffect(() => {
     delayOption.current = characterDelay;
-  }, [characterDelay]);
+    animateOption.current = shouldAnimate;
+  }, [characterDelay, shouldAnimate]);
   useLayoutEffect(() => {
     const before = previous.current;
     previous.current = { text, order: order.current };
@@ -113,13 +123,16 @@ export function AnimatedText({
       before.text === text ||
       motion === "none" ||
       reduced ||
-      milliseconds === 0
+      milliseconds === 0 ||
+      (root.current && animateOption.current?.(root.current) === false)
     ) {
       setTransition(undefined);
       return;
     }
     const id = ++sequence.current;
     const from = Array.from(before.text);
+    if (motion === "slide")
+      while (from.length < Array.from(text).length) from.push(" ");
     const physicalDirection = textDirection(
       direction,
       before.text,
@@ -173,6 +186,13 @@ export function AnimatedText({
     flipEasing,
     flipCharacters,
   ]);
+  useEffect(() => {
+    if (!transition || !root.current || !shouldAnimate) return;
+    const id = transition.id;
+    return cancelWhenHidden(root.current, () =>
+      setTransition((current) => (current?.id === id ? undefined : current)),
+    );
+  }, [transition?.id, shouldAnimate]);
 
   const active =
     motion !== "none" && !reduced && transition?.to === text
@@ -191,6 +211,7 @@ export function AnimatedText({
   return (
     <span
       {...props}
+      ref={root}
       role={props.role ?? "img"}
       aria-label={props["aria-label"] ?? text}
       className={`${styles.text} ${className}`}

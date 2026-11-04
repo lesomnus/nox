@@ -5,6 +5,7 @@ import {
   useRef,
   useState,
   type CSSProperties,
+  type ReactNode,
 } from "react";
 import { createPortal } from "react-dom";
 import { Button } from "../button/button";
@@ -28,12 +29,14 @@ export function EditableValue({
   save,
   validate,
   monospace = false,
+  display,
 }: {
   label: string;
   value: string;
   save: (value: string) => Promise<void>;
   validate?: (value: string) => string | undefined;
   monospace?: boolean;
+  display?: (value: string) => ReactNode;
 }) {
   const { t } = useUI();
   const trigger = useRef<HTMLButtonElement>(null);
@@ -60,7 +63,7 @@ export function EditableValue({
           setEditing(true);
         }}
       >
-        {value || "—"}
+        {display ? display(value) : value || "—"}
       </Button>
       {editing && (
         <ValueEditor

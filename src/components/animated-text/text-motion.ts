@@ -22,6 +22,10 @@ export type TextCharacterDelay =
 
 export type TextMotionOptions = {
   motion?: TextMotion;
+  /** Reveal a first mounted value from blank cells. */
+  animateInitial?: boolean;
+  /** Evaluated at each value change; false commits the value without motion. */
+  shouldAnimate?: (element: HTMLElement) => boolean;
   /** Auto moves increasing values down and decreasing values up. */
   direction?: TextDirection;
   /** Each character's transition duration in milliseconds, excluding its start delay. */
@@ -76,7 +80,7 @@ export function characterDelays(
   const next = Array.from(text);
   const changed = next.flatMap((character, index) =>
     motion !== "none" &&
-    previous[index] !== undefined &&
+    (previous[index] !== undefined || motion === "slide") &&
     previous[index] !== character &&
     (motion === "slide" || isFlipCharacter(character, flipCharacters))
       ? [index]
@@ -89,7 +93,7 @@ export function characterDelays(
         ? delay * changedIndex
         : delay({
             character: next[index],
-            previousCharacter: previous[index],
+            previousCharacter: previous[index] ?? "",
             index,
             length: next.length,
             changedIndex,

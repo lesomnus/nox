@@ -1,16 +1,20 @@
 import styles from "./compact-number.module.css";
 import type { CSSProperties } from "react";
+import {
+  AnimatedText,
+  type TextMotionOptions,
+} from "../animated-text/animated-text";
 
 type FormattedNumber = { digits: string; leading: string; unit: string };
-export type CompactNumberProps = {
+export type CompactNumberProps = TextMotionOptions & {
   value: number;
   label?: string;
   muted?: boolean;
   className?: string;
 } & (
-  | { mode: "integer"; digits?: number; baseUnit?: never }
-  | { mode?: "compact"; digits?: never; baseUnit?: string }
-);
+    | { mode: "integer"; digits?: number; baseUnit?: never }
+    | { mode?: "compact"; digits?: never; baseUnit?: string }
+  );
 
 const units = [
   [1e-9, "n"],
@@ -107,6 +111,15 @@ export function CompactNumber(props: CompactNumberProps) {
     mode = "compact",
     muted = false,
     className = "",
+    motion = "none",
+    animateInitial,
+    shouldAnimate,
+    direction,
+    duration,
+    characterDelay,
+    maxFlipSteps,
+    flipEasing,
+    flipCharacters,
   } = props;
   const digits = props.mode === "integer" ? (props.digits ?? 4) : 4;
   const number =
@@ -127,24 +140,52 @@ export function CompactNumber(props: CompactNumberProps) {
           : undefined
       }
     >
-      <span className={styles.leading} aria-hidden="true">
-        {number.leading}
-      </span>
-      <span aria-hidden="true">
-        {number.digits.split(/(\.)/).map((part, index) =>
-          part === "." ? (
-            <span key={index} className={styles.separator}>
-              {part}
+      {motion !== "none" ? (
+        <AnimatedText
+          aria-hidden="true"
+          value={`${number.leading}${number.digits}${unit}`}
+          comparisonValue={value}
+          motion={motion}
+          animateInitial={animateInitial}
+          shouldAnimate={shouldAnimate}
+          direction={direction}
+          duration={duration}
+          characterDelay={characterDelay}
+          maxFlipSteps={maxFlipSteps}
+          flipEasing={flipEasing}
+          flipCharacters={flipCharacters}
+          characterClassName={(character, index) =>
+            index < number.leading.length
+              ? styles.leading
+              : index >= number.leading.length + number.digits.length
+                ? styles.unit
+                : character === "."
+                  ? styles.separator
+                  : undefined
+          }
+        />
+      ) : (
+        <>
+          <span className={styles.leading} aria-hidden="true">
+            {number.leading}
+          </span>
+          <span aria-hidden="true">
+            {number.digits.split(/(\.)/).map((part, index) =>
+              part === "." ? (
+                <span key={index} className={styles.separator}>
+                  {part}
+                </span>
+              ) : (
+                part
+              ),
+            )}
+          </span>
+          {unit && (
+            <span className={styles.unit} aria-hidden="true">
+              {unit}
             </span>
-          ) : (
-            part
-          ),
-        )}
-      </span>
-      {unit && (
-        <span className={styles.unit} aria-hidden="true">
-          {unit}
-        </span>
+          )}
+        </>
       )}
     </span>
   );

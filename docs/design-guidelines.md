@@ -69,6 +69,19 @@ viewport height limits down. Keep shortcut keycaps 20px tall so rows retain
 their 32px height. ScrollArea rounds its drawn rail and thumb sizes while
 retaining native fractional scroll offsets and shared drawing/drag metrics.
 
+## Loaded and updated values
+
+Use AnimatedText slide motion for initial or changed data without resizing its
+value slots. CompactNumber and DurationDisplay accept the same motion options
+and preserve dimmed padding digits, separators and units. `animateInitial`
+reveals a first value from blanks. A host can use `shouldAnimate(element)` to
+sample viewport and clipping ancestors at the instant data changes. Return
+false for offscreen values so they commit immediately. A visibility observer
+only cancels active motion when the value leaves view; it never starts motion
+on scroll entry. Use a top-left spatial base delay for a value's first changed
+character and bounded random delays for its remaining characters. Honor reduced
+motion through AnimatedText's shared preference handling.
+
 ## Fixed-width numeric displays
 
 Use shared numeric components rather than formatting metrics independently.

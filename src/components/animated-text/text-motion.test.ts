@@ -61,6 +61,16 @@ describe("flip acceleration and arrival", () => {
 });
 
 describe("character start delays", () => {
+  it("staggered slide includes newly appended characters without inventing previous text", () => {
+    const previous: string[] = [];
+    const delays = characterDelays("AD", "ABC", "slide", (context) => {
+      previous.push(context.previousCharacter);
+      expect(context.previousText).toBe("AD");
+      return context.changedIndex * 80;
+    });
+    expect(previous).toEqual(["D", ""]);
+    expect(delays).toEqual([0, 0, 80]);
+  });
   it("staggers only changed animated characters, without gaps for static positions", () => {
     expect(characterDelays("12:34", "12:56", "flip", 80)).toEqual([
       0, 0, 0, 0, 80,

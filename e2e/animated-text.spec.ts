@@ -4,6 +4,16 @@ const story = (name: string, args = "") =>
   `/iframe.html?id=components-animatedtext--${name}&viewMode=story${args ? `&args=${args}` : ""}`;
 const display = 'span[role="img"][data-motion]';
 
+test("initial slide reveals every character from a blank value", async ({
+  page,
+}) => {
+  await page.goto(story("initial-slide", "duration:10000"));
+  const value = page.locator(display);
+  await expect(value).toHaveAttribute("aria-label", "READY");
+  await expect(value.locator("[data-changing]")).toHaveCount(5);
+  await expect(value).toHaveAttribute("data-motion", "slide");
+});
+
 async function frozenStory(page: Page, name: string, args: string) {
   await page.clock.install({ time: new Date("2026-10-23T00:00:00Z") });
   await page.goto(story(name, args));

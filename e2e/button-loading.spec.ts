@@ -1,5 +1,39 @@
 import { expect, test } from "@playwright/test";
 
+test("Promise handlers automatically hold loading and guard duplicates before a render", async ({
+  page,
+}) => {
+  await page.goto(
+    "/iframe.html?id=components-button--automatic-loading&viewMode=story",
+  );
+  const button = page.getByRole("button", {
+    name: "Save automatically",
+    exact: true,
+  });
+  const bounds = await button.boundingBox();
+  await button.evaluate((node: HTMLButtonElement) => {
+    node.click();
+    node.click();
+    node.click();
+  });
+  await expect(button).toHaveAttribute("aria-busy", "true");
+  await expect(button).toBeDisabled();
+  await expect(page.getByLabel("Requests")).toHaveText("1");
+  expect(await button.boundingBox()).toEqual(bounds);
+  await button.press("Enter");
+  await expect(page.getByLabel("Requests")).toHaveText("1");
+  await page
+    .getByRole("button", { name: "Complete action", exact: true })
+    .click();
+  await expect(button).not.toHaveAttribute("data-loading");
+  await expect(page.getByLabel("Action state")).toHaveText("Saved");
+  await button.click();
+  await expect(page.getByLabel("Requests")).toHaveText("2");
+  await page.getByRole("button", { name: "Fail action", exact: true }).click();
+  await expect(button).not.toHaveAttribute("data-loading");
+  await expect(page.getByLabel("Action state")).toHaveText("Failed");
+});
+
 test("loading holds press scale without resizing and blocks repeated activation", async ({
   page,
 }) => {

@@ -38,6 +38,15 @@ const meta = {
   },
 } satisfies Meta<typeof AnimatedText>;
 export default meta;
+export const InitialSlide: StoryObj<typeof meta> = {
+  render: (args) => <AnimatedText {...args} className={styles.value} />,
+  args: {
+    value: "READY",
+    motion: "slide",
+    animateInitial: true,
+    characterDelay: 70,
+  },
+};
 type Story = StoryObj<typeof meta>;
 export const Slide: Story = {};
 export const SlideUp: Story = { args: { direction: "up" } };
