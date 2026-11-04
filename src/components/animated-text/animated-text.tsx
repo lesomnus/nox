@@ -317,37 +317,53 @@ function SlideFrames({
   duration: number;
   delay: number;
 }) {
-  const [step, setStep] = useState(0);
-  const interval = duration / path.length;
-  useLayoutEffect(() => {
-    const timers = path
-      .slice(1)
-      .map((_, index) =>
-        setTimeout(() => setStep(index + 1), delay + (index + 1) * interval),
-      );
-    return () => timers.forEach(clearTimeout);
-  }, [path, delay, interval]);
   const style = {
-    "--animated-text-duration": `${interval}ms`,
-    "--animated-text-delay": `${step === 0 ? delay : 0}ms`,
+    "--animated-text-duration": `${duration}ms`,
+    "--animated-text-delay": `${delay}ms`,
+    "--animated-slide-distance": `${path.length * 100}%`,
   } as CSSProperties;
+  // One strip crosses every intermediate digit on the same animation timeline.
+  // No per-step easing, React commit or timer can pause at a digit boundary.
+  if (path.length > 1)
+    return (
+      <span
+        className={`${styles.layer} ${styles.slide_strip}`}
+        style={style}
+        data-slide-strip
+      >
+        {[from, ...path].map((character, index) => (
+          <span
+            key={index}
+            className={`${styles.layer} ${styles.slide_frame}`}
+            style={
+              {
+                "--animated-slide-position": `${-index * 100}%`,
+              } as CSSProperties
+            }
+            data-slide-frame={index}
+          >
+            {character}
+          </span>
+        ))}
+      </span>
+    );
   return (
-    <Fragment key={step}>
+    <>
       <span
         className={`${styles.layer} ${styles.outgoing}`}
         style={style}
-        data-slide-step={step + 1}
+        data-slide-frame={0}
       >
-        {step === 0 ? from : path[step - 1]}
+        {from}
       </span>
       <span
         className={`${styles.layer} ${styles.incoming}`}
         style={style}
-        data-slide-step={step + 1}
+        data-slide-frame={1}
       >
-        {path[step]}
+        {path[0]}
       </span>
-    </Fragment>
+    </>
   );
 }
 

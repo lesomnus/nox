@@ -18,6 +18,10 @@ distant digit never takes longer. A missing digit (`-` or a blank) first reveals
 zero, then samples evenly spaced digits: with a cap of 4, `- → 9` visits
 `0, 3, 6, 9`. Existing digits follow the selected physical direction and wrap
 through `0–9`. Text, punctuation and units use one direct slide.
+Multi-step slides move a single strip at constant speed for the whole sequence;
+intermediate digits have no dwell, per-step easing or JavaScript timer boundary.
+The character's start delay is applied once before the strip begins. Direct
+single-step slides retain `--ui-text-motion-easing`.
 
 ```tsx
 <CompactNumber value={value} motion="slide" maxSlideSteps={4} duration={600} />

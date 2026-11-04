@@ -46,6 +46,29 @@
 .cell[data-direction="up"] > .incoming {
   animation-name: slide-in-up;
 }
+.slide_strip {
+  --animated-slide-sign: 1;
+  animation: slide-travel var(--animated-text-duration) linear
+    var(--animated-text-delay, 0ms) both;
+}
+.cell[data-direction="up"] > .slide_strip {
+  --animated-slide-sign: -1;
+}
+.slide_frame {
+  transform: translateY(
+    calc(var(--animated-slide-position) * var(--animated-slide-sign))
+  );
+}
+@keyframes slide-travel {
+  from {
+    transform: translateY(0);
+  }
+  to {
+    transform: translateY(
+      calc(var(--animated-slide-distance) * var(--animated-slide-sign))
+    );
+  }
+}
 @keyframes slide-out-down {
   to {
     transform: translateY(100%);

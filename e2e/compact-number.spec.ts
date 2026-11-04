@@ -15,15 +15,19 @@ for (const [component, story, placeholder] of [
     await expect(value.locator("[data-changing]")).toHaveCount(
       placeholder.length,
     );
+    await value.evaluate((node) => {
+      for (const animation of node.getAnimations({ subtree: true })) {
+        animation.pause();
+        animation.currentTime = 0;
+      }
+    });
     const outgoing = await value
       .locator("[data-changing]")
       .evaluateAll((cells) =>
         cells.map((cell) => {
-          const layer = cell.children[1] as HTMLElement;
-          for (const animation of layer.getAnimations()) {
-            animation.pause();
-            animation.currentTime = 0;
-          }
+          const layer = cell.querySelector(
+            '[data-slide-frame="0"]',
+          ) as HTMLElement;
           return {
             text: layer.textContent,
             visible: getComputedStyle(layer).visibility,
@@ -57,18 +61,83 @@ test("loading digits slide through zero and bounded samples within one duration"
     .evaluate((node: HTMLButtonElement) => node.click());
   await expect(number).toHaveAttribute("aria-label", "9999999");
   const digit = number.locator('[data-slide-steps="4"]').first();
-  await expect(digit.locator('[data-slide-step="1"]').first()).toHaveText("-");
-  await expect(digit.locator('[data-slide-step="1"]').last()).toHaveText("0");
-  await page.clock.runFor(151);
-  await expect(digit.locator('[data-slide-step="2"]').last()).toHaveText("3");
-  await page.clock.runFor(150);
-  await expect(digit.locator('[data-slide-step="3"]').last()).toHaveText("6");
-  await page.clock.runFor(150);
-  await expect(digit.locator('[data-slide-step="4"]').last()).toHaveText("9");
-  await page.clock.runFor(310);
+  await expect(digit.locator("[data-slide-frame]")).toHaveText([
+    "-",
+    "0",
+    "3",
+    "6",
+    "9",
+  ]);
+  const travel = await digit.locator("[data-slide-strip]").evaluate((strip) => {
+    const animation = strip.getAnimations()[0];
+    animation.pause();
+    const timing = animation.effect!.getTiming();
+    const height = strip.getBoundingClientRect().height;
+    const offsets = [0, 150, 300, 450, 600].map((time) => {
+      animation.currentTime = time;
+      return new DOMMatrix(getComputedStyle(strip).transform).m42 / height;
+    });
+    return { duration: timing.duration, easing: timing.easing, offsets };
+  });
+  expect(travel.duration).toBe(600);
+  expect(travel.easing).toBe("linear");
+  travel.offsets.forEach((offset, index) =>
+    expect(offset).toBeCloseTo(index, 4),
+  );
+  await page.clock.runFor(761);
   await expect(number.locator("[data-changing]")).toHaveCount(0);
   await expect(number).toHaveText("9.99M");
   expect((await number.boundingBox())!.width).toBeCloseTo(width, 2);
+});
+
+test("0 to 2 and back cross the intermediate digit at constant speed without a pause", async ({
+  page,
+}) => {
+  await page.goto(
+    "/iframe.html?id=components-compactnumber--continuous-slide&viewMode=story",
+  );
+  const number = page.locator('[data-mode="integer"]');
+  await expect(number).toHaveText("0");
+  await page.clock.install();
+  const now = await page.evaluate(() => Date.now());
+  await page.clock.pauseAt(new Date(now + 50));
+  for (const [button, frames, sign, target] of [
+    ["Two", ["0", "1", "2"], 1, "2"],
+    ["Zero", ["2", "1", "0"], -1, "0"],
+  ] as const) {
+    await page
+      .getByRole("button", { name: button, exact: true })
+      .evaluate((node: HTMLButtonElement) => node.click());
+    const strip = number.locator("[data-slide-strip]");
+    await expect(strip.locator("[data-slide-frame]")).toHaveText([...frames]);
+    const fractions = [
+      0, 0.125, 0.25, 0.375, 0.49, 0.5, 0.51, 0.625, 0.75, 0.875, 1,
+    ];
+    const motion = await strip.evaluate((node, fractions) => {
+      const animation = node.getAnimations()[0];
+      animation.pause();
+      const timing = animation.effect!.getTiming();
+      const height = node.getBoundingClientRect().height;
+      const positions = fractions.map((fraction) => {
+        animation.currentTime =
+          Number(timing.duration) * fraction + Number(timing.delay);
+        return new DOMMatrix(getComputedStyle(node).transform).m42 / height;
+      });
+      return {
+        easing: timing.easing,
+        positions,
+        animations: node.getAnimations().length,
+      };
+    }, fractions);
+    expect(motion.easing).toBe("linear");
+    expect(motion.animations).toBe(1);
+    motion.positions.forEach((position, index) =>
+      expect(position).toBeCloseTo(sign * 2 * fractions[index], 4),
+    );
+    await page.clock.runFor(601);
+    await expect(number.locator("[data-changing]")).toHaveCount(0);
+    await expect(number).toHaveText(target);
+  }
 });
 
 test("new values cancel intermediate slides and reduced motion skips them", async ({

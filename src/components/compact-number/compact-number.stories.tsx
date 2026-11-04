@@ -78,6 +78,25 @@ export const InitialSlide: Story = {
     characterDelay: 100,
   },
 };
+export const ContinuousSlide: Story = {
+  args: {
+    mode: "integer",
+    digits: 1,
+    motion: "slide",
+    maxSlideSteps: 4,
+    duration: 600,
+  },
+  render: function ContinuousSlide(args) {
+    const [value, setValue] = useState(0);
+    return (
+      <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
+        <CompactNumber {...args} value={value} />
+        <Button onClick={() => setValue(2)}>Two</Button>
+        <Button onClick={() => setValue(0)}>Zero</Button>
+      </div>
+    );
+  },
+};
 export const InitialIntegerSlide: Story = {
   args: {
     value: 9,
