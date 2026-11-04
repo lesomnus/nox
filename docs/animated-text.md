@@ -9,6 +9,45 @@ replace the active transition rather than queuing old values, and the accessible
 name always contains the current value. Reduced-motion preferences disable the
 transitions.
 
+## Ready-to-use numeric presets
+
+Import `AnimatedCompactNumber` or `AnimatedDurationDisplay` from the package root
+for the full reveal behavior. The underlying CompactNumber/DurationDisplay stay
+static by default for consumers that do not need motion.
+
+```tsx
+import { AnimatedCompactNumber, AnimatedDurationDisplay } from "@lesomnus/nox";
+
+<AnimatedCompactNumber value={response?.count ?? NaN} animate={!fromCache} />
+<AnimatedCompactNumber value={7} mode="integer" digits={3} />
+<AnimatedDurationDisplay durationMs={remainingMs} rounding="ceil" />
+```
+
+The presets default to slide, initial dash/color reveal, 600ms, at most four
+steps, and a viewport top-left start (0.7ms per vertical pixel plus 0.08ms per
+horizontal pixel). Each value's first changed character anchors that start;
+remaining characters get 1–90ms of random extra delay. Values outside the window
+or any clipping ancestor commit immediately. Leaving view cancels an active
+reveal; entering view does not restart one. Reduced motion stays immediate.
+
+All normal motion options remain available. Set `spatialDelay={false}` and
+`characterJitter={0}` for simultaneous starts, or supply `characterDelay` for
+complete control of character start times. Custom `shouldAnimate` callbacks are
+combined with the visibility check. Unknown numeric values remain mounted as
+dashes, so later values animate from the displayed placeholder or cached value.
+Set `animate={false}` for cache hits; Nox has no dependency on a fetch/cache
+library and does not decide where data came from.
+
+`useValueMotion(options?: ValueMotionOptions)` returns `TextMotionOptions` for
+custom `AnimatedText` compositions. `enabled={false}` skips motion; its other
+defaults match the presets. `AnimatedCompactNumberProps`,
+`AnimatedDurationDisplayProps` and `ValueMotionOptions` are public types.
+For custom text, supply `initialValue` and `placeholderColor` when a dash/color
+placeholder is wanted; the hook owns only the timing and visibility policy.
+Storybook **AnimatedCompactNumber** includes loading/refresh/cache transitions,
+integer formatting, configuration and a grid inside ScrollArea;
+**AnimatedDurationDisplay** includes ready, unknown and cached values.
+
 ## Bounded digit slides
 
 Set `maxSlideSteps` to show intermediate digits with slide motion. It caps the

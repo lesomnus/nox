@@ -21,17 +21,19 @@ export function formatDurationParts(
   ].map(String);
 }
 
+export type DurationDisplayProps = TextMotionOptions & {
+  durationMs?: number;
+  rounding?: "floor" | "ceil";
+  label?: string;
+};
+
 export function DurationDisplay({
   durationMs,
   rounding = "floor",
   label,
   motion = "none",
   ...motionOptions
-}: TextMotionOptions & {
-  durationMs?: number;
-  rounding?: "floor" | "ceil";
-  label?: string;
-}) {
+}: DurationDisplayProps) {
   const parts = formatDurationParts(durationMs, rounding);
   const units = ["d", "h", "m"];
   return (

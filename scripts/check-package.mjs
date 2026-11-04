@@ -85,6 +85,14 @@ try {
     // @ts-expect-error Integer mode does not have a unit cell.
     const invalidIntegerUnit: CompactNumberProps = {value: 55, mode:"integer", baseUnit:"B"};
     void invalidIntegerUnit;
+    import { AnimatedCompactNumber, AnimatedDurationDisplay, AnimatedText, useValueMotion, type AnimatedCompactNumberProps, type AnimatedDurationDisplayProps, type ValueMotionOptions } from "@lesomnus/nox";
+    const animatedNumber: AnimatedCompactNumberProps = {value: 6547000, animate: true, duration: 600, maxSlideSteps: 4, characterJitter: 50};
+    const cachedDuration: AnimatedDurationDisplayProps = {durationMs: 60000, animate: false, rounding: "ceil"};
+    const valueMotion: ValueMotionOptions = {enabled: true, spatialDelay: false, characterJitter: 0, duration: 900};
+    // @ts-expect-error Compact mode does not expose integer digit cells.
+    const invalidAnimatedDigits: AnimatedCompactNumberProps = {value: 1, digits: 3};
+    void invalidAnimatedDigits;
+    function MotionConsumer() { const motion = useValueMotion(valueMotion); return <AnimatedText value="READY" {...motion} />; }
     import { FileChip, type FileChipProps, fileChipClassName, fileChipText } from "@lesomnus/nox";
     const fileChip: FileChipProps = {as:"a", href:"/report.md", children:"report.md", ref: node => { void node?.href; }};
     const attachmentChip: FileChipProps = {as:"button", loading:true, children:"Uploading", ref: node => { void node?.disabled; }};
@@ -202,6 +210,7 @@ try {
     createRoot(document.getElementById("root")!).render(
       <UIProvider>
         <CompactNumber {...byteNumber} />
+        <AnimatedCompactNumber {...animatedNumber} /><AnimatedDurationDisplay {...cachedDuration} /><MotionConsumer />
         <FileChip {...fileChip} /><FileChip {...attachmentChip} />
         <FileChip {...leadingChip} />
         <div style={{position:"relative",height:40}}><AuroraGlow {...aurora} /></div>

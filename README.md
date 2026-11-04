@@ -103,6 +103,24 @@ stay darker; number formatting, reserved width and accessible labels are unchang
 
 `baseUnit` labels the unscaled compact unit cell, for example `baseUnit="B"` for bytes. Scaled units keep their existing labels. Integer mode has no unit cell. A caller `className` can adapt typography to an editor.
 
+`AnimatedCompactNumber` and `AnimatedDurationDisplay` provide the complete value
+reveal preset without application wrappers:
+
+```tsx
+import { AnimatedCompactNumber, AnimatedDurationDisplay } from "@lesomnus/nox";
+
+<AnimatedCompactNumber value={count ?? NaN} animate={!fromCache} />
+<AnimatedDurationDisplay durationMs={remainingMs} animate={!fromCache} />
+```
+
+Defaults include sized gray placeholders, continuous slides through up to four
+digit steps in 600ms, color arrival, top-left spatial starts and bounded random
+character delays. Offscreen updates commit immediately and never replay on scroll
+entry. `animate={false}` renders cached values immediately. Override `duration`,
+`maxSlideSteps`, `characterDelay`, `spatialDelay` or `characterJitter` as needed.
+`useValueMotion` exposes the same visibility/stagger policy for custom
+`AnimatedText` consumers. See [animated text](docs/animated-text.md).
+
 Formatted text shares three color roles across `ElapsedTime`, `CompactNumber`,
 `DurationDisplay` and `DateTime`:
 
