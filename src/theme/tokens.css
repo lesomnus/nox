@@ -43,6 +43,7 @@
 }
 :root[data-ui-theme="light"],
 :root[data-theme="light"] {
+  --ui-table-button-tone-direction: -1;
   --ui-pin-input-success-color: #2f8250;
   --ui-action-error-color: #9c3737;
   --ui-button-hover-background: var(--ui-shade-34);
@@ -150,6 +151,11 @@
   --ui-table-row-height: 44px;
   --ui-table-row-gap: var(--ui-control-inset);
   --ui-table-cell-padding: var(--ui-space);
+  --ui-table-button-background: var(--ui-shade-32);
+  --ui-table-button-row-hover-lift: 8;
+  --ui-table-button-selected-lift: 28;
+  --ui-table-button-hover-lift: 16;
+  --ui-table-button-tone-direction: 1;
   --ui-pin-input-slot-width: 32px;
   --ui-pin-input-slot-height: 40px;
   --ui-pin-input-gap: var(--ui-space);

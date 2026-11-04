@@ -17,6 +17,8 @@ import {
 
 type ButtonAppearance = {
   pressTarget?: string;
+  /** Brighten this button's own surface with its nearest TableRow state. */
+  rowAware?: boolean;
   variant?: "default" | "solid" | "outline" | "toolbar";
   /** Press feedback. Defaults to sparkle; none uses the native variant background. */
   effect?: "sparkle" | "none";
@@ -39,6 +41,7 @@ export function Button({
   children,
   decoration,
   pressTarget,
+  rowAware = false,
   loading = false,
   minLoadingDuration = 150,
   variant = "default",
@@ -78,6 +81,7 @@ export function Button({
       aria-busy={busy || props["aria-busy"]}
       aria-disabled={busy || props["aria-disabled"]}
       data-loading={busy || undefined}
+      data-row-aware={rowAware || undefined}
       data-variant={variant}
       data-effect={effect}
       className={`${styles.button} ${className}`}
@@ -135,6 +139,7 @@ export const ButtonAnchor = forwardRef<HTMLAnchorElement, ButtonAnchorProps>(
     {
       children,
       pressTarget,
+      rowAware = false,
       variant = "default",
       effect = "sparkle",
       effectOptions,
@@ -159,6 +164,7 @@ export const ButtonAnchor = forwardRef<HTMLAnchorElement, ButtonAnchorProps>(
         ref={ref}
         data-variant={variant}
         data-effect={effect}
+        data-row-aware={rowAware || undefined}
         className={`${styles.button} ${styles.anchor} ${className}`}
         onClick={(event) => {
           if (blocked) {

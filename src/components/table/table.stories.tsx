@@ -2,6 +2,8 @@ import type { Meta, StoryObj } from "@storybook/react-vite";
 import { useState } from "react";
 import {
   Checkbox,
+  Button,
+  ButtonAnchor,
   EditableValue,
   LinkButton,
   Skeleton,
@@ -218,6 +220,72 @@ export const Editable: Story = {
               <TableCell>{session.account}</TableCell>
               <TableCell className={styles.muted}>{session.state}</TableCell>
               <TableCell align="right">{session.tasks}</TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+    );
+  },
+};
+
+export const RowAwareButtons: Story = {
+  render: function Example(args) {
+    const [selected, select] = useState<string[]>([]);
+    return (
+      <Table
+        {...args}
+        className={`${styles.table} ${styles.rowAware}`}
+        aria-label="Row-aware buttons"
+      >
+        <TableHeader>
+          <TableRow>
+            <TableHead>Select</TableHead>
+            <TableHead>Surface</TableHead>
+            <TableHead>Button</TableHead>
+            <TableHead>Link</TableHead>
+            <TableHead>Independent</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {["Default base", "Custom base"].map((name, i) => (
+            <TableRow key={name} selected={selected.includes(name)}>
+              <TableCell>
+                <Checkbox
+                  aria-label={`Select ${name}`}
+                  checked={selected.includes(name)}
+                  onChange={(e) => {
+                    const checked = e.currentTarget.checked;
+                    select((current) =>
+                      checked
+                        ? [...current, name]
+                        : current.filter((v) => v !== name),
+                    );
+                  }}
+                />
+              </TableCell>
+              <TableHead scope="row">{name}</TableHead>
+              <TableCell>
+                <Button
+                  rowAware
+                  effect="none"
+                  className={i ? styles.customBase : undefined}
+                >
+                  Action
+                </Button>
+              </TableCell>
+              <TableCell>
+                <ButtonAnchor
+                  rowAware
+                  effect="none"
+                  href="#workspace"
+                  className={i ? styles.customBase : undefined}
+                >
+                  Workspace
+                </ButtonAnchor>
+              </TableCell>
+              <TableCell>
+                <Button effect="none">Independent</Button>
+              </TableCell>
             </TableRow>
           ))}
         </TableBody>

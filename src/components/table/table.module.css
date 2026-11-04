@@ -37,6 +37,17 @@
 .body .head {
   color: inherit;
 }
+.row {
+  --nox-table-row-hovered: 0;
+  --nox-table-row-selected: 0;
+  transition: background-color var(--ui-button-background-duration) ease-out;
+}
+.row:hover {
+  --nox-table-row-hovered: 1;
+}
+.row[data-selected] {
+  --nox-table-row-selected: 1;
+}
 .body > .row:not(:last-child) > :is(.cell, .head) {
   border-bottom-color: var(--ui-table-row-border);
 }
@@ -76,4 +87,9 @@
 }
 .scroll:has(.table[data-sticky-header] > .header) .topFade {
   top: var(--ui-table-header-height);
+}
+@media (prefers-reduced-motion: reduce) {
+  .row {
+    transition: none;
+  }
 }
