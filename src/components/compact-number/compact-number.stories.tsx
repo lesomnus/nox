@@ -97,6 +97,24 @@ export const ContinuousSlide: Story = {
     );
   },
 };
+export const DecimalRoles: Story = {
+  args: {
+    motion: "slide",
+    duration: 600,
+    maxSlideSteps: 4,
+    characterDelay: 80,
+  },
+  render: function DecimalRoles(args) {
+    const [value, setValue] = useState(1600);
+    return (
+      <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
+        <CompactNumber {...args} value={value} label="Decimal roles" />
+        <Button onClick={() => setValue(800)}>Integer value</Button>
+        <Button onClick={() => setValue(1600)}>Decimal value</Button>
+      </div>
+    );
+  },
+};
 export const InitialIntegerSlide: Story = {
   args: {
     value: 9,

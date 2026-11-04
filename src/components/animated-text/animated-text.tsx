@@ -43,6 +43,12 @@ export type AnimatedTextProps = Omit<
     initialValue?: string;
     /** Fade dash/blank placeholders from this color to each character's normal color. */
     placeholderColor?: CSSProperties["color"];
+    /** Semantic color per character; value changes smoothly transition between roles. */
+    characterColor?: (
+      character: string,
+      index: number,
+      text: string,
+    ) => CSSProperties["color"];
     characterClassName?: (
       character: string,
       index: number,
@@ -72,6 +78,7 @@ type Transition = {
   paths: string[][];
   delays: number[];
   to: string;
+  colorKey: string;
   direction: "up" | "down";
   id: number;
 };
@@ -93,6 +100,7 @@ export function AnimatedText({
   flipCharacters,
   comparisonValue,
   characterClassName,
+  characterColor,
   className = "",
   style,
   ...props
@@ -105,11 +113,33 @@ export function AnimatedText({
     serverMotion,
   );
   const root = useRef<HTMLSpanElement>(null);
+  const colors = characterColor
+    ? Array.from(text, (character, index) =>
+        characterColor(character, index, text),
+      )
+    : undefined;
+  const colorKey = colors?.join("\0") ?? "";
+  const initialText = animateInitial
+    ? (initialValue ?? " ".repeat(Array.from(text).length))
+    : text;
+  const initialColors =
+    colors &&
+    Array.from(initialText, (character, index) =>
+      (character === "-" || character === " ") && placeholderColor
+        ? placeholderColor
+        : colors[index],
+    );
   const previous = useRef({
-    text: animateInitial
-      ? (initialValue ?? " ".repeat(Array.from(text).length))
-      : text,
+    text: initialText,
     order: comparisonValue,
+    colors: initialColors,
+    colorKey: initialColors?.join("\0") ?? "",
+  });
+  // Keep old color targets for the pre-layout commit, including while an earlier
+  // CSS transition is running. Skipped motion still commits final colors before paint.
+  const [displayed, setDisplayed] = useState({
+    text: initialText,
+    colorKey: previous.current.colorKey,
   });
   const order = useRef(comparisonValue);
   const delayOption = useRef(characterDelay);
@@ -128,9 +158,15 @@ export function AnimatedText({
   }, [characterDelay, shouldAnimate]);
   useLayoutEffect(() => {
     const before = previous.current;
-    previous.current = { text, order: order.current };
+    previous.current = { text, order: order.current, colors, colorKey };
+    if (characterColor)
+      setDisplayed((old) =>
+        old.text === text && old.colorKey === colorKey
+          ? old
+          : { text, colorKey },
+      );
     if (
-      before.text === text ||
+      (before.text === text && before.colorKey === colorKey) ||
       motion === "none" ||
       reduced ||
       milliseconds === 0 ||
@@ -139,6 +175,9 @@ export function AnimatedText({
       setTransition(undefined);
       return;
     }
+    // Commit the old inline colors before changing their targets. Native CSS
+    // transitions then also retarget smoothly when a new value interrupts one.
+    if (characterColor) root.current?.getBoundingClientRect();
     const id = ++sequence.current;
     const from = Array.from(before.text);
     if (motion === "slide")
@@ -182,6 +221,7 @@ export function AnimatedText({
               ),
             ),
       to: text,
+      colorKey,
       direction: physicalDirection,
       id,
     });
@@ -195,6 +235,7 @@ export function AnimatedText({
     return () => clearTimeout(timer);
   }, [
     text,
+    colorKey,
     motion,
     direction,
     milliseconds,
@@ -213,17 +254,42 @@ export function AnimatedText({
   }, [transition?.id, shouldAnimate]);
 
   const active =
-    motion !== "none" && !reduced && transition?.to === text
+    motion !== "none" &&
+    !reduced &&
+    transition?.to === text &&
+    transition.colorKey === colorKey
       ? transition
       : undefined;
+  const pendingColors =
+    !!characterColor &&
+    (displayed.text !== text || displayed.colorKey !== colorKey);
+  const colorMotion =
+    !!characterColor &&
+    motion !== "none" &&
+    !reduced &&
+    milliseconds > 0 &&
+    (pendingColors || !!active);
+  const displayedColors = pendingColors ? previous.current.colors : colors;
+  const targetCharacters = Array.from(text);
+  const changedDelays =
+    active?.delays.filter(
+      (_, index) => active.from[index] !== targetCharacters[index],
+    ) ?? [];
+  const firstDelay = changedDelays.length ? Math.min(...changedDelays) : 0;
   // Static consumers need only styled runs, not a DOM cell for every character.
-  const runs: { value: string; className?: string }[] = [];
+  const runs: {
+    value: string;
+    className?: string;
+    color?: CSSProperties["color"];
+  }[] = [];
   if (motion === "none") {
     Array.from(text).forEach((character, index) => {
       const className = characterClassName?.(character, index, text);
+      const color = colors?.[index];
       const last = runs.at(-1);
-      if (last && last.className === className) last.value += character;
-      else runs.push({ value: character, className });
+      if (last && last.className === className && last.color === color)
+        last.value += character;
+      else runs.push({ value: character, className, color });
     });
   }
   return (
@@ -244,7 +310,11 @@ export function AnimatedText({
       <span aria-hidden="true">
         {motion === "none"
           ? runs.map((run, index) => (
-              <span key={index} className={run.className}>
+              <span
+                key={index}
+                className={run.className}
+                style={run.color ? { color: run.color } : undefined}
+              >
                 {run.value}
               </span>
             ))
@@ -268,6 +338,8 @@ export function AnimatedText({
                       ? true
                       : undefined
                   }
+                  data-color-managed={characterColor ? true : undefined}
+                  data-color-transition={colorMotion || undefined}
                   data-direction={active?.direction}
                   data-flip-steps={
                     animate && card ? active.paths[index].length : undefined
@@ -278,9 +350,12 @@ export function AnimatedText({
                       : undefined
                   }
                   style={
-                    animate
+                    animate || characterColor
                       ? ({
-                          "--animated-text-delay": `${active.delays[index]}ms`,
+                          color:
+                            displayedColors?.[index] ??
+                            (pendingColors ? placeholderColor : undefined),
+                          "--animated-text-delay": `${animate ? active.delays[index] : firstDelay}ms`,
                           "--animated-text-placeholder-color": placeholderColor,
                         } as CSSProperties)
                       : undefined

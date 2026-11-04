@@ -94,6 +94,9 @@ Keep significant digits at the normal foreground brightness, padding zeroes
 at `--ui-shade-65`, and units at the intermediate brightness used by
 `CompactNumber` (78% foreground mixed with the background). Use tabular
 monospace digits and stable slots so changing values do not shift nearby UI.
+When digit, decimal or padding roles change, retain the old color through the
+start delay and transition to the new role over the slide. Retarget from the
+currently visible color if an update interrupts the transition.
 `DurationDisplay` renders nine cells as `00d00h00m`, with the padding zero in
 each field dimmed and each unit at intermediate brightness. Actual zero values
 remain readable, except a zero day field: dim the entire `00d`, including its unit. Use `rounding="ceil"` for remaining time; callers own the clock.

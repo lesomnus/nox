@@ -86,6 +86,12 @@ duration, so intermediate digits never restart it. Padding and units land on
 their own dimmed tokens. For custom AnimatedText placeholders, opt in with
 `placeholderColor`; reduced motion and skipped transitions show final colors
 immediately.
+`characterColor(character, index, text)` can supply semantic colors for custom
+characters. CompactNumber uses it to transition between digit, decimal, padding
+and unit roles. The old color remains through the start delay, then transitions
+to the new role's color over the slide duration. Interrupted updates continue
+from the current visible color. Cached/offscreen/reduced-motion values remain
+immediate. Storybook **CompactNumber → DecimalRoles** shows both directions.
 
 ## Text and one-way flaps
 

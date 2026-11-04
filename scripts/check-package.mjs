@@ -92,7 +92,7 @@ try {
     // @ts-expect-error Compact mode does not expose integer digit cells.
     const invalidAnimatedDigits: AnimatedCompactNumberProps = {value: 1, digits: 3};
     void invalidAnimatedDigits;
-    function MotionConsumer() { const motion = useValueMotion(valueMotion); return <AnimatedText value="READY" {...motion} />; }
+    function MotionConsumer() { const motion = useValueMotion(valueMotion); return <AnimatedText value="READY" {...motion} characterColor={character => character === "." ? "var(--ui-text-separator)" : "var(--ui-text-value)"} />; }
     import { FileChip, type FileChipProps, fileChipClassName, fileChipText } from "@lesomnus/nox";
     const fileChip: FileChipProps = {as:"a", href:"/report.md", children:"report.md", ref: node => { void node?.href; }};
     const attachmentChip: FileChipProps = {as:"button", loading:true, children:"Uploading", ref: node => { void node?.disabled; }};

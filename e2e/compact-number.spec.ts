@@ -39,6 +39,72 @@ async function colorProgress(cell: Locator, placeholder?: string) {
   }, placeholder);
 }
 
+test("digit and decimal roles fade in both directions and interrupted colors do not jump", async ({
+  page,
+}) => {
+  await page.goto(
+    "/iframe.html?id=components-compactnumber--decimal-roles&viewMode=story",
+  );
+  const number = page.getByRole("img", { name: "Decimal roles", exact: true });
+  const cell = number.locator("[data-motion][aria-label] > span > span").nth(1);
+  await expect(number).toHaveText("1.60K");
+  const separator = await cell.evaluate((node) => getComputedStyle(node).color);
+  await page.clock.install();
+  const now = await page.evaluate(() => Date.now());
+  await page.clock.pauseAt(new Date(now + 50));
+  const click = (name: string) =>
+    page
+      .getByRole("button", { name, exact: true })
+      .evaluate((node: HTMLButtonElement) => node.click());
+  await click("Integer value");
+  const rising = await colorProgress(cell, separator);
+  expect(rising.waiting).toEqual(rising.placeholder);
+  expect(rising.colors[0]).toEqual(rising.placeholder);
+  expect(rising.colors.at(-1)).toEqual(rising.foreground);
+  expect(rising.colors[2]).not.toEqual(rising.colors[0]);
+  expect(rising.colors[2]).not.toEqual(rising.colors.at(-1));
+  await page.clock.runFor(1200);
+  await expect(number).toHaveText("0800·");
+  await click("Decimal value");
+  const falling = await colorProgress(cell, separator);
+  expect(falling.waiting).toEqual(falling.foreground);
+  expect(falling.colors.at(-1)).toEqual(falling.placeholder);
+  expect(falling.colors[2]).not.toEqual(falling.colors[0]);
+  expect(falling.colors[2]).not.toEqual(falling.colors.at(-1));
+  await page.clock.runFor(1200);
+  await expect(number).toHaveText("1.60K");
+  await click("Integer value");
+  const interrupted = await cell.evaluate((node) => {
+    const animation = node
+      .getAnimations()
+      .find((item) =>
+        (item.effect as KeyframeEffect)
+          .getKeyframes()
+          .some((frame) => frame.color !== undefined),
+      )!;
+    animation.pause();
+    const timing = animation.effect!.getTiming();
+    animation.currentTime =
+      Number(timing.delay) + Number(timing.duration) * 0.4;
+    return getComputedStyle(node).color;
+  });
+  await click("Decimal value");
+  await cell.evaluate((node) => {
+    const animation = node
+      .getAnimations()
+      .find((item) =>
+        (item.effect as KeyframeEffect)
+          .getKeyframes()
+          .some((frame) => frame.color !== undefined),
+      )!;
+    animation.pause();
+    animation.currentTime = 0;
+  });
+  await expect(cell).toHaveCSS("color", interrupted);
+  await page.clock.runFor(1200);
+  await expect(number).toHaveText("1.60K");
+});
+
 for (const theme of ["dark", "light"] as const) {
   test(`${theme} placeholders stay gray through the delay and reach foreground only at the end`, async ({
     page,

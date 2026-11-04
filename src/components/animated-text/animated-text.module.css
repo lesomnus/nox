@@ -27,9 +27,13 @@
 .cell[data-changing] > .glyph {
   visibility: hidden;
 }
-.cell[data-color-reveal] {
+.cell[data-color-reveal]:not([data-color-managed]) {
   animation: placeholder-color var(--animated-text-duration) linear
     var(--animated-text-delay, 0ms) both;
+}
+.cell[data-color-transition] {
+  transition: color var(--animated-text-duration) linear
+    var(--animated-text-delay, 0ms);
 }
 @keyframes placeholder-color {
   from {
@@ -202,6 +206,9 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .cell[data-color-transition] {
+    transition: none;
+  }
   .cell[data-color-reveal] {
     animation: none;
   }

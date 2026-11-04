@@ -115,15 +115,30 @@ export function CompactNumber(props: CompactNumberProps) {
       ? formatCompactNumber(value, "integer", digits)
       : formatCompactNumber(value, "compact");
   const unit = number.unit === "·" ? (props.baseUnit ?? "·") : number.unit;
+  const mutedValue = muted || number.digits === "0" || !Number.isFinite(value);
+  const characterClassName = (character: string, index: number) =>
+    index < number.leading.length
+      ? styles.leading
+      : index >= number.leading.length + number.digits.length
+        ? styles.unit
+        : character === "."
+          ? styles.separator
+          : undefined;
+  const characterColor = (character: string, index: number) => {
+    const role = characterClassName(character, index);
+    return role === styles.leading
+      ? "var(--ui-text-leading)"
+      : role === styles.unit || role === styles.separator || mutedValue
+        ? "var(--ui-text-separator)"
+        : "var(--ui-text-value)";
+  };
   return (
     <span
       className={`${styles.number} ${className}`.trim()}
       role="img"
       aria-label={label ?? String(value)}
       data-mode={mode}
-      data-muted={
-        muted || number.digits === "0" || !Number.isFinite(value) || undefined
-      }
+      data-muted={mutedValue || undefined}
       style={
         mode === "integer"
           ? ({ "--compact-number-digits": digits } as CSSProperties)
@@ -150,15 +165,8 @@ export function CompactNumber(props: CompactNumberProps) {
           maxFlipSteps={maxFlipSteps}
           flipEasing={flipEasing}
           flipCharacters={flipCharacters}
-          characterClassName={(character, index) =>
-            index < number.leading.length
-              ? styles.leading
-              : index >= number.leading.length + number.digits.length
-                ? styles.unit
-                : character === "."
-                  ? styles.separator
-                  : undefined
-          }
+          characterClassName={characterClassName}
+          characterColor={characterColor}
         />
       ) : (
         <>
