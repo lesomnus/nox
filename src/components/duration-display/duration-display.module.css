@@ -7,6 +7,9 @@
   white-space: nowrap;
   color: var(--ui-text-value);
 }
+.duration[data-unavailable] {
+  color: var(--ui-text-separator);
+}
 
 .zeroDay,
 .zeroDay > span {

@@ -37,6 +37,9 @@ export function DurationDisplay({
   return (
     <span
       className={styles.duration}
+      data-unavailable={
+        durationMs === undefined || !Number.isFinite(durationMs) || undefined
+      }
       role="img"
       aria-label={
         label ??
@@ -58,6 +61,7 @@ export function DurationDisplay({
               aria-hidden="true"
               value={`${digits.padStart(2, "0")}${units[index]}`}
               initialValue={`--${units[index]}`}
+              placeholderColor="var(--ui-text-separator)"
               comparisonValue={durationMs}
               characterClassName={(_character, position) =>
                 index === 0 && digits === "0"

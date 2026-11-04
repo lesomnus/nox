@@ -40,6 +40,13 @@ does not reset later transitions. CompactNumber automatically starts from a
 sized dash placeholder (`----·` or one dash per integer digit), and DurationDisplay
 starts from `--d--h--m`. These placeholders remain painted throughout any
 initial spatial or character delay, until the first slide begins.
+CompactNumber and DurationDisplay also keep their gray placeholder color while
+waiting, then fade each revealed character to its normal color over that
+character's whole slide. The color animation shares the start delay and total
+duration, so intermediate digits never restart it. Padding and units land on
+their own dimmed tokens. For custom AnimatedText placeholders, opt in with
+`placeholderColor`; reduced motion and skipped transitions show final colors
+immediately.
 
 ## Text and one-way flaps
 

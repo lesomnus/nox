@@ -1,4 +1,111 @@
-import { expect, test } from "@playwright/test";
+import { expect, test, type Locator } from "@playwright/test";
+
+async function colorProgress(cell: Locator, placeholder?: string) {
+  return cell.evaluate((node, placeholder) => {
+    const animation = node
+      .getAnimations()
+      .find((item) =>
+        (item.effect as KeyframeEffect)
+          .getKeyframes()
+          .some((frame) => frame.color !== undefined),
+      )!;
+    animation.pause();
+    const timing = animation.effect!.getTiming();
+    const context = document
+      .createElement("canvas")
+      .getContext("2d", { willReadFrequently: true })!;
+    const rgb = (color: string) => {
+      context.clearRect(0, 0, 1, 1);
+      context.fillStyle = color;
+      context.fillRect(0, 0, 1, 1);
+      return Array.from(context.getImageData(0, 0, 1, 1).data).slice(0, 3);
+    };
+    animation.currentTime = 0;
+    const waiting = rgb(getComputedStyle(node).color);
+    const colors = [0, 0.25, 0.5, 0.75, 1].map((fraction) => {
+      animation.currentTime =
+        Number(timing.delay) + Number(timing.duration) * fraction;
+      return rgb(getComputedStyle(node).color);
+    });
+    return {
+      waiting,
+      colors,
+      duration: timing.duration,
+      delay: timing.delay,
+      easing: timing.easing,
+      placeholder: placeholder ? rgb(placeholder) : undefined,
+      foreground: rgb(getComputedStyle(node.closest("[data-mode]")!).color),
+    };
+  }, placeholder);
+}
+
+for (const theme of ["dark", "light"] as const) {
+  test(`${theme} placeholders stay gray through the delay and reach foreground only at the end`, async ({
+    page,
+  }) => {
+    await page.goto(
+      "/iframe.html?id=components-compactnumber--loading-slide&viewMode=story",
+    );
+    await page.evaluate((theme) => {
+      document.documentElement.dataset.uiTheme = theme;
+      document.documentElement.dataset.theme = theme;
+    }, theme);
+    const number = page.locator('[data-mode="compact"]');
+    await expect(number).toHaveText("----·");
+    const placeholder = await number.evaluate(
+      (node) => getComputedStyle(node).color,
+    );
+    await page.clock.install();
+    const now = await page.evaluate(() => Date.now());
+    await page.clock.pauseAt(new Date(now + 50));
+    await page
+      .getByRole("button", { name: "Load value", exact: true })
+      .evaluate((node: HTMLButtonElement) => node.click());
+    const digit = number.locator("[data-color-reveal]").nth(2);
+    const progress = await colorProgress(digit, placeholder);
+    expect(progress.waiting).toEqual(progress.placeholder);
+    expect(progress.colors[0]).toEqual(progress.placeholder);
+    expect(progress.colors.at(-1)).toEqual(progress.foreground);
+    expect(progress.duration).toBe(600);
+    expect(progress.delay).toBe(80);
+    expect(progress.easing).toBe("linear");
+    const distance = (color: number[]) =>
+      color.reduce(
+        (sum, channel, index) =>
+          sum + Math.abs(channel - progress.foreground[index]),
+        0,
+      );
+    const distances = progress.colors.map(distance);
+    for (let index = 1; index < distances.length; index++)
+      expect(distances[index]).toBeLessThan(distances[index - 1]);
+    // The unit retains its separate token instead of fading to the numeric foreground.
+    const unit = number
+      .locator("[data-motion][aria-label] > span > span")
+      .last();
+    await expect(unit).not.toHaveAttribute("data-color-reveal");
+    await expect(unit).toHaveCSS("color", placeholder);
+    await page.clock.runFor(761);
+    await expect(number.locator("[data-color-reveal]")).toHaveCount(0);
+    await expect(number).toHaveText("9.99M");
+  });
+}
+
+test("initial integer padding fades to its dimmed token instead of turning white", async ({
+  page,
+}) => {
+  await page.goto(
+    "/iframe.html?id=components-compactnumber--initial-integer-slide&viewMode=story&args=duration:60000;characterDelay:10000",
+  );
+  const cells = page.locator('[data-mode="integer"] [data-color-reveal]');
+  await expect(cells).toHaveCount(3);
+  const padding = await colorProgress(cells.first());
+  const significant = await colorProgress(cells.last());
+  expect(padding.colors[0]).toEqual(significant.colors[0]);
+  expect(padding.colors.at(-1)).not.toEqual(significant.foreground);
+  expect(significant.colors.at(-1)).toEqual(significant.foreground);
+  expect(padding.colors[2]).not.toEqual(padding.colors[0]);
+  expect(padding.colors[2]).not.toEqual(padding.colors.at(-1));
+});
 
 for (const [component, story, placeholder] of [
   ["compactnumber", "initial-slide", "----·"],

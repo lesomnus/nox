@@ -27,6 +27,16 @@
 .cell[data-changing] > .glyph {
   visibility: hidden;
 }
+.cell[data-color-reveal] {
+  animation: placeholder-color var(--animated-text-duration) linear
+    var(--animated-text-delay, 0ms) both;
+}
+@keyframes placeholder-color {
+  from {
+    color: var(--animated-text-placeholder-color);
+  }
+  /* The implicit endpoint is the cell's normal value/padding/unit color. */
+}
 .outgoing,
 .incoming {
   animation-duration: var(--animated-text-duration);
@@ -192,6 +202,9 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .cell[data-color-reveal] {
+    animation: none;
+  }
   .cell[data-changing] > .glyph {
     visibility: visible;
   }

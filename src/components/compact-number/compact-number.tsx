@@ -121,7 +121,9 @@ export function CompactNumber(props: CompactNumberProps) {
       role="img"
       aria-label={label ?? String(value)}
       data-mode={mode}
-      data-muted={muted || number.digits === "0" || undefined}
+      data-muted={
+        muted || number.digits === "0" || !Number.isFinite(value) || undefined
+      }
       style={
         mode === "integer"
           ? ({ "--compact-number-digits": digits } as CSSProperties)
@@ -139,6 +141,7 @@ export function CompactNumber(props: CompactNumberProps) {
             "-".repeat(digits) +
             (mode === "integer" ? "" : (props.baseUnit ?? "·"))
           }
+          placeholderColor="var(--ui-text-separator)"
           shouldAnimate={shouldAnimate}
           direction={direction}
           duration={duration}

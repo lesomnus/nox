@@ -41,6 +41,8 @@ export type AnimatedTextProps = Omit<
     comparisonValue?: number;
     /** Visual starting text for animateInitial; sampled once at mount. Defaults to blank cells. */
     initialValue?: string;
+    /** Fade dash/blank placeholders from this color to each character's normal color. */
+    placeholderColor?: CSSProperties["color"];
     characterClassName?: (
       character: string,
       index: number,
@@ -83,6 +85,7 @@ export function AnimatedText({
   characterDelay = 0,
   animateInitial = false,
   initialValue,
+  placeholderColor,
   shouldAnimate,
   maxSlideSteps = 1,
   maxFlipSteps = 1,
@@ -260,6 +263,11 @@ export function AnimatedText({
                     card ? "flip" : motion === "slide" ? "slide" : "none"
                   }
                   data-changing={animate || undefined}
+                  data-color-reveal={
+                    animate && placeholderColor && (old === "-" || old === " ")
+                      ? true
+                      : undefined
+                  }
                   data-direction={active?.direction}
                   data-flip-steps={
                     animate && card ? active.paths[index].length : undefined
@@ -273,6 +281,7 @@ export function AnimatedText({
                     animate
                       ? ({
                           "--animated-text-delay": `${active.delays[index]}ms`,
+                          "--animated-text-placeholder-color": placeholderColor,
                         } as CSSProperties)
                       : undefined
                   }
