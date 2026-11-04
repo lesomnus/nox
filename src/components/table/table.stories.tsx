@@ -17,6 +17,7 @@ import {
   TableCell,
   TableCaption,
   TableScrollArea,
+  useRangeSelection,
 } from "@lesomnus/nox";
 import styles from "./table.stories.module.css";
 
@@ -120,7 +121,11 @@ export const Default: Story = {
 export const Selectable: Story = {
   render: function Example(args) {
     const [selected, select] = useState<string[]>([]);
-    const all = selected.length === sessions.length;
+    const selection = useRangeSelection({
+      items: sessions.map((session) => session.id),
+      selected: new Set(selected),
+      onSelectionChange: (next) => select([...next]),
+    });
     return (
       <div>
         <div className={styles.toolbar}>
@@ -136,15 +141,7 @@ export const Selectable: Story = {
               <TableHead align="center">
                 <Checkbox
                   aria-label="Select all sessions"
-                  checked={all}
-                  indeterminate={selected.length > 0 && !all}
-                  onChange={(event) =>
-                    select(
-                      event.currentTarget.checked
-                        ? sessions.map((session) => session.id)
-                        : [],
-                    )
-                  }
+                  {...selection.getSelectAllProps()}
                 />
               </TableHead>
               <Headings />
@@ -159,15 +156,7 @@ export const Selectable: Story = {
                 <TableCell align="center">
                   <Checkbox
                     aria-label={`Select ${session.name}`}
-                    checked={selected.includes(session.id)}
-                    onChange={(event) => {
-                      const checked = event.currentTarget.checked;
-                      select((current) =>
-                        checked
-                          ? [...current, session.id]
-                          : current.filter((id) => id !== session.id),
-                      );
-                    }}
+                    {...selection.getCheckboxProps(session.id)}
                   />
                 </TableCell>
                 <TableHead scope="row">{session.name}</TableHead>
@@ -292,6 +281,83 @@ export const RowAwareButtons: Story = {
       </Table>
     );
   },
+};
+
+function RangeSelectionExample({
+  label = "Range selection",
+}: {
+  label?: string;
+}) {
+  const [items, setItems] = useState(() =>
+    Array.from({ length: 8 }, (_, index) => index + 1),
+  );
+  const [selected, select] = useState<Set<number>>(() => new Set());
+  const [disabled, disable] = useState(false);
+  const selection = useRangeSelection({
+    items,
+    selected,
+    onSelectionChange: select,
+    disabled,
+    isItemDisabled: (key) => key === 4,
+  });
+  return (
+    <section className={styles.rangeExample} aria-label={label}>
+      <p>
+        Press a checkbox and drag through the column. Shift-click selects a
+        range; Space works from the keyboard. Item 4 is disabled.
+      </p>
+      <div className={styles.toolbar}>
+        <output aria-label="Selected items">{selected.size} selected</output>
+        <Button
+          effect="none"
+          onClick={() => setItems((current) => [...current].reverse())}
+        >
+          Reverse order
+        </Button>
+        <Button effect="none" onClick={() => disable((value) => !value)}>
+          {disabled ? "Enable selection" : "Disable selection"}
+        </Button>
+      </div>
+      <Table className={styles.rangeTable} aria-label={label}>
+        <TableHeader>
+          <TableRow>
+            <TableHead className={styles.rangeCell}>
+              <Checkbox
+                aria-label="Select all items"
+                {...selection.getSelectAllProps()}
+              />
+            </TableHead>
+            <TableHead>Item</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {items.map((key) => (
+            <TableRow key={key} selected={selected.has(key)}>
+              <TableCell className={styles.rangeCell}>
+                <Checkbox
+                  className={styles.rangeCheckbox}
+                  aria-label={`Select Item ${key}`}
+                  {...selection.getCheckboxProps(key)}
+                />
+              </TableCell>
+              <TableHead scope="row">Item {key}</TableHead>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+    </section>
+  );
+}
+export const RangeSelection: Story = {
+  render: () => <RangeSelectionExample />,
+};
+export const IndependentRanges: Story = {
+  render: () => (
+    <div className={styles.rangeGroups}>
+      <RangeSelectionExample label="First list" />
+      <RangeSelectionExample label="Second list" />
+    </div>
+  ),
 };
 
 export const Scrolling: Story = {

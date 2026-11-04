@@ -33,6 +33,8 @@ set `style={{ tableLayout: "fixed" }}` when columns should have fixed widths.
 state, checkboxes, links, editing, sorting, pagination and row actions belong
 to the caller. Rows do not become clickable or focusable automatically.
 Use a real checkbox or button for keyboard-accessible interactions.
+Use [`useRangeSelection`](range-selection.md) when checkbox pointer-down toggling,
+drag painting and Shift ranges are needed; it keeps selection controlled.
 
 `Table` defaults to `stickyHeader`. The entire `TableHeader` sticks within the
 nearest scrolling ancestor, including multi-row headers. Use

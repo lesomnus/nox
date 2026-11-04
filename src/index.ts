@@ -4,6 +4,7 @@ export { monospaceFont, MONOSPACE_FONT_FALLBACK } from "./theme/fonts";
 export * from "./providers/ui-provider";
 export * from "./providers/theme-provider";
 export * from "./hooks/use-async-action";
+export * from "./hooks/use-range-selection";
 export * from "./hooks/use-value-motion";
 export * from "./effects/shake/use-shake";
 export * from "./effects/shake/shake-presets";
