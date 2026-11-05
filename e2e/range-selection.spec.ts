@@ -44,7 +44,7 @@ test("pointer down toggles immediately and release does not toggle again, includ
   await expect(all).not.toBeChecked();
 });
 
-test("drag paints a consistent value across skipped rows and reversals, and preserves disabled/outside items", async ({
+test("drag ranges restore the starting snapshot when shrinking and preserve disabled/outside items", async ({
   page,
 }) => {
   await page.goto(story);
@@ -54,16 +54,73 @@ test("drag paints a consistent value across skipped rows and reversals, and pres
   await move(page, checkbox(page, 6));
   await checked(page, [1, 2, 3, 5, 6]);
   await move(page, checkbox(page, 2));
-  await checked(page, [1, 2, 3, 5, 6]);
+  await checked(page, [1, 2]);
   await page.mouse.up();
   await checkbox(page, 8).check();
-  await move(page, checkbox(page, 6));
-  await page.mouse.down();
   await move(page, checkbox(page, 1));
+  await page.mouse.down();
+  await move(page, checkbox(page, 6));
   await checked(page, [8]);
+  await move(page, checkbox(page, 1));
+  await checked(page, [2, 8]);
   await page.mouse.up();
-  await checked(page, [8]);
+  await checked(page, [2, 8]);
   await expect(checkbox(page, 4)).toBeDisabled();
+});
+
+test("returning to the pressed checkbox restores mixed pre-existing values", async ({
+  page,
+}) => {
+  await page.goto(story);
+  await checkbox(page, 3).check();
+  await checkbox(page, 1).check();
+  await move(page, checkbox(page, 1));
+  await page.mouse.down();
+  await move(page, checkbox(page, 3));
+  await checked(page, []);
+  await move(page, checkbox(page, 1));
+  await checked(page, [3]);
+  await page.mouse.up();
+  await checked(page, [3]);
+});
+
+test("a held Shift session shrinks against one baseline and keeps its first selection mode", async ({
+  page,
+}) => {
+  await page.goto(story);
+  await checkbox(page, 8).check();
+  await checkbox(page, 3).check();
+  await checkbox(page, 1).check();
+  await page.keyboard.down("Shift");
+  await checkbox(page, 6).click();
+  await checked(page, [1, 2, 3, 5, 6, 8]);
+  await checkbox(page, 3).click();
+  await checked(page, [1, 2, 3, 8]);
+  await checkbox(page, 5).click();
+  await checked(page, [1, 2, 3, 5, 8]);
+  await page.keyboard.up("Shift");
+  // A new Shift press starts from the committed result, not the old baseline.
+  await page.keyboard.down("Shift");
+  await checkbox(page, 3).click();
+  await checked(page, [5, 8]);
+  await checkbox(page, 2).click();
+  await checked(page, [3, 5, 8]);
+  await page.keyboard.up("Shift");
+});
+
+test("Shift-Space can shrink the range while Shift remains held", async ({
+  page,
+}) => {
+  await page.goto(story);
+  await checkbox(page, 1).check();
+  await page.keyboard.down("Shift");
+  await checkbox(page, 6).focus();
+  await page.keyboard.press("Space");
+  await checked(page, [1, 2, 3, 5, 6]);
+  await checkbox(page, 3).focus();
+  await page.keyboard.press("Space");
+  await checked(page, [1, 2, 3]);
+  await page.keyboard.up("Shift");
 });
 
 test("Shift ranges keep the original anchor, can deselect, and preserve unrelated selections", async ({
