@@ -11,6 +11,8 @@
   color: var(--ui-muted);
 }
 .segmented_control {
+  /* Leading digits must remain visible over both the track and selection. */
+  --ui-text-leading: var(--ui-text-separator);
   position: relative;
   min-width: 0;
   display: grid;

@@ -45,25 +45,21 @@ export const Counts: Story = {
     options: [
       {
         value: "active",
-        label: "Active (7)",
+        label: "Active 7",
         display: (
           <>
             Active
-            <span>
-              (<CompactNumber value={7} mode="integer" digits={3} />)
-            </span>
+            <CompactNumber value={7} mode="integer" digits={3} />
           </>
         ),
       },
       {
         value: "history",
-        label: "History (200)",
+        label: "History 200",
         display: (
           <>
             History
-            <span>
-              (<CompactNumber value={200} mode="integer" digits={3} />)
-            </span>
+            <CompactNumber value={200} mode="integer" digits={3} />
           </>
         ),
       },
