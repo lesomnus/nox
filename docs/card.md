@@ -2,7 +2,8 @@
 
 `Card` is the shared visual surface for inline content, dialogs and drawers.
 It provides a compact heading, rounded inset body, optional close button and
-optional footer. It has no portal, placement, animation or modal behavior.
+optional footer. It has no portal, placement or modal behavior. The optional
+`revealFrom` entrance keeps glass and animated content in separate layers.
 
 ```tsx
 import { Button, Card, CardActions } from "@lesomnus/nox";
@@ -76,8 +77,14 @@ use `fill bodyPadding="var(--ui-space)"` to preserve its previous compact layout
 See **Components/Card** for standalone, form, filled scrolling and custom-padding
 examples, and **Components/Drawer** for directional placement.
 
-**Components/Card → RevealedGlass** shows the shared reveal animation over a
-striped background. Its mask and filter exist only during entrance, and the
-animation does not retain its final compositing effects. This lets the Card
-continue blurring the page after opening. Ancestor masks/filters otherwise
-limit the available backdrop ([CSS Filter Effects draft](https://drafts.csswg.org/filter-effects-2/#BackdropRoot)).
+`revealFrom="left"` (or another supported direction) animates a Card's
+content over a separate glass layer. Use this option instead of wrapping the
+whole Card in DialogReveal: an ancestor mask/filter would limit its backdrop
+([CSS Filter Effects draft](https://drafts.csswg.org/filter-effects-2/#BackdropRoot)).
+The glass keeps its backdrop blur during its fade while the content reveals
+independently. The Card still owns its border, shadow, body and footer layout.
+
+**Components/Card → RevealedGlass** shows this over a striped background;
+**RevealedFilled** combines it with a bounded scrolling body. Regression tests
+pause the normal entrance at 15%, 40%, 70% and completion and compare the rendered
+glass with blur disabled, in both themes and reduced-motion mode.

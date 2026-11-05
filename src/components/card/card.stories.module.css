@@ -6,7 +6,3 @@
     var(--ui-shade-221) 3px 6px
   );
 }
-.reveal {
-  display: block;
-  min-width: 0;
-}

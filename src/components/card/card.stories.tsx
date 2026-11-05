@@ -3,7 +3,6 @@ import {
   Button,
   Card,
   CardActions,
-  DialogReveal,
   ScrollArea,
   SegmentedControl,
 } from "@lesomnus/nox";
@@ -41,7 +40,7 @@ const meta = {
     docs: {
       description: {
         component:
-          "Shared card surface for inline content, dialogs and drawers. The card owns appearance, heading, inset body and optional footer; it does not add a portal, modal behavior or animation. fill stretches into a bounded parent and supports a composed ScrollArea; bodyPadding accepts an independent CSS padding value. CardActions groups caller-owned buttons and preserves their variants.",
+          "Shared card surface for inline content, dialogs and drawers. The card owns appearance, heading, inset body and optional footer; placement and modal behavior belong to the host. revealFrom animates content over a separate glass layer. fill stretches into a bounded parent and supports a composed ScrollArea; bodyPadding accepts an independent CSS padding value. CardActions groups caller-owned buttons and preserves their variants.",
       },
     },
   },
@@ -53,8 +52,9 @@ export const Default: Story = {};
 export const RevealedGlass: Story = {
   args: {
     title: "Revealed glass",
+    revealFrom: "left",
     children: (
-      <p>The frame keeps blurring the stripes after the entrance finishes.</p>
+      <p>The glass keeps the stripes blurred throughout the content reveal.</p>
     ),
   },
   decorators: [
@@ -64,15 +64,6 @@ export const RevealedGlass: Story = {
       </div>
     ),
   ],
-  render: (args) => (
-    <DialogReveal
-      from="left"
-      className={styles.reveal}
-      contentClassName={styles.reveal}
-    >
-      <Card {...args} />
-    </DialogReveal>
-  ),
 };
 export const CenteredHeader: Story = {
   args: {
@@ -150,3 +141,8 @@ export const Filled: Story = {
 };
 export const CustomPadding: Story = { args: { bodyPadding: 8 } };
 export const WithoutFooter: Story = { args: { footer: undefined } };
+
+export const RevealedFilled: Story = {
+  ...Filled,
+  args: { ...Filled.args, revealFrom: "left" },
+};
