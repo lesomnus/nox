@@ -42,6 +42,19 @@
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+.floating_card :global(.card-heading)[data-header-center] {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+}
+.floating_card :global(.card-heading-center) {
+  min-width: 0;
+  justify-self: center;
+}
+.floating_card :global(.card-heading)[data-header-center] :global(.card-close) {
+  grid-column: 3;
+  justify-self: end;
+  margin-left: 0;
+}
 .floating_card :global(.card-close) {
   border-radius: var(--card-inner-radius);
   margin-left: auto;

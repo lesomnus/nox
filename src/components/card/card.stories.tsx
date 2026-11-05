@@ -1,5 +1,11 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
-import { Button, Card, CardActions, ScrollArea } from "@lesomnus/nox";
+import {
+  Button,
+  Card,
+  CardActions,
+  ScrollArea,
+  SegmentedControl,
+} from "@lesomnus/nox";
 
 const meta = {
   title: "Components/Card",
@@ -42,6 +48,25 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {};
+export const CenteredHeader: Story = {
+  args: {
+    title: "Errors",
+    close: () => {},
+    closeLabel: "Close errors",
+    headerCenter: (
+      <SegmentedControl
+        label="Error status"
+        size="compact"
+        value="active"
+        options={[
+          { value: "active", label: "Active" },
+          { value: "history", label: "History" },
+        ]}
+        onChange={() => {}}
+      />
+    ),
+  },
+};
 export const Headerless: Story = {
   args: { hideHeading: true, bodyPadding: 0 },
 };

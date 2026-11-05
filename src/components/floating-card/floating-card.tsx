@@ -5,6 +5,7 @@ import { Button } from "../button/button";
 export function FloatingCard({
   title,
   hideHeading = false,
+  headerCenter,
   close,
   closeLabel,
   bodyTabIndex,
@@ -16,6 +17,8 @@ export function FloatingCard({
 }: Omit<HTMLAttributes<HTMLElement>, "title"> & {
   title: string;
   hideHeading?: boolean;
+  /** Optional centered heading content, independent of title and close widths. */
+  headerCenter?: ReactNode;
   close?: () => void;
   closeLabel?: string;
   bodyTabIndex?: number;
@@ -29,8 +32,14 @@ export function FloatingCard({
       {...props}
     >
       {!hideHeading && (
-        <header className="card-heading">
+        <header
+          className="card-heading"
+          data-header-center={!!headerCenter || undefined}
+        >
           <strong>{title}</strong>
+          {headerCenter && (
+            <div className="card-heading-center">{headerCenter}</div>
+          )}
           {close && (
             <Button
               className="card-close"
