@@ -31,6 +31,8 @@ import { useUI } from "../../providers/ui-provider";
 export type ValueOption = {
   value: string;
   label: string;
+  /** Smaller secondary text below the label, for example a resource alias. */
+  description?: string;
   /** Decorative content shown before the value label. */
   icon?: ReactNode;
   /** Content aligned to the right of the option and selected value. */
@@ -113,6 +115,10 @@ export function ValueMenu({
     .flatMap((section) => section.items)
     .find((item) => item.value === value);
   const text = display ?? selected?.label ?? value;
+  const currentOption = { ...selected, value, label: text };
+  const multiline = sections.some((section) =>
+    section.items.some((item) => !!item.description),
+  );
   const alignItem =
     alignItemWithTrigger && !searchable && !hideSelected && !!selected;
   const itemAnchor = alignItem ? value : undefined;
@@ -126,7 +132,7 @@ export function ValueMenu({
           (!hideSelected || item.value !== value) &&
           (!searchable ||
             !queryEdited ||
-            matchesValueQuery(`${item.label} ${item.searchText ?? ""}`, query)),
+            matchesValueQuery(optionSearchText(item), query)),
       ),
     }))
     .filter((section) => section.items.length > 0);
@@ -388,6 +394,7 @@ export function ValueMenu({
       ref={root}
       className={`${styles.value_menu} value-menu`}
       data-variant={variant}
+      data-multiline={multiline || undefined}
       data-value={value}
       data-item-aligned={(open && itemAligned) || undefined}
       onKeyDown={key}
@@ -416,7 +423,7 @@ export function ValueMenu({
         title={disabled ? disabledReason : text}
         onClick={() => (open ? close() : openMenu())}
       >
-        <span className="meta-value">{text}</span>
+        <ValueLabel option={currentOption} query="" className="meta-value" />
       </MenuItem>
       {open && (
         <MenuSurface
@@ -424,6 +431,7 @@ export function ValueMenu({
           ref={menu}
           id={id}
           data-variant={variant}
+          data-multiline={multiline || undefined}
           data-searchable={searchable}
           data-align-item-with-trigger={alignItem || undefined}
           className={`${styles.setting_menu} ${dialogStyles.entrance} setting-menu ${!alignItem && up ? "opens-up" : ""}`}
@@ -487,7 +495,11 @@ export function ValueMenu({
                 disabled={selected?.disabled || action.pending}
                 onClick={() => close(true)}
               >
-                <span className="meta-value">{text}</span>
+                <ValueLabel
+                  option={currentOption}
+                  query=""
+                  className="meta-value"
+                />
               </MenuItem>
             ) : null}
             <div
@@ -583,21 +595,55 @@ export function ValueMenu({
 
 export type ValueMenuProps = Parameters<typeof ValueMenu>[0];
 
-function ValueLabel({ option, query }: { option: ValueOption; query: string }) {
-  const source = `${option.label} ${option.searchText ?? ""}`;
+function optionSearchText(option: ValueOption) {
+  return `${option.label}${option.description ? ` ${option.description}` : ""} ${option.searchText ?? ""}`;
+}
+
+function ValueLabel({
+  option,
+  query,
+  className = "setting-match-label",
+}: {
+  option: ValueOption;
+  query: string;
+  className?: string;
+}) {
+  const source = optionSearchText(option);
   const ranges = matchValueQuery(source, query) ?? [];
-  // Show the alias only when it contributed to matching, so hidden metadata
-  // never produces an unexplained result without any highlighted characters.
-  const text = ranges.some((range) => range.end > option.label.length)
-    ? source
-    : option.label;
-  const parts = [];
-  let from = 0;
-  for (const { start, end } of ranges) {
-    parts.push(text.slice(from, start));
-    parts.push(<mark key={start}>{text.slice(start, end)}</mark>);
-    from = end;
-  }
-  parts.push(text.slice(from));
-  return <span className="setting-match-label">{parts}</span>;
+  // Reveal hidden search metadata only when it contributed to matching. Visible
+  // descriptions keep their own second line and highlight matching characters.
+  const metadataStart =
+    option.label.length +
+    (option.description ? option.description.length + 1 : 0) +
+    1;
+  const showMetadata = ranges.some((range) => range.end > metadataStart);
+  const highlight = (text: string, offset: number) => {
+    const parts: ReactNode[] = [];
+    let from = 0;
+    for (const range of ranges) {
+      const start = Math.max(0, range.start - offset);
+      const end = Math.min(text.length, range.end - offset);
+      if (start >= end) continue;
+      parts.push(text.slice(from, start));
+      parts.push(<mark key={start}>{text.slice(start, end)}</mark>);
+      from = end;
+    }
+    parts.push(text.slice(from));
+    return parts;
+  };
+  return (
+    <span className={`${styles.label} ${className}`}>
+      <span className={styles.primary}>
+        {highlight(option.label, 0)}
+        {showMetadata && (
+          <> {highlight(option.searchText ?? "", metadataStart)}</>
+        )}
+      </span>
+      {option.description && (
+        <small className={styles.description}>
+          {highlight(option.description, option.label.length + 1)}
+        </small>
+      )}
+    </span>
+  );
 }

@@ -5,9 +5,15 @@
 :is(.value_menu, .setting_menu) {
   --value-padding-block: var(--ui-menu-item-padding-block);
   --value-padding-inline: var(--ui-menu-item-padding-inline);
-  --value-row-height: calc(20px + 2 * var(--value-padding-block));
+  --value-content-height: 20px;
+  --value-row-height: calc(
+    var(--value-content-height) + 2 * var(--value-padding-block)
+  );
   --menu-item-padding-block: var(--value-padding-block);
   --menu-item-padding-inline: var(--value-padding-inline);
+}
+:is(.value_menu, .setting_menu)[data-multiline] {
+  --value-content-height: 32px;
 }
 .value_menu[data-variant="compact"] {
   --value-padding-block: var(--ui-control-inset);
@@ -57,23 +63,23 @@
 :is(.value_menu, .setting_menu)
   :global(.setting-trigger)
   :global(.button-content) {
-  height: 20px;
+  height: var(--value-content-height);
   justify-content: flex-start;
   transform-origin: left center;
 }
 :is(.value_menu, .setting_menu)
   :global(.setting-current)
   :global(.button-content) {
-  height: 20px;
+  height: var(--value-content-height);
   justify-content: flex-start;
   transform-origin: left center;
 }
 :is(.value_menu, .setting_menu) :global(.setting-trigger) :global(.meta-value) {
-  display: block;
+  display: flex;
   white-space: nowrap;
 }
 :is(.value_menu, .setting_menu) :global(.setting-current) :global(.meta-value) {
-  display: block;
+  display: flex;
   white-space: nowrap;
 }
 .setting_menu {
@@ -169,6 +175,7 @@
   line-height: 20px;
 }
 .setting_menu :global(.button-content) {
+  min-height: var(--value-content-height);
   justify-content: flex-start;
   overflow: hidden;
   white-space: nowrap;
@@ -233,6 +240,28 @@
 .setting_menu :global(.setting-match-label) {
   overflow: hidden;
   text-overflow: ellipsis;
+}
+.label {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  justify-content: center;
+  min-width: 0;
+}
+.primary,
+.description {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.primary {
+  line-height: 20px;
+}
+.description {
+  margin: 0;
+  color: var(--ui-muted);
+  font: 10px/12px var(--ui-font-mono);
 }
 .setting_menu :global(.setting-match-label) mark {
   background: transparent;
