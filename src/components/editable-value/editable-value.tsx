@@ -30,6 +30,7 @@ export function EditableValue({
   validate,
   monospace = false,
   display,
+  formatError,
 }: {
   label: string;
   value: string;
@@ -37,6 +38,8 @@ export function EditableValue({
   validate?: (value: string) => string | undefined;
   monospace?: boolean;
   display?: (value: string) => ReactNode;
+  /** Format save failures; return an empty string when the app owns their feedback. */
+  formatError?: (error: unknown) => string;
 }) {
   const { t } = useUI();
   const trigger = useRef<HTMLButtonElement>(null);
@@ -73,6 +76,7 @@ export function EditableValue({
           labelOrigin={labelOrigin}
           save={save}
           validate={validate}
+          formatError={formatError}
           close={() => setEditing(false)}
         />
       )}
@@ -88,6 +92,7 @@ function ValueEditor({
   save,
   validate,
   close,
+  formatError,
 }: {
   label: string;
   value: string;
@@ -96,6 +101,7 @@ function ValueEditor({
   save: (value: string) => Promise<void>;
   validate?: (value: string) => string | undefined;
   close: () => void;
+  formatError?: (error: unknown) => string;
 }) {
   const { t } = useUI();
   const dialog = useRef<HTMLDialogElement>(null);
@@ -178,7 +184,8 @@ function ValueEditor({
       await save(next);
       if (alive.current) close();
     } catch (failure) {
-      if (alive.current) setError(String(failure));
+      if (alive.current)
+        setError(formatError ? formatError(failure) : String(failure));
     } finally {
       saving.current = false;
       if (alive.current) setBusy(false);
