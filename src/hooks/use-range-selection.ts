@@ -1,5 +1,13 @@
-import { useId, useLayoutEffect, useMemo, useRef } from "react";
+import {
+  useId,
+  useLayoutEffect,
+  useMemo,
+  useReducer,
+  useRef,
+  type HTMLAttributes,
+} from "react";
 import type { CheckboxProps } from "../components/checkbox/checkbox";
+import { SelectionHistory, sameSelection } from "./selection-history";
 
 export type RangeSelectionOptions<Key extends string | number> = {
   /** Unique keys in their current visible order. */
@@ -8,6 +16,14 @@ export type RangeSelectionOptions<Key extends string | number> = {
   onSelectionChange: (selected: Set<Key>) => void;
   disabled?: boolean;
   isItemDisabled?: (key: Key) => boolean;
+  /** Maximum local undo commits; zero disables history. */
+  historyLimit?: number;
+};
+export type RangeSelectionContainerProps = Pick<
+  HTMLAttributes<HTMLElement>,
+  "tabIndex" | "onKeyDown" | "onPointerDownCapture" | "onFocusCapture"
+> & {
+  "data-nox-range-container": string;
 };
 export type RangeSelectionCheckboxProps = Pick<
   CheckboxProps,
@@ -36,6 +52,11 @@ export function useRangeSelection<Key extends string | number>(
   const scope = useId();
   const latest = useRef(options);
   const anchor = useRef<Key | undefined>(undefined);
+  const shiftHeld = useRef(false);
+  const alive = useRef(true);
+  const historyRef = useRef<SelectionHistory<Key> | null>(null);
+  const history = (historyRef.current ??= new SelectionHistory<Key>());
+  const [, refreshHistory] = useReducer((value) => value + 1, 0);
   const shiftRange = useRef<RangeSnapshot<Key> | undefined>(undefined);
   const documentBinding = useRef<
     { document: Document; abort: AbortController } | undefined
@@ -60,6 +81,31 @@ export function useRangeSelection<Key extends string | number>(
     const current = gesture.current;
     gesture.current = undefined;
     current?.cleanup();
+    finishCommit();
+  }
+  function checkpoint() {
+    return { selected: latest.current.selected, anchor: anchor.current };
+  }
+  function startCommit() {
+    if (alive.current && !latest.current.disabled) history.begin(checkpoint());
+  }
+  function finishCommit() {
+    if (
+      alive.current &&
+      !gesture.current &&
+      !shiftHeld.current &&
+      history.commit(checkpoint())
+    )
+      refreshHistory();
+  }
+  function prepareActivation(shift: boolean) {
+    if (!shift && shiftHeld.current) {
+      shiftHeld.current = false;
+      shiftRange.current = undefined;
+      stop();
+    }
+    startCommit();
+    if (shift) shiftHeld.current = true;
   }
   function snapshot(start = anchor.current): RangeSnapshot<Key> {
     return {
@@ -74,6 +120,8 @@ export function useRangeSelection<Key extends string | number>(
       !documentBinding.current.abort.signal.aborted
     )
       return;
+    shiftHeld.current = false;
+    stop();
     documentBinding.current?.abort.abort();
     shiftRange.current = undefined;
     const abort = new AbortController();
@@ -84,17 +132,23 @@ export function useRangeSelection<Key extends string | number>(
         if (
           event.key === "Shift" &&
           !latest.current.disabled &&
-          !shiftRange.current
-        )
+          !shiftHeld.current
+        ) {
+          startCommit();
+          shiftHeld.current = true;
           shiftRange.current = snapshot();
+        }
       },
       { capture: true, signal: abort.signal },
     );
     document.addEventListener(
       "keyup",
       (event) => {
-        if (event.key === "Shift" && !event.shiftKey)
+        if (event.key === "Shift" && !event.shiftKey) {
+          shiftHeld.current = false;
           shiftRange.current = undefined;
+          finishCommit();
+        }
       },
       { capture: true, signal: abort.signal },
     );
@@ -102,18 +156,33 @@ export function useRangeSelection<Key extends string | number>(
       "blur",
       () => {
         shiftRange.current = undefined;
+        shiftHeld.current = false;
         stop();
       },
       { signal: abort.signal },
     );
   }
   useLayoutEffect(() => {
+    const external = !sameSelection(latest.current.selected, options.selected);
     latest.current = options;
+    if (external) {
+      const changed = history.clear();
+      shiftHeld.current = false;
+      shiftRange.current = undefined;
+      anchor.current = undefined;
+      stop();
+      if (changed) refreshHistory();
+    }
+    if (history.setLimit(options.historyLimit)) refreshHistory();
     if (anchor.current !== undefined && !indexes.has(anchor.current)) {
       anchor.current = undefined;
       shiftRange.current = undefined;
+      shiftHeld.current = false;
     }
-    if (options.disabled) shiftRange.current = undefined;
+    if (options.disabled) {
+      shiftRange.current = undefined;
+      shiftHeld.current = false;
+    }
     const current = gesture.current;
     if (
       current &&
@@ -124,11 +193,16 @@ export function useRangeSelection<Key extends string | number>(
         current.items.some((key, i) => key !== options.items[i]))
     )
       stop();
+    finishCommit();
   });
   useLayoutEffect(() => {
+    alive.current = true;
     if (documentBinding.current) bindDocument(documentBinding.current.document);
     return () => {
+      alive.current = false;
+      history.clear();
       stop();
+      shiftHeld.current = false;
       shiftRange.current = undefined;
       documentBinding.current?.abort.abort();
     };
@@ -136,11 +210,7 @@ export function useRangeSelection<Key extends string | number>(
 
   function publish(next: Set<Key>) {
     const current = latest.current;
-    if (
-      next.size === current.selected.size &&
-      [...next].every((key) => current.selected.has(key))
-    )
-      return;
+    if (sameSelection(next, current.selected)) return;
     // Pointer events can arrive before the controlled render commits.
     latest.current = { ...current, selected: next };
     current.onSelectionChange(next);
@@ -238,6 +308,7 @@ export function useRangeSelection<Key extends string | number>(
     )
       return;
     stop();
+    prepareActivation(event.shiftKey);
     event.preventDefault();
     const input = event.currentTarget;
     input.focus({ preventScroll: true });
@@ -350,11 +421,11 @@ export function useRangeSelection<Key extends string | number>(
       onChange: (event) => {
         if (pointerClick(event.nativeEvent)) return;
         bindDocument(event.currentTarget.ownerDocument);
-        activate(
-          key,
-          event.currentTarget.checked,
-          "shiftKey" in event.nativeEvent && !!event.nativeEvent.shiftKey,
-        );
+        const shift =
+          "shiftKey" in event.nativeEvent && !!event.nativeEvent.shiftKey;
+        prepareActivation(shift);
+        activate(key, event.currentTarget.checked, shift);
+        finishCommit();
       },
     };
   }
@@ -372,11 +443,112 @@ export function useRangeSelection<Key extends string | number>(
       onChange: (event) => {
         if (pointerClick(event.nativeEvent)) return;
         bindDocument(event.currentTarget.ownerDocument);
+        prepareActivation(
+          "shiftKey" in event.nativeEvent && !!event.nativeEvent.shiftKey,
+        );
         anchor.current = undefined;
         shiftRange.current = undefined;
         change(latest.current.items, event.currentTarget.checked);
+        finishCommit();
       },
     };
   }
-  return { getCheckboxProps, getSelectAllProps };
+  function navigateHistory(redo: boolean) {
+    if (latest.current.disabled || !history.enabled) return false;
+    shiftHeld.current = false;
+    shiftRange.current = undefined;
+    stop();
+    const entry = redo ? history.redo() : history.undo();
+    if (!entry) return false;
+    const target = redo ? entry.after : entry.before;
+    const current = latest.current;
+    const next = new Set(current.selected);
+    for (const key of current.items) {
+      if (
+        current.isItemDisabled?.(key) ||
+        entry.before.selected.has(key) === entry.after.selected.has(key)
+      )
+        continue;
+      if (target.selected.has(key)) next.add(key);
+      else next.delete(key);
+    }
+    anchor.current =
+      target.anchor !== undefined && current.items.includes(target.anchor)
+        ? target.anchor
+        : undefined;
+    publish(next);
+    refreshHistory();
+    return true;
+  }
+  function clearHistory() {
+    const changed = history.clear();
+    shiftHeld.current = false;
+    shiftRange.current = undefined;
+    stop();
+    if (changed) refreshHistory();
+  }
+  function scopedTarget(event: {
+    target: EventTarget;
+    currentTarget: HTMLElement;
+  }) {
+    const target = event.target as Element;
+    return typeof target.closest === "function" &&
+      event.currentTarget.contains(target) &&
+      target.closest("[data-nox-range-container]") === event.currentTarget
+      ? target
+      : undefined;
+  }
+  function getContainerProps(): RangeSelectionContainerProps {
+    return {
+      "data-nox-range-container": scope,
+      tabIndex: -1,
+      onFocusCapture: (event) => {
+        if (scopedTarget(event))
+          bindDocument(event.currentTarget.ownerDocument);
+      },
+      onPointerDownCapture: (event) => {
+        const target = scopedTarget(event);
+        if (!target) return;
+        bindDocument(event.currentTarget.ownerDocument);
+        const interactive = target.closest(
+          'input,button,a,textarea,select,[contenteditable],[role="textbox"],[tabindex]',
+        );
+        if (!interactive || interactive === event.currentTarget)
+          event.currentTarget.focus({ preventScroll: true });
+      },
+      onKeyDown: (event) => {
+        if (
+          event.defaultPrevented ||
+          event.altKey ||
+          !(event.ctrlKey || event.metaKey) ||
+          event.key.toLowerCase() !== "z" ||
+          latest.current.disabled ||
+          !history.enabled
+        )
+          return;
+        const target = scopedTarget(event);
+        if (
+          !target ||
+          target.closest(
+            'textarea,select,[contenteditable="true"],[contenteditable=""],[role="textbox"],input:not([type="checkbox"]):not([type="radio"]):not([type="button"]):not([type="submit"]):not([type="reset"])',
+          )
+        )
+          return;
+        event.preventDefault();
+        event.stopPropagation();
+        navigateHistory(event.shiftKey);
+      },
+    };
+  }
+  const pending = history.hasPendingChange(options.selected);
+  return {
+    getCheckboxProps,
+    getSelectAllProps,
+    getContainerProps,
+    undo: () => navigateHistory(false),
+    redo: () => navigateHistory(true),
+    clearHistory,
+    canUndo: !options.disabled && (history.canUndo || pending),
+    canRedo: !options.disabled && history.canRedo && !pending,
+  };
 }

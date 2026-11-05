@@ -134,7 +134,12 @@ export const Selectable: Story = {
             {selected.length} selected
           </output>
         </div>
-        <Table {...args} aria-label="Sessions" className={styles.table}>
+        <Table
+          {...args}
+          {...selection.getContainerProps()}
+          aria-label="Sessions"
+          className={styles.table}
+        >
           <Columns selection />
           <TableHeader>
             <TableRow>
@@ -301,14 +306,33 @@ function RangeSelectionExample({
     isItemDisabled: (key) => key === 4,
   });
   return (
-    <section className={styles.rangeExample} aria-label={label}>
+    <section
+      {...selection.getContainerProps()}
+      className={styles.rangeExample}
+      aria-label={label}
+    >
       <p>
         Press and drag to resize a range; pulling back restores the original
         selection. Hold Shift to adjust one range with repeated clicks or Space.
-        Item 4 is disabled.
+        Each drag or held-Shift session is one commit. Use Ctrl+Z to undo and
+        Ctrl+Shift+Z to redo while focused here. Item 4 is disabled.
       </p>
       <div className={styles.toolbar}>
         <output aria-label="Selected items">{selected.size} selected</output>
+        <Button
+          effect="none"
+          disabled={!selection.canUndo}
+          onClick={selection.undo}
+        >
+          Undo
+        </Button>
+        <Button
+          effect="none"
+          disabled={!selection.canRedo}
+          onClick={selection.redo}
+        >
+          Redo
+        </Button>
         <Button
           effect="none"
           onClick={() => setItems((current) => [...current].reverse())}
@@ -319,6 +343,13 @@ function RangeSelectionExample({
           {disabled ? "Enable selection" : "Disable selection"}
         </Button>
       </div>
+      <label>
+        Notes{" "}
+        <input
+          aria-label="Notes"
+          placeholder="Text keeps its own undo history"
+        />
+      </label>
       <Table className={styles.rangeTable} aria-label={label}>
         <TableHeader>
           <TableRow>

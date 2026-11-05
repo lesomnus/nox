@@ -14,16 +14,16 @@ const selection = useRangeSelection({
   isItemDisabled: (id) => lockedIds.has(id),
 });
 
-<Checkbox aria-label="Select all" {...selection.getSelectAllProps()} />;
-{
-  rows.map((row) => (
+<div {...selection.getContainerProps()}>
+  <Checkbox aria-label="Select all" {...selection.getSelectAllProps()} />
+  {rows.map((row) => (
     <Checkbox
       key={row.id}
       aria-label={`Select ${row.name}`}
       {...selection.getCheckboxProps(row.id)}
     />
-  ));
-}
+  ))}
+</div>;
 ```
 
 Supply unique string or number keys in display order. Keep `selected` controlled
@@ -59,6 +59,37 @@ time. Labels, checkbox appearance and row highlighting remain caller-owned.
 The hook adds scoped data attributes to the input for pointer hit testing, and
 needs no table component or row wrapper. Attach its props to each rendered
 checkbox target, including full-cell checkbox hit areas.
+
+## Undo and redo
+
+Spread `getContainerProps()` on the table or list's containing element. While
+focus is inside this scope, Ctrl+Z undoes selection and Ctrl+Shift+Z redoes it
+(Command also works). Clicking a non-interactive cell focuses the scope without
+adding a tab stop. Text inputs, textareas and editable content retain native undo.
+Nested or independent selection scopes handle only their own history.
+
+A primary pointer down through up is one commit, including every drag preview.
+Shift down through up groups all clicks and Space activations into one commit;
+nested pointer gestures do not split it. Other native checkbox activations and
+select-all each create their own commit. Blur or cancellation finalizes the current
+selection. Undo during a gesture ends it before restoring the previous state.
+
+Only changed selection sets create records. A no-op gesture preserves redo;
+a new changed commit after undo clears redo. History also restores the range
+anchor. Removed or disabled items are skipped when replaying a commit, and keys
+outside the current scope are preserved.
+
+`undo()` and `redo()` return whether a record was applied. `canUndo` and `canRedo`
+can drive buttons; `clearHistory()` discards records without changing selection.
+`historyLimit` bounds the number of local commits; set it to zero to disable
+history. Records live only in the mounted hook, with no browser persistence.
+External controlled selection replacements clear history and end active gestures.
+Ordinary controlled updates from `onSelectionChange` preserve it.
+
+```tsx
+<Button disabled={!selection.canUndo} onClick={selection.undo}>Undo</Button>
+<Button disabled={!selection.canRedo} onClick={selection.redo}>Redo</Button>
+```
 
 See **Components/Table → Range Selection** and **Independent Ranges** for live
 examples. The existing Selectable table also uses this hook.
