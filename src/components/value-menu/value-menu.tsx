@@ -33,6 +33,8 @@ export type ValueOption = {
   label: string;
   /** Decorative content shown before the value label. */
   icon?: ReactNode;
+  /** Content aligned to the right of the option and selected value. */
+  trailing?: ReactNode;
   muted?: boolean;
   /** Keep the option visible while preventing selection. */
   disabled?: boolean;
@@ -403,6 +405,7 @@ export function ValueMenu({
         type="button"
         className="setting-trigger"
         icon={selected?.icon}
+        trailing={selected?.trailing}
         data-muted={!!isMuted}
         role="combobox"
         aria-label={label}
@@ -477,6 +480,7 @@ export function ValueMenu({
                 type="button"
                 className="setting-current"
                 icon={selected?.icon}
+                trailing={selected?.trailing}
                 data-option-value={value}
                 data-muted={!!isMuted}
                 tabIndex={-1}
@@ -545,6 +549,7 @@ export function ValueMenu({
                             }
                             title={choice.label}
                             icon={choice.icon}
+                            trailing={choice.trailing}
                             data-muted={!!choice.muted}
                             onClick={(event) => {
                               if (choice.value === value) close(true);
