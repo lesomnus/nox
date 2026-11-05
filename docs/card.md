@@ -75,3 +75,9 @@ use `fill bodyPadding="var(--ui-space)"` to preserve its previous compact layout
 
 See **Components/Card** for standalone, form, filled scrolling and custom-padding
 examples, and **Components/Drawer** for directional placement.
+
+**Components/Card → RevealedGlass** shows the shared reveal animation over a
+striped background. Its mask and filter exist only during entrance, and the
+animation does not retain its final compositing effects. This lets the Card
+continue blurring the page after opening. Ancestor masks/filters otherwise
+limit the available backdrop ([CSS Filter Effects draft](https://drafts.csswg.org/filter-effects-2/#BackdropRoot)).

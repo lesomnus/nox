@@ -3,9 +3,11 @@ import {
   Button,
   Card,
   CardActions,
+  DialogReveal,
   ScrollArea,
   SegmentedControl,
 } from "@lesomnus/nox";
+import styles from "./card.stories.module.css";
 
 const meta = {
   title: "Components/Card",
@@ -48,6 +50,30 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {};
+export const RevealedGlass: Story = {
+  args: {
+    title: "Revealed glass",
+    children: (
+      <p>The frame keeps blurring the stripes after the entrance finishes.</p>
+    ),
+  },
+  decorators: [
+    (Story) => (
+      <div className={styles.backdrop}>
+        <Story />
+      </div>
+    ),
+  ],
+  render: (args) => (
+    <DialogReveal
+      from="left"
+      className={styles.reveal}
+      contentClassName={styles.reveal}
+    >
+      <Card {...args} />
+    </DialogReveal>
+  ),
+};
 export const CenteredHeader: Story = {
   args: {
     title: "Errors",

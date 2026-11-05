@@ -1,6 +1,38 @@
 import { expect, test } from "@playwright/test";
 
 for (const theme of ["dark", "light"]) {
+  for (const reducedMotion of ["no-preference", "reduce"] as const) {
+    test(`revealed Card visibly blurs the page after entering in ${theme} / ${reducedMotion}`, async ({
+      page,
+    }) => {
+      await page.emulateMedia({ reducedMotion });
+      await page.goto(
+        `/iframe.html?id=components-card--revealed-glass&viewMode=story&globals=theme:${theme}`,
+      );
+      const card = page.locator("section.floating-card");
+      const content = card.locator("..");
+      await expect(content).toHaveCSS("mask-image", "none");
+      await expect(content).toHaveCSS("filter", "none");
+      const header = (await card.locator(".card-heading").boundingBox())!;
+      // Sample blank glass above the heading text, independently of font rasterization.
+      const clip = {
+        x: Math.ceil(header.x + 24),
+        y: Math.ceil(header.y + 4),
+        width: 160,
+        height: 6,
+      };
+      const blurred = await page.screenshot({ clip });
+      await card.evaluate((node) => {
+        node.style.backdropFilter = "none";
+        node.style.setProperty("-webkit-backdrop-filter", "none");
+      });
+      const sharp = await page.screenshot({ clip });
+      expect(blurred.equals(sharp)).toBe(false);
+    });
+  }
+}
+
+for (const theme of ["dark", "light"]) {
   test(`headerless Card keeps matching top and horizontal body insets in ${theme}`, async ({
     page,
   }) => {
