@@ -22,20 +22,31 @@ export type RangeSelectionCheckboxProps = Pick<
   "data-nox-range-index"?: number;
 };
 
-/** Controlled checkbox painting and Shift ranges, independent of table markup. */
+type RangeSnapshot<Key> = {
+  before: ReadonlySet<Key>;
+  affected: Set<Key>;
+  anchor?: Key;
+  checked?: boolean;
+};
+
+/** Controlled, reversible checkbox ranges, independent of table markup. */
 export function useRangeSelection<Key extends string | number>(
   options: RangeSelectionOptions<Key>,
 ) {
   const scope = useId();
   const latest = useRef(options);
   const anchor = useRef<Key | undefined>(undefined);
+  const shiftRange = useRef<RangeSnapshot<Key> | undefined>(undefined);
+  const documentBinding = useRef<
+    { document: Document; abort: AbortController } | undefined
+  >(undefined);
   const suppressClick = useRef(false);
   const gesture = useRef<
     | {
         items: readonly Key[];
         start?: Key;
         last: number;
-        checked: boolean;
+        snapshot?: RangeSnapshot<Key>;
         cleanup: () => void;
       }
     | undefined
@@ -50,10 +61,59 @@ export function useRangeSelection<Key extends string | number>(
     gesture.current = undefined;
     current?.cleanup();
   }
+  function snapshot(start = anchor.current): RangeSnapshot<Key> {
+    return {
+      before: new Set(latest.current.selected),
+      affected: new Set(),
+      anchor: start,
+    };
+  }
+  function bindDocument(document: Document) {
+    if (
+      documentBinding.current?.document === document &&
+      !documentBinding.current.abort.signal.aborted
+    )
+      return;
+    documentBinding.current?.abort.abort();
+    shiftRange.current = undefined;
+    const abort = new AbortController();
+    documentBinding.current = { document, abort };
+    document.addEventListener(
+      "keydown",
+      (event) => {
+        if (
+          event.key === "Shift" &&
+          !latest.current.disabled &&
+          !shiftRange.current
+        )
+          shiftRange.current = snapshot();
+      },
+      { capture: true, signal: abort.signal },
+    );
+    document.addEventListener(
+      "keyup",
+      (event) => {
+        if (event.key === "Shift" && !event.shiftKey)
+          shiftRange.current = undefined;
+      },
+      { capture: true, signal: abort.signal },
+    );
+    document.defaultView?.addEventListener(
+      "blur",
+      () => {
+        shiftRange.current = undefined;
+        stop();
+      },
+      { signal: abort.signal },
+    );
+  }
   useLayoutEffect(() => {
     latest.current = options;
-    if (anchor.current !== undefined && !indexes.has(anchor.current))
+    if (anchor.current !== undefined && !indexes.has(anchor.current)) {
       anchor.current = undefined;
+      shiftRange.current = undefined;
+    }
+    if (options.disabled) shiftRange.current = undefined;
     const current = gesture.current;
     if (
       current &&
@@ -65,7 +125,26 @@ export function useRangeSelection<Key extends string | number>(
     )
       stop();
   });
-  useLayoutEffect(() => () => stop(), []);
+  useLayoutEffect(() => {
+    if (documentBinding.current) bindDocument(documentBinding.current.document);
+    return () => {
+      stop();
+      shiftRange.current = undefined;
+      documentBinding.current?.abort.abort();
+    };
+  }, []);
+
+  function publish(next: Set<Key>) {
+    const current = latest.current;
+    if (
+      next.size === current.selected.size &&
+      [...next].every((key) => current.selected.has(key))
+    )
+      return;
+    // Pointer events can arrive before the controlled render commits.
+    latest.current = { ...current, selected: next };
+    current.onSelectionChange(next);
+  }
 
   function change(keys: readonly Key[], checked: boolean) {
     const current = latest.current;
@@ -79,9 +158,7 @@ export function useRangeSelection<Key extends string | number>(
       changed = true;
     }
     if (!changed) return;
-    // Continuous pointer events may arrive before the controlled render commits.
-    latest.current = { ...current, selected: next };
-    current.onSelectionChange(next);
+    publish(next);
   }
   function range(from: number, to: number) {
     return latest.current.items.slice(
@@ -89,18 +166,49 @@ export function useRangeSelection<Key extends string | number>(
       Math.max(from, to) + 1,
     );
   }
+  function preview(currentRange: RangeSnapshot<Key>, keys: readonly Key[]) {
+    const current = latest.current;
+    if (current.disabled) return;
+    const available = new Set(current.items);
+    const next = new Set(current.selected);
+    const set = (key: Key, checked: boolean) => {
+      if (!available.has(key) || current.isItemDisabled?.(key)) return;
+      if (checked) next.add(key);
+      else next.delete(key);
+    };
+    for (const key of currentRange.affected)
+      set(key, currentRange.before.has(key));
+    for (const key of keys) set(key, currentRange.checked!);
+    currentRange.affected = new Set(keys);
+    publish(next);
+  }
   function activate(key: Key, checked: boolean, shift: boolean) {
     const current = latest.current;
     if (current.disabled || current.isItemDisabled?.(key)) return;
-    const from =
-      anchor.current === undefined ? -1 : current.items.indexOf(anchor.current);
     const to = current.items.indexOf(key);
     if (to < 0) return;
-    if (shift && from >= 0) change(range(from, to), checked);
-    else {
+    let currentRange: RangeSnapshot<Key>;
+    if (shift) {
+      currentRange = shiftRange.current ??= snapshot();
+      if (
+        currentRange.anchor === undefined ||
+        !current.items.includes(currentRange.anchor)
+      ) {
+        currentRange.anchor = key;
+        anchor.current = key;
+      }
+      currentRange.checked ??= !currentRange.before.has(key);
+    } else {
+      shiftRange.current = undefined;
       anchor.current = key;
-      change([key], checked);
+      currentRange = snapshot(key);
+      currentRange.checked = checked;
     }
+    preview(
+      currentRange,
+      range(current.items.indexOf(currentRange.anchor!), to),
+    );
+    return currentRange;
   }
   const pointerClick = (event: Event) =>
     suppressClick.current && "detail" in event && Number(event.detail) > 0;
@@ -117,6 +225,7 @@ export function useRangeSelection<Key extends string | number>(
     key?: Key,
   ) {
     const current = latest.current;
+    bindDocument(event.currentTarget.ownerDocument);
     if (event.isPrimary && event.pointerType === "touch" && !gesture.current)
       suppressClick.current = false;
     if (
@@ -149,11 +258,10 @@ export function useRangeSelection<Key extends string | number>(
     let x = event.clientX,
       y = event.clientY;
     const pointerId = event.pointerId;
-    const currentGesture = {
+    const currentGesture: NonNullable<typeof gesture.current> = {
       items: [...current.items],
       start: key,
       last: key === undefined ? -1 : current.items.indexOf(key),
-      checked,
       cleanup: () => {
         listeners.abort();
         try {
@@ -166,7 +274,8 @@ export function useRangeSelection<Key extends string | number>(
     };
     gesture.current = currentGesture;
     const paint = () => {
-      if (gesture.current !== currentGesture || key === undefined) return;
+      if (gesture.current !== currentGesture || !currentGesture.snapshot)
+        return;
       const hit = document
         .elementFromPoint(x, y)
         ?.closest<HTMLElement>("[data-nox-range-selection]");
@@ -179,7 +288,11 @@ export function useRangeSelection<Key extends string | number>(
         index === currentGesture.last
       )
         return;
-      change(range(currentGesture.last, index), checked);
+      const from = latest.current.items.indexOf(
+        currentGesture.snapshot.anchor!,
+      );
+      if (from < 0) return;
+      preview(currentGesture.snapshot, range(from, index));
       currentGesture.last = index;
     };
     document.addEventListener(
@@ -215,13 +328,11 @@ export function useRangeSelection<Key extends string | number>(
       },
       { capture: true, signal: listeners.signal },
     );
-    document.defaultView?.addEventListener("blur", () => stop(), {
-      signal: listeners.signal,
-    });
     if (key === undefined) {
       anchor.current = undefined;
+      shiftRange.current = undefined;
       change(current.items, checked);
-    } else activate(key, checked, event.shiftKey);
+    } else currentGesture.snapshot = activate(key, checked, event.shiftKey);
   }
 
   function getCheckboxProps(key: Key): RangeSelectionCheckboxProps {
@@ -238,6 +349,7 @@ export function useRangeSelection<Key extends string | number>(
       onClick: click,
       onChange: (event) => {
         if (pointerClick(event.nativeEvent)) return;
+        bindDocument(event.currentTarget.ownerDocument);
         activate(
           key,
           event.currentTarget.checked,
@@ -259,7 +371,9 @@ export function useRangeSelection<Key extends string | number>(
       onClick: click,
       onChange: (event) => {
         if (pointerClick(event.nativeEvent)) return;
+        bindDocument(event.currentTarget.ownerDocument);
         anchor.current = undefined;
+        shiftRange.current = undefined;
         change(latest.current.items, event.currentTarget.checked);
       },
     };

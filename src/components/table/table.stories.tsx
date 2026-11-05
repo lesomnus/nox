@@ -303,8 +303,9 @@ function RangeSelectionExample({
   return (
     <section className={styles.rangeExample} aria-label={label}>
       <p>
-        Press a checkbox and drag through the column. Shift-click selects a
-        range; Space works from the keyboard. Item 4 is disabled.
+        Press and drag to resize a range; pulling back restores the original
+        selection. Hold Shift to adjust one range with repeated clicks or Space.
+        Item 4 is disabled.
       </p>
       <div className={styles.toolbar}>
         <output aria-label="Selected items">{selected.size} selected</output>
