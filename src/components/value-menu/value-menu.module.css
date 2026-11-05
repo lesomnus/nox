@@ -19,13 +19,7 @@
   :global(
     :is(.setting-trigger, .setting-current, [role="option"]) > .button-content
   ) {
-  gap: calc(var(--value-padding-inline) / 2);
-}
-.setting_menu[data-multiline][data-align-item-with-trigger="true"]
-  :global([role="option"][aria-selected="true"] > .button-content) {
-  gap: calc(
-    var(--selected-option-padding-left, var(--value-padding-inline)) / 2
-  );
+  gap: calc(2 * var(--ui-space));
 }
 .value_menu[data-variant="compact"] {
   --value-padding-block: var(--ui-control-inset);
