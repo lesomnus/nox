@@ -9,6 +9,13 @@ replace the active transition rather than queuing old values, and the accessible
 name always contains the current value. Reduced-motion preferences disable the
 transitions.
 
+Interrupted slides sample the currently visible glyphs and their fractional
+positions before replacing the old strip. They continue from those positions
+toward the new target, including reversals, intermediate digits and waiting
+placeholders. Already animated cells do not wait through another start delay.
+Old completion timers cannot settle a newer transition. CompactNumber uses this
+same behavior, including when decimal or unit formatting changes.
+
 ## Ready-to-use numeric presets
 
 Import `AnimatedCompactNumber` or `AnimatedDurationDisplay` from the package root

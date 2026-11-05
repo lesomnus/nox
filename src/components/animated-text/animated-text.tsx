@@ -75,6 +75,7 @@ const noMotionSubscription = () => () => {};
 
 type Transition = {
   from: string[];
+  origins?: (SlideOrigin | undefined)[];
   paths: string[][];
   delays: number[];
   to: string;
@@ -82,6 +83,40 @@ type Transition = {
   direction: "up" | "down";
   id: number;
 };
+
+type SlideFrame = { character: string; offset: number };
+type SlideOrigin = { frames: SlideFrame[]; anchor: SlideFrame };
+
+/** Read the clipped, on-screen strip before replacing any of its DOM layers. */
+function slideOrigins(
+  element: HTMLElement | null,
+  direction: "up" | "down",
+): (SlideOrigin | undefined)[] {
+  return Array.from(element?.firstElementChild?.children ?? [], (cell) => {
+    if (!cell.matches('[data-motion="slide"][data-changing]')) return;
+    const bounds = cell.getBoundingClientRect();
+    if (!bounds.height) return;
+    const frames = Array.from(cell.querySelectorAll("[data-slide-frame]"))
+      .map((frame) => ({
+        character: frame.textContent ?? " ",
+        offset:
+          (frame.getBoundingClientRect().top - bounds.top) / bounds.height,
+      }))
+      .filter((frame) => frame.offset > -0.99999 && frame.offset < 0.99999);
+    if (!frames.length) return;
+    // The frame nearest the new entry edge lands before any new path digits.
+    const anchor = frames.reduce((entry, frame) =>
+      (
+        direction === "down"
+          ? frame.offset < entry.offset
+          : frame.offset > entry.offset
+      )
+        ? frame
+        : entry,
+    );
+    return { frames, anchor };
+  });
+}
 
 /** Controlled presentation only: the host owns the clock, price or counter. */
 export function AnimatedText({
@@ -189,15 +224,28 @@ export function AnimatedText({
       before.order,
       order.current,
     );
+    const origins =
+      motion === "slide"
+        ? slideOrigins(root.current, physicalDirection)
+        : undefined;
+    origins?.forEach((origin, index) => {
+      if (origin) from[index] = origin.anchor.character;
+    });
     const delays = characterDelays(
-      before.text,
+      from.join(""),
       text,
       motion,
       delayOption.current,
       flipCharacters,
     );
+    // A moving digit is already revealed. Retarget it immediately rather than
+    // freezing its partial frames for another spatial/stagger delay.
+    origins?.forEach((origin, index) => {
+      if (origin) delays[index] = 0;
+    });
     setTransition({
       from,
+      origins,
       delays,
       paths:
         motion === "flip"
@@ -254,12 +302,10 @@ export function AnimatedText({
   }, [transition?.id, shouldAnimate]);
 
   const active =
-    motion !== "none" &&
-    !reduced &&
-    transition?.to === text &&
-    transition.colorKey === colorKey
-      ? transition
-      : undefined;
+    motion !== "none" && !reduced && transition ? transition : undefined;
+  // Keep the old strip mounted through the pre-layout commit so its actual
+  // visible positions can be sampled, instead of flashing the previous target.
+  const visualText = active?.to ?? text;
   const pendingColors =
     !!characterColor &&
     (displayed.text !== text || displayed.colorKey !== colorKey);
@@ -270,7 +316,7 @@ export function AnimatedText({
     milliseconds > 0 &&
     (pendingColors || !!active);
   const displayedColors = pendingColors ? previous.current.colors : colors;
-  const targetCharacters = Array.from(text);
+  const targetCharacters = Array.from(visualText);
   const changedDelays =
     active?.delays.filter(
       (_, index) => active.from[index] !== targetCharacters[index],
@@ -318,9 +364,11 @@ export function AnimatedText({
                 {run.value}
               </span>
             ))
-          : Array.from(text, (character, index) => {
+          : Array.from(visualText, (character, index) => {
               const old = active?.from[index];
-              const changing = old !== undefined && old !== character;
+              const changing =
+                old !== undefined &&
+                (old !== character || !!active?.origins?.[index]);
               const card =
                 motion === "flip" && isFlipCharacter(character, flipCharacters);
               const animate =
@@ -370,6 +418,7 @@ export function AnimatedText({
                           path={active.paths[index]}
                           duration={milliseconds}
                           delay={active.delays[index]}
+                          origin={active.origins?.[index]}
                         />
                       ) : (
                         <FlipFrames
@@ -395,17 +444,22 @@ function SlideFrames({
   path,
   duration,
   delay,
+  origin,
 }: {
   from: string;
   path: string[];
   duration: number;
   delay: number;
+  origin?: SlideOrigin;
 }) {
   const style = {
     "--animated-text-duration": `${duration}ms`,
     "--animated-text-delay": `${delay}ms`,
     "--animated-slide-distance": `${path.length * 100}%`,
   } as CSSProperties;
+  if (origin) {
+    return <RetargetedSlide origin={origin} path={path} style={style} />;
+  }
   // One strip crosses every intermediate digit on the same animation timeline.
   // No per-step easing, React commit or timer can pause at a digit boundary.
   if (path.length > 1)
@@ -448,6 +502,57 @@ function SlideFrames({
         {path[0]}
       </span>
     </>
+  );
+}
+
+function RetargetedSlide({
+  origin,
+  path,
+  style,
+}: {
+  origin: SlideOrigin;
+  path: string[];
+  style: CSSProperties;
+}) {
+  // The signed distance and frame coordinates use the new direction while the
+  // origin glyphs retain both fractional offsets from the interrupted strip.
+  return (
+    <span
+      className={`${styles.layer} ${styles.slide_strip} ${styles.retargeted}`}
+      style={
+        {
+          ...style,
+          "--animated-slide-origin": `${origin.anchor.offset * 100}%`,
+        } as CSSProperties
+      }
+      data-slide-strip
+      data-slide-retarget
+    >
+      {origin.frames.map((frame, index) => (
+        <span
+          key={`origin-${index}`}
+          className={styles.layer}
+          style={{ transform: `translateY(${frame.offset * 100}%)` }}
+          data-slide-frame={index}
+        >
+          {frame.character}
+        </span>
+      ))}
+      {path.map((character, index) => (
+        <span
+          key={`path-${index}`}
+          className={`${styles.layer} ${styles.slide_frame}`}
+          style={
+            {
+              "--animated-slide-position": `${-(index + 1) * 100}%`,
+            } as CSSProperties
+          }
+          data-slide-frame={origin.frames.length + index}
+        >
+          {character}
+        </span>
+      ))}
+    </span>
   );
 }
 

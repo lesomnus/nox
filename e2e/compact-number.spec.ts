@@ -263,6 +263,111 @@ test("loading digits slide through zero and bounded samples within one duration"
   expect((await number.boundingBox())!.width).toBeCloseTo(width, 2);
 });
 
+for (const steps of [1, 4]) {
+  test(`interrupted ${steps}-step slides retain both visible glyphs through repeated reversals`, async ({
+    page,
+  }) => {
+    await page.goto(
+      `/iframe.html?id=components-compactnumber--continuous-slide&viewMode=story&args=maxSlideSteps:${steps};characterDelay:300`,
+    );
+    const number = page.locator('[data-mode="integer"]');
+    await expect(number).toHaveText("0");
+    await page.clock.install();
+    const now = await page.evaluate(() => Date.now());
+    await page.clock.pauseAt(new Date(now + 50));
+    const click = async (name: string) =>
+      page
+        .getByRole("button", { name, exact: true })
+        .evaluate((node: HTMLButtonElement) => node.click());
+    const cell = number.locator("[data-motion][aria-label] > span > span");
+    const sample = async () =>
+      cell.evaluate((node) => {
+        const bounds = node.getBoundingClientRect();
+        return Array.from(node.querySelectorAll("[data-slide-frame]"))
+          .map((frame) => ({
+            text: frame.textContent,
+            offset:
+              (frame.getBoundingClientRect().top - bounds.top) / bounds.height,
+          }))
+          .filter(({ offset }) => offset > -0.9999 && offset < 0.9999)
+          .sort((a, b) => a.offset - b.offset);
+      });
+    const seek = async (fraction: number) =>
+      cell.evaluate((node, fraction) => {
+        for (const animation of node.getAnimations({ subtree: true })) {
+          if (!(animation instanceof CSSAnimation)) continue;
+          animation.pause();
+          const timing = animation.effect!.getTiming();
+          animation.currentTime =
+            Number(timing.delay) + Number(timing.duration) * fraction;
+        }
+      }, fraction);
+    await click("Two");
+    for (const [fraction, target] of [
+      [0.23, "Zero"],
+      [0.31, "Nine"],
+      [0.43, "Two"],
+    ] as const) {
+      await seek(fraction);
+      const before = await sample();
+      expect(before).toHaveLength(2);
+      await click(target);
+      await expect(number.locator("[data-slide-retarget]")).toHaveCount(1);
+      await seek(0);
+      const after = await sample();
+      expect(after.map(({ text }) => text)).toEqual(
+        before.map(({ text }) => text),
+      );
+      after.forEach(({ offset }, index) =>
+        expect(offset).toBeCloseTo(before[index].offset, 3),
+      );
+      await expect(cell).toHaveCSS("--animated-text-delay", "0ms");
+      expect(
+        await cell.locator("[data-slide-frame]").count(),
+      ).toBeLessThanOrEqual(6);
+    }
+    await seek(1);
+    expect((await sample()).map(({ text }) => text)).toEqual(["2"]);
+    await page.clock.runFor(1000);
+    await expect(number.locator("[data-changing]")).toHaveCount(0);
+    await expect(number).toHaveText("2");
+  });
+}
+
+test("retargeting during the initial stagger retains the placeholder instead of the pending target", async ({
+  page,
+}) => {
+  await page.goto(
+    "/iframe.html?id=components-compactnumber--loading-slide&viewMode=story&args=characterDelay:10000",
+  );
+  const compact = page.locator('[data-mode="compact"]');
+  await expect(compact).toHaveText("----·");
+  await page.clock.install();
+  const now = await page.evaluate(() => Date.now());
+  await page.clock.pauseAt(new Date(now + 50));
+  await page
+    .getByRole("button", { name: "Load value", exact: true })
+    .evaluate((node: HTMLButtonElement) => node.click());
+  await compact.evaluate((node) => {
+    for (const animation of node.getAnimations({ subtree: true })) {
+      animation.pause();
+      animation.currentTime = 0;
+    }
+  });
+  await page
+    .getByRole("button", { name: "Update value", exact: true })
+    .evaluate((node: HTMLButtonElement) => node.click());
+  const origins = compact.locator("[data-slide-retarget]");
+  await expect(origins).toHaveCount(5);
+  await expect(origins.locator('[data-slide-frame="0"]')).toHaveText([
+    "-",
+    "-",
+    "-",
+    "-",
+    "·",
+  ]);
+});
+
 test("0 to 2 and back cross the intermediate digit at constant speed without a pause", async ({
   page,
 }) => {

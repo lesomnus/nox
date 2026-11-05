@@ -459,12 +459,15 @@ test("slide follows numeric changes and animates only changed characters", async
   await expect(value).toHaveAttribute("aria-label", "61");
   await expect(
     value.locator('[data-changing][data-direction="down"]'),
-  ).toHaveCount(1);
+  ).toHaveCount(2);
+  // The first digit is still travelling from 5 toward 6; a change to the next
+  // digit must keep that visible strip rather than instantly settling it to 6.
+  await expect(value.locator("[data-slide-retarget]")).toHaveCount(2);
   await page.getByRole("button", { name: "Decrease", exact: true }).click();
   await expect(value).toHaveAttribute("aria-label", "60");
   await expect(
     value.locator('[data-changing][data-direction="up"]'),
-  ).toHaveCount(1);
+  ).toHaveCount(2);
 });
 
 for (const direction of ["up", "down"]) {

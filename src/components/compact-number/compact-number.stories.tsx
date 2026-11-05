@@ -92,6 +92,7 @@ export const ContinuousSlide: Story = {
       <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
         <CompactNumber {...args} value={value} />
         <Button onClick={() => setValue(2)}>Two</Button>
+        <Button onClick={() => setValue(9)}>Nine</Button>
         <Button onClick={() => setValue(0)}>Zero</Button>
       </div>
     );
