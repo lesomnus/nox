@@ -38,7 +38,9 @@ for (const theme of ["dark", "light"]) {
             "[data-reveal-from]::before { backdrop-filter: none !important; -webkit-backdrop-filter: none !important; }",
         });
         const sharp = await page.screenshot({ clip });
-        await override.evaluate((node) => node.remove());
+        await override.evaluate((node) => {
+          node.parentNode?.removeChild(node);
+        });
         expect(blurred.equals(sharp), `visible blur at ${phase * 100}%`).toBe(
           false,
         );
