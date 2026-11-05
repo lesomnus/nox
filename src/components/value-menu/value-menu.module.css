@@ -15,6 +15,18 @@
 :is(.value_menu, .setting_menu)[data-multiline] {
   --value-content-height: 32px;
 }
+:is(.value_menu, .setting_menu)[data-multiline]
+  :global(
+    :is(.setting-trigger, .setting-current, [role="option"]) > .button-content
+  ) {
+  gap: calc(var(--value-padding-inline) / 2);
+}
+.setting_menu[data-multiline][data-align-item-with-trigger="true"]
+  :global([role="option"][aria-selected="true"] > .button-content) {
+  gap: calc(
+    var(--selected-option-padding-left, var(--value-padding-inline)) / 2
+  );
+}
 .value_menu[data-variant="compact"] {
   --value-padding-block: var(--ui-control-inset);
   --value-padding-inline: var(--ui-control-inline-inset);
