@@ -45,6 +45,9 @@
   line-height: 16px;
 }
 .label {
+  /* Center the glyphs optically against the icon, beyond the line box. */
+  position: relative;
+  top: -1px;
   flex: 1;
   min-width: 0;
   line-height: var(--ui-menu-item-line-height);
@@ -81,6 +84,7 @@
   gap: var(--ui-control-inset);
 }
 .action_menu_popup [data-action-menu-layout="row"] .label {
+  top: 0;
   flex: none;
   width: 100%;
   line-height: 14px;
