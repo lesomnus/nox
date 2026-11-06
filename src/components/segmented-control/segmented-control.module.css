@@ -66,6 +66,12 @@
 .segmented_control[data-size="compact"] {
   width: fit-content;
 }
+.segmented_control .icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 0;
+}
 .segmented_control[data-size="compact"] :global(.segment) {
   min-width: 28px;
   min-height: 20px;

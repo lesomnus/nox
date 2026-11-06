@@ -65,7 +65,11 @@ export function SegmentedControl({
             onChange={() => onChange(option.value)}
           />
           <span>
-            {option.icon && <span aria-hidden="true">{option.icon}</span>}
+            {option.icon && (
+              <span className={styles.icon} aria-hidden="true">
+                {option.icon}
+              </span>
+            )}
             {(!iconOnly || !option.icon) && (option.display ?? option.label)}
           </span>
         </label>
