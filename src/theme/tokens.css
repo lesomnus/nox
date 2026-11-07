@@ -1,3 +1,4 @@
+@import "../effects/grain/grain.css";
 /* Shared monochrome ramp. Dark values retain the existing appearance. */
 :root {
   --ui-brand-color: #d9ff30;

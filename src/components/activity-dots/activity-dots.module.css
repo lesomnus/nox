@@ -1,0 +1,34 @@
+.root {
+  --ui-activity-dot-step: 200ms;
+  flex: none;
+}
+.dot {
+  fill: currentColor;
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: pulse calc(8 * var(--ui-activity-dot-step)) ease-in-out infinite;
+}
+@keyframes pulse {
+  0% {
+    transform: scale(0);
+    fill: var(--ui-activity-dot-highlight);
+  }
+  12.5% {
+    transform: scale(1);
+    fill: var(--ui-activity-dot-highlight);
+  }
+  50%,
+  87.5% {
+    transform: scale(1);
+    fill: currentColor;
+  }
+  100% {
+    transform: scale(0);
+    fill: currentColor;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .dot {
+    animation: none;
+  }
+}

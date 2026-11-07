@@ -15,6 +15,21 @@ For recoverable event handlers, see [handler failures](docs/handler-failures.md)
 keyed advancement/refill, back-first dismissal, glass surfaces and bounded
 body scrolling. Content, trigger policy and data stay with the host application.
 
+## Portable document UI
+
+- [ImageViewer](docs/image-viewer.md): transparency, fit/actual-size zoom and bounded panning.
+- [PathValue](docs/path-value.md): measured path elision and full-value copy/Popover.
+- [ActivityDots](docs/activity-dots.md) and [LiquidGauge](docs/liquid-gauge.md): deterministic activity and a concave liquid meter.
+- [Tabs](docs/tabs.md), [FindBar](docs/find-bar.md) and [ActivityHeatmap](docs/activity-heatmap.md): controlled document navigation, search surfaces and daily activity.
+- [ListDetailPages](docs/list-detail-pages.md): retain outgoing content through exit without restoring discarded editors.
+- [Fine grain texture](docs/grain.md): a bundled CSS surface asset.
+
+DescriptionList and Form share field spacing and support weighted columns.
+NavigationPanel accepts a ScrollArea-compatible adapter; IdentifierValue can
+copy through its value or a separate button. DateTime supports optional offsets,
+and RelativeTime uses the UIProvider locale. Domain data, routing and network
+requests remain with the host.
+
 ## Develop
 
 Node 22.12+ (CI uses Node 24), npm 11.

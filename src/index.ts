@@ -1,4 +1,5 @@
 import "./theme/tokens.css";
+import "./effects/grain/grain.css";
 export { BRAND_COLOR } from "./theme/colors";
 export { monospaceFont, MONOSPACE_FONT_FALLBACK } from "./theme/fonts";
 export * from "./providers/ui-provider";
@@ -71,3 +72,11 @@ export * from "./components/form/form";
 export * from "./components/table/table";
 export * from "./components/navigation-panel/navigation-panel";
 export * from "./components/stipple-background/stipple-background";
+export * from "./components/image-viewer/image-viewer";
+export * from "./components/path-value/path-value";
+export * from "./components/activity-dots/activity-dots";
+export * from "./components/liquid-gauge/liquid-gauge";
+export * from "./components/tabs/tabs";
+export * from "./components/find-bar/find-bar";
+export * from "./components/activity-heatmap/activity-heatmap";
+export * from "./components/list-detail-pages/list-detail-pages";

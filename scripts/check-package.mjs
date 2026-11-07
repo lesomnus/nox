@@ -80,6 +80,10 @@ try {
       return <div><button onClick={() => void save.run("Workspace")} disabled={save.pending}>Save</button>{save.error && <ActionError {...feedback} pending={save.pending} onRetry={() => void save.run("Workspace")} />}</div>;
     }
     void AsyncSave;
+    import { ImageViewer, ImageViewerViewport, ImageViewerControls, type ImageViewerProps, PathValue, type PathValueProps, ActivityDots, LiquidGauge, Tabs, type TabsProps, FindBar, FindBarControls, FindBarIcon, FindBarInput, FindBarCounter, FindBarOptions, FindBarClose, FindBarResults, FindBarResult, ActivityHeatmap, ListDetailPages, RelativeTime } from "@lesomnus/nox";
+    const imageViewer: ImageViewerProps = {alt:"Preview",src:"/image.svg",children:null};
+    const pathValue: PathValueProps = {value:"/workspace/report.md",label:"Copy path"};
+    const portableTabs: TabsProps = {items:[{id:"one",label:"One"}],value:"one",onValueChange:()=>{}};
     import { CompactNumber, type CompactNumberProps } from "@lesomnus/nox";
     const byteNumber: CompactNumberProps = {value: 55, baseUnit: "B", label: "55 bytes", className: "editor-number"};
     // @ts-expect-error Integer mode does not have a unit cell.
@@ -209,6 +213,13 @@ try {
     const sparkle: InkSparkleProps = { duration: 2000, origin: [-8, 40], centerMotion: "fixed", loop: true, sparkleColor: [0.25, 0.5, 0.75, 0.2] };
     createRoot(document.getElementById("root")!).render(
       <UIProvider>
+        <ImageViewer {...imageViewer}><div style={{height:120}}><ImageViewerViewport /></div><ImageViewerControls /></ImageViewer>
+        <PathValue {...pathValue} /><ActivityDots seed={42} palette={["#abc","#def"]}/>
+        <LiquidGauge value={90} aria-label="Remaining">90%</LiquidGauge><Tabs {...portableTabs}/>
+        <FindBar><FindBarControls><FindBarIcon/><FindBarInput aria-label="Search"/><FindBarCounter current={1} count={2}/><FindBarOptions options={[]} onChange={()=>{}}/><FindBarClose onClick={()=>{}}/></FindBarControls><FindBarResults><FindBarResult>Result</FindBarResult></FindBarResults></FindBar>
+        <ActivityHeatmap days={[{date:"2026-11-01",level:2}]} onSelect={day=>{void day.date;}}/>
+        <ListDetailPages open={false} list={<p>List</p>} detail={<p>Detail</p>}/><RelativeTime value="2026-11-01"/>
+        <DescriptionList columns={[1,2]} variant="controls" rows={[{label:"Value",value:<input aria-label="Value"/>,labelDetail:"Saved",fullWidth:true}]}/>
         <CompactNumber {...byteNumber} />
         <AnimatedCompactNumber {...animatedNumber} /><AnimatedDurationDisplay {...cachedDuration} /><MotionConsumer />
         <FileChip {...fileChip} /><FileChip {...attachmentChip} />
