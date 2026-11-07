@@ -55,6 +55,9 @@ export function SourceEditor({
   const configure = useRef<
     ((settings: EditorSettings, theme: "light" | "dark") => void) | undefined
   >(undefined);
+  const configureLanguage = useRef<((languageId?: string) => void) | undefined>(
+    undefined,
+  );
   const [activated, setActivated] = useState(active);
   const [error, setError] = useState("");
   const settings = {
@@ -64,6 +67,7 @@ export function SourceEditor({
   };
   const latest = useRef({
     value,
+    languageId,
     ariaLabel,
     active,
     onChange,
@@ -77,6 +81,7 @@ export function SourceEditor({
   });
   latest.current = {
     value,
+    languageId,
     ariaLabel,
     active,
     onChange,
@@ -120,6 +125,9 @@ export function SourceEditor({
     editor.current?.updateOptions({ ariaLabel });
   }, [ariaLabel]);
   useEffect(() => {
+    configureLanguage.current?.(languageId);
+  }, [languageId]);
+  useEffect(() => {
     const m = model.current;
     const e = editor.current;
     if (!m || !e) return;
@@ -127,6 +135,7 @@ export function SourceEditor({
     const position = e.saveViewState();
     updating.current = true;
     m.setValue(value);
+    if (latest.current.languageId === undefined) configureLanguage.current?.();
     updating.current = false;
     e.restoreViewState(position);
   }, [value]);
@@ -142,7 +151,7 @@ export function SourceEditor({
         setError("");
         m = monaco.editor.createModel(
           latest.current.value,
-          languageId ?? language(path),
+          latest.current.languageId ?? language(path, latest.current.value),
         );
         e = monaco.editor.create(host.current!, {
           ...editorOptions,
@@ -158,6 +167,11 @@ export function SourceEditor({
         reportHeight();
         model.current = m;
         editor.current = e;
+        configureLanguage.current = (languageId) =>
+          monaco.editor.setModelLanguage(
+            m!,
+            languageId ?? language(path, latest.current.value),
+          );
         configure.current = (settings, theme) =>
           configureEditor(e!, m!, settings, theme);
         configure.current(latest.current.settings, latest.current.theme);
@@ -201,12 +215,13 @@ export function SourceEditor({
       if (e) latest.current.onDispose?.(e.saveViewState());
       subscriptions.forEach((subscription) => subscription.dispose());
       configure.current = undefined;
+      configureLanguage.current = undefined;
       editor.current = undefined;
       model.current = undefined;
       e?.dispose();
       m?.dispose();
     };
-  }, [activated, path, readOnly, languageId]);
+  }, [activated, path, readOnly]);
   return (
     <div className={`${styles.root} code-editor`} ref={host}>
       {error && <p role="alert">{error}</p>}
