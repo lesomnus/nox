@@ -1,10 +1,19 @@
+export type RelativeTimeFormatOptions = {
+  /** Use locale-aware narrow units, e.g. "5m ago" / "in 2h" in English. */
+  compact?: boolean;
+};
+
 export function formatRelativeDateTime(
   date: Date,
   locale: string,
   now = Date.now(),
+  { compact = false }: RelativeTimeFormatOptions = {},
 ) {
   const elapsed = date.getTime() - now;
-  const format = new Intl.RelativeTimeFormat(locale, { numeric: "auto" });
+  const format = new Intl.RelativeTimeFormat(locale, {
+    numeric: compact ? "always" : "auto",
+    style: compact ? "narrow" : "long",
+  });
   const units = [
     [365 * 86400000, "year"],
     [30 * 86400000, "month"],
@@ -17,7 +26,10 @@ export function formatRelativeDateTime(
     if (Math.abs(elapsed) >= duration)
       return format.format(Math.trunc(elapsed / duration), unit);
   }
-  return format.format(0, "second");
+  return new Intl.RelativeTimeFormat(locale, {
+    numeric: "auto",
+    style: compact ? "narrow" : "long",
+  }).format(0, "second");
 }
 
 export function formatLocalDateTime(date: Date) {

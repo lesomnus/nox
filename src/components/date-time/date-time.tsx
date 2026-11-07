@@ -9,6 +9,7 @@ import {
   formatOffsetDateTime,
   formatLocalDateTime,
   formatRelativeDateTime,
+  type RelativeTimeFormatOptions,
 } from "./date-time-format";
 import styles from "./date-time.module.css";
 import {
@@ -117,20 +118,23 @@ export {
   formatLocalDateTime,
   formatRelativeDateTime,
 } from "./date-time-format";
+export type { RelativeTimeFormatOptions } from "./date-time-format";
 export type RelativeTimeProps = Omit<
   HTMLAttributes<HTMLTimeElement>,
   "children"
-> & {
-  value?: Date | number | string | null;
-  now?: number;
-  locale?: string;
-  interval?: number;
-};
+> &
+  RelativeTimeFormatOptions & {
+    value?: Date | number | string | null;
+    now?: number;
+    locale?: string;
+    interval?: number;
+  };
 export function RelativeTime({
   value,
   now,
   locale: preferredLocale,
   interval = 30000,
+  compact = false,
   className = "",
   ...props
 }: RelativeTimeProps) {
@@ -158,7 +162,7 @@ export function RelativeTime({
       className={`${styles.time} ${className}`}
       dateTime={date.toISOString()}
     >
-      {formatRelativeDateTime(date, locale, now ?? clock)}
+      {formatRelativeDateTime(date, locale, now ?? clock, { compact })}
     </time>
   );
 }
