@@ -88,3 +88,16 @@ See **Integration/RecordBrowser** for the components used together without an
 application stylesheet or service. Individual stories include empty, disabled,
 mixed, editable and light-theme cases. Source CSS tokens remain the source of
 truth for dimensions and spacing.
+
+
+RelativeTime supports a compact form while preserving locale and automatic clock updates:
+
+```tsx
+<RelativeTime value={createdAt} compact /> // en: "5m ago", "in 2h"
+```
+
+Compact uses Intl.RelativeTimeFormat's narrow units and numeric quantities, including
+"1d ago" rather than "yesterday" in English. Values less than a minute from now
+still show the locale's "now". The default remains long ("5 minutes ago"). The
+formatter also accepts `formatRelativeDateTime(date, locale, now, { compact: true })`.
+See Components/RelativeTime for default, compact, future and Korean examples.

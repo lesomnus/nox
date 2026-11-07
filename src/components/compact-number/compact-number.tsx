@@ -1,16 +1,20 @@
 import styles from "./compact-number.module.css";
 import type { CSSProperties } from "react";
+import {
+  AnimatedText,
+  type TextMotionOptions,
+} from "../animated-text/animated-text";
 
 type FormattedNumber = { digits: string; leading: string; unit: string };
-export type CompactNumberProps = {
+export type CompactNumberProps = TextMotionOptions & {
   value: number;
   label?: string;
   muted?: boolean;
   className?: string;
 } & (
-  | { mode: "integer"; digits?: number; baseUnit?: never }
-  | { mode?: "compact"; digits?: never; baseUnit?: string }
-);
+    | { mode: "integer"; digits?: number; baseUnit?: never }
+    | { mode?: "compact"; digits?: never; baseUnit?: string }
+  );
 
 const units = [
   [1e-9, "n"],
@@ -61,12 +65,8 @@ export function formatCompactNumber(
     index = 0;
     while (index < units.length - 1 && value >= units[index + 1][0]) index++;
   }
-  let scaled = Number((value / units[index][0]).toPrecision(3));
-  if (scaled >= 1000 && index < units.length - 1) {
-    index++;
-    scaled = Number((value / units[index][0]).toPrecision(3));
-  }
-  if (value > 0 && scaled < 0.005)
+  const scaled = value / units[index][0];
+  if (value > 0 && scaled < 0.01)
     return { digits: "<001", leading: "", unit: units[index][1] };
   const decimals =
     index === 3 && Number.isInteger(value)
@@ -76,23 +76,14 @@ export function formatCompactNumber(
         : scaled < 100
           ? 1
           : 0;
-  let text = scaled.toFixed(decimals);
+  const factor = 10 ** decimals;
+  const shifted = scaled * factor;
+  // Keep the canonical magnitude and three readable significant digits. Do not
+  // demote M to K to retain precision or round into a unit the value hasn't reached.
+  const truncated = Math.floor(shifted + Number.EPSILON * shifted) / factor;
+  const text = truncated.toFixed(decimals);
   if (text.length > 4)
     return { digits: ">999", leading: "", unit: units[index][1] };
-  // A lower unit can retain four significant digits rather than three. Use it
-  // when it fits and actually reduces rounding loss; keep the normal unit on ties.
-  if (index > 0) {
-    const lower = Math.round(value / units[index - 1][0]);
-    if (
-      lower > 0 &&
-      lower <= 9999 &&
-      Math.abs(value - lower * units[index - 1][0]) <
-        Math.abs(value - Number(text) * units[index][0])
-    ) {
-      index--;
-      text = String(lower);
-    }
-  }
   return {
     leading: "0".repeat(4 - text.length),
     digits: text,
@@ -107,6 +98,16 @@ export function CompactNumber(props: CompactNumberProps) {
     mode = "compact",
     muted = false,
     className = "",
+    motion = "none",
+    animateInitial,
+    shouldAnimate,
+    direction,
+    duration,
+    characterDelay,
+    maxSlideSteps,
+    maxFlipSteps,
+    flipEasing,
+    flipCharacters,
   } = props;
   const digits = props.mode === "integer" ? (props.digits ?? 4) : 4;
   const number =
@@ -114,37 +115,81 @@ export function CompactNumber(props: CompactNumberProps) {
       ? formatCompactNumber(value, "integer", digits)
       : formatCompactNumber(value, "compact");
   const unit = number.unit === "·" ? (props.baseUnit ?? "·") : number.unit;
+  const mutedValue = muted || number.digits === "0" || !Number.isFinite(value);
+  const characterClassName = (character: string, index: number) =>
+    index < number.leading.length
+      ? styles.leading
+      : index >= number.leading.length + number.digits.length
+        ? styles.unit
+        : character === "."
+          ? styles.separator
+          : undefined;
+  const characterColor = (character: string, index: number) => {
+    const role = characterClassName(character, index);
+    return role === styles.leading
+      ? "var(--ui-text-leading)"
+      : role === styles.unit || role === styles.separator || mutedValue
+        ? "var(--ui-text-separator)"
+        : "var(--ui-text-value)";
+  };
   return (
     <span
       className={`${styles.number} ${className}`.trim()}
       role="img"
       aria-label={label ?? String(value)}
       data-mode={mode}
-      data-muted={muted || number.digits === "0" || undefined}
+      data-muted={mutedValue || undefined}
       style={
         mode === "integer"
           ? ({ "--compact-number-digits": digits } as CSSProperties)
           : undefined
       }
     >
-      <span className={styles.leading} aria-hidden="true">
-        {number.leading}
-      </span>
-      <span aria-hidden="true">
-        {number.digits.split(/(\.)/).map((part, index) =>
-          part === "." ? (
-            <span key={index} className={styles.separator}>
-              {part}
+      {motion !== "none" ? (
+        <AnimatedText
+          aria-hidden="true"
+          value={`${number.leading}${number.digits}${unit}`}
+          comparisonValue={value}
+          motion={motion}
+          animateInitial={animateInitial}
+          initialValue={
+            "-".repeat(digits) +
+            (mode === "integer" ? "" : (props.baseUnit ?? "·"))
+          }
+          placeholderColor="var(--ui-text-separator)"
+          shouldAnimate={shouldAnimate}
+          direction={direction}
+          duration={duration}
+          characterDelay={characterDelay}
+          maxSlideSteps={maxSlideSteps}
+          maxFlipSteps={maxFlipSteps}
+          flipEasing={flipEasing}
+          flipCharacters={flipCharacters}
+          characterClassName={characterClassName}
+          characterColor={characterColor}
+        />
+      ) : (
+        <>
+          <span className={styles.leading} aria-hidden="true">
+            {number.leading}
+          </span>
+          <span aria-hidden="true">
+            {number.digits.split(/(\.)/).map((part, index) =>
+              part === "." ? (
+                <span key={index} className={styles.separator}>
+                  {part}
+                </span>
+              ) : (
+                part
+              ),
+            )}
+          </span>
+          {unit && (
+            <span className={styles.unit} aria-hidden="true">
+              {unit}
             </span>
-          ) : (
-            part
-          ),
-        )}
-      </span>
-      {unit && (
-        <span className={styles.unit} aria-hidden="true">
-          {unit}
-        </span>
+          )}
+        </>
       )}
     </span>
   );

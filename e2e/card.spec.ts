@@ -1,6 +1,55 @@
 import { expect, test } from "@playwright/test";
 
 for (const theme of ["dark", "light"]) {
+  for (const reducedMotion of ["no-preference", "reduce"] as const) {
+    test(`revealed Card blurs throughout entrance in ${theme} / ${reducedMotion}`, async ({
+      page,
+    }) => {
+      await page.emulateMedia({ reducedMotion });
+      await page.goto(
+        `/iframe.html?id=components-card--revealed-glass&viewMode=story&globals=theme:${theme}`,
+      );
+      const card = page.locator("section.floating-card");
+      await expect(card).toBeVisible();
+      for (const phase of [0.15, 0.4, 0.7, 1]) {
+        const count = await card.evaluate((node, phase) => {
+          // Freeze glass and content at the same phase; otherwise screenshots
+          // could differ because time advanced instead of because blur works.
+          node.style.setProperty("--ui-menu-reveal-duration", "10s");
+          const animations = node.getAnimations({ subtree: true });
+          for (const animation of animations) {
+            animation.pause();
+            animation.currentTime =
+              Number(animation.effect!.getTiming().duration) * phase;
+          }
+          return animations.length;
+        }, phase);
+        expect(count).toBe(reducedMotion === "reduce" ? 0 : 3);
+        const header = (await card.locator(".card-heading").boundingBox())!;
+        const clip = {
+          x: Math.ceil(header.x + 24),
+          y: Math.ceil(header.y + 4),
+          width: 160,
+          height: 6,
+        };
+        const blurred = await page.screenshot({ clip });
+        const override = await page.addStyleTag({
+          content:
+            "[data-reveal-from]::before { backdrop-filter: none !important; -webkit-backdrop-filter: none !important; }",
+        });
+        const sharp = await page.screenshot({ clip });
+        await override.evaluate((node) => {
+          node.parentNode?.removeChild(node);
+        });
+        expect(blurred.equals(sharp), `visible blur at ${phase * 100}%`).toBe(
+          false,
+        );
+      }
+    });
+  }
+}
+
+for (const theme of ["dark", "light"]) {
   test(`headerless Card keeps matching top and horizontal body insets in ${theme}`, async ({
     page,
   }) => {
@@ -63,25 +112,32 @@ for (const theme of ["dark", "light"]) {
   });
 }
 
-test("the same Card fills a sized parent with compact padding and a scrolling body", async ({
-  page,
-}) => {
-  await page.goto("/iframe.html?id=components-card--filled&viewMode=story");
-  const card = page.locator("section.floating-card");
-  await expect(card).toBeVisible();
-  expect((await card.boundingBox())!.height).toBe(280);
-  await expect(card.locator(".card-body")).toHaveCSS("padding", "4px");
-  const header = card.locator(".card-heading"),
-    footer = card.locator(".card-footer");
-  const before = [await header.boundingBox(), await footer.boundingBox()];
-  const viewport = card.locator('[data-scroll-area="viewport"]');
-  expect(
-    await viewport.evaluate((node) => node.scrollHeight > node.clientHeight),
-  ).toBe(true);
-  await viewport.evaluate((node) => {
-    node.scrollTop = node.scrollHeight;
+for (const story of ["filled", "revealed-filled"]) {
+  test(`Card ${story} fills a sized parent with compact padding and a scrolling body`, async ({
+    page,
+  }) => {
+    await page.goto(`/iframe.html?id=components-card--${story}&viewMode=story`);
+    const card = page.locator("section.floating-card");
+    await expect(card).toBeVisible();
+    if (story === "revealed-filled")
+      await expect(card.locator('[data-enter-effect="reveal"]')).toHaveCSS(
+        "mask-image",
+        "none",
+      );
+    expect((await card.boundingBox())!.height).toBe(280);
+    await expect(card.locator(".card-body")).toHaveCSS("padding", "4px");
+    const header = card.locator(".card-heading"),
+      footer = card.locator(".card-footer");
+    const before = [await header.boundingBox(), await footer.boundingBox()];
+    const viewport = card.locator('[data-scroll-area="viewport"]');
+    expect(
+      await viewport.evaluate((node) => node.scrollHeight > node.clientHeight),
+    ).toBe(true);
+    await viewport.evaluate((node) => {
+      node.scrollTop = node.scrollHeight;
+    });
+    expect([await header.boundingBox(), await footer.boundingBox()]).toEqual(
+      before,
+    );
   });
-  expect([await header.boundingBox(), await footer.boundingBox()]).toEqual(
-    before,
-  );
-});
+}

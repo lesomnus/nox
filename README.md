@@ -15,6 +15,21 @@ For recoverable event handlers, see [handler failures](docs/handler-failures.md)
 keyed advancement/refill, back-first dismissal, glass surfaces and bounded
 body scrolling. Content, trigger policy and data stay with the host application.
 
+## Portable document UI
+
+- [ImageViewer](docs/image-viewer.md): transparency, fit/actual-size zoom and bounded panning.
+- [PathValue](docs/path-value.md): measured path elision and full-value copy/Popover.
+- [ActivityDots](docs/activity-dots.md) and [LiquidGauge](docs/liquid-gauge.md): deterministic activity and a concave liquid meter.
+- [Tabs](docs/tabs.md), [FindBar](docs/find-bar.md) and [ActivityHeatmap](docs/activity-heatmap.md): controlled document navigation, search surfaces and daily activity.
+- [ListDetailPages](docs/list-detail-pages.md): retain outgoing content through exit without restoring discarded editors.
+- [Fine grain texture](docs/grain.md): a bundled CSS surface asset.
+
+DescriptionList and Form share field spacing and support weighted columns.
+NavigationPanel accepts a ScrollArea-compatible adapter; IdentifierValue can
+copy through its value or a separate button. DateTime supports optional offsets,
+and RelativeTime uses the UIProvider locale. Domain data, routing and network
+requests remain with the host.
+
 ## Develop
 
 Node 22.12+ (CI uses Node 24), npm 11.
@@ -102,6 +117,24 @@ significant digits of any value in either mode, for example
 stay darker; number formatting, reserved width and accessible labels are unchanged.
 
 `baseUnit` labels the unscaled compact unit cell, for example `baseUnit="B"` for bytes. Scaled units keep their existing labels. Integer mode has no unit cell. A caller `className` can adapt typography to an editor.
+
+`AnimatedCompactNumber` and `AnimatedDurationDisplay` provide the complete value
+reveal preset without application wrappers:
+
+```tsx
+import { AnimatedCompactNumber, AnimatedDurationDisplay } from "@lesomnus/nox";
+
+<AnimatedCompactNumber value={count ?? NaN} animate={!fromCache} />
+<AnimatedDurationDisplay durationMs={remainingMs} animate={!fromCache} />
+```
+
+Defaults include sized gray placeholders, continuous slides through up to four
+digit steps in 600ms, color arrival, top-left spatial starts and bounded random
+character delays. Offscreen updates commit immediately and never replay on scroll
+entry. `animate={false}` renders cached values immediately. Override `duration`,
+`maxSlideSteps`, `characterDelay`, `spatialDelay` or `characterJitter` as needed.
+`useValueMotion` exposes the same visibility/stagger policy for custom
+`AnimatedText` consumers. See [animated text](docs/animated-text.md).
 
 Formatted text shares three color roles across `ElapsedTime`, `CompactNumber`,
 `DurationDisplay` and `DateTime`:
@@ -302,7 +335,7 @@ receives its scroll events. `viewportClassName`, `contentClassName` and
 the containing surface and its fades; rail geometry, handle appearance and
 fade limits use the other `--ui-scroll-area-*` CSS tokens. Defaults live in
 `src/theme/tokens.css`. Use signed `scrollbarOffset` values to move handle centers relative to the
-container edge: positive goes outside, negative inside, and zero sits on the edge.
+container edge: positive goes inside, negative outside, and zero sits on the edge.
 Omitting it preserves existing placement. Leave room in the parent for outside
 handles and avoid clipping ancestors. See [ScrollArea](docs/scroll-area.md)
 and **Layout/ScrollArea** for placement, short/long overflow, growing content

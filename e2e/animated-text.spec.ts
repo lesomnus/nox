@@ -4,6 +4,16 @@ const story = (name: string, args = "") =>
   `/iframe.html?id=components-animatedtext--${name}&viewMode=story${args ? `&args=${args}` : ""}`;
 const display = 'span[role="img"][data-motion]';
 
+test("initial slide reveals every character from a blank value", async ({
+  page,
+}) => {
+  await page.goto(story("initial-slide", "duration:10000"));
+  const value = page.locator(display);
+  await expect(value).toHaveAttribute("aria-label", "READY");
+  await expect(value.locator("[data-changing]")).toHaveCount(5);
+  await expect(value).toHaveAttribute("data-motion", "slide");
+});
+
 async function frozenStory(page: Page, name: string, args: string) {
   await page.clock.install({ time: new Date("2026-10-23T00:00:00Z") });
   await page.goto(story(name, args));
@@ -449,12 +459,15 @@ test("slide follows numeric changes and animates only changed characters", async
   await expect(value).toHaveAttribute("aria-label", "61");
   await expect(
     value.locator('[data-changing][data-direction="down"]'),
-  ).toHaveCount(1);
+  ).toHaveCount(2);
+  // The first digit is still travelling from 5 toward 6; a change to the next
+  // digit must keep that visible strip rather than instantly settling it to 6.
+  await expect(value.locator("[data-slide-retarget]")).toHaveCount(2);
   await page.getByRole("button", { name: "Decrease", exact: true }).click();
   await expect(value).toHaveAttribute("aria-label", "60");
   await expect(
     value.locator('[data-changing][data-direction="up"]'),
-  ).toHaveCount(1);
+  ).toHaveCount(2);
 });
 
 for (const direction of ["up", "down"]) {

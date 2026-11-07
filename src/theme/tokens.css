@@ -1,3 +1,4 @@
+@import "../effects/grain/grain.css";
 /* Shared monochrome ramp. Dark values retain the existing appearance. */
 :root {
   --ui-brand-color: #d9ff30;
@@ -43,6 +44,7 @@
 }
 :root[data-ui-theme="light"],
 :root[data-theme="light"] {
+  --ui-table-button-tone-direction: -1;
   --ui-pin-input-success-color: #2f8250;
   --ui-action-error-color: #9c3737;
   --ui-button-hover-background: var(--ui-shade-34);
@@ -113,6 +115,11 @@
   --ui-color-input-background: transparent;
   --ui-color-input-border: var(--ui-shade-48);
   --ui-color-input-focus-border: var(--ui-shade-115);
+  --ui-color-input-dirty-border: color-mix(
+    in srgb,
+    var(--ui-brand-color) 25%,
+    var(--ui-shade-48)
+  );
   --ui-color-input-hover-background: var(--ui-hover);
   --ui-color-input-error-border: var(--ui-pin-input-error-color);
   --ui-color-input-preview-size: 26px;
@@ -150,6 +157,11 @@
   --ui-table-row-height: 44px;
   --ui-table-row-gap: var(--ui-control-inset);
   --ui-table-cell-padding: var(--ui-space);
+  --ui-table-button-background: var(--ui-shade-32);
+  --ui-table-button-row-hover-lift: 8;
+  --ui-table-button-selected-lift: 28;
+  --ui-table-button-hover-lift: 16;
+  --ui-table-button-tone-direction: 1;
   --ui-pin-input-slot-width: 32px;
   --ui-pin-input-slot-height: 40px;
   --ui-pin-input-gap: var(--ui-space);
@@ -223,8 +235,12 @@
   --ui-border-trail-sheen-strength: 0.65;
   --ui-border-trail-sheen-color: #fff;
   --ui-menu-selected-background: var(--ui-shade-32);
+  --ui-action-menu-width: 198px;
+  --ui-menu-item-line-height: 20px;
+  --ui-menu-shortcut-character-width: 8px;
   --ui-menu-item-padding-block: 6px;
   --ui-menu-item-padding-inline: 10px;
+  --ui-menu-divider-gap: 6px;
   --ui-menu-scroll-max-height: 240px;
   --ui-menu-viewport-inset: 8px;
   --ui-menu-align-min-rows: 3;

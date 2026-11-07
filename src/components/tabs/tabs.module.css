@@ -1,0 +1,25 @@
+.tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--ui-space);
+  margin: var(--ui-space) 0 calc(2 * var(--ui-space));
+}
+.tabs[aria-orientation="vertical"] {
+  flex-direction: column;
+}
+.tabs [role="tab"] {
+  color: var(--ui-muted);
+}
+.tabs [aria-selected="true"],
+.tabs [role="tab"]:hover {
+  background: var(--ui-hover);
+  color: inherit;
+}
+.icon {
+  display: inline-flex;
+  align-items: center;
+  margin-inline-end: var(--ui-space);
+}
+.label {
+  min-width: 0;
+}

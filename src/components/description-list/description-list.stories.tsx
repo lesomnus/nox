@@ -100,3 +100,22 @@ export const Composed: Story = {
     );
   },
 };
+
+export const WeightedColumns: Story = {
+  args: {
+    columns: [1, 2],
+    rows: [
+      { label: "Alias", value: "example" },
+      {
+        label: "Description",
+        value: "A wider text field.",
+        labelDetail: "Saved",
+      },
+      {
+        label: "Notes",
+        value: "A field spanning the full width.",
+        fullWidth: true,
+      },
+    ],
+  },
+};

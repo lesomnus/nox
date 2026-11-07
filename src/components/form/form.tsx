@@ -7,7 +7,7 @@ import layout from "../field-layout/field-layout.module.css";
 import styles from "./form.module.css";
 
 export type FormProps = {
-  columns?: 1 | 2;
+  columns?: 1 | 2 | 3 | readonly number[];
 } & (
   | ({ as?: "form" } & ComponentPropsWithRef<"form">)
   | ({ as: "fieldset" } & ComponentPropsWithRef<"fieldset">)
@@ -24,7 +24,14 @@ export function Form({
   return createElement(as, {
     ...props,
     className: `${layout.fields} ${styles.form} ${className}`,
-    style: { "--field-columns": columns, ...style } as CSSProperties,
+    style: {
+      "--field-columns": typeof columns === "number" ? columns : columns.length,
+      gridTemplateColumns:
+        typeof columns === "number"
+          ? undefined
+          : columns.map((weight) => `minmax(0, ${weight}fr)`).join(" "),
+      ...style,
+    } as CSSProperties,
   });
 }
 
@@ -33,12 +40,15 @@ export type FormFieldProps = ComponentPropsWithRef<"div"> & {
   /** Associate the label with a native input's id. Custom controls own their label. */
   htmlFor?: string;
   fullWidth?: boolean;
+  /** The caller compares the draft with its last saved value. */
+  dirty?: boolean;
 };
 
 export function FormField({
   label,
   htmlFor,
   fullWidth = false,
+  dirty = false,
   className = "",
   children,
   ...props
@@ -48,6 +58,7 @@ export function FormField({
       {...props}
       className={`${layout.row} ${styles.field} ${className}`}
       data-full-width={fullWidth || undefined}
+      data-dirty={dirty || undefined}
     >
       {htmlFor ? (
         <label className={layout.term} htmlFor={htmlFor}>

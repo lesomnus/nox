@@ -23,6 +23,8 @@ for (const offset of [-16, 12]) {
       const grab = (await thumb.boundingBox())!;
       const length = horizontal ? box.width : box.height;
       const thumbLength = horizontal ? grab.width : grab.height;
+      expect(Number.isInteger(length)).toBe(true);
+      expect(Number.isInteger(thumbLength)).toBe(true);
       const x = box.x + box.width * (horizontal ? 0.65 : 0.5);
       const y = box.y + box.height * (horizontal ? 0.5 : 0.65);
       await page.mouse.move(0, 0);
@@ -103,42 +105,49 @@ for (const offset of [-16, 12]) {
   }
 }
 
-for (const offset of [0, -16, 7.5]) {
-  test(`signed offset ${offset} aligns both handle centers to the container edges`, async ({
-    page,
-  }) => {
-    await page.goto(
-      `/iframe.html?id=layout-scrollarea--outside-both-axes&viewMode=story&args=scrollbarOffset:${offset}`,
-    );
-    const area = page.locator('[data-scroll-area="root"]');
-    await expect(area).toHaveAttribute("data-scrollbar-offset", String(offset));
-    await expect(area.getByRole("scrollbar")).toHaveCount(2);
-    const root = (await area.boundingBox())!;
-    const vertical = (await area
-      .locator('[data-scroll-area="handle"]')
-      .boundingBox())!;
-    const horizontal = (await area
-      .locator('[data-scroll-area="horizontal-handle"]')
-      .boundingBox())!;
-    expect(vertical.x + vertical.width / 2 - root.x - root.width).toBeCloseTo(
-      offset,
-      1,
-    );
-    expect(
-      horizontal.y + horizontal.height / 2 - root.y - root.height,
-    ).toBeCloseTo(offset, 1);
-    const gap = await area.evaluate((node) =>
-      parseFloat(getComputedStyle(node).getPropertyValue("--ui-control-inset")),
-    );
-    const viewport = (await area
-      .locator('[data-scroll-area="viewport"]')
-      .boundingBox())!;
-    expect(root.height - viewport.height).toBeCloseTo(
-      Math.max(0, horizontal.height / 2 + gap - offset),
-      1,
-    );
-  });
-}
+for (const side of ["left", "right"])
+  for (const offset of [0, -16, 7.5]) {
+    test(`signed offset ${offset} on ${side} aligns both handle centers to the container edges`, async ({
+      page,
+    }) => {
+      await page.goto(
+        `/iframe.html?id=layout-scrollarea--outside-both-axes&viewMode=story&args=scrollbarOffset:${offset};scrollbarSide:${side}`,
+      );
+      const area = page.locator('[data-scroll-area="root"]');
+      await expect(area).toHaveAttribute(
+        "data-scrollbar-offset",
+        String(offset),
+      );
+      await expect(area.getByRole("scrollbar")).toHaveCount(2);
+      const root = (await area.boundingBox())!;
+      const vertical = (await area
+        .locator('[data-scroll-area="handle"]')
+        .boundingBox())!;
+      const horizontal = (await area
+        .locator('[data-scroll-area="horizontal-handle"]')
+        .boundingBox())!;
+      expect(
+        vertical.x +
+          vertical.width / 2 -
+          (side === "left" ? root.x : root.x + root.width),
+      ).toBeCloseTo(side === "left" ? offset : -offset, 1);
+      expect(
+        horizontal.y + horizontal.height / 2 - root.y - root.height,
+      ).toBeCloseTo(-offset, 1);
+      const gap = await area.evaluate((node) =>
+        parseFloat(
+          getComputedStyle(node).getPropertyValue("--ui-control-inset"),
+        ),
+      );
+      const viewport = (await area
+        .locator('[data-scroll-area="viewport"]')
+        .boundingBox())!;
+      expect(root.height - viewport.height).toBeCloseTo(
+        Math.max(0, horizontal.height / 2 + gap + offset),
+        1,
+      );
+    });
+  }
 
 test("outside handles keep a full rounded viewport and remain draggable beyond its edge", async ({
   page,

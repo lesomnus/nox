@@ -50,6 +50,40 @@ export const ItemAligned: Story = {
     ],
   },
 };
+export const Descriptions: Story = {
+  args: {
+    label: "Workspace",
+    value: "atlas",
+    alignItemWithTrigger: true,
+    options: [
+      { value: "", label: "Choose a workspace" },
+      {
+        value: "atlas",
+        label: "Atlas workspace",
+        description: "atlas",
+        icon: (
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor">
+            <circle cx="8" cy="8" r="5" />
+          </svg>
+        ),
+      },
+      {
+        value: "sandbox",
+        label: "Sandbox preview",
+        description: "sandbox",
+        icon: (
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor">
+            <path d="M3 3h10v10H3z" />
+          </svg>
+        ),
+      },
+    ],
+  },
+};
+export const SearchableDescriptions: Story = {
+  ...Descriptions,
+  args: { ...Descriptions.args, searchable: true },
+};
 export const HideSelected: Story = { args: { hideSelected: true } };
 export const Searchable: Story = { args: { searchable: true } };
 export const SearchableHideSelected: Story = {

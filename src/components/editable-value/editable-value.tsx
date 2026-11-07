@@ -5,6 +5,7 @@ import {
   useRef,
   useState,
   type CSSProperties,
+  type ReactNode,
 } from "react";
 import { createPortal } from "react-dom";
 import { Button } from "../button/button";
@@ -12,6 +13,7 @@ import { ActionError } from "../action-error/action-error";
 import {
   dialogClassName,
   dialogAppearanceClassName,
+  dialogEntranceClassName,
 } from "../dialog-surface/dialog-surface";
 import { useUI } from "../../providers/ui-provider";
 import {
@@ -28,12 +30,17 @@ export function EditableValue({
   save,
   validate,
   monospace = false,
+  display,
+  formatError,
 }: {
   label: string;
   value: string;
   save: (value: string) => Promise<void>;
   validate?: (value: string) => string | undefined;
   monospace?: boolean;
+  display?: (value: string) => ReactNode;
+  /** Format save failures; return an empty string when the app owns their feedback. */
+  formatError?: (error: unknown) => string;
 }) {
   const { t } = useUI();
   const trigger = useRef<HTMLButtonElement>(null);
@@ -60,7 +67,7 @@ export function EditableValue({
           setEditing(true);
         }}
       >
-        {value || "—"}
+        {display ? display(value) : value || "—"}
       </Button>
       {editing && (
         <ValueEditor
@@ -70,6 +77,7 @@ export function EditableValue({
           labelOrigin={labelOrigin}
           save={save}
           validate={validate}
+          formatError={formatError}
           close={() => setEditing(false)}
         />
       )}
@@ -85,6 +93,7 @@ function ValueEditor({
   save,
   validate,
   close,
+  formatError,
 }: {
   label: string;
   value: string;
@@ -93,6 +102,7 @@ function ValueEditor({
   save: (value: string) => Promise<void>;
   validate?: (value: string) => string | undefined;
   close: () => void;
+  formatError?: (error: unknown) => string;
 }) {
   const { t } = useUI();
   const dialog = useRef<HTMLDialogElement>(null);
@@ -175,7 +185,8 @@ function ValueEditor({
       await save(next);
       if (alive.current) close();
     } catch (failure) {
-      if (alive.current) setError(String(failure));
+      if (alive.current)
+        setError(formatError ? formatError(failure) : String(failure));
     } finally {
       saving.current = false;
       if (alive.current) setBusy(false);
@@ -223,6 +234,7 @@ function ValueEditor({
           aria-invalid={!!error}
           aria-describedby={error ? errorId : undefined}
           value={draft}
+          data-dirty={draft !== value || undefined}
           readOnly={busy}
           onChange={(event) => {
             setDraft(event.target.value);
@@ -231,7 +243,10 @@ function ValueEditor({
           autoComplete="off"
           spellCheck={false}
         />
-        <div className={`${dialogAppearanceClassName} editable-value-overlay`}>
+        <div
+          className={`${dialogAppearanceClassName} ${dialogEntranceClassName} editable-value-overlay`}
+          data-enter-from="from-top"
+        >
           {error && (
             <ActionError
               onDismiss={() => setError("")}

@@ -1,5 +1,5 @@
 import styles from "./segmented-control.module.css";
-import { useId, type CSSProperties } from "react";
+import { useId, type CSSProperties, type ReactNode } from "react";
 import type { ValueOption } from "../value-menu/value-menu";
 
 // Native radios provide arrow-key navigation; equal grid cells keep the
@@ -7,7 +7,10 @@ import type { ValueOption } from "../value-menu/value-menu";
 export type SegmentedControlProps = {
   label: string;
   value: string;
-  options: ValueOption[];
+  options: (ValueOption & {
+    /** Rich visible label; the text label still names the radio and tooltip. */
+    display?: ReactNode;
+  })[];
   disabled?: boolean;
   /** Compact controls fit a 24px toolbar row. */
   size?: "default" | "compact" | "inline";
@@ -62,8 +65,12 @@ export function SegmentedControl({
             onChange={() => onChange(option.value)}
           />
           <span>
-            {option.icon && <span aria-hidden="true">{option.icon}</span>}
-            {(!iconOnly || !option.icon) && option.label}
+            {option.icon && (
+              <span className={styles.icon} aria-hidden="true">
+                {option.icon}
+              </span>
+            )}
+            {(!iconOnly || !option.icon) && (option.display ?? option.label)}
           </span>
         </label>
       ))}

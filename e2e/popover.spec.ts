@@ -1,5 +1,36 @@
 import { expect, test } from "@playwright/test";
 
+test("fixed-width in-place popovers keep their anchor width when reopened", async ({
+  page,
+}) => {
+  await page.goto(
+    "/iframe.html?id=components-popover--fixed-width-in-place&viewMode=story",
+  );
+  await page.evaluate(() => document.fonts.ready);
+  const trigger = page
+    .getByRole("button", { name: /^A long value keeps the original width/ })
+    .first();
+  const source = (await trigger.boundingBox())!;
+  const popup = page.getByRole("dialog", {
+    name: "Expanded value",
+    exact: true,
+  });
+  for (let attempt = 0; attempt < 3; attempt++) {
+    await trigger.hover();
+    await expect(popup).toBeVisible();
+    await expect
+      .poll(async () => (await popup.boundingBox())?.width)
+      .toBeCloseTo(source.width, 1);
+    const box = (await popup.boundingBox())!;
+    expect(box.x).toBeCloseTo(source.x, 1);
+    expect(box.y).toBeCloseTo(source.y, 1);
+    expect(box.height).toBeGreaterThan(source.height);
+    await page.keyboard.press("Escape");
+    await page.mouse.move(0, 0);
+    await expect(popup).toHaveCount(0);
+  }
+});
+
 test("controlled DOM anchors preserve their description and dismiss through the host", async ({
   page,
 }) => {

@@ -1,5 +1,12 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
-import { Button, Card, CardActions, ScrollArea } from "@lesomnus/nox";
+import {
+  Button,
+  Card,
+  CardActions,
+  ScrollArea,
+  SegmentedControl,
+} from "@lesomnus/nox";
+import styles from "./card.stories.module.css";
 
 const meta = {
   title: "Components/Card",
@@ -33,7 +40,7 @@ const meta = {
     docs: {
       description: {
         component:
-          "Shared card surface for inline content, dialogs and drawers. The card owns appearance, heading, inset body and optional footer; it does not add a portal, modal behavior or animation. fill stretches into a bounded parent and supports a composed ScrollArea; bodyPadding accepts an independent CSS padding value. CardActions groups caller-owned buttons and preserves their variants.",
+          "Shared card surface for inline content, dialogs and drawers. The card owns appearance, heading, inset body and optional footer; placement and modal behavior belong to the host. revealFrom animates content over a separate glass layer. fill stretches into a bounded parent and supports a composed ScrollArea; bodyPadding accepts an independent CSS padding value. CardActions groups caller-owned buttons and preserves their variants.",
       },
     },
   },
@@ -42,6 +49,41 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {};
+export const RevealedGlass: Story = {
+  args: {
+    title: "Revealed glass",
+    revealFrom: "left",
+    children: (
+      <p>The glass keeps the stripes blurred throughout the content reveal.</p>
+    ),
+  },
+  decorators: [
+    (Story) => (
+      <div className={styles.backdrop}>
+        <Story />
+      </div>
+    ),
+  ],
+};
+export const CenteredHeader: Story = {
+  args: {
+    title: "Errors",
+    close: () => {},
+    closeLabel: "Close errors",
+    headerCenter: (
+      <SegmentedControl
+        label="Error status"
+        size="compact"
+        value="active"
+        options={[
+          { value: "active", label: "Active" },
+          { value: "history", label: "History" },
+        ]}
+        onChange={() => {}}
+      />
+    ),
+  },
+};
 export const Headerless: Story = {
   args: { hideHeading: true, bodyPadding: 0 },
 };
@@ -99,3 +141,8 @@ export const Filled: Story = {
 };
 export const CustomPadding: Story = { args: { bodyPadding: 8 } };
 export const WithoutFooter: Story = { args: { footer: undefined } };
+
+export const RevealedFilled: Story = {
+  ...Filled,
+  args: { ...Filled.args, revealFrom: "left" },
+};

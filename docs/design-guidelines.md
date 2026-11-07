@@ -58,13 +58,45 @@ For uniformly inset rounded controls, prefer an outer corner radius equal to
 the inner radius plus padding and border thickness. Keep actual measurements
 in the CSS tokens rather than duplicating them as independent constants.
 
+## Integer menu geometry
+
+Use whole CSS pixels for resting menu and control dimensions. Keep text in
+stable label slots with explicit pixel line heights; glyph advances should not
+size buttons or shortcut keycaps. ActionMenu uses a 198px default surface: its
+192px interior divides into three 64px actions. Fit narrower viewports by
+rounding the interior to a multiple of every action-row column count, and round
+viewport height limits down. Keep shortcut keycaps 20px tall so rows retain
+their 32px height. ScrollArea rounds its drawn rail and thumb sizes while
+retaining native fractional scroll offsets and shared drawing/drag metrics.
+
+## Loaded and updated values
+
+Use AnimatedText slide motion for initial or changed data without resizing its
+value slots. CompactNumber and DurationDisplay accept the same motion options
+and preserve dimmed padding digits, separators and units. `animateInitial`
+reveals a first value from blanks. A host can use `shouldAnimate(element)` to
+sample viewport and clipping ancestors at the instant data changes. Return
+false for offscreen values so they commit immediately. A visibility observer
+only cancels active motion when the value leaves view; it never starts motion
+on scroll entry. Use a top-left spatial base delay for a value's first changed
+character and bounded random delays for its remaining characters. Honor reduced
+motion through AnimatedText's shared preference handling.
+
 ## Fixed-width numeric displays
 
 Use shared numeric components rather than formatting metrics independently.
+CompactNumber uses canonical SI magnitudes and up to three significant digits,
+truncating extra decimals: `6547000 → 6.54M`, `12345 → 12.3K`. Do not choose a
+smaller unit to retain extra precision. Unloaded compact values use `----·`.
+Animate changes to fetched data; locally determined calendar dates and their
+relative-age labels stay static.
 Keep significant digits at the normal foreground brightness, padding zeroes
 at `--ui-shade-65`, and units at the intermediate brightness used by
 `CompactNumber` (78% foreground mixed with the background). Use tabular
 monospace digits and stable slots so changing values do not shift nearby UI.
+When digit, decimal or padding roles change, retain the old color through the
+start delay and transition to the new role over the slide. Retarget from the
+currently visible color if an update interrupts the transition.
 `DurationDisplay` renders nine cells as `00d00h00m`, with the padding zero in
 each field dimmed and each unit at intermediate brightness. Actual zero values
 remain readable, except a zero day field: dim the entire `00d`, including its unit. Use `rounding="ceil"` for remaining time; callers own the clock.

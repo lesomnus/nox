@@ -12,4 +12,13 @@ export const Days: Story = {};
 export const Minutes: Story = { args: { durationMs: 5 * 60000 } };
 export const Zero: Story = { args: { durationMs: 0 } };
 export const Unknown: Story = { args: { durationMs: undefined } };
+export const InitialSlide: Story = {
+  args: {
+    motion: "slide",
+    animateInitial: true,
+    maxSlideSteps: 4,
+    duration: 600,
+    characterDelay: 100,
+  },
+};
 export const Overflow: Story = { args: { durationMs: 100 * 86400000 } };

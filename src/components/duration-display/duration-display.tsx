@@ -1,5 +1,9 @@
 import numeric from "../compact-number/compact-number.module.css";
 import styles from "./duration-display.module.css";
+import {
+  AnimatedText,
+  type TextMotionOptions,
+} from "../animated-text/animated-text";
 
 /** Fixed nine-cell day/hour/minute display; ++d means more than 99 days. */
 export function formatDurationParts(
@@ -17,20 +21,27 @@ export function formatDurationParts(
   ].map(String);
 }
 
+export type DurationDisplayProps = TextMotionOptions & {
+  durationMs?: number;
+  rounding?: "floor" | "ceil";
+  label?: string;
+};
+
 export function DurationDisplay({
   durationMs,
   rounding = "floor",
   label,
-}: {
-  durationMs?: number;
-  rounding?: "floor" | "ceil";
-  label?: string;
-}) {
+  motion = "none",
+  ...motionOptions
+}: DurationDisplayProps) {
   const parts = formatDurationParts(durationMs, rounding);
   const units = ["d", "h", "m"];
   return (
     <span
       className={styles.duration}
+      data-unavailable={
+        durationMs === undefined || !Number.isFinite(durationMs) || undefined
+      }
       role="img"
       aria-label={
         label ??
@@ -45,11 +56,34 @@ export function DurationDisplay({
           className={index === 0 && digits === "0" ? styles.zeroDay : undefined}
           aria-hidden="true"
         >
-          <span className={numeric.leading}>
-            {"0".repeat(2 - digits.length)}
-          </span>
-          <span>{digits}</span>
-          <span className={numeric.unit}>{units[index]}</span>
+          {motion !== "none" ? (
+            <AnimatedText
+              {...motionOptions}
+              motion={motion}
+              aria-hidden="true"
+              value={`${digits.padStart(2, "0")}${units[index]}`}
+              initialValue={`--${units[index]}`}
+              placeholderColor="var(--ui-text-separator)"
+              comparisonValue={durationMs}
+              characterClassName={(_character, position) =>
+                index === 0 && digits === "0"
+                  ? numeric.leading
+                  : position === 2
+                    ? numeric.unit
+                    : position < 2 - digits.length
+                      ? numeric.leading
+                      : undefined
+              }
+            />
+          ) : (
+            <>
+              <span className={numeric.leading}>
+                {"0".repeat(2 - digits.length)}
+              </span>
+              <span>{digits}</span>
+              <span className={numeric.unit}>{units[index]}</span>
+            </>
+          )}
         </span>
       ))}
     </span>

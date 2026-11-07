@@ -1,5 +1,31 @@
 import { expect, test } from "@playwright/test";
 
+test("controlled visibility follows external state and reports dismissal requests", async ({
+  page,
+}) => {
+  await page.goto(
+    "/iframe.html?id=components-actionmenu--controlled&viewMode=story",
+  );
+  const trigger = page.getByRole("button", { name: "More", exact: true });
+  const menu = page.getByRole("menu", { name: "More", exact: true });
+  await expect(trigger).toHaveAttribute("aria-expanded", "false");
+  await page.getByRole("button", { name: "Open menu", exact: true }).click();
+  await expect(menu).toBeVisible();
+  await trigger.click();
+  await expect(menu).toHaveCount(0);
+  await trigger.click();
+  await expect(menu).toBeVisible();
+  await menu.getByRole("menuitem", { name: "Details", exact: true }).click();
+  await expect(menu).toHaveCount(0);
+  await trigger.click();
+  await page.keyboard.press("Escape");
+  await expect(menu).toHaveCount(0);
+  await expect(trigger).toBeFocused();
+  await trigger.click();
+  await page.mouse.click(0, 0);
+  await expect(menu).toHaveCount(0);
+});
+
 test("row groups scroll with the menu body and skip disabled actions with horizontal keys", async ({
   page,
 }) => {
@@ -12,6 +38,17 @@ test("row groups scroll with the menu body and skip disabled actions with horizo
   });
   await trigger.click();
   const menu = page.getByRole("menu", { name: "Row actions", exact: true });
+  // The reveal runs on the popup/frame ancestors of the scrolling menu.
+  await page.locator(".action-menu-popup").evaluate(async (node) => {
+    await Promise.all(
+      node
+        .getAnimations({ subtree: true })
+        .filter(
+          (animation) => animation.effect?.getTiming().iterations !== Infinity,
+        )
+        .map((animation) => animation.finished.catch(() => {})),
+    );
+  });
   const row = menu.getByRole("group", { name: "Controls", exact: true });
   const actions = row.getByRole("menuitem");
   const boxes = await actions.evaluateAll((elements) =>
@@ -24,12 +61,19 @@ test("row groups scroll with the menu body and skip disabled actions with horizo
   for (const box of boxes) {
     expect(box.y).toBe(boxes[0].y);
     expect(box.width).toBeCloseTo(boxes[0].width, 1);
+    expect(Number.isInteger(box.width)).toBe(true);
+    expect(Number.isInteger(box.height)).toBe(true);
   }
   await expect(actions.nth(0)).toBeFocused();
   await actions.nth(0).press("ArrowRight");
   await expect(actions.nth(2)).toBeFocused();
   await actions.nth(2).press("ArrowLeft");
   await expect(actions.nth(0)).toBeFocused();
+  const outlineExtent = await actions.nth(0).evaluate((node) => {
+    const style = getComputedStyle(node);
+    return parseFloat(style.outlineWidth) + parseFloat(style.outlineOffset);
+  });
+  expect(outlineExtent).toBeLessThanOrEqual(0);
   const footer = page.locator('[data-menu-fixed="footer"]');
   const viewport = menu.locator('[data-scroll-area="viewport"]');
   const before = await footer.boundingBox();

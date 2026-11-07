@@ -71,6 +71,64 @@ export const Default: Story = {};
 export const BottomEnd: Story = { args: { placement: "bottom-end" } };
 export const Right: Story = { args: { placement: "right" } };
 export const Adjacent: Story = { args: { placement: "adjacent" } };
+export const FixedWidthInPlace: Story = {
+  render: function Example() {
+    const [anchor, setAnchor] = useState<HTMLButtonElement | null>(null);
+    const text =
+      "A long value keeps the original width and expands downward. Click anywhere in the expanded text to copy the full value.";
+    return (
+      <>
+        <Button
+          ref={setAnchor}
+          effect="none"
+          style={{ width: "100%", textAlign: "left" }}
+          onClick={() =>
+            void navigator.clipboard.writeText(text).catch(() => {})
+          }
+        >
+          <span
+            style={{
+              display: "-webkit-box",
+              WebkitBoxOrient: "vertical",
+              WebkitLineClamp: 2,
+              overflow: "hidden",
+            }}
+          >
+            {text}
+          </span>
+        </Button>
+        <Popover
+          anchor={anchor}
+          placement="in-place"
+          matchAnchorWidth
+          interactive
+          label="Expanded value"
+          content={
+            <button
+              type="button"
+              style={{
+                display: "block",
+                width: "100%",
+                padding: 0,
+                border: 0,
+                background: "transparent",
+                color: "inherit",
+                font: "inherit",
+                textAlign: "left",
+                cursor: "copy",
+              }}
+              onClick={() =>
+                void navigator.clipboard.writeText(text).catch(() => {})
+              }
+            >
+              {text}
+            </button>
+          }
+        />
+      </>
+    );
+  },
+};
 export const ViewportEdge: Story = {
   render: (args) => (
     <div style={{ position: "fixed", top: 8, right: 8 }}>
