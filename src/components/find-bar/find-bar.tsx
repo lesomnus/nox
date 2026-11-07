@@ -159,7 +159,7 @@ export function FindBarResults({
   const { t } = useUI();
   return (
     <ScrollArea
-      scrollbarOffset={5}
+      scrollbarOffset={-5}
       scrollbarLabel={t("Search results")}
       {...props}
       className={`${styles.results} ${className}`}

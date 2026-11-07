@@ -101,7 +101,7 @@ export function ActionMenu({
   triggerContent?: ReactNode;
   disabledReason?: string;
   triggerClassName?: string;
-  /** Signed handle-center offset, forwarded to the scrolling action list. */
+  /** Handle-center offset in pixels: positive inside, negative outside. */
   scrollbarOffset?: number;
   /** Keep the menu open while run settles; rejection stays beside the clicked item. */
   awaitAction?: boolean;
@@ -172,7 +172,7 @@ export function ActionMenu({
           ? requestedGap(button)
           : requestedGap;
       const inset = 8;
-      const outside = Math.max(0, offset ?? 0);
+      const outside = Math.max(0, -(offset ?? 0));
       const rightInset = inset + outside;
       const style = getComputedStyle(popup);
       const horizontalChrome =
@@ -362,7 +362,7 @@ export function ActionMenu({
           data-menu-entrance={(motion && offset !== undefined) || undefined}
           style={
             {
-              "--action-menu-scrollbar-outset": `${Math.max(0, offset ?? 0)}px`,
+              "--action-menu-scrollbar-outset": `${Math.max(0, -(offset ?? 0))}px`,
             } as CSSProperties
           }
           ref={menu}

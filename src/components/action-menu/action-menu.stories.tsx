@@ -112,7 +112,7 @@ export const OutsideScrollbar: Story = {
   args: {
     label: "Scrollable actions",
     placement: "above",
-    scrollbarOffset: 12,
+    scrollbarOffset: -12,
     motion: { from: "bottom-right", effect: "reveal" },
     footer: <Button>Keep menu open</Button>,
     items: Array.from({ length: 30 }, (_, i) => ({

@@ -102,7 +102,7 @@ export function ValueMenu({
   alignItemWithTrigger?: boolean;
   /** Vertical scrollbar placement, forwarded to ScrollArea. */
   scrollbarSide?: "left" | "right";
-  /** Handle-center offset in pixels: positive outside, negative inside. */
+  /** Handle-center offset in pixels: positive inside, negative outside. */
   scrollbarOffset?: number;
 }) {
   const { t } = useUI();

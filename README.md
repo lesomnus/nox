@@ -335,7 +335,7 @@ receives its scroll events. `viewportClassName`, `contentClassName` and
 the containing surface and its fades; rail geometry, handle appearance and
 fade limits use the other `--ui-scroll-area-*` CSS tokens. Defaults live in
 `src/theme/tokens.css`. Use signed `scrollbarOffset` values to move handle centers relative to the
-container edge: positive goes outside, negative inside, and zero sits on the edge.
+container edge: positive goes inside, negative outside, and zero sits on the edge.
 Omitting it preserves existing placement. Leave room in the parent for outside
 handles and avoid clipping ancestors. See [ScrollArea](docs/scroll-area.md)
 and **Layout/ScrollArea** for placement, short/long overflow, growing content

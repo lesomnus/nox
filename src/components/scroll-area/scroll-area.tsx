@@ -34,7 +34,7 @@ export type ScrollAreaProps = Omit<
 > & {
   children: ReactNode;
   scrollbarLabel?: string;
-  /** Handle-center offset in pixels: positive outside, negative inside. */
+  /** Handle-center offset in pixels: positive inside, negative outside. */
   scrollbarOffset?: number;
   /** Edge used by the vertical scrollbar. */
   scrollbarSide?: "left" | "right";

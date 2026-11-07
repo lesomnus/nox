@@ -116,7 +116,7 @@ export const GrowingContent: StoryObj<typeof meta> = {
 
 export const Outside: StoryObj<typeof meta> = {
   args: {
-    scrollbarOffset: 12,
+    scrollbarOffset: -12,
     style: { height: 320, borderRadius: "var(--ui-dialog-radius)" },
   },
   render: (args) => (
@@ -127,7 +127,7 @@ export const Outside: StoryObj<typeof meta> = {
 };
 export const OutsideBothAxes: StoryObj<typeof meta> = {
   ...HorizontalOverflow,
-  args: { scrollbarOffset: 12, children: entries(9) },
+  args: { scrollbarOffset: -12, children: entries(9) },
 };
 export const OutsideLeft: StoryObj<typeof meta> = {
   ...Outside,
@@ -144,11 +144,11 @@ export const BoundaryOffset: StoryObj<typeof meta> = {
 };
 export const InsetOffset: StoryObj<typeof meta> = {
   ...Outside,
-  args: { ...Outside.args, scrollbarOffset: -16 },
+  args: { ...Outside.args, scrollbarOffset: 16 },
 };
 export const InsetBothAxes: StoryObj<typeof meta> = {
   ...OutsideBothAxes,
-  args: { ...OutsideBothAxes.args, scrollbarOffset: -16 },
+  args: { ...OutsideBothAxes.args, scrollbarOffset: 16 },
 };
 
 export const InstantWheel: StoryObj<typeof meta> = {
