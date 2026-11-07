@@ -17,8 +17,14 @@
   border-bottom: 1px solid var(--ui-shade-54);
 }
 .fixed[data-menu-fixed="footer"] {
-  border-top: 1px solid var(--ui-shade-54);
   padding: var(--ui-control-inset) 0 0;
+}
+.fixed[data-menu-fixed="footer"]::before {
+  content: "";
+  display: block;
+  height: 1px;
+  margin-bottom: var(--ui-control-inset);
+  background: var(--ui-shade-54);
 }
 
 /* Fixed regions occupy the outer ends; keep their adjoining scroll edges flat. */
