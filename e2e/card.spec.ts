@@ -1,6 +1,30 @@
 import { expect, test } from "@playwright/test";
 
 for (const theme of ["dark", "light"]) {
+  test(`Card gives nested Form text fields and value menus the same background in ${theme}`, async ({
+    page,
+  }) => {
+    await page.goto(
+      `/iframe.html?id=components-card--form&viewMode=story&globals=theme:${theme}`,
+    );
+    const input = page.getByRole("textbox", { name: "Alias", exact: true });
+    const select = page.getByRole("combobox", { name: "Agent", exact: true });
+    await expect(input).toBeVisible();
+    const color = await input.evaluate(
+      (node) => getComputedStyle(node).backgroundColor,
+    );
+    await expect(select).toHaveCSS("background-color", color);
+    const bodyColor = await page
+      .locator(".card-body")
+      .evaluate((node) => getComputedStyle(node).backgroundColor);
+    expect(color).not.toBe(bodyColor);
+    await select.click();
+    await page.getByRole("option", { name: "Claude", exact: true }).click();
+    await expect(select).toHaveText("Claude");
+  });
+}
+
+for (const theme of ["dark", "light"]) {
   for (const reducedMotion of ["no-preference", "reduce"] as const) {
     test(`revealed Card blurs throughout entrance in ${theme} / ${reducedMotion}`, async ({
       page,
