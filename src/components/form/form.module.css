@@ -24,6 +24,7 @@
     input:not([type="checkbox"], [type="radio"], [type="range"]),
     textarea,
     select,
+    [role="textbox"][aria-readonly="true"],
     :global(.value-menu)
   ) {
   box-sizing: border-box;
@@ -35,7 +36,8 @@
   > :is(
     input:not([type="checkbox"], [type="radio"], [type="range"]),
     textarea,
-    select
+    select,
+    [role="textbox"][aria-readonly="true"]
   ) {
   padding: var(--ui-form-control-padding-block)
     var(--ui-form-control-padding-inline);
@@ -49,13 +51,20 @@
   > :is(
     input:not([type="checkbox"], [type="radio"], [type="range"]),
     textarea,
-    select
+    select,
+    [role="textbox"][aria-readonly="true"]
   ),
 .control > :global(.value-menu) :global(.setting-trigger) {
   border-radius: var(--ui-form-control-radius);
   box-shadow: inset 0 0 0 1px var(--ui-form-control-border);
 }
-.control > :is(input, textarea, select):focus-visible,
+.control
+  > :is(
+    input,
+    textarea,
+    select,
+    [role="textbox"][aria-readonly="true"]
+  ):focus-visible,
 .control > :global(.value-menu) :global(.setting-trigger):focus-visible {
   outline: 2px solid var(--ui-shade-160);
   outline-offset: 2px;
@@ -64,6 +73,9 @@
   resize: vertical;
 }
 .control > :is(input, textarea, select):disabled {
+  color: var(--ui-muted);
+}
+.control > [role="textbox"][aria-disabled="true"] {
   color: var(--ui-muted);
 }
 .control > :global(.value-menu) {
