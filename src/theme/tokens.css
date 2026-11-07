@@ -116,8 +116,8 @@
   --ui-color-input-focus-border: var(--ui-shade-115);
   --ui-color-input-dirty-border: color-mix(
     in srgb,
-    var(--ui-brand-color) 40%,
-    var(--ui-shade-115)
+    var(--ui-brand-color) 25%,
+    var(--ui-shade-48)
   );
   --ui-color-input-hover-background: var(--ui-hover);
   --ui-color-input-error-border: var(--ui-pin-input-error-color);
