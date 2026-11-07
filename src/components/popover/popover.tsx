@@ -97,7 +97,7 @@ export function Popover({
     const sourceAnchor = externalAnchor ?? anchor.current;
     if (!open || !sourceAnchor || !hint.current) return;
     const element = hint.current;
-    const place = () => {
+    const measure = (): CSSProperties => {
       element.style.maxWidth = "";
       element.style.width = "";
       for (const property of [
@@ -126,7 +126,7 @@ export function Popover({
           if (matchAnchorWidth) {
             const rect = sourceAnchor.getBoundingClientRect();
             const frame = getComputedStyle(sourceAnchor);
-            setPosition({
+            return {
               left: rect.left,
               top: rect.top,
               width: rect.width,
@@ -135,8 +135,7 @@ export function Popover({
               padding: frame.padding,
               borderRadius: frame.borderRadius,
               ...typography,
-            });
-            return;
+            };
           }
           const expanded = textLine(element);
           if (expanded) {
@@ -148,8 +147,7 @@ export function Popover({
             // Wrap at the viewport edge without moving the text's original origin.
             const maxWidth = `min(var(--hint-max-width), ${Math.max(0, innerWidth - left - inset)}px)`;
             element.style.maxWidth = maxWidth;
-            setPosition({ left, top, maxWidth, ...typography });
-            return;
+            return { left, top, maxWidth, ...typography };
           }
         }
       }
@@ -158,7 +156,7 @@ export function Popover({
       const box = element.getBoundingClientRect();
       const gap = parseFloat(getComputedStyle(element).columnGap) || 0;
       if (placement !== "adjacent" && placement !== "in-place") {
-        setPosition({
+        return {
           ...hintPosition(
             rect,
             box,
@@ -167,8 +165,7 @@ export function Popover({
             gap,
           ),
           ...(matchAnchorWidth ? { width: rect.width } : {}),
-        });
-        return;
+        };
       }
       const left = Math.max(
         gap,
@@ -179,11 +176,21 @@ export function Popover({
         below + box.height <= innerHeight - gap
           ? below
           : Math.max(gap, rect.top - box.height - gap);
-      setPosition({
+      return {
         top,
         left,
         ...(matchAnchorWidth ? { width: rect.width } : {}),
-      });
+      };
+    };
+    const place = () => {
+      // Measurement temporarily removes React's inline sizing. Restore it even
+      // when the next position is unchanged: React won't rewrite equal styles.
+      const previousStyle = element.style.cssText;
+      try {
+        setPosition(measure());
+      } finally {
+        element.style.cssText = previousStyle;
+      }
     };
     place();
     if (placement === "in-place") return;
