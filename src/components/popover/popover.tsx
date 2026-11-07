@@ -22,6 +22,11 @@ export type PopoverProps = {
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
   placement?: PopoverPlacement;
+  /** Keep the anchor's width; in-place expansion keeps its top edge too. */
+  matchAnchorWidth?: boolean;
+  /** Allow controls in the popover, retaining hover/focus across the portal. */
+  interactive?: boolean;
+  label?: string;
 };
 
 // Fixed portal placement keeps a hint clear of a card or scroll area's clipping.
@@ -32,6 +37,9 @@ export function Popover({
   open: controlledOpen,
   onOpenChange,
   placement = "top-start",
+  matchAnchorWidth = false,
+  interactive = false,
+  label,
 }: PopoverProps) {
   const id = useId();
   const anchor = useRef<HTMLSpanElement>(null);
@@ -47,18 +55,60 @@ export function Popover({
     [controlledOpen, onOpenChange],
   );
   const [position, setPosition] = useState<CSSProperties>();
+  const within = (target: EventTarget | null) =>
+    target instanceof Node &&
+    ((externalAnchor ?? anchor.current)?.contains(target) ||
+      hint.current?.contains(target));
+  const leave = (target: EventTarget | null) => {
+    if (!within(target) && !within(document.activeElement)) setOpen(false);
+  };
+  useEffect(() => {
+    if (!interactive || !externalAnchor) return;
+    const enter = (event: PointerEvent) => {
+      if (event.pointerType !== "touch") setOpen(true);
+    };
+    const focus = () => setOpen(true);
+    const exit = (event: FocusEvent | PointerEvent) => {
+      const target = event.relatedTarget;
+      if (
+        target instanceof Node &&
+        (externalAnchor.contains(target) || hint.current?.contains(target))
+      )
+        return;
+      if (
+        externalAnchor.contains(document.activeElement) ||
+        hint.current?.contains(document.activeElement)
+      )
+        return;
+      setOpen(false);
+    };
+    externalAnchor.addEventListener("pointerenter", enter);
+    externalAnchor.addEventListener("pointerleave", exit);
+    externalAnchor.addEventListener("focusin", focus);
+    externalAnchor.addEventListener("focusout", exit);
+    return () => {
+      externalAnchor.removeEventListener("pointerenter", enter);
+      externalAnchor.removeEventListener("pointerleave", exit);
+      externalAnchor.removeEventListener("focusin", focus);
+      externalAnchor.removeEventListener("focusout", exit);
+    };
+  }, [interactive, externalAnchor, setOpen]);
   useLayoutEffect(() => {
     const sourceAnchor = externalAnchor ?? anchor.current;
     if (!open || !sourceAnchor || !hint.current) return;
     const element = hint.current;
     const place = () => {
       element.style.maxWidth = "";
+      element.style.width = "";
       for (const property of [
         "font",
         "color",
         "letter-spacing",
         "font-feature-settings",
         "font-variant-numeric",
+        "min-height",
+        "padding",
+        "border-radius",
       ])
         element.style.removeProperty(property);
       if (placement === "in-place") {
@@ -73,6 +123,21 @@ export function Popover({
             fontVariantNumeric: source.fontVariantNumeric,
           };
           Object.assign(element.style, typography);
+          if (matchAnchorWidth) {
+            const rect = sourceAnchor.getBoundingClientRect();
+            const frame = getComputedStyle(sourceAnchor);
+            setPosition({
+              left: rect.left,
+              top: rect.top,
+              width: rect.width,
+              maxWidth: rect.width,
+              minHeight: rect.height,
+              padding: frame.padding,
+              borderRadius: frame.borderRadius,
+              ...typography,
+            });
+            return;
+          }
           const expanded = textLine(element);
           if (expanded) {
             const frame = element.getBoundingClientRect();
@@ -89,18 +154,20 @@ export function Popover({
         }
       }
       const rect = sourceAnchor.getBoundingClientRect();
+      if (matchAnchorWidth) element.style.width = `${rect.width}px`;
       const box = element.getBoundingClientRect();
       const gap = parseFloat(getComputedStyle(element).columnGap) || 0;
       if (placement !== "adjacent" && placement !== "in-place") {
-        setPosition(
-          hintPosition(
+        setPosition({
+          ...hintPosition(
             rect,
             box,
             placement,
             { width: innerWidth, height: innerHeight },
             gap,
           ),
-        );
+          ...(matchAnchorWidth ? { width: rect.width } : {}),
+        });
         return;
       }
       const left = Math.max(
@@ -112,7 +179,11 @@ export function Popover({
         below + box.height <= innerHeight - gap
           ? below
           : Math.max(gap, rect.top - box.height - gap);
-      setPosition({ top, left });
+      setPosition({
+        top,
+        left,
+        ...(matchAnchorWidth ? { width: rect.width } : {}),
+      });
     };
     place();
     if (placement === "in-place") return;
@@ -120,20 +191,21 @@ export function Popover({
     observer.observe(element);
     observer.observe(sourceAnchor);
     return () => observer.disconnect();
-  }, [open, content, placement, externalAnchor]);
+  }, [open, content, placement, externalAnchor, matchAnchorWidth]);
   useLayoutEffect(() => {
     if (!open || !externalAnchor) return;
-    const previous = externalAnchor.getAttribute("aria-describedby");
+    const attribute = interactive ? "aria-controls" : "aria-describedby";
+    const previous = externalAnchor.getAttribute(attribute);
     const next = [...new Set([...(previous?.split(/\s+/) ?? []), id])].join(
       " ",
     );
-    externalAnchor.setAttribute("aria-describedby", next);
+    externalAnchor.setAttribute(attribute, next);
     return () => {
-      if (externalAnchor.getAttribute("aria-describedby") !== next) return;
-      if (previous) externalAnchor.setAttribute("aria-describedby", previous);
-      else externalAnchor.removeAttribute("aria-describedby");
+      if (externalAnchor.getAttribute(attribute) !== next) return;
+      if (previous) externalAnchor.setAttribute(attribute, previous);
+      else externalAnchor.removeAttribute(attribute);
     };
-  }, [open, externalAnchor, id]);
+  }, [open, externalAnchor, id, interactive]);
   useLayoutEffect(() => {
     if (!open || !externalAnchor || placement !== "in-place" || !position)
       return;
@@ -147,6 +219,8 @@ export function Popover({
       if (event.key === "Escape") {
         event.preventDefault();
         event.stopPropagation();
+        if (interactive && hint.current?.contains(document.activeElement))
+          (externalAnchor ?? anchor.current)?.focus({ preventScroll: true });
         close();
       }
     };
@@ -158,7 +232,7 @@ export function Popover({
       window.removeEventListener("scroll", close, true);
       document.removeEventListener("keydown", escape, true);
     };
-  }, [open, setOpen]);
+  }, [open, setOpen, interactive, externalAnchor]);
   return (
     <>
       {!external && (
@@ -173,12 +247,18 @@ export function Popover({
           onPointerEnter={(event) => {
             if (event.pointerType !== "touch") setOpen(true);
           }}
-          onPointerLeave={() => {
+          onPointerLeave={(event) => {
+            if (interactive) {
+              leave(event.relatedTarget);
+              return;
+            }
             if (!anchor.current?.contains(document.activeElement))
               setOpen(false);
           }}
           onFocus={() => setOpen(true)}
-          onBlur={() => setOpen(false)}
+          onBlur={(event) =>
+            interactive ? leave(event.relatedTarget) : setOpen(false)
+          }
         >
           {children}
         </span>
@@ -189,10 +269,20 @@ export function Popover({
           <span
             ref={hint}
             id={id}
-            role="tooltip"
+            role={interactive ? "dialog" : "tooltip"}
+            aria-label={label}
             data-placement={placement}
+            data-interactive={interactive || undefined}
             className={styles.hint}
             style={{ ...position, visibility: position ? "visible" : "hidden" }}
+            onPointerEnter={interactive ? () => setOpen(true) : undefined}
+            onPointerLeave={
+              interactive ? (event) => leave(event.relatedTarget) : undefined
+            }
+            onFocus={interactive ? () => setOpen(true) : undefined}
+            onBlur={
+              interactive ? (event) => leave(event.relatedTarget) : undefined
+            }
           >
             {content}
           </span>,
