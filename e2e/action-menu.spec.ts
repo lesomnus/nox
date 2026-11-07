@@ -38,7 +38,8 @@ test("row groups scroll with the menu body and skip disabled actions with horizo
   });
   await trigger.click();
   const menu = page.getByRole("menu", { name: "Row actions", exact: true });
-  await menu.evaluate(async (node) => {
+  // The reveal runs on the popup/frame ancestors of the scrolling menu.
+  await page.locator(".action-menu-popup").evaluate(async (node) => {
     await Promise.all(
       node
         .getAnimations({ subtree: true })
