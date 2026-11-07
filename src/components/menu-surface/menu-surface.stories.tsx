@@ -396,29 +396,24 @@ export const PlacementAndMotion: Story = {
   render: () => (
     <div className={`${styles.example} ${styles.placement}`}>
       <p className={styles.hint}>
-        Placement and entrance direction are independent. Menus stay within the
-        viewport; ValueMenu handles its own current-text alignment.
+        Menus reveal from the trigger by default, including when they flip near
+        a viewport edge. Explicit entrance directions remain independent of
+        placement. Menus stay within the viewport; ValueMenu handles its own
+        current-text alignment.
       </p>
       <div className={styles.row}>
-        <ActionMenu
-          label="Below"
-          triggerContent="Below"
-          items={basicActions}
-          motion="from-top"
-        />
+        <ActionMenu label="Below" triggerContent="Below" items={basicActions} />
         <ActionMenu
           label="Above"
           triggerContent="Above"
           items={basicActions}
           placement="above"
-          motion="from-bottom"
         />
         <ActionMenu
           label="Beside"
           triggerContent="Beside"
           items={basicActions}
           placement="right"
-          motion={{ from: "left", effect: "slide" }}
         />
         <ActionMenu
           label="Reveal"
@@ -432,6 +427,12 @@ export const PlacementAndMotion: Story = {
           triggerContent="Custom origin"
           items={basicActions}
           position={(rect) => ({ left: rect.right, top: rect.top })}
+        />
+        <ActionMenu
+          label="No motion"
+          triggerContent="No motion"
+          items={basicActions}
+          motion={false}
         />
       </div>
     </div>

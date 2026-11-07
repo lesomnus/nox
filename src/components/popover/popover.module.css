@@ -29,3 +29,6 @@
 .sourceHidden {
   opacity: 0;
 }
+.hint[data-interactive] {
+  pointer-events: auto;
+}

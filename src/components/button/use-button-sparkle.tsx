@@ -177,7 +177,7 @@ export function useButtonSparkle<T extends HTMLElement>(
             key={id}
             duration={options?.duration ?? 1200}
             color={options?.color ?? color}
-            sparkleColor={options?.sparkleColor ?? [1, 1, 1, 0.5]}
+            sparkleColor={options?.sparkleColor ?? [1, 1, 1, 0.75]}
             origin={origin}
             pressed={pressed}
             className={styles.button_ink}

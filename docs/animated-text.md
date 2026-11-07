@@ -9,6 +9,97 @@ replace the active transition rather than queuing old values, and the accessible
 name always contains the current value. Reduced-motion preferences disable the
 transitions.
 
+Interrupted slides sample the currently visible glyphs and their fractional
+positions before replacing the old strip. They continue from those positions
+toward the new target, including reversals, intermediate digits and waiting
+placeholders. Already animated cells do not wait through another start delay.
+Old completion timers cannot settle a newer transition. CompactNumber uses this
+same behavior, including when decimal or unit formatting changes.
+
+## Ready-to-use numeric presets
+
+Import `AnimatedCompactNumber` or `AnimatedDurationDisplay` from the package root
+for the full reveal behavior. The underlying CompactNumber/DurationDisplay stay
+static by default for consumers that do not need motion.
+
+```tsx
+import { AnimatedCompactNumber, AnimatedDurationDisplay } from "@lesomnus/nox";
+
+<AnimatedCompactNumber value={response?.count ?? NaN} animate={!fromCache} />
+<AnimatedCompactNumber value={7} mode="integer" digits={3} />
+<AnimatedDurationDisplay durationMs={remainingMs} rounding="ceil" />
+```
+
+The presets default to slide, initial dash/color reveal, 600ms, at most four
+steps, and a viewport top-left start (0.7ms per vertical pixel plus 0.08ms per
+horizontal pixel). Each value's first changed character anchors that start;
+remaining characters get 1–90ms of random extra delay. Values outside the window
+or any clipping ancestor commit immediately. Leaving view cancels an active
+reveal; entering view does not restart one. Reduced motion stays immediate.
+
+All normal motion options remain available. Set `spatialDelay={false}` and
+`characterJitter={0}` for simultaneous starts, or supply `characterDelay` for
+complete control of character start times. Custom `shouldAnimate` callbacks are
+combined with the visibility check. Unknown numeric values remain mounted as
+dashes, so later values animate from the displayed placeholder or cached value.
+Set `animate={false}` for cache hits; Nox has no dependency on a fetch/cache
+library and does not decide where data came from.
+
+`useValueMotion(options?: ValueMotionOptions)` returns `TextMotionOptions` for
+custom `AnimatedText` compositions. `enabled={false}` skips motion; its other
+defaults match the presets. `AnimatedCompactNumberProps`,
+`AnimatedDurationDisplayProps` and `ValueMotionOptions` are public types.
+For custom text, supply `initialValue` and `placeholderColor` when a dash/color
+placeholder is wanted; the hook owns only the timing and visibility policy.
+Storybook **AnimatedCompactNumber** includes loading/refresh/cache transitions,
+integer formatting, configuration and a grid inside ScrollArea;
+**AnimatedDurationDisplay** includes ready, unknown and cached values.
+
+## Bounded digit slides
+
+Set `maxSlideSteps` to show intermediate digits with slide motion. It caps the
+number of slides per changed digit, including the final landing; the default
+1 keeps direct slides. Each sequence shares the same total `duration`, so a
+distant digit never takes longer. A missing digit (`-` or a blank) first reveals
+zero, then samples evenly spaced digits: with a cap of 4, `- → 9` visits
+`0, 3, 6, 9`. Existing digits follow the selected physical direction and wrap
+through `0–9`. Text, punctuation and units use one direct slide.
+Multi-step slides move a single strip at constant speed for the whole sequence;
+intermediate digits have no dwell, per-step easing or JavaScript timer boundary.
+The character's start delay is applied once before the strip begins. Direct
+single-step slides retain `--ui-text-motion-easing`.
+
+```tsx
+<CompactNumber value={value} motion="slide" maxSlideSteps={4} duration={600} />
+```
+
+Keep the same component mounted with `value={NaN}` while a compact value is
+unknown. Its `----·` placeholder then slides into the first result. A new value
+cancels any old steps, reduced motion skips all intermediate frames, and
+character delays apply only before the first step. Offscreen values should
+commit immediately through `shouldAnimate`. Storybook **CompactNumber →
+LoadingSlide** demonstrates loading, updates and reset with a stable width.
+
+`animateInitial` can also reveal a value already known at mount. `initialValue`
+sets its visible starting text instead of blank cells; it is sampled once and
+does not reset later transitions. CompactNumber automatically starts from a
+sized dash placeholder (`----·` or one dash per integer digit), and DurationDisplay
+starts from `--d--h--m`. These placeholders remain painted throughout any
+initial spatial or character delay, until the first slide begins.
+CompactNumber and DurationDisplay also keep their gray placeholder color while
+waiting, then fade each revealed character to its normal color over that
+character's whole slide. The color animation shares the start delay and total
+duration, so intermediate digits never restart it. Padding and units land on
+their own dimmed tokens. For custom AnimatedText placeholders, opt in with
+`placeholderColor`; reduced motion and skipped transitions show final colors
+immediately.
+`characterColor(character, index, text)` can supply semantic colors for custom
+characters. CompactNumber uses it to transition between digit, decimal, padding
+and unit roles. The old color remains through the start delay, then transitions
+to the new role's color over the slide duration. Interrupted updates continue
+from the current visible color. Cached/offscreen/reduced-motion values remain
+immediate. Storybook **CompactNumber → DecimalRoles** shows both directions.
+
 ## Text and one-way flaps
 
 Text uses the same component as numbers. For an airport-style board that never

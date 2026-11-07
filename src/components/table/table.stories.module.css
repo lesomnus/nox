@@ -54,3 +54,39 @@
   clip-path: inset(50%);
   white-space: nowrap;
 }
+.customBase {
+  --button-background: var(--ui-shade-17);
+}
+.rowAware {
+  min-width: 700px;
+}
+.rangeExample {
+  width: 420px;
+}
+.rangeExample p {
+  color: var(--ui-muted);
+  font-size: 12px;
+}
+.rangeGroups {
+  display: flex;
+  gap: calc(4 * var(--ui-space));
+  flex-wrap: wrap;
+}
+.rangeTable {
+  table-layout: fixed;
+}
+.rangeCell {
+  position: relative;
+  width: 44px;
+  text-align: center;
+}
+.rangeCheckbox {
+  position: absolute;
+  inset: 0;
+  width: auto;
+  height: auto;
+}
+.rangeCheckbox > span {
+  width: var(--ui-checkbox-size);
+  height: var(--ui-checkbox-size);
+}

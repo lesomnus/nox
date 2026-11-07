@@ -56,9 +56,21 @@ test("search retains the current icon without shifting text or affecting matchin
   );
   const trigger = page.getByRole("combobox", { name: "Effort", exact: true });
   const anchor = (await trigger.locator(".meta-value").boundingBox())!;
+  const triggerBox = (await trigger.boundingBox())!;
   await trigger.click();
   const search = page.getByRole("combobox", { name: "Search Effort" });
   const searchBox = (await search.boundingBox())!;
+  const row = (await search.locator("..").boundingBox())!;
+  expect(row.width).toBe(triggerBox.width);
+  expect(row.height).toBe(triggerBox.height);
+  await expect(search).toHaveCSS("border-radius", "0px");
+  const selection = await search.evaluate((node: HTMLInputElement) => ({
+    start: node.selectionStart,
+    end: node.selectionEnd,
+    length: node.value.length,
+  }));
+  expect(selection.start).toBe(0);
+  expect(selection.end).toBe(selection.length);
   expect(searchBox.x).toBeCloseTo(anchor.x, 0);
   expect(searchBox.y).toBeCloseTo(anchor.y, 0);
   await expect(search.locator("..").locator("svg")).toHaveCount(1);

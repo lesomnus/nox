@@ -33,6 +33,8 @@ set `style={{ tableLayout: "fixed" }}` when columns should have fixed widths.
 state, checkboxes, links, editing, sorting, pagination and row actions belong
 to the caller. Rows do not become clickable or focusable automatically.
 Use a real checkbox or button for keyboard-accessible interactions.
+Use [`useRangeSelection`](range-selection.md) when checkbox pointer-down toggling,
+drag painting and Shift ranges are needed; it keeps selection controlled.
 
 `Table` defaults to `stickyHeader`. The entire `TableHeader` sticks within the
 nearest scrolling ancestor, including multi-row headers. Use
@@ -74,4 +76,50 @@ Theme tokens (override on a table or its scroll area):
 | `--ui-table-cell-padding`              | `--ui-space`         |
 
 Storybook **Components/Table** includes plain, selectable, editable, scrolling,
-empty and loading examples. The cxz page retains its existing implementation.
+empty and loading examples.
+
+## Buttons that follow a row
+
+Opt in with `rowAware` on `Button` or `ButtonAnchor` inside a `TableRow`:
+
+```tsx
+<TableRow selected={selected}>
+  <TableCell>
+    <Button rowAware>Run</Button>
+  </TableCell>
+  <TableCell>
+    <ButtonAnchor rowAware href="/workspace">
+      Workspace
+    </ButtonAnchor>
+  </TableCell>
+</TableRow>
+```
+
+Each control starts from its own opaque `--button-background`, or the themed
+`--ui-table-button-background` when no background is supplied. Row hover adds a
+small brightness increment. Selection adds a separate increment **on top of**
+hover; selecting a hovered row never drops the control back to a dimmer hover
+level. Direct control hover adds stronger emphasis. Light mode reverses the
+direction. These changes share the button background transition, respect reduced
+motion, and do not change layout, click handlers or focus behavior.
+
+Controls without `rowAware` retain their normal appearance. Nested rows reset the
+row state, so an outer selection does not select controls in an inner row.
+`TableRow` may also be used inside a native `tbody` when an application owns the
+rest of its table layout.
+
+Override these tokens on the table, a row or one control:
+
+| Token                              | Purpose                                   |
+| ---------------------------------- | ----------------------------------------- |
+| `--ui-table-button-background`     | Default control base surface              |
+| `--ui-table-button-row-hover-lift` | Brightness added by row hover             |
+| `--ui-table-button-selected-lift`  | Additional brightness for selection       |
+| `--ui-table-button-hover-lift`     | Direct control hover emphasis             |
+| `--ui-table-button-tone-direction` | Theme direction applied to the increments |
+
+Use positive lift magnitudes; the theme direction handles light mode. A custom
+`--button-background` remains the base in every state. This opt-in mode derives
+hover surfaces from that base and the table tokens rather than the button's
+standalone hover color. Use **Components/Table → Row Aware Buttons** to compare
+default and custom bases with ordinary buttons beside them.

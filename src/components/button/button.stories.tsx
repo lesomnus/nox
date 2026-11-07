@@ -21,6 +21,34 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {};
+export const AutomaticLoading: Story = {
+  render: function AutomaticLoading(args) {
+    const finish = useRef<(success: boolean) => void>(() => {});
+    const [requests, setRequests] = useState(0);
+    const [status, setStatus] = useState("Idle");
+    return (
+      <div style={{ display: "grid", gap: 12 }}>
+        <Button
+          {...args}
+          onClick={async () => {
+            setRequests((count) => count + 1);
+            setStatus("Pending");
+            const success = await new Promise<boolean>((resolve) => {
+              finish.current = resolve;
+            });
+            setStatus(success ? "Saved" : "Failed");
+          }}
+        >
+          Save automatically
+        </Button>
+        <Button onClick={() => finish.current(true)}>Complete action</Button>
+        <Button onClick={() => finish.current(false)}>Fail action</Button>
+        <output aria-label="Requests">{requests}</output>
+        <output aria-label="Action state">{status}</output>
+      </div>
+    );
+  },
+};
 export const NoEffect: Story = { args: { effect: "none", variant: "solid" } };
 export const CustomInk: Story = {
   args: {

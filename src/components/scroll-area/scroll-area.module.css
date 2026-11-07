@@ -16,14 +16,14 @@
     0px,
     calc(
       var(--ui-scroll-area-handle-size) *
-        var(--ui-scroll-area-handle-expansion) / 2 + var(--ui-control-inset) -
+        var(--ui-scroll-area-handle-expansion) / 2 + var(--ui-control-inset) +
         var(--scrollbar-offset)
     )
   );
   --scrollbar-horizontal-inset: max(
     0px,
     calc(
-      var(--ui-scroll-area-handle-size) / 2 + var(--ui-control-inset) -
+      var(--ui-scroll-area-handle-size) / 2 + var(--ui-control-inset) +
         var(--scrollbar-offset)
     )
   );
@@ -33,14 +33,10 @@
   border-radius: inherit;
 }
 .area[data-scrollbar-offset] .rail {
-  right: calc(
-    -1 * (var(--scrollbar-offset) + var(--ui-scroll-area-hit-size) / 2)
-  );
+  right: calc(var(--scrollbar-offset) - var(--ui-scroll-area-hit-size) / 2);
 }
 .area[data-scrollbar-offset] .horizontalRail {
-  bottom: calc(
-    -1 * (var(--scrollbar-offset) + var(--ui-scroll-area-hit-size) / 2)
-  );
+  bottom: calc(var(--scrollbar-offset) - var(--ui-scroll-area-hit-size) / 2);
 }
 .area[data-scrollbar-offset] .topFade {
   border-top-left-radius: inherit;
@@ -70,6 +66,17 @@
 .content {
   display: flow-root;
   padding-right: var(--ui-scroll-area-content-inset);
+}
+.area[data-scrollbar-side="left"] .content {
+  padding-left: var(--ui-scroll-area-content-inset);
+  padding-right: 0;
+}
+.area[data-scrollbar-side="left"] .rail {
+  right: auto;
+  left: var(--ui-scroll-area-rail-offset);
+}
+.area[data-scrollbar-side="left"][data-scrollbar-offset] .rail {
+  left: calc(var(--scrollbar-offset) - var(--ui-scroll-area-hit-size) / 2);
 }
 .area[data-horizontal-overflow] .viewport {
   height: calc(

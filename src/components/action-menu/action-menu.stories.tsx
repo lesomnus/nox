@@ -10,7 +10,7 @@ const meta = {
     docs: {
       description: {
         component:
-          "A menu beside its trigger, used for commands and checked choices. This page keeps the basic API and an action-driven trigger example. Shared feature comparisons live under Menus/Features; placement, motion, shortcut labels and dangerous actions are demonstrated in the top-level Menus gallery.",
+          "A menu beside its trigger, used for commands and checked choices. Menus reveal from the trigger-facing edge by default; set motion={false} to disable the entrance. This page keeps the basic API and an action-driven trigger example. Shared feature comparisons live under Menus/Features; placement, motion, shortcut labels and dangerous actions are demonstrated in the top-level Menus gallery.",
       },
     },
   },
@@ -27,6 +27,17 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 export const More: Story = {};
+export const Controlled: Story = {
+  render: function Controlled(args) {
+    const [open, setOpen] = useState(false);
+    return (
+      <>
+        <Button onClick={() => setOpen(true)}>Open menu</Button>
+        <ActionMenu {...args} open={open} onOpenChange={setOpen} />
+      </>
+    );
+  },
+};
 export const RowActions: Story = {
   render: function RowActions() {
     const [last, setLast] = useState("None");
@@ -101,7 +112,7 @@ export const OutsideScrollbar: Story = {
   args: {
     label: "Scrollable actions",
     placement: "above",
-    scrollbarOffset: 12,
+    scrollbarOffset: -12,
     motion: { from: "bottom-right", effect: "reveal" },
     footer: <Button>Keep menu open</Button>,
     items: Array.from({ length: 30 }, (_, i) => ({

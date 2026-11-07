@@ -31,8 +31,12 @@ import { useUI } from "../../providers/ui-provider";
 export type ValueOption = {
   value: string;
   label: string;
+  /** Smaller secondary text below the label, for example a resource alias. */
+  description?: string;
   /** Decorative content shown before the value label. */
   icon?: ReactNode;
+  /** Content aligned to the right of the option and selected value. */
+  trailing?: ReactNode;
   muted?: boolean;
   /** Keep the option visible while preventing selection. */
   disabled?: boolean;
@@ -62,12 +66,15 @@ export function ValueMenu({
   minMenuWidth = 140,
   variant = "default",
   disabled,
+  dirty = false,
   disabledReason,
   choose,
   searchable = false,
   hideSelected = false,
   alignItemWithTrigger = false,
   awaitAction = false,
+  scrollbarOffset,
+  scrollbarSide,
 }: {
   label: string;
   /** Always visible above/below the value rows, regardless of opening direction. */
@@ -82,6 +89,8 @@ export function ValueMenu({
   minMenuWidth?: number;
   variant?: "default" | "compact";
   disabled?: boolean;
+  /** Whether the selected value differs from the caller's saved value. */
+  dirty?: boolean;
   disabledReason?: string;
   choose: (value: string) => unknown;
   /** Await choose before closing; rejection keeps feedback on the chosen option. */
@@ -91,8 +100,13 @@ export function ValueMenu({
   hideSelected?: boolean;
   /** Align the selected option itself; search/hidden/missing selections use the current-row layout. */
   alignItemWithTrigger?: boolean;
+  /** Vertical scrollbar placement, forwarded to ScrollArea. */
+  scrollbarSide?: "left" | "right";
+  /** Handle-center offset in pixels: positive inside, negative outside. */
+  scrollbarOffset?: number;
 }) {
   const { t } = useUI();
+  const offset = Number.isFinite(scrollbarOffset) ? scrollbarOffset : undefined;
   const hasHeader = hasMenuRegion(header);
   const hasFooter = hasMenuRegion(footer);
   const hasRegions = hasHeader || hasFooter;
@@ -111,6 +125,10 @@ export function ValueMenu({
     .flatMap((section) => section.items)
     .find((item) => item.value === value);
   const text = display ?? selected?.label ?? value;
+  const currentOption = { ...selected, value, label: text };
+  const multiline = sections.some((section) =>
+    section.items.some((item) => !!item.description),
+  );
   const alignItem =
     alignItemWithTrigger && !searchable && !hideSelected && !!selected;
   const itemAnchor = alignItem ? value : undefined;
@@ -124,7 +142,7 @@ export function ValueMenu({
           (!hideSelected || item.value !== value) &&
           (!searchable ||
             !queryEdited ||
-            matchesValueQuery(`${item.label} ${item.searchText ?? ""}`, query)),
+            matchesValueQuery(optionSearchText(item), query)),
       ),
     }))
     .filter((section) => section.items.length > 0);
@@ -386,7 +404,9 @@ export function ValueMenu({
       ref={root}
       className={`${styles.value_menu} value-menu`}
       data-variant={variant}
+      data-multiline={multiline || undefined}
       data-value={value}
+      data-dirty={dirty || undefined}
       data-item-aligned={(open && itemAligned) || undefined}
       onKeyDown={key}
       onBlur={(e) => {
@@ -403,6 +423,7 @@ export function ValueMenu({
         type="button"
         className="setting-trigger"
         icon={selected?.icon}
+        trailing={selected?.trailing}
         data-muted={!!isMuted}
         role="combobox"
         aria-label={label}
@@ -413,7 +434,7 @@ export function ValueMenu({
         title={disabled ? disabledReason : text}
         onClick={() => (open ? close() : openMenu())}
       >
-        <span className="meta-value">{text}</span>
+        <ValueLabel option={currentOption} query="" className="meta-value" />
       </MenuItem>
       {open && (
         <MenuSurface
@@ -421,7 +442,9 @@ export function ValueMenu({
           ref={menu}
           id={id}
           data-variant={variant}
+          data-multiline={multiline || undefined}
           data-searchable={searchable}
+          data-scrollbar-offset={offset}
           data-align-item-with-trigger={alignItem || undefined}
           className={`${styles.setting_menu} ${dialogStyles.entrance} setting-menu ${!alignItem && up ? "opens-up" : ""}`}
           data-enter-effect={itemAligned ? "anchored" : "fade"}
@@ -477,13 +500,18 @@ export function ValueMenu({
                 type="button"
                 className="setting-current"
                 icon={selected?.icon}
+                trailing={selected?.trailing}
                 data-option-value={value}
                 data-muted={!!isMuted}
                 tabIndex={-1}
                 disabled={selected?.disabled || action.pending}
                 onClick={() => close(true)}
               >
-                <span className="meta-value">{text}</span>
+                <ValueLabel
+                  option={currentOption}
+                  query=""
+                  className="meta-value"
+                />
               </MenuItem>
             ) : null}
             <div
@@ -492,6 +520,8 @@ export function ValueMenu({
               {!alignItem && <MenuDivider className="setting-divider" />}
               <MenuScrollArea
                 viewportClassName="setting-options"
+                scrollbarSide={scrollbarSide}
+                scrollbarOffset={offset}
                 scrollbarLabel={t("Scroll {label} choices", { label })}
                 id={`${id}-results`}
                 role="listbox"
@@ -545,6 +575,7 @@ export function ValueMenu({
                             }
                             title={choice.label}
                             icon={choice.icon}
+                            trailing={choice.trailing}
                             data-muted={!!choice.muted}
                             onClick={(event) => {
                               if (choice.value === value) close(true);
@@ -578,21 +609,55 @@ export function ValueMenu({
 
 export type ValueMenuProps = Parameters<typeof ValueMenu>[0];
 
-function ValueLabel({ option, query }: { option: ValueOption; query: string }) {
-  const source = `${option.label} ${option.searchText ?? ""}`;
+function optionSearchText(option: ValueOption) {
+  return `${option.label}${option.description ? ` ${option.description}` : ""} ${option.searchText ?? ""}`;
+}
+
+function ValueLabel({
+  option,
+  query,
+  className = "setting-match-label",
+}: {
+  option: ValueOption;
+  query: string;
+  className?: string;
+}) {
+  const source = optionSearchText(option);
   const ranges = matchValueQuery(source, query) ?? [];
-  // Show the alias only when it contributed to matching, so hidden metadata
-  // never produces an unexplained result without any highlighted characters.
-  const text = ranges.some((range) => range.end > option.label.length)
-    ? source
-    : option.label;
-  const parts = [];
-  let from = 0;
-  for (const { start, end } of ranges) {
-    parts.push(text.slice(from, start));
-    parts.push(<mark key={start}>{text.slice(start, end)}</mark>);
-    from = end;
-  }
-  parts.push(text.slice(from));
-  return <span className="setting-match-label">{parts}</span>;
+  // Reveal hidden search metadata only when it contributed to matching. Visible
+  // descriptions keep their own second line and highlight matching characters.
+  const metadataStart =
+    option.label.length +
+    (option.description ? option.description.length + 1 : 0) +
+    1;
+  const showMetadata = ranges.some((range) => range.end > metadataStart);
+  const highlight = (text: string, offset: number) => {
+    const parts: ReactNode[] = [];
+    let from = 0;
+    for (const range of ranges) {
+      const start = Math.max(0, range.start - offset);
+      const end = Math.min(text.length, range.end - offset);
+      if (start >= end) continue;
+      parts.push(text.slice(from, start));
+      parts.push(<mark key={start}>{text.slice(start, end)}</mark>);
+      from = end;
+    }
+    parts.push(text.slice(from));
+    return parts;
+  };
+  return (
+    <span className={`${styles.label} ${className}`}>
+      <span className={styles.primary}>
+        {highlight(option.label, 0)}
+        {showMetadata && (
+          <> {highlight(option.searchText ?? "", metadataStart)}</>
+        )}
+      </span>
+      {option.description && (
+        <small className={styles.description}>
+          {highlight(option.description, option.label.length + 1)}
+        </small>
+      )}
+    </span>
+  );
 }

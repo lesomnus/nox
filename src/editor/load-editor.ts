@@ -21,3 +21,19 @@ export async function loadEditor(): Promise<EditorModule> {
     return recover();
   }
 }
+
+export type SourceEditorLanguage = { id: string; label: string };
+
+/** Load the optional editor and enumerate its actual registered tokenizers. */
+export async function getSourceEditorLanguages(): Promise<
+  SourceEditorLanguage[]
+> {
+  const { monaco } = await loadEditor();
+  return [
+    ...new Map(
+      monaco.languages
+        .getLanguages()
+        .map(({ id, aliases }) => [id, { id, label: aliases?.[0] || id }]),
+    ).values(),
+  ].sort((a, b) => a.label.localeCompare(b.label));
+}

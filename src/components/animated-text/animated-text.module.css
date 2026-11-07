@@ -27,6 +27,20 @@
 .cell[data-changing] > .glyph {
   visibility: hidden;
 }
+.cell[data-color-reveal]:not([data-color-managed]) {
+  animation: placeholder-color var(--animated-text-duration) linear
+    var(--animated-text-delay, 0ms) both;
+}
+.cell[data-color-transition] {
+  transition: color var(--animated-text-duration) linear
+    var(--animated-text-delay, 0ms);
+}
+@keyframes placeholder-color {
+  from {
+    color: var(--animated-text-placeholder-color);
+  }
+  /* The implicit endpoint is the cell's normal value/padding/unit color. */
+}
 .outgoing,
 .incoming {
   animation-duration: var(--animated-text-duration);
@@ -45,6 +59,53 @@
 }
 .cell[data-direction="up"] > .incoming {
   animation-name: slide-in-up;
+}
+.slide_strip {
+  --animated-slide-sign: 1;
+  animation: slide-travel var(--animated-text-duration) linear
+    var(--animated-text-delay, 0ms) both;
+}
+.cell[data-direction="up"] > .slide_strip {
+  --animated-slide-sign: -1;
+}
+.retargeted {
+  animation-name: slide-retarget;
+}
+.retargeted > .slide_frame {
+  transform: translateY(
+    calc(
+      var(--animated-slide-origin) + var(--animated-slide-position) *
+        var(--animated-slide-sign)
+    )
+  );
+}
+@keyframes slide-retarget {
+  from {
+    transform: translateY(0);
+  }
+  to {
+    transform: translateY(
+      calc(
+        var(--animated-slide-distance) * var(--animated-slide-sign) -
+          var(--animated-slide-origin)
+      )
+    );
+  }
+}
+.slide_frame {
+  transform: translateY(
+    calc(var(--animated-slide-position) * var(--animated-slide-sign))
+  );
+}
+@keyframes slide-travel {
+  from {
+    transform: translateY(0);
+  }
+  to {
+    transform: translateY(
+      calc(var(--animated-slide-distance) * var(--animated-slide-sign))
+    );
+  }
 }
 @keyframes slide-out-down {
   to {
@@ -169,6 +230,12 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .cell[data-color-transition] {
+    transition: none;
+  }
+  .cell[data-color-reveal] {
+    animation: none;
+  }
   .cell[data-changing] > .glyph {
     visibility: visible;
   }

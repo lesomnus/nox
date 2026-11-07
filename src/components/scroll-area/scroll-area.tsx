@@ -34,8 +34,10 @@ export type ScrollAreaProps = Omit<
 > & {
   children: ReactNode;
   scrollbarLabel?: string;
-  /** Handle-center offset in pixels: positive outside, negative inside. */
+  /** Handle-center offset in pixels: positive inside, negative outside. */
   scrollbarOffset?: number;
+  /** Edge used by the vertical scrollbar. */
+  scrollbarSide?: "left" | "right";
   /** Show an additional horizontal scrollbar when content overflows. */
   horizontalScrollbar?: boolean;
   /** Native wheel animation, or JS-controlled scrolling from the first event. */
@@ -57,6 +59,7 @@ export function ScrollArea({
   viewportRef,
   scrollbarLabel = "Scroll",
   scrollbarOffset,
+  scrollbarSide = "right",
   horizontalScrollbar = false,
   wheelBehavior = "native",
   wheelSmoothing = 70,
@@ -128,11 +131,15 @@ export function ScrollArea({
       parseFloat(style.getPropertyValue("--ui-scroll-area-rail-growth")) || 1;
     // The centered travel range grows with overflow, rather than consuming
     // the viewport's entire edge as soon as a scrollbar becomes necessary.
-    const height = Math.min(
-      available,
-      railMax,
-      available * clamp(railRatio, 0, 1),
-      railMin + max * railGrowth,
+    // Quantize drawn sizes while keeping native scroll offsets fractional.
+    // Drag travel uses these same dimensions, so the handle stays under the pointer.
+    const height = Math.round(
+      Math.min(
+        available,
+        railMax,
+        available * clamp(railRatio, 0, 1),
+        railMin + max * railGrowth,
+      ),
     );
     const maxSize =
       parseFloat(style.getPropertyValue("--ui-scroll-area-thumb-max-size")) ||
@@ -143,12 +150,14 @@ export function ScrollArea({
     const rawTop = clamp(el.scrollTop, 0, max);
     // Native scroll offsets can be fractional while client/scrollHeight round.
     const top = max - rawTop < 1 ? max : rawTop;
-    const thumb = Math.min(
-      height,
-      // Keep both drawing and drag travel based on the same capped size.
-      // Short rails still retain a usable minimum grab area.
-      Math.max(32, Math.min(maxSize, height * clamp(maxRatio, 0, 1))),
-      Math.max(32, (height * available) / (scrollHeight || 1)),
+    const thumb = Math.round(
+      Math.min(
+        height,
+        // Keep both drawing and drag travel based on the same capped size.
+        // Short rails still retain a usable minimum grab area.
+        Math.max(32, Math.min(maxSize, height * clamp(maxRatio, 0, 1))),
+        Math.max(32, (height * available) / (scrollHeight || 1)),
+      ),
     );
     setView((old) =>
       old.top === top &&
@@ -161,19 +170,23 @@ export function ScrollArea({
     if (horizontalScrollbar) {
       const availableWidth = el.clientWidth;
       const maxHorizontal = Math.max(0, el.scrollWidth - availableWidth);
-      const width = Math.min(
-        availableWidth,
-        railMax,
-        availableWidth * clamp(railRatio, 0, 1),
-        railMin + maxHorizontal * railGrowth,
+      const width = Math.round(
+        Math.min(
+          availableWidth,
+          railMax,
+          availableWidth * clamp(railRatio, 0, 1),
+          railMin + maxHorizontal * railGrowth,
+        ),
       );
       const left = clamp(el.scrollLeft, 0, maxHorizontal);
-      const horizontalThumb = Math.min(
-        width,
-        Math.max(32, Math.min(maxSize, width * clamp(maxRatio, 0, 1))),
-        Math.max(
-          32,
-          (width * availableWidth) / (maxHorizontal + availableWidth || 1),
+      const horizontalThumb = Math.round(
+        Math.min(
+          width,
+          Math.max(32, Math.min(maxSize, width * clamp(maxRatio, 0, 1))),
+          Math.max(
+            32,
+            (width * availableWidth) / (maxHorizontal + availableWidth || 1),
+          ),
         ),
       );
       setHorizontalView((old) =>
@@ -523,6 +536,7 @@ export function ScrollArea({
       className={`${styles.area} ${className}`}
       data-scroll-area="root"
       data-scrollbar-offset={offset}
+      data-scrollbar-side={scrollbarSide}
       style={
         {
           "--scrollbar-offset":
@@ -536,14 +550,16 @@ export function ScrollArea({
       data-horizontal-overflow={horizontalOverflow || undefined}
       onPointerMove={(event) => {
         const bounds = event.currentTarget.getBoundingClientRect();
+        const distance =
+          parseFloat(
+            getComputedStyle(event.currentTarget).getPropertyValue(
+              "--ui-scroll-area-near-distance",
+            ),
+          ) || 32;
         setNear(
-          event.clientX >
-            bounds.right -
-              (parseFloat(
-                getComputedStyle(event.currentTarget).getPropertyValue(
-                  "--ui-scroll-area-near-distance",
-                ),
-              ) || 32),
+          scrollbarSide === "left"
+            ? event.clientX < bounds.left + distance
+            : event.clientX > bounds.right - distance,
         );
         onPointerMove?.(event);
       }}

@@ -21,3 +21,7 @@ export const Short: Story = { args: { value: "oak" } };
 export const Missing: Story = { args: { value: undefined } };
 export const LongerPrefix: Story = { args: { prefixLength: 12 } };
 export const WithoutCopy: Story = { args: { copyable: false } };
+
+export const WholeValueCopy: Story = {
+  args: { copyTrigger: "value", copyLabel: "Copy record identifier" },
+};

@@ -51,6 +51,20 @@ export function menuFixedHeight(surface: HTMLElement) {
   );
 }
 
+/** A shared content width must divide evenly across every row action group. */
+export function menuColumnMultiple(surface: HTMLElement) {
+  return [
+    ...surface.querySelectorAll('[data-action-menu-layout="row"]'),
+  ].reduce((multiple, row) => {
+    const count = row.querySelectorAll(":scope > button[role]").length;
+    if (!count) return multiple;
+    let a = multiple;
+    let b = count;
+    while (b) [a, b] = [b, a % b];
+    return (multiple * count) / a;
+  }, 1);
+}
+
 export function hasMenuRegion(content: ReactNode) {
   return content != null && typeof content !== "boolean";
 }

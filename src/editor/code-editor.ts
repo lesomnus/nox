@@ -12,9 +12,13 @@ import "monaco-editor/esm/vs/basic-languages/sql/sql.contribution.js";
 import "monaco-editor/esm/vs/basic-languages/xml/xml.contribution.js";
 import "monaco-editor/esm/vs/basic-languages/yaml/yaml.contribution.js";
 import "monaco-editor/esm/vs/basic-languages/html/html.contribution.js";
+import "monaco-editor/esm/vs/basic-languages/dockerfile/dockerfile.contribution.js";
+import "monaco-editor/esm/vs/basic-languages/protobuf/protobuf.contribution.js";
+import "monaco-editor/esm/vs/basic-languages/ini/ini.contribution.js";
 import { jsonDefaults } from "monaco-editor/esm/vs/language/json/monaco.contribution.js";
 import EditorWorker from "monaco-editor/esm/vs/editor/editor.worker.js?worker";
 import JsonWorker from "monaco-editor/esm/vs/language/json/json.worker.js?worker";
+import { detectEditorLanguage } from "./editor-language";
 import {
   defaultEditorSettings,
   paletteForTheme,
@@ -96,25 +100,12 @@ export function configureEditor(
   editor.updateOptions({
     theme: `nox-${settings.colorPalette}-${theme}`,
     fontFamily: settings.fontFamily,
+    wordWrap: settings.wordWrap ? "on" : "off",
+    renderControlCharacters: settings.showControlCharacters ?? false,
+    renderWhitespace: settings.showControlCharacters ? "all" : "none",
   });
 }
 
-export function language(path: string) {
-  const ext = path.split(".").at(-1)?.toLowerCase();
-  return (
-    (
-      {
-        go: "go",
-        ts: "typescript",
-        tsx: "typescript",
-        js: "javascript",
-        jsx: "javascript",
-        md: "markdown",
-        sh: "shell",
-        json: "json",
-        css: "css",
-        html: "html",
-      } as Record<string, string>
-    )[ext ?? ""] ?? "plaintext"
-  );
+export function language(path: string, text = "") {
+  return detectEditorLanguage(path, text, monaco.languages.getLanguages());
 }

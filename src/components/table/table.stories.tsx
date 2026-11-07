@@ -2,6 +2,8 @@ import type { Meta, StoryObj } from "@storybook/react-vite";
 import { useState } from "react";
 import {
   Checkbox,
+  Button,
+  ButtonAnchor,
   EditableValue,
   LinkButton,
   Skeleton,
@@ -15,6 +17,7 @@ import {
   TableCell,
   TableCaption,
   TableScrollArea,
+  useRangeSelection,
 } from "@lesomnus/nox";
 import styles from "./table.stories.module.css";
 
@@ -118,7 +121,11 @@ export const Default: Story = {
 export const Selectable: Story = {
   render: function Example(args) {
     const [selected, select] = useState<string[]>([]);
-    const all = selected.length === sessions.length;
+    const selection = useRangeSelection({
+      items: sessions.map((session) => session.id),
+      selected: new Set(selected),
+      onSelectionChange: (next) => select([...next]),
+    });
     return (
       <div>
         <div className={styles.toolbar}>
@@ -127,22 +134,19 @@ export const Selectable: Story = {
             {selected.length} selected
           </output>
         </div>
-        <Table {...args} aria-label="Sessions" className={styles.table}>
+        <Table
+          {...args}
+          {...selection.getContainerProps()}
+          aria-label="Sessions"
+          className={styles.table}
+        >
           <Columns selection />
           <TableHeader>
             <TableRow>
               <TableHead align="center">
                 <Checkbox
                   aria-label="Select all sessions"
-                  checked={all}
-                  indeterminate={selected.length > 0 && !all}
-                  onChange={(event) =>
-                    select(
-                      event.currentTarget.checked
-                        ? sessions.map((session) => session.id)
-                        : [],
-                    )
-                  }
+                  {...selection.getSelectAllProps()}
                 />
               </TableHead>
               <Headings />
@@ -157,15 +161,7 @@ export const Selectable: Story = {
                 <TableCell align="center">
                   <Checkbox
                     aria-label={`Select ${session.name}`}
-                    checked={selected.includes(session.id)}
-                    onChange={(event) => {
-                      const checked = event.currentTarget.checked;
-                      select((current) =>
-                        checked
-                          ? [...current, session.id]
-                          : current.filter((id) => id !== session.id),
-                      );
-                    }}
+                    {...selection.getCheckboxProps(session.id)}
                   />
                 </TableCell>
                 <TableHead scope="row">{session.name}</TableHead>
@@ -224,6 +220,176 @@ export const Editable: Story = {
       </Table>
     );
   },
+};
+
+export const RowAwareButtons: Story = {
+  render: function Example(args) {
+    const [selected, select] = useState<string[]>([]);
+    return (
+      <Table
+        {...args}
+        className={`${styles.table} ${styles.rowAware}`}
+        aria-label="Row-aware buttons"
+      >
+        <TableHeader>
+          <TableRow>
+            <TableHead>Select</TableHead>
+            <TableHead>Surface</TableHead>
+            <TableHead>Button</TableHead>
+            <TableHead>Link</TableHead>
+            <TableHead>Independent</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {["Default base", "Custom base"].map((name, i) => (
+            <TableRow key={name} selected={selected.includes(name)}>
+              <TableCell>
+                <Checkbox
+                  aria-label={`Select ${name}`}
+                  checked={selected.includes(name)}
+                  onChange={(e) => {
+                    const checked = e.currentTarget.checked;
+                    select((current) =>
+                      checked
+                        ? [...current, name]
+                        : current.filter((v) => v !== name),
+                    );
+                  }}
+                />
+              </TableCell>
+              <TableHead scope="row">{name}</TableHead>
+              <TableCell>
+                <Button
+                  rowAware
+                  effect="none"
+                  className={i ? styles.customBase : undefined}
+                >
+                  Action
+                </Button>
+              </TableCell>
+              <TableCell>
+                <ButtonAnchor
+                  rowAware
+                  effect="none"
+                  href="#workspace"
+                  className={i ? styles.customBase : undefined}
+                >
+                  Workspace
+                </ButtonAnchor>
+              </TableCell>
+              <TableCell>
+                <Button effect="none">Independent</Button>
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+    );
+  },
+};
+
+function RangeSelectionExample({
+  label = "Range selection",
+}: {
+  label?: string;
+}) {
+  const [items, setItems] = useState(() =>
+    Array.from({ length: 8 }, (_, index) => index + 1),
+  );
+  const [selected, select] = useState<Set<number>>(() => new Set());
+  const [disabled, disable] = useState(false);
+  const selection = useRangeSelection({
+    items,
+    selected,
+    onSelectionChange: select,
+    disabled,
+    isItemDisabled: (key) => key === 4,
+  });
+  return (
+    <section
+      {...selection.getContainerProps()}
+      className={styles.rangeExample}
+      aria-label={label}
+    >
+      <p>
+        Press and drag to resize a range; pulling back restores the original
+        selection. Hold Shift to adjust one range with repeated clicks or Space.
+        Each drag or held-Shift session is one commit. Use Ctrl+Z to undo and
+        Ctrl+Shift+Z to redo while focused here. Item 4 is disabled.
+      </p>
+      <div className={styles.toolbar}>
+        <output aria-label="Selected items">{selected.size} selected</output>
+        <Button
+          effect="none"
+          disabled={!selection.canUndo}
+          onClick={selection.undo}
+        >
+          Undo
+        </Button>
+        <Button
+          effect="none"
+          disabled={!selection.canRedo}
+          onClick={selection.redo}
+        >
+          Redo
+        </Button>
+        <Button
+          effect="none"
+          onClick={() => setItems((current) => [...current].reverse())}
+        >
+          Reverse order
+        </Button>
+        <Button effect="none" onClick={() => disable((value) => !value)}>
+          {disabled ? "Enable selection" : "Disable selection"}
+        </Button>
+      </div>
+      <label>
+        Notes{" "}
+        <input
+          aria-label="Notes"
+          placeholder="Text keeps its own undo history"
+        />
+      </label>
+      <Table className={styles.rangeTable} aria-label={label}>
+        <TableHeader>
+          <TableRow>
+            <TableHead className={styles.rangeCell}>
+              <Checkbox
+                aria-label="Select all items"
+                {...selection.getSelectAllProps()}
+              />
+            </TableHead>
+            <TableHead>Item</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {items.map((key) => (
+            <TableRow key={key} selected={selected.has(key)}>
+              <TableCell className={styles.rangeCell}>
+                <Checkbox
+                  className={styles.rangeCheckbox}
+                  aria-label={`Select Item ${key}`}
+                  {...selection.getCheckboxProps(key)}
+                />
+              </TableCell>
+              <TableHead scope="row">Item {key}</TableHead>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+    </section>
+  );
+}
+export const RangeSelection: Story = {
+  render: () => <RangeSelectionExample />,
+};
+export const IndependentRanges: Story = {
+  render: () => (
+    <div className={styles.rangeGroups}>
+      <RangeSelectionExample label="First list" />
+      <RangeSelectionExample label="Second list" />
+    </div>
+  ),
 };
 
 export const Scrolling: Story = {

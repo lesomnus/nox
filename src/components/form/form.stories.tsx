@@ -50,6 +50,82 @@ export const Default: Story = {
   },
 };
 
+export const UnsavedChanges: Story = {
+  render: function Example(args) {
+    const id = useId();
+    const initial = {
+      name: "My workspace",
+      description: "Shared project work",
+      priority: "normal",
+    };
+    const [saved, setSaved] = useState(initial);
+    const [draft, setDraft] = useState(initial);
+    return (
+      <Form
+        {...args}
+        onSubmit={(event) => {
+          event.preventDefault();
+          setSaved(draft);
+        }}
+      >
+        <FormField
+          label="Name"
+          htmlFor={`${id}-name`}
+          dirty={draft.name !== saved.name}
+        >
+          <input
+            id={`${id}-name`}
+            value={draft.name}
+            onChange={(event) =>
+              setDraft({ ...draft, name: event.target.value })
+            }
+          />
+        </FormField>
+        <FormField label="Priority">
+          <ValueMenu
+            label="Priority"
+            value={draft.priority}
+            dirty={draft.priority !== saved.priority}
+            options={[
+              { value: "normal", label: "Normal" },
+              { value: "high", label: "High" },
+            ]}
+            choose={(priority) => setDraft({ ...draft, priority })}
+          />
+        </FormField>
+        <FormField
+          label="Description"
+          htmlFor={`${id}-description`}
+          fullWidth
+          dirty={draft.description !== saved.description}
+        >
+          <textarea
+            id={`${id}-description`}
+            value={draft.description}
+            onChange={(event) =>
+              setDraft({ ...draft, description: event.target.value })
+            }
+          />
+        </FormField>
+        <CardActions>
+          <Button type="submit">Save</Button>
+          <Button type="button" onClick={() => setDraft(saved)}>
+            Discard changes
+          </Button>
+        </CardActions>
+      </Form>
+    );
+  },
+  parameters: {
+    docs: {
+      description: {
+        story:
+          "Compare each draft with its saved value and pass dirty to FormField or ValueMenu. A one-pixel inset border uses --ui-color-input-dirty-border, a muted mix of the brand accent and a neutral tone. Saving, discarding or restoring the original text removes the highlight without changing control geometry. EditableValue tracks its own draft automatically.",
+      },
+    },
+  },
+};
+
 export const InCard: Story = {
   render: function Example(args) {
     const id = useId();

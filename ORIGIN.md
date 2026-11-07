@@ -12,6 +12,15 @@ this repository. The original cxz workspace was left in place.
 
 ## Subsequent syncs
 
+- 2026-11-07: adapted reusable document UI from cxz commit
+  `e782d3da`: ImageViewer, PathValue, ActivityDots, LiquidGauge, Tabs, FindBar,
+  ActivityHeatmap and ListDetailPages. Moved glyph elision, seeded activity,
+  meniscus geometry, field presentation and the fine grain texture into Nox.
+  Extended existing DescriptionList, Form, IdentifierValue, DateTime and
+  NavigationPanel contracts so cxz can remove its parallel implementations.
+  RPCs, protobuf timestamps, search interpretation, quota refresh and session
+  identity remain in cxz adapters.
+
 - 2026-10-28: adapted the conversation container-file chip from cxz commit
   `3b728c552238cf1437863e8384e352c363d3719b` into `FileChip`. Shared the
   icon, separator, transparent outline and typography through scoped styles

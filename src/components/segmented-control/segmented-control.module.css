@@ -11,6 +11,8 @@
   color: var(--ui-muted);
 }
 .segmented_control {
+  /* Leading digits must remain visible over both the track and selection. */
+  --ui-text-leading: var(--ui-text-separator);
   position: relative;
   min-width: 0;
   display: grid;
@@ -52,7 +54,7 @@
   margin: 0;
   cursor: inherit;
 }
-.segmented_control :global(.segment) span {
+.segmented_control :global(.segment) > span {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -63,6 +65,12 @@
 }
 .segmented_control[data-size="compact"] {
   width: fit-content;
+}
+.segmented_control .icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 0;
 }
 .segmented_control[data-size="compact"] :global(.segment) {
   min-width: 28px;

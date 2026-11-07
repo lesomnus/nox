@@ -2,7 +2,8 @@
 
 `Card` is the shared visual surface for inline content, dialogs and drawers.
 It provides a compact heading, rounded inset body, optional close button and
-optional footer. It has no portal, placement, animation or modal behavior.
+optional footer. It has no portal, placement or modal behavior. The optional
+`revealFrom` entrance keeps glass and animated content in separate layers.
 
 ```tsx
 import { Button, Card, CardActions } from "@lesomnus/nox";
@@ -28,6 +29,10 @@ heading. `close` enables a close button; provide its accessible name using
 buttons and pending/error state. `CardActions` groups actions on the right and
 leaves each Button's variant unchanged. Native section attributes, `style`,
 `className`, section refs and `bodyTabIndex` are forwarded.
+
+`headerCenter` accepts content such as a SegmentedControl, kept at the exact
+horizontal center of the heading regardless of title and close-button widths.
+The Card still owns the title, close button, spacing and body/footer surface.
 
 When the body is the first child (a headerless Card), its top inset matches the
 horizontal body inset using the same control-inset token. This is space between
@@ -71,3 +76,15 @@ use `fill bodyPadding="var(--ui-space)"` to preserve its previous compact layout
 
 See **Components/Card** for standalone, form, filled scrolling and custom-padding
 examples, and **Components/Drawer** for directional placement.
+
+`revealFrom="left"` (or another supported direction) animates a Card's
+content over a separate glass layer. Use this option instead of wrapping the
+whole Card in DialogReveal: an ancestor mask/filter would limit its backdrop
+([CSS Filter Effects draft](https://drafts.csswg.org/filter-effects-2/#BackdropRoot)).
+The glass keeps its backdrop blur during its fade while the content reveals
+independently. The Card still owns its border, shadow, body and footer layout.
+
+**Components/Card → RevealedGlass** shows this over a striped background;
+**RevealedFilled** combines it with a bounded scrolling body. Regression tests
+pause the normal entrance at 15%, 40%, 70% and completion and compare the rendered
+glass with blur disabled, in both themes and reduced-motion mode.

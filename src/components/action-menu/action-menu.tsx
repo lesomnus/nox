@@ -2,6 +2,7 @@ import styles from "./action-menu.module.css";
 import dialogStyles from "../dialog-surface/dialog-surface.module.css";
 import {
   Fragment,
+  useCallback,
   useEffect,
   useId,
   useLayoutEffect,
@@ -15,6 +16,7 @@ import { MenuSurface } from "../menu-surface/menu-surface";
 import {
   MenuFrame,
   menuFixedHeight,
+  menuColumnMultiple,
   hasMenuRegion,
 } from "../menu-surface/menu-frame";
 import { MenuScrollArea } from "../menu-surface/menu-scroll-area";
@@ -69,7 +71,7 @@ export function ActionMenu({
   disabled = false,
   placement = "below",
   gap: requestedGap = 4,
-  motion = false,
+  motion = true,
   position: customPosition,
   status,
   triggerContent,
@@ -77,6 +79,8 @@ export function ActionMenu({
   triggerClassName = "",
   scrollbarOffset,
   awaitAction = false,
+  open: controlledOpen,
+  onOpenChange,
 }: {
   label: string;
   /** Always visible above/below the scrolling action list. */
@@ -90,17 +94,21 @@ export function ActionMenu({
   gap?: number | ((trigger: HTMLButtonElement) => number);
   /** Override popup origin; viewport bounds are still enforced. */
   position?: (trigger: DOMRect) => { left: number; top: number };
-  /** Entrance direction is independent of popup placement. True uses the default. */
+  /** Animated by default; true reveals from the trigger-facing edge. False disables motion. Explicit directions remain independent of placement. */
   motion?: ActionMenuMotion;
   status?: string;
   /** Custom trigger content; defaults to the More (ellipsis) icon. */
   triggerContent?: ReactNode;
   disabledReason?: string;
   triggerClassName?: string;
-  /** Signed handle-center offset, forwarded to the scrolling action list. */
+  /** Handle-center offset in pixels: positive inside, negative outside. */
   scrollbarOffset?: number;
   /** Keep the menu open while run settles; rejection stays beside the clicked item. */
   awaitAction?: boolean;
+  /** Controlled visibility; omit to let the trigger and dismissal manage it. */
+  open?: boolean;
+  /** Reports trigger, selection and dismissal requests, including in controlled mode. */
+  onOpenChange?: (open: boolean) => void;
 }) {
   const offset = Number.isFinite(scrollbarOffset) ? scrollbarOffset : undefined;
   const actionGroups: ActionMenuGroup[] = groups ?? [{ label: "", items }];
@@ -108,14 +116,31 @@ export function ActionMenu({
   const hasHeader = hasMenuRegion(header);
   const hasFooter = hasMenuRegion(footer);
   const hasRegions = hasHeader || hasFooter;
-  const reveal = typeof motion === "object" && motion.effect === "reveal";
+  const automaticMotion = motion === true;
+  const reveal =
+    automaticMotion ||
+    (typeof motion === "object" && motion.effect === "reveal");
   const direction =
     typeof motion === "object"
       ? `from-${motion.from}`
       : typeof motion === "string"
         ? motion
-        : undefined;
-  const [open, setOpen] = useState(false);
+        : automaticMotion
+          ? placement === "right"
+            ? "from-left"
+            : placement === "above"
+              ? "from-bottom-right"
+              : "from-top-right"
+          : undefined;
+  const [localOpen, setLocalOpen] = useState(false);
+  const open = controlledOpen ?? localOpen;
+  const setOpen = useCallback(
+    (value: boolean) => {
+      if (controlledOpen === undefined) setLocalOpen(value);
+      onOpenChange?.(value);
+    },
+    [controlledOpen, onOpenChange],
+  );
   const trigger = useRef<HTMLDivElement>(null);
   const menu = useRef<HTMLDivElement>(null);
   const viewport = useRef<HTMLDivElement>(null);
@@ -133,6 +158,12 @@ export function ActionMenu({
   useLayoutEffect(() => {
     if (!open || !menu.current) return;
     const popup = menu.current;
+    const entranceFrom = (from: MenuMotionDirection) => {
+      if (!automaticMotion) return;
+      popup.dataset.enterFrom = `from-${from}`;
+      const frame = popup.querySelector<HTMLElement>("[data-menu-frame]");
+      if (frame) frame.dataset.enterFrom = `from-${from}`;
+    };
     const position = () => {
       const button = trigger.current!.querySelector("button")!;
       const bounds = button.getBoundingClientRect();
@@ -141,9 +172,26 @@ export function ActionMenu({
           ? requestedGap(button)
           : requestedGap;
       const inset = 8;
-      const outside = Math.max(0, offset ?? 0);
+      const outside = Math.max(0, -(offset ?? 0));
       const rightInset = inset + outside;
       const style = getComputedStyle(popup);
+      const horizontalChrome =
+        parseFloat(style.paddingLeft) +
+        parseFloat(style.paddingRight) +
+        parseFloat(style.borderLeftWidth) +
+        parseFloat(style.borderRightWidth);
+      // Resolve the CSS width afresh so a constrained menu grows back on resize.
+      popup.style.width = "";
+      const columns = menuColumnMultiple(popup);
+      const preferredWidth =
+        Math.ceil(
+          (popup.getBoundingClientRect().width - horizontalChrome) / columns,
+        ) * columns;
+      const availableWidth =
+        Math.floor(
+          (window.innerWidth - inset - rightInset - horizontalChrome) / columns,
+        ) * columns;
+      popup.style.width = `${Math.max(0, Math.min(preferredWidth, availableWidth)) + horizontalChrome}px`;
       const chrome =
         parseFloat(style.paddingTop) +
         parseFloat(style.paddingBottom) +
@@ -158,10 +206,10 @@ export function ActionMenu({
         chrome +
         fixed;
       const constrainHeight = (available: number) => {
-        popup.style.maxHeight = `${Math.max(0, available)}px`;
+        popup.style.maxHeight = `${Math.floor(Math.max(0, available))}px`;
         popup.style.setProperty(
           "--menu-scroll-max-height",
-          `${Math.max(0, available - chrome - fixed)}px`,
+          `${Math.floor(Math.max(0, available - chrome - fixed))}px`,
         );
       };
       popup.style.bottom = "auto";
@@ -173,6 +221,7 @@ export function ActionMenu({
         return;
       }
       if (placement === "right") {
+        entranceFrom("left");
         constrainHeight(window.innerHeight - 2 * inset);
         popup.style.left = `${Math.max(inset, Math.min(bounds.right + gap, window.innerWidth - popup.offsetWidth - rightInset))}px`;
         popup.style.top = `${Math.max(inset, Math.min(bounds.bottom - popup.offsetHeight, window.innerHeight - popup.offsetHeight - inset))}px`;
@@ -188,6 +237,7 @@ export function ActionMenu({
           ? above >= preferredHeight || above > below
           : below < preferredHeight && above > below;
       constrainHeight(Math.min(window.innerHeight / 2, upward ? above : below));
+      entranceFrom(upward ? "bottom-right" : "top-right");
       // Anchor the near edge directly: content/font changes must not alter the gap.
       popup.style.top = upward ? "auto" : `${bounds.bottom + gap}px`;
       popup.style.bottom = upward
@@ -244,6 +294,8 @@ export function ActionMenu({
     hasHeader,
     hasFooter,
     offset,
+    automaticMotion,
+    direction,
   ]);
   useEffect(() => {
     if (!open) return;
@@ -263,7 +315,7 @@ export function ActionMenu({
       document.removeEventListener("pointerdown", outside);
       window.removeEventListener("resize", resize);
     };
-  }, [open]);
+  }, [open, setOpen]);
   return (
     <div className={`${styles.action_menu} action-menu`} ref={trigger}>
       <Button
@@ -310,7 +362,7 @@ export function ActionMenu({
           data-menu-entrance={(motion && offset !== undefined) || undefined}
           style={
             {
-              "--action-menu-scrollbar-outset": `${Math.max(0, offset ?? 0)}px`,
+              "--action-menu-scrollbar-outset": `${Math.max(0, -(offset ?? 0))}px`,
             } as CSSProperties
           }
           ref={menu}
@@ -474,7 +526,19 @@ export function ActionMenu({
                                 ? [item.shortcut]
                                 : item.shortcut
                               ).map((key, index) => (
-                                <kbd key={index}>{key}</kbd>
+                                <kbd
+                                  key={index}
+                                  style={
+                                    {
+                                      "--shortcut-characters": Math.max(
+                                        1,
+                                        key.length,
+                                      ),
+                                    } as CSSProperties
+                                  }
+                                >
+                                  {key}
+                                </kbd>
                               ))}
                             </span>
                           )
@@ -488,7 +552,7 @@ export function ActionMenu({
                           );
                         }}
                       >
-                        <span>{item.label}</span>
+                        <span className={styles.label}>{item.label}</span>
                       </MenuItem>
                     ))}
                   </div>

@@ -1,8 +1,11 @@
 .card {
-  background: var(--ui-dialog-background);
-  border-radius: var(--ui-dialog-radius);
-  -webkit-backdrop-filter: blur(var(--ui-dialog-blur));
-  backdrop-filter: blur(var(--ui-dialog-blur));
+  --card-background: var(--ui-dialog-background);
+  --card-backdrop-filter: blur(var(--ui-dialog-blur));
+  --card-radius: var(--ui-dialog-radius);
+  background: var(--card-background);
+  border-radius: var(--card-radius);
+  -webkit-backdrop-filter: var(--card-backdrop-filter);
+  backdrop-filter: var(--card-backdrop-filter);
 }
 .card.card {
   position: relative;
@@ -60,7 +63,7 @@
   );
   background: var(--ui-dialog-body-background);
 }
-.card.card > :global(.card-body):first-child {
+.card.card :global(.card-body):first-child {
   margin-block-start: var(--ui-control-inset);
 }
 .card.card

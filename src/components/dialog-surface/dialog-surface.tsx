@@ -3,6 +3,8 @@ import styles from "./dialog-surface.module.css";
 
 export const dialogClassName = styles.dialog;
 export const dialogAppearanceClassName = styles.appearance;
+/** Shared entrance for custom overlay frames; data-enter-effect="fade" preserves geometry. */
+export const dialogEntranceClassName = styles.entrance;
 
 // Animate the content, keeping the native dialog's viewport coordinate space
 // unchanged for fixed-position menus portaled into its top layer.

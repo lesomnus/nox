@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { useArgs } from "storybook/preview-api";
-import { SegmentedControl } from "@lesomnus/nox";
+import { CompactNumber, SegmentedControl } from "@lesomnus/nox";
 
 const meta = {
   title: "Components/SegmentedControl",
@@ -37,6 +37,35 @@ type Story = StoryObj<typeof meta>;
 export const Default: Story = {};
 export const Disabled: Story = { args: { disabled: true } };
 export const Compact: Story = { args: { size: "compact" } };
+export const Counts: Story = {
+  args: {
+    label: "Item status",
+    size: "compact",
+    value: "active",
+    options: [
+      {
+        value: "active",
+        label: "Active 7",
+        display: (
+          <>
+            Active
+            <CompactNumber value={7} mode="integer" digits={3} />
+          </>
+        ),
+      },
+      {
+        value: "history",
+        label: "History 200",
+        display: (
+          <>
+            History
+            <CompactNumber value={200} mode="integer" digits={3} />
+          </>
+        ),
+      },
+    ],
+  },
+};
 
 export const CompactIcons: Story = {
   args: {

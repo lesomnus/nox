@@ -56,6 +56,25 @@ it is outside the listbox, so the choice appears only once among accessible
 options. Reselecting the same value closes the popup without calling `choose`.
 PrefixValueMenu and its IconValueMenu compatibility wrapper forward the flag.
 
+Value options can include `description` for a smaller second line, such as a
+resource alias, and `icon` for a leading logo. Descriptions use muted 10px
+monospace text. If any choice has a description, both the trigger and the list
+reserve two-line content height; selecting a different choice keeps the same
+control height. The selected value displays the same label, description and
+icon as its option. Descriptions participate in search and matching characters
+are highlighted on their own line. Optional `trailing` content is aligned on the
+right. **ValueMenu → Descriptions / SearchableDescriptions** demonstrate this.
+
+## Entrance motion
+
+ActionMenu animates by default. Omitted `motion` or `motion={true}` uses the
+shared directional reveal from the edge nearest its trigger. Above/below menus
+follow their actual resolved placement, including viewport-driven flips; a menu
+beside its trigger reveals from the left. Explicit directions and effects retain
+their selected origin. Use `motion={false}` for an immediate popup. Reduced-motion
+preferences bypass the entrance. Motion durations/easing live in the theme tokens.
+The popup frame stays on its final pixel grid while its contents reveal.
+
 ## Selected-item alignment
 
 Set `alignItemWithTrigger` on ValueMenu to overlay the **actual selected option**

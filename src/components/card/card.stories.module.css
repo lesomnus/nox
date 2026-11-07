@@ -1,0 +1,8 @@
+.backdrop {
+  padding: 24px;
+  background: repeating-linear-gradient(
+    90deg,
+    var(--ui-shade-32) 0 3px,
+    var(--ui-shade-221) 3px 6px
+  );
+}

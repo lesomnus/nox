@@ -45,6 +45,8 @@ export type EditorSettings = {
   insertSpaces: boolean;
   tabSize: number;
   colorPalette: Palette;
+  wordWrap?: boolean;
+  showControlCharacters?: boolean;
 };
 export const defaultEditorSettings: EditorSettings = {
   fontFamily: MONOSPACE_FONT_FALLBACK,
@@ -52,6 +54,8 @@ export const defaultEditorSettings: EditorSettings = {
   insertSpaces: true,
   tabSize: 4,
   colorPalette: "muted",
+  wordWrap: false,
+  showControlCharacters: false,
 };
 export function paletteForTheme(
   name: Palette,

@@ -39,7 +39,7 @@ ready-made menus provide those behaviors. No `fixed` or `sticky` positioning is
 needed for the header/footer; keep the scrolling area inside the frame body.
 
 `ActionMenu` forwards `scrollbarOffset` to its scrolling list. Positive values
-place the handle outside, negative values inside and zero on the edge, using
+place the handle inside, negative values outside and zero on the edge, using
 ScrollArea's signed pixel convention. The popup reserves viewport room for an
 outward handle and releases its reveal mask after the entrance completes so the
 handle stays visible and interactive. Header/footer positions stay fixed.
