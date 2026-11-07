@@ -48,6 +48,7 @@
   min-width: var(--ui-dialog-action-min-width);
 }
 .card.card :global(.card-body) {
+  --ui-form-control-background: var(--ui-dialog-input-background);
   margin: 0 var(--ui-control-inset);
   /* Keep the body text aligned with the heading when the surface is inset. */
   padding: var(
@@ -73,10 +74,10 @@
     textarea,
     select
   ) {
-  background: var(--ui-dialog-input-background);
+  background: var(--ui-form-control-background);
 }
 .card.card :global(.card-body) :global(.value-menu) {
-  --value-background: var(--ui-dialog-input-background);
+  --value-background: var(--ui-form-control-background);
 }
 .card.card :global(.card-body) > :first-child,
 .card.card :global(.card-body) > :first-child > :first-child {

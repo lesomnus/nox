@@ -1,10 +1,14 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
+import { useState } from "react";
 import {
   Button,
   Card,
   CardActions,
   ScrollArea,
   SegmentedControl,
+  Form as UIForm,
+  FormField,
+  ValueMenu,
 } from "@lesomnus/nox";
 import styles from "./card.stories.module.css";
 
@@ -100,12 +104,7 @@ export const Form: Story = {
     title: "Add account",
     close: () => {},
     closeLabel: "Close",
-    children: (
-      <label style={{ display: "grid", gap: "var(--ui-space)" }}>
-        Alias
-        <input placeholder="work" />
-      </label>
-    ),
+    children: <AccountForm />,
     footer: (
       <CardActions>
         <Button>Add</Button>
@@ -114,6 +113,27 @@ export const Form: Story = {
     ),
   },
 };
+function AccountForm() {
+  const [agent, setAgent] = useState("codex");
+  return (
+    <UIForm columns={1}>
+      <FormField label="Alias">
+        <input aria-label="Alias" placeholder="work" />
+      </FormField>
+      <FormField label="Agent">
+        <ValueMenu
+          label="Agent"
+          value={agent}
+          options={[
+            { value: "codex", label: "Codex" },
+            { value: "claude", label: "Claude" },
+          ]}
+          choose={setAgent}
+        />
+      </FormField>
+    </UIForm>
+  );
+}
 export const Filled: Story = {
   args: {
     title: "Task details",
