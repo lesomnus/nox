@@ -119,6 +119,8 @@ export function SourceEditor({
     settings.tabSize,
     settings.colorPalette,
     settings.fontFamily,
+    settings.wordWrap,
+    settings.showControlCharacters,
     theme,
   ]);
   useEffect(() => {

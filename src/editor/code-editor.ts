@@ -100,6 +100,9 @@ export function configureEditor(
   editor.updateOptions({
     theme: `nox-${settings.colorPalette}-${theme}`,
     fontFamily: settings.fontFamily,
+    wordWrap: settings.wordWrap ? "on" : "off",
+    renderControlCharacters: settings.showControlCharacters ?? false,
+    renderWhitespace: settings.showControlCharacters ? "all" : "none",
   });
 }
 
