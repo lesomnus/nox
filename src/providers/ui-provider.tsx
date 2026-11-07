@@ -1,6 +1,20 @@
 import { createContext, useContext, useMemo, type ReactNode } from "react";
 
 export type UIMessage =
+  | "Daily activity"
+  | "Activity intensity"
+  | "Less"
+  | "More"
+  | "Search"
+  | "Search options"
+  | "Search results"
+  | "Close search"
+  | "Result {current} of {count}"
+  | "Image preview"
+  | "Drag to move the image when zoomed in."
+  | "Loading image…"
+  | "The image could not be loaded."
+  | "Image zoom"
   | "Choose date"
   | "Calendar for {label}"
   | "Previous month"
@@ -47,7 +61,9 @@ export type UITranslate = (
 ) => string;
 const english: UITranslate = (message, values = {}) =>
   message.replace(/\{(\w+)\}/g, (match, key) => String(values[key] ?? match));
-const UIContext = createContext({ t: english });
+const UIContext = createContext<{ t: UITranslate; locale?: string }>({
+  t: english,
+});
 
 // Optional: components work with English defaults without a provider or app store.
 export function UIProvider({
@@ -59,7 +75,7 @@ export function UIProvider({
   locale?: string;
   children: ReactNode;
 }) {
-  const value = useMemo(() => ({ t: translate }), [translate, locale]);
+  const value = useMemo(() => ({ t: translate, locale }), [translate, locale]);
   return <UIContext.Provider value={value}>{children}</UIContext.Provider>;
 }
 export function useUI() {

@@ -1,5 +1,15 @@
-import type { HTMLAttributes, ReactNode } from "react";
-import { formatOffsetDateTime } from "./date-time-format";
+import {
+  useEffect,
+  useState,
+  type HTMLAttributes,
+  type ReactNode,
+} from "react";
+import { useUI } from "../../providers/ui-provider";
+import {
+  formatOffsetDateTime,
+  formatLocalDateTime,
+  formatRelativeDateTime,
+} from "./date-time-format";
 import styles from "./date-time.module.css";
 import {
   AnimatedText,
@@ -11,11 +21,13 @@ export type DateTimeProps = Omit<HTMLAttributes<HTMLTimeElement>, "children"> &
     value?: Date | number | string | null;
     /** Custom fallback for missing or invalid values. */
     empty?: ReactNode;
+    showOffset?: boolean;
   };
 
 export function DateTime({
   value,
   empty,
+  showOffset = true,
   className = "",
   motion = "none",
   direction,
@@ -34,8 +46,12 @@ export function DateTime({
   const validDate = date && Number.isFinite(date.getTime()) ? date : undefined;
   if (!validDate && empty !== undefined) return <>{empty}</>;
   const text = validDate
-    ? formatOffsetDateTime(validDate)
-    : "0000-00-00T00:00:00+00:00";
+    ? showOffset
+      ? formatOffsetDateTime(validDate)
+      : formatLocalDateTime(validDate)
+    : showOffset
+      ? "0000-00-00T00:00:00+00:00"
+      : "0000-00-00T00:00:00";
   const content = validDate ? (
     <AnimatedText
       value={text}
@@ -92,6 +108,57 @@ export function DateTime({
       dateTime={validDate.toISOString()}
     >
       {content}
+    </time>
+  );
+}
+
+export {
+  formatOffsetDateTime,
+  formatLocalDateTime,
+  formatRelativeDateTime,
+} from "./date-time-format";
+export type RelativeTimeProps = Omit<
+  HTMLAttributes<HTMLTimeElement>,
+  "children"
+> & {
+  value?: Date | number | string | null;
+  now?: number;
+  locale?: string;
+  interval?: number;
+};
+export function RelativeTime({
+  value,
+  now,
+  locale: preferredLocale,
+  interval = 30000,
+  className = "",
+  ...props
+}: RelativeTimeProps) {
+  const ui = useUI();
+  const locale = preferredLocale ?? ui.locale ?? "en";
+  const [clock, setClock] = useState(Date.now);
+  const date =
+    value == null ? undefined : value instanceof Date ? value : new Date(value);
+  const valid = date && Number.isFinite(date.getTime());
+  useEffect(() => {
+    if (!valid || now !== undefined) return;
+    setClock(Date.now());
+    const timer = setInterval(
+      () => {
+        if (!document.hidden) setClock(Date.now());
+      },
+      Math.max(1000, interval),
+    );
+    return () => clearInterval(timer);
+  }, [valid, now, interval]);
+  if (!valid) return null;
+  return (
+    <time
+      {...props}
+      className={`${styles.time} ${className}`}
+      dateTime={date.toISOString()}
+    >
+      {formatRelativeDateTime(date, locale, now ?? clock)}
     </time>
   );
 }

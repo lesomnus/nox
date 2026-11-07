@@ -17,6 +17,7 @@
   --ui-form-control-border: var(--ui-color-input-dirty-border);
 }
 .control {
+  align-items: center;
   color: var(--ui-shade-237);
 }
 .control

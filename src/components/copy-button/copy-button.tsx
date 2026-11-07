@@ -8,6 +8,7 @@ export type CopyButtonProps = Omit<
   "children" | "onClick" | "pressTarget"
 > & {
   value: string;
+  containerClassName?: string;
   label?: string;
   onCopied?: () => void;
   onCopyError?: (error: unknown) => void;
@@ -15,6 +16,7 @@ export type CopyButtonProps = Omit<
 
 export function CopyButton({
   value,
+  containerClassName = "",
   label,
   onCopied,
   onCopyError,
@@ -39,7 +41,7 @@ export function CopyButton({
         ? t("Copy failed")
         : undefined;
   return (
-    <span className={styles.control}>
+    <span className={`${styles.control} ${containerClassName}`}>
       <Button
         {...props}
         type="button"

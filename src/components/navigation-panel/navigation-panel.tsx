@@ -21,7 +21,9 @@ export type NavigationPanelTitleProps = ComponentPropsWithRef<"strong">;
 export type NavigationPanelActionsProps = ComponentPropsWithRef<"div">;
 export type NavigationPanelBodyProps = ComponentPropsWithRef<"div">;
 export type NavigationPanelFooterProps = ComponentPropsWithRef<"footer">;
-export type NavigationPanelScrollBodyProps = ScrollAreaProps;
+export type NavigationPanelScrollBodyProps = ScrollAreaProps & {
+  as?: typeof ScrollArea;
+};
 export type NavigationPanelProps = Omit<NavigationPanelRootProps, "title"> & {
   title: ReactNode;
   actions?: ReactNode;
@@ -74,7 +76,13 @@ export function NavigationPanelActions({
   className = "",
   ...props
 }: NavigationPanelActionsProps) {
-  return <div {...props} className={`${styles.actions} ${className}`} />;
+  return (
+    <div
+      {...props}
+      data-navigation-panel-actions
+      className={`${styles.actions} ${className}`}
+    />
+  );
 }
 /** Non-scrolling body. Use ScrollBody when an internal viewport is needed. */
 export function NavigationPanelBody({
@@ -91,10 +99,11 @@ export function NavigationPanelBody({
 export function NavigationPanelScrollBody({
   className = "",
   contentClassName = "",
+  as: Body = ScrollArea,
   ...props
 }: NavigationPanelScrollBodyProps) {
   return (
-    <ScrollArea
+    <Body
       {...props}
       className={`${styles.body} ${className}`}
       contentClassName={`${styles.content} ${contentClassName}`}
