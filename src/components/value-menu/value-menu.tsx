@@ -66,6 +66,7 @@ export function ValueMenu({
   minMenuWidth = 140,
   variant = "default",
   disabled,
+  dirty = false,
   disabledReason,
   choose,
   searchable = false,
@@ -86,6 +87,8 @@ export function ValueMenu({
   minMenuWidth?: number;
   variant?: "default" | "compact";
   disabled?: boolean;
+  /** Whether the selected value differs from the caller's saved value. */
+  dirty?: boolean;
   disabledReason?: string;
   choose: (value: string) => unknown;
   /** Await choose before closing; rejection keeps feedback on the chosen option. */
@@ -396,6 +399,7 @@ export function ValueMenu({
       data-variant={variant}
       data-multiline={multiline || undefined}
       data-value={value}
+      data-dirty={dirty || undefined}
       data-item-aligned={(open && itemAligned) || undefined}
       onKeyDown={key}
       onBlur={(e) => {

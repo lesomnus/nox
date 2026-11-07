@@ -233,6 +233,7 @@ function ValueEditor({
           aria-invalid={!!error}
           aria-describedby={error ? errorId : undefined}
           value={draft}
+          data-dirty={draft !== value || undefined}
           readOnly={busy}
           onChange={(event) => {
             setDraft(event.target.value);

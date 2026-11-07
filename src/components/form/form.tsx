@@ -33,12 +33,15 @@ export type FormFieldProps = ComponentPropsWithRef<"div"> & {
   /** Associate the label with a native input's id. Custom controls own their label. */
   htmlFor?: string;
   fullWidth?: boolean;
+  /** The caller compares the draft with its last saved value. */
+  dirty?: boolean;
 };
 
 export function FormField({
   label,
   htmlFor,
   fullWidth = false,
+  dirty = false,
   className = "",
   children,
   ...props
@@ -48,6 +51,7 @@ export function FormField({
       {...props}
       className={`${layout.row} ${styles.field} ${className}`}
       data-full-width={fullWidth || undefined}
+      data-dirty={dirty || undefined}
     >
       {htmlFor ? (
         <label className={layout.term} htmlFor={htmlFor}>

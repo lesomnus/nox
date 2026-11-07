@@ -39,6 +39,12 @@
 .value_menu[data-variant="compact"] {
   --value-background: transparent;
 }
+.value_menu[data-dirty] {
+  --ui-form-control-border: var(--ui-color-input-dirty-border);
+}
+.value_menu[data-dirty] :global(.setting-trigger) {
+  box-shadow: inset 0 0 0 1px var(--ui-form-control-border);
+}
 /* Position against resting content geometry, not the click's press-scale
    transition. A residual icon/text offset otherwise survives reopening. */
 .value_menu.value_menu

@@ -13,6 +13,9 @@
 .field[data-full-width] {
   grid-column: 1 / -1;
 }
+.field[data-dirty] {
+  --ui-form-control-border: var(--ui-color-input-dirty-border);
+}
 .control {
   color: var(--ui-shade-237);
 }
