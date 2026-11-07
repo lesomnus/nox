@@ -13,6 +13,7 @@ import { ActionError } from "../action-error/action-error";
 import {
   dialogClassName,
   dialogAppearanceClassName,
+  dialogEntranceClassName,
 } from "../dialog-surface/dialog-surface";
 import { useUI } from "../../providers/ui-provider";
 import {
@@ -242,7 +243,10 @@ function ValueEditor({
           autoComplete="off"
           spellCheck={false}
         />
-        <div className={`${dialogAppearanceClassName} editable-value-overlay`}>
+        <div
+          className={`${dialogAppearanceClassName} ${dialogEntranceClassName} editable-value-overlay`}
+          data-enter-from="from-top"
+        >
           {error && (
             <ActionError
               onDismiss={() => setError("")}

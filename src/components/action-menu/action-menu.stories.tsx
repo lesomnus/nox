@@ -10,7 +10,7 @@ const meta = {
     docs: {
       description: {
         component:
-          "A menu beside its trigger, used for commands and checked choices. This page keeps the basic API and an action-driven trigger example. Shared feature comparisons live under Menus/Features; placement, motion, shortcut labels and dangerous actions are demonstrated in the top-level Menus gallery.",
+          "A menu beside its trigger, used for commands and checked choices. Menus reveal from the trigger-facing edge by default; set motion={false} to disable the entrance. This page keeps the basic API and an action-driven trigger example. Shared feature comparisons live under Menus/Features; placement, motion, shortcut labels and dangerous actions are demonstrated in the top-level Menus gallery.",
       },
     },
   },

@@ -14,7 +14,7 @@ import {
   FindBarMessage,
 } from "@lesomnus/nox";
 import docs from "../../../docs/find-bar.md?raw";
-function Example() {
+function Example({ motion = false }: { motion?: boolean }) {
   const [open, setOpen] = useState(true);
   const [query, setQuery] = useState("Menu");
   const [selected, setSelected] = useState(0);
@@ -44,7 +44,11 @@ function Example() {
   const current = Math.min(selected, Math.max(0, hits.length - 1));
   if (!open) return <Button onClick={() => setOpen(true)}>Open search</Button>;
   return (
-    <FindBar aria-label="Find in example" style={{ width: 560 }}>
+    <FindBar
+      motion={motion}
+      aria-label="Find in example"
+      style={{ width: 560 }}
+    >
       <FindBarControls>
         <FindBarIcon />
         <FindBarInput
@@ -119,8 +123,10 @@ const meta = {
   component: FindBar,
   tags: ["autodocs"],
   parameters: { docs: { description: { component: docs } } },
-  render: () => <Example />,
+  render: (args) => <Example motion={args.motion} />,
 } satisfies Meta<typeof FindBar>;
 export default meta;
 type Story = StoryObj<typeof meta>;
 export const Default: Story = {};
+
+export const Overlay: Story = { args: { motion: true } };

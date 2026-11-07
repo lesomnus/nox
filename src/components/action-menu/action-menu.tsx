@@ -71,7 +71,7 @@ export function ActionMenu({
   disabled = false,
   placement = "below",
   gap: requestedGap = 4,
-  motion = false,
+  motion = true,
   position: customPosition,
   status,
   triggerContent,
@@ -94,7 +94,7 @@ export function ActionMenu({
   gap?: number | ((trigger: HTMLButtonElement) => number);
   /** Override popup origin; viewport bounds are still enforced. */
   position?: (trigger: DOMRect) => { left: number; top: number };
-  /** Entrance direction is independent of popup placement. True uses the default. */
+  /** Animated by default; true reveals from the trigger-facing edge. False disables motion. Explicit directions remain independent of placement. */
   motion?: ActionMenuMotion;
   status?: string;
   /** Custom trigger content; defaults to the More (ellipsis) icon. */
@@ -116,13 +116,22 @@ export function ActionMenu({
   const hasHeader = hasMenuRegion(header);
   const hasFooter = hasMenuRegion(footer);
   const hasRegions = hasHeader || hasFooter;
-  const reveal = typeof motion === "object" && motion.effect === "reveal";
+  const automaticMotion = motion === true;
+  const reveal =
+    automaticMotion ||
+    (typeof motion === "object" && motion.effect === "reveal");
   const direction =
     typeof motion === "object"
       ? `from-${motion.from}`
       : typeof motion === "string"
         ? motion
-        : undefined;
+        : automaticMotion
+          ? placement === "right"
+            ? "from-left"
+            : placement === "above"
+              ? "from-bottom-right"
+              : "from-top-right"
+          : undefined;
   const [localOpen, setLocalOpen] = useState(false);
   const open = controlledOpen ?? localOpen;
   const setOpen = useCallback(
@@ -149,6 +158,12 @@ export function ActionMenu({
   useLayoutEffect(() => {
     if (!open || !menu.current) return;
     const popup = menu.current;
+    const entranceFrom = (from: MenuMotionDirection) => {
+      if (!automaticMotion) return;
+      popup.dataset.enterFrom = `from-${from}`;
+      const frame = popup.querySelector<HTMLElement>("[data-menu-frame]");
+      if (frame) frame.dataset.enterFrom = `from-${from}`;
+    };
     const position = () => {
       const button = trigger.current!.querySelector("button")!;
       const bounds = button.getBoundingClientRect();
@@ -206,6 +221,7 @@ export function ActionMenu({
         return;
       }
       if (placement === "right") {
+        entranceFrom("left");
         constrainHeight(window.innerHeight - 2 * inset);
         popup.style.left = `${Math.max(inset, Math.min(bounds.right + gap, window.innerWidth - popup.offsetWidth - rightInset))}px`;
         popup.style.top = `${Math.max(inset, Math.min(bounds.bottom - popup.offsetHeight, window.innerHeight - popup.offsetHeight - inset))}px`;
@@ -221,6 +237,7 @@ export function ActionMenu({
           ? above >= preferredHeight || above > below
           : below < preferredHeight && above > below;
       constrainHeight(Math.min(window.innerHeight / 2, upward ? above : below));
+      entranceFrom(upward ? "bottom-right" : "top-right");
       // Anchor the near edge directly: content/font changes must not alter the gap.
       popup.style.top = upward ? "auto" : `${bounds.bottom + gap}px`;
       popup.style.bottom = upward
@@ -277,6 +294,8 @@ export function ActionMenu({
     hasHeader,
     hasFooter,
     offset,
+    automaticMotion,
+    direction,
   ]);
   useEffect(() => {
     if (!open) return;

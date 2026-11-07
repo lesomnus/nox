@@ -6,15 +6,21 @@ import { Popover } from "../popover/popover";
 import { CompactNumber } from "../compact-number/compact-number";
 import { ScrollArea, type ScrollAreaProps } from "../scroll-area/scroll-area";
 import styles from "./find-bar.module.css";
+import { dialogEntranceClassName } from "../dialog-surface/dialog-surface";
+export type FindBarProps = ComponentPropsWithRef<"section"> & {
+  motion?: boolean;
+};
 export function FindBar({
+  motion = false,
   className = "",
   ...props
-}: ComponentPropsWithRef<"section">) {
+}: FindBarProps) {
   return (
     <section
       role="search"
       {...props}
-      className={`${styles.surface} ${className}`}
+      className={`${styles.surface} ${motion ? dialogEntranceClassName : ""} ${className}`}
+      data-enter-effect={motion ? "fade" : undefined}
     />
   );
 }

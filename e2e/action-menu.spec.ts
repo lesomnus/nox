@@ -38,6 +38,16 @@ test("row groups scroll with the menu body and skip disabled actions with horizo
   });
   await trigger.click();
   const menu = page.getByRole("menu", { name: "Row actions", exact: true });
+  await menu.evaluate(async (node) => {
+    await Promise.all(
+      node
+        .getAnimations({ subtree: true })
+        .filter(
+          (animation) => animation.effect?.getTiming().iterations !== Infinity,
+        )
+        .map((animation) => animation.finished.catch(() => {})),
+    );
+  });
   const row = menu.getByRole("group", { name: "Controls", exact: true });
   const actions = row.getByRole("menuitem");
   const boxes = await actions.evaluateAll((elements) =>
