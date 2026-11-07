@@ -237,7 +237,8 @@
   padding: 0;
   border: 0;
   height: 20px;
-  border-radius: inherit;
+  /* The text selection stays rectangular inside the rounded search row. */
+  border-radius: 0;
   background: transparent;
   color: var(--ui-shade-237);
   font: inherit;
