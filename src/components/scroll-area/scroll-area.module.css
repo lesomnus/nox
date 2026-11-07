@@ -71,6 +71,19 @@
   display: flow-root;
   padding-right: var(--ui-scroll-area-content-inset);
 }
+.area[data-scrollbar-side="left"] .content {
+  padding-left: var(--ui-scroll-area-content-inset);
+  padding-right: 0;
+}
+.area[data-scrollbar-side="left"] .rail {
+  right: auto;
+  left: var(--ui-scroll-area-rail-offset);
+}
+.area[data-scrollbar-side="left"][data-scrollbar-offset] .rail {
+  left: calc(
+    -1 * (var(--scrollbar-offset) + var(--ui-scroll-area-hit-size) / 2)
+  );
+}
 .area[data-horizontal-overflow] .viewport {
   height: calc(
     100% - var(--scrollbar-horizontal-inset, var(--ui-scroll-area-hit-size))

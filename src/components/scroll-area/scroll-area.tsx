@@ -36,6 +36,8 @@ export type ScrollAreaProps = Omit<
   scrollbarLabel?: string;
   /** Handle-center offset in pixels: positive outside, negative inside. */
   scrollbarOffset?: number;
+  /** Edge used by the vertical scrollbar. */
+  scrollbarSide?: "left" | "right";
   /** Show an additional horizontal scrollbar when content overflows. */
   horizontalScrollbar?: boolean;
   /** Native wheel animation, or JS-controlled scrolling from the first event. */
@@ -57,6 +59,7 @@ export function ScrollArea({
   viewportRef,
   scrollbarLabel = "Scroll",
   scrollbarOffset,
+  scrollbarSide = "right",
   horizontalScrollbar = false,
   wheelBehavior = "native",
   wheelSmoothing = 70,
@@ -533,6 +536,7 @@ export function ScrollArea({
       className={`${styles.area} ${className}`}
       data-scroll-area="root"
       data-scrollbar-offset={offset}
+      data-scrollbar-side={scrollbarSide}
       style={
         {
           "--scrollbar-offset":
@@ -546,14 +550,16 @@ export function ScrollArea({
       data-horizontal-overflow={horizontalOverflow || undefined}
       onPointerMove={(event) => {
         const bounds = event.currentTarget.getBoundingClientRect();
+        const distance =
+          parseFloat(
+            getComputedStyle(event.currentTarget).getPropertyValue(
+              "--ui-scroll-area-near-distance",
+            ),
+          ) || 32;
         setNear(
-          event.clientX >
-            bounds.right -
-              (parseFloat(
-                getComputedStyle(event.currentTarget).getPropertyValue(
-                  "--ui-scroll-area-near-distance",
-                ),
-              ) || 32),
+          scrollbarSide === "left"
+            ? event.clientX < bounds.left + distance
+            : event.clientX > bounds.right - distance,
         );
         onPointerMove?.(event);
       }}

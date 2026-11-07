@@ -73,6 +73,8 @@ export function ValueMenu({
   hideSelected = false,
   alignItemWithTrigger = false,
   awaitAction = false,
+  scrollbarOffset,
+  scrollbarSide,
 }: {
   label: string;
   /** Always visible above/below the value rows, regardless of opening direction. */
@@ -98,8 +100,13 @@ export function ValueMenu({
   hideSelected?: boolean;
   /** Align the selected option itself; search/hidden/missing selections use the current-row layout. */
   alignItemWithTrigger?: boolean;
+  /** Vertical scrollbar placement, forwarded to ScrollArea. */
+  scrollbarSide?: "left" | "right";
+  /** Handle-center offset in pixels: positive outside, negative inside. */
+  scrollbarOffset?: number;
 }) {
   const { t } = useUI();
+  const offset = Number.isFinite(scrollbarOffset) ? scrollbarOffset : undefined;
   const hasHeader = hasMenuRegion(header);
   const hasFooter = hasMenuRegion(footer);
   const hasRegions = hasHeader || hasFooter;
@@ -437,6 +444,7 @@ export function ValueMenu({
           data-variant={variant}
           data-multiline={multiline || undefined}
           data-searchable={searchable}
+          data-scrollbar-offset={offset}
           data-align-item-with-trigger={alignItem || undefined}
           className={`${styles.setting_menu} ${dialogStyles.entrance} setting-menu ${!alignItem && up ? "opens-up" : ""}`}
           data-enter-effect={itemAligned ? "anchored" : "fade"}
@@ -512,6 +520,8 @@ export function ValueMenu({
               {!alignItem && <MenuDivider className="setting-divider" />}
               <MenuScrollArea
                 viewportClassName="setting-options"
+                scrollbarSide={scrollbarSide}
+                scrollbarOffset={offset}
                 scrollbarLabel={t("Scroll {label} choices", { label })}
                 id={`${id}-results`}
                 role="listbox"

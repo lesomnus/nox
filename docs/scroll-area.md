@@ -17,11 +17,16 @@ import "@lesomnus/nox/styles.css";
 ## Scrollbar offset
 
 `scrollbarOffset` is an optional signed pixel distance from the container edge to
-its visual handle's center. Positive values move the vertical handle right and
-the horizontal handle down, outside the container. Negative values move them
-inside. Zero centers each handle on its corresponding edge. Fractional values
+its visual handle's center. Positive values move the handles outside the
+container; negative values move them inside. Zero centers each handle on its
+corresponding edge. Fractional values
 are supported. Omitting the prop retains the existing internal placement and
 content clearance.
+
+`scrollbarSide="left"` moves the vertical rail and its content clearance to the
+left edge. The default is `"right"`. Offset signs have the same meaning on either
+side; horizontal scrolling stays at the bottom. `ValueMenu` also accepts these
+two props for its scrolling choices.
 
 ```tsx
 <ScrollArea

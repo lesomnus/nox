@@ -22,6 +22,7 @@ const meta = {
   },
   argTypes: {
     scrollbarOffset: { control: "number" },
+    scrollbarSide: { control: "select", options: ["left", "right"] },
     wheelBehavior: { control: "select", options: ["native", "instant"] },
     wheelSmoothing: { control: { type: "range", min: 0, max: 200, step: 10 } },
   },
@@ -127,6 +128,10 @@ export const Outside: StoryObj<typeof meta> = {
 export const OutsideBothAxes: StoryObj<typeof meta> = {
   ...HorizontalOverflow,
   args: { scrollbarOffset: 12, children: entries(9) },
+};
+export const OutsideLeft: StoryObj<typeof meta> = {
+  ...Outside,
+  args: { ...Outside.args, scrollbarSide: "left" },
 };
 export const OutsideNoOverflow: StoryObj<typeof meta> = {
   ...Outside,
