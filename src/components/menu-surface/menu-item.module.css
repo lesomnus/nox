@@ -58,6 +58,6 @@
 .divider {
   height: 1px;
   flex-shrink: 0;
-  margin: 6px 0;
+  margin: var(--ui-menu-divider-gap) 0;
   background: var(--ui-shade-60);
 }

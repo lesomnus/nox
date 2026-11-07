@@ -240,6 +240,7 @@
   --ui-menu-shortcut-character-width: 8px;
   --ui-menu-item-padding-block: 6px;
   --ui-menu-item-padding-inline: 10px;
+  --ui-menu-divider-gap: 6px;
   --ui-menu-scroll-max-height: 240px;
   --ui-menu-viewport-inset: 8px;
   --ui-menu-align-min-rows: 3;
