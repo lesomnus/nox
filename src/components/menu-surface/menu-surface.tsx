@@ -7,6 +7,30 @@ import {
 import { createPortal } from "react-dom";
 import styles from "./menu-surface.module.css";
 
+export function menuPixelSize(node: HTMLElement) {
+  return 1 / ((window.devicePixelRatio || 1) * (node.currentCSSZoom || 1));
+}
+
+/** Snap a freely positioned frame without reading its entrance transform. */
+export function snapMenuPosition(node: HTMLElement) {
+  const pixel = menuPixelSize(node);
+  const css = getComputedStyle(node);
+  const left = parseFloat(css.left);
+  const top = parseFloat(css.top);
+  if (Number.isFinite(left)) {
+    const shift = Math.round(left / pixel) * pixel - left;
+    if (node.style.right && node.style.right !== "auto")
+      node.style.right = `${parseFloat(css.right) - shift}px`;
+    else node.style.left = `${left + shift}px`;
+  }
+  if (Number.isFinite(top)) {
+    const shift = Math.round(top / pixel) * pixel - top;
+    if (node.style.bottom && node.style.bottom !== "auto")
+      node.style.bottom = `${parseFloat(css.bottom) - shift}px`;
+    else node.style.top = `${top + shift}px`;
+  }
+}
+
 export type MenuSurfaceProps = ComponentPropsWithRef<"div"> & {
   /** Trigger whose typography, button corners and nearest open dialog the popup should use. */
   anchor: HTMLElement | null | undefined;
@@ -26,6 +50,17 @@ export function MenuSurface({
     if (!anchor || !surface.current) return;
     const node = surface.current;
     const sync = () => {
+      const pixel = menuPixelSize(node);
+      node.style.setProperty("--menu-pixel-size", `${pixel}px`);
+      const frame = getComputedStyle(node);
+      const border = parseFloat(frame.borderTopWidth);
+      const roundedBorder = Math.round(border / pixel) * pixel;
+      // Computed CSS serializes fractional borders with limited precision.
+      // Restore whole-pixel borders before subtracting them from the inset.
+      node.style.setProperty(
+        "--menu-frame-border-width",
+        `${Math.abs(roundedBorder - border) < 0.00001 ? roundedBorder : border}px`,
+      );
       const typography = getComputedStyle(anchor);
       for (const property of [
         "fontFamily",
@@ -47,7 +82,6 @@ export function MenuSurface({
         ["BottomRight", "Right", "Bottom"],
         ["BottomLeft", "Left", "Bottom"],
       ] as const;
-      const frame = getComputedStyle(node);
       const inset = (side: "Top" | "Right" | "Bottom" | "Left") =>
         parseFloat(frame[`padding${side}`]) +
         parseFloat(frame[`border${side}Width`]);
@@ -98,7 +132,25 @@ export function MenuSurface({
     const observer = new ResizeObserver(sync);
     observer.observe(anchor);
     observer.observe(node);
-    return () => observer.disconnect();
+    let resolution: MediaQueryList;
+    const watchResolution = () => {
+      resolution?.removeEventListener("change", updateResolution);
+      resolution = window.matchMedia(
+        `(resolution: ${window.devicePixelRatio}dppx)`,
+      );
+      resolution.addEventListener("change", updateResolution);
+    };
+    const updateResolution = () => {
+      sync();
+      watchResolution();
+    };
+    watchResolution();
+    window.addEventListener("resize", sync);
+    return () => {
+      observer.disconnect();
+      resolution.removeEventListener("change", updateResolution);
+      window.removeEventListener("resize", sync);
+    };
   });
   const target =
     anchor?.closest("dialog[open]") ??
