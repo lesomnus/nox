@@ -63,6 +63,11 @@ apply their hover fill immediately so replacing one with the other on opening or
 closing does not flash a resting color. This also covers reselecting the current
 value; ordinary hover-out transitions remain.
 
+Unselected ValueMenu options have transparent resting backgrounds in every
+variant. The section variant retains the Section surface on its trigger and
+current-value overlay, while its list choices use the same selection and hover
+fills as ordinary options.
+
 ValueMenu includes the selected choice in its list by default and marks it with
 `aria-selected`. Set `hideSelected` to omit it, including from search results.
 The aligned current-value/search row remains visible independently of that flag;

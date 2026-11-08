@@ -54,12 +54,15 @@
   display: grid;
   gap: var(--ui-section-group-gap);
 }
+.setting_menu :global([role="option"]) {
+  --button-background: transparent;
+  background: transparent;
+}
 .setting_menu :global([role="option"][aria-selected="true"]) {
   --button-background: var(--ui-menu-selected-background);
   background: var(--ui-menu-selected-background);
 }
-.setting_menu
-  :global([role="option"][aria-selected="true"]:not(:disabled):hover) {
+.setting_menu :global([role="option"]:not(:disabled):hover) {
   background: var(--button-hover-background, var(--ui-button-hover-background));
 }
 .value_menu[data-variant="section"] :global(.setting-trigger) {

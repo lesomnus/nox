@@ -105,7 +105,7 @@ export const SectionCards: Story = {
     docs: {
       description: {
         story:
-          "The trigger, current row and each selectable option are Section buttons, using the same padding, background and corners as standalone sections. Keyboard navigation, item alignment and scrolling retain ValueMenu behavior.",
+          "The trigger and current row use Section surfaces. Choices retain Section padding and corners with transparent resting backgrounds and standard selection and hover fills. Keyboard navigation, item alignment and scrolling retain ValueMenu behavior.",
       },
     },
   },
