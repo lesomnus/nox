@@ -4,17 +4,23 @@ import styles from "./switch.module.css";
 export function Switch({
   label,
   checked,
+  variant = "default",
   disabled = false,
   pending = false,
   onChange,
 }: {
   label: string;
   checked: boolean;
+  /** Compact fits beside body text; default preserves the standard control size. */
+  variant?: "default" | "compact";
   disabled?: boolean;
   /** Keep checked at the current value while its opposite is being applied. */
   pending?: boolean;
   onChange: (checked: boolean) => void;
 }) {
+  const compact = variant === "compact";
+  const width = compact ? 28 : 40;
+  const height = compact ? 16 : 22;
   return (
     <button
       type="button"
@@ -24,6 +30,7 @@ export function Switch({
       aria-busy={pending || undefined}
       aria-disabled={pending || undefined}
       data-pending={pending || undefined}
+      data-variant={variant}
       disabled={disabled}
       className={styles.switch_control}
       onClick={() => {
@@ -33,21 +40,21 @@ export function Switch({
       {/* A shared viewport avoids HTML thumb-box rounding at fractional scales. */}
       <svg
         className={styles.thumb_layer}
-        viewBox="0 0 40 22"
+        viewBox={`0 0 ${width} ${height}`}
         aria-hidden="true"
       >
         <circle
           className={styles.thumb}
           data-switch-thumb=""
-          cx="11"
-          cy="11"
-          r="8"
+          cx={height / 2}
+          cy={height / 2}
+          r={compact ? 6 : 8}
         />
       </svg>
       {pending && (
         <InkSparkle
           className={styles.ink_sparkle}
-          origin={[checked ? 48 : -8, 11]}
+          origin={[checked ? width + 8 : -8, height / 2]}
           centerMotion="fixed"
           duration={2000}
           loop

@@ -7,9 +7,18 @@ const meta = {
   title: "Components/Switch",
   component: Switch,
   tags: ["autodocs"],
+  parameters: {
+    docs: {
+      description: {
+        component:
+          "A controlled switch with pointer and keyboard activation. The default rail is 40×22px; variant=compact uses 28×16px to fit beside body text. Both sizes support disabled and pending states.",
+      },
+    },
+  },
   args: {
     label: "Copy on selection",
     checked: true,
+    variant: "default",
     disabled: false,
     pending: false,
     onChange: () => {},
@@ -22,6 +31,30 @@ const meta = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 export const Default: Story = {};
+export const Compact: Story = { args: { variant: "compact" } };
+export const Sizes: Story = {
+  render: function Sizes(args) {
+    const [, updateArgs] = useArgs();
+    return (
+      <div style={{ display: "grid", gap: 16, fontSize: 14 }}>
+        {(["default", "compact"] as const).map((variant) => (
+          <div
+            key={variant}
+            style={{ display: "flex", alignItems: "center", gap: 12 }}
+          >
+            <span>{variant === "compact" ? "Compact" : "Default"}</span>
+            <Switch
+              {...args}
+              variant={variant}
+              label={`${variant} switch`}
+              onChange={(checked) => updateArgs({ checked })}
+            />
+          </div>
+        ))}
+      </div>
+    );
+  },
+};
 export const Off: Story = { args: { checked: false } };
 export const Disabled: Story = { args: { disabled: true } };
 export const TurningOn: Story = { args: { checked: false, pending: true } };

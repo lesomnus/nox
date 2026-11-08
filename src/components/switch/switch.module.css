@@ -1,4 +1,5 @@
 .switch_control {
+  --switch-thumb-travel: 18px;
   -webkit-appearance: none;
   appearance: none;
   position: relative;
@@ -16,6 +17,12 @@
   cursor: pointer;
   touch-action: manipulation;
   transition: background 160ms ease-out;
+}
+.switch_control[data-variant="compact"] {
+  --switch-thumb-travel: 12px;
+  width: 28px;
+  height: 16px;
+  border-radius: 8px;
 }
 .thumb_layer {
   position: absolute;
@@ -36,7 +43,7 @@
   background: var(--ui-shade-204);
 }
 .switch_control[aria-checked="true"] .thumb {
-  transform: translateX(18px);
+  transform: translateX(var(--switch-thumb-travel));
   fill: var(--ui-shade-20);
 }
 .switch_control:not(:disabled):hover {
@@ -57,7 +64,7 @@
   cursor: progress;
 }
 .switch_control[data-pending] .thumb {
-  transform: translateX(9px);
+  transform: translateX(calc(var(--switch-thumb-travel) / 2));
 }
 .ink_sparkle {
   position: absolute;
