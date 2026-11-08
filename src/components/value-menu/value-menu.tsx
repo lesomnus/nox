@@ -100,6 +100,7 @@ export function ValueMenu({
   choose: (value: string) => unknown;
   /** Await choose before closing; rejection keeps feedback on the chosen option. */
   awaitAction?: boolean;
+  /** Open a focused, empty search field with the current display value as its placeholder. */
   searchable?: boolean;
   /** Exclude the selected value from choices; the aligned current/search row stays. */
   hideSelected?: boolean;
@@ -156,7 +157,7 @@ export function ValueMenu({
   const trigger = () =>
     root.current?.querySelector<HTMLButtonElement>(".setting-trigger");
   function openMenu() {
-    setQuery(text);
+    setQuery("");
     setQueryEdited(false);
     setOpen(true);
   }
@@ -285,7 +286,6 @@ export function ValueMenu({
     if (!open) return;
     if (searchable) {
       search.current?.focus({ preventScroll: true });
-      search.current?.select();
     } else {
       const selected = menu.current?.querySelector<HTMLButtonElement>(
         '[role=option][aria-selected="true"]',
@@ -499,6 +499,7 @@ export function ValueMenu({
                   aria-autocomplete="list"
                   aria-controls={`${id}-results`}
                   value={query}
+                  placeholder={text}
                   readOnly={action.pending}
                   onChange={(e) => {
                     setQuery(e.target.value);

@@ -292,6 +292,10 @@
 .setting_menu :global(.setting-search:focus-visible) {
   outline: none;
 }
+.setting_menu :global(.setting-search::placeholder) {
+  color: var(--ui-muted);
+  opacity: 1;
+}
 
 .setting_menu :global(.setting-match-label) {
   overflow: hidden;

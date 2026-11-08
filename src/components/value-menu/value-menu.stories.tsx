@@ -11,7 +11,7 @@ const meta = {
     docs: {
       description: {
         component:
-          "A value selector (combobox/listbox). By default a current-value or search row overlays the trigger, followed by the choices. alignItemWithTrigger instead positions the selected option itself over the trigger, with earlier/later options above/below it in source order. Search, hidden or missing selections retain the current-row layout. Shared feature comparisons live under Menus; its Docs page lists supported capabilities.",
+          "A value selector (combobox/listbox). By default a current-value or search row overlays the trigger, followed by the choices. Search opens empty and focused, with the current display value as its placeholder and all choices available until typing starts. alignItemWithTrigger instead positions the selected option itself over the trigger, with earlier/later options above/below it in source order. Search, hidden or missing selections retain the current-row layout. Shared feature comparisons live under Menus; its Docs page lists supported capabilities.",
       },
     },
   },

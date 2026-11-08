@@ -63,7 +63,21 @@ test("search includes matching selected values and Enter keeps the same value wi
   await trigger.click();
   const search = page.getByRole("combobox", { name: "Search Effort" });
   const list = page.getByRole("listbox", { name: "Effort choices" });
+  await expect(search).toBeFocused();
+  await expect(search).toHaveValue("");
+  await expect(search).toHaveAttribute("placeholder", "medium");
   await expect(list.getByRole("option")).toHaveCount(4);
+  await search.press("Enter");
+  await expect(list).toHaveCount(0);
+  await expect(page.getByRole("status")).toHaveText("Changes: 0");
+  await trigger.click();
+  await search.pressSequentially("med");
+  await expect(search).toHaveValue("med");
+  await search.press("Escape");
+  await expect(trigger).toHaveText("medium");
+  await trigger.click();
+  await expect(search).toHaveValue("");
+  await expect(search).toHaveAttribute("placeholder", "medium");
   await search.fill("medium");
   await expect(list.locator('[data-option-value="medium"]')).toHaveAttribute(
     "aria-selected",
@@ -76,6 +90,8 @@ test("search includes matching selected values and Enter keeps the same value wi
   await expect(trigger).toHaveText("low");
   await expect(page.getByRole("status")).toHaveText("Changes: 1");
   await trigger.click();
+  await expect(search).toHaveValue("");
+  await expect(search).toHaveAttribute("placeholder", "low");
   await search.fill("low");
   await search.press("Enter");
   await expect(list).toHaveCount(0);

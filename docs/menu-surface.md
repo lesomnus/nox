@@ -75,6 +75,12 @@ it is outside the listbox, so the choice appears only once among accessible
 options. Reselecting the same value closes the popup without calling `choose`.
 PrefixValueMenu and its IconValueMenu compatibility wrapper forward the flag.
 
+Searchable ValueMenus open with an empty, focused input. The current display
+label appears as muted placeholder text; it is not inserted into or selected in
+the search field. Choices remain unfiltered until typing, and each reopening
+starts a fresh search. Escape or Enter without typing leaves the selection
+unchanged. After editing the query, Enter chooses the first enabled match.
+
 Value options can include `description` for a smaller second line, such as a
 resource alias, and `icon` for a leading logo. Descriptions use muted 10px
 monospace text. If any choice has a description, both the trigger and the list

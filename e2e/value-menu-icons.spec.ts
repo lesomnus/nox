@@ -64,13 +64,14 @@ test("search retains the current icon without shifting text or affecting matchin
   expect(row.width).toBe(triggerBox.width);
   expect(row.height).toBe(triggerBox.height);
   await expect(search).toHaveCSS("border-radius", "0px");
+  await expect(search).toHaveValue("");
+  await expect(search).toHaveAttribute("placeholder", "Medium");
   const selection = await search.evaluate((node: HTMLInputElement) => ({
     start: node.selectionStart,
     end: node.selectionEnd,
-    length: node.value.length,
   }));
   expect(selection.start).toBe(0);
-  expect(selection.end).toBe(selection.length);
+  expect(selection.end).toBe(0);
   expect(searchBox.x).toBeCloseTo(anchor.x, 0);
   expect(searchBox.y).toBeCloseTo(anchor.y, 0);
   await expect(search.locator("..").locator("svg")).toHaveCount(1);
