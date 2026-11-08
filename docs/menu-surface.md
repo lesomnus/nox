@@ -55,7 +55,8 @@ background, backdrop blur, padding and frame. The surface copies the trigger's
 typography instead of inheriting the host document's font. It owns its foreground
 color, so a host page cannot make dark menus unreadable. Shade and dropdown
 tokens are the source of truth for appearance. `--ui-menu-selected-background`
-controls the resting fill of checked actions and aligned selected options. It
+controls the resting fill of checked actions and selected ValueMenu options in
+every variant, including the default current-row layout and search results. It
 uses shade32 (#202020) in dark mode, retaining the previous light selection fill;
 hover fills remain unchanged. ValueMenu triggers and aligned selected options
 apply their hover fill immediately so replacing one with the other on opening or
