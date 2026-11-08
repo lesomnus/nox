@@ -37,6 +37,13 @@ zero. Standalone MenuItem retains its 6px fallback.
 
 ## Shared surface and supported features
 
+For navigation entries, compose `MenuItemAnchor` with native link props (or a
+router link adapter). It shares MenuItem's appearance, icon/trailing slots and
+press feedback while retaining hrefs, modified clicks and open-in-new-tab.
+Use `MenuItemLabel` inside either row for ActionMenu's text placement and
+ellipsis. The owning menu supplies roles, keyboard navigation and dismissal;
+these row primitives do not create a popup or header themselves.
+
 All three use `MenuSurface` for the portal, themed foreground, translucent
 background, backdrop blur, padding and frame. The surface copies the trigger's
 typography instead of inheriting the host document's font. It owns its foreground

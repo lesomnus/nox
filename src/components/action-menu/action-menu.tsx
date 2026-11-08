@@ -26,6 +26,7 @@ import {
   MenuDivider,
   MenuGroupLabel,
   MenuItem,
+  MenuItemLabel,
 } from "../menu-surface/menu-item";
 
 export type MenuMotionDirection =
@@ -552,7 +553,7 @@ export function ActionMenu({
                           );
                         }}
                       >
-                        <span className={styles.label}>{item.label}</span>
+                        <MenuItemLabel>{item.label}</MenuItemLabel>
                       </MenuItem>
                     ))}
                   </div>
