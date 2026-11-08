@@ -1,10 +1,13 @@
 .trigger.trigger {
-  width: var(--ui-date-picker-trigger-width);
   max-width: 100%;
   padding-inline: calc(2 * var(--ui-space));
   background: var(--ui-shade-27);
   color: var(--ui-text-value);
   box-shadow: inset 0 0 0 1px var(--ui-shade-48);
+}
+/* Date sizing takes precedence over Button variant widths, including toolbar. */
+.trigger.trigger[data-mode] {
+  width: var(--ui-date-picker-trigger-width);
 }
 .trigger:not(:disabled)[aria-expanded="true"] {
   background: var(--button-hover-background, var(--ui-button-hover-background));
@@ -18,7 +21,7 @@
   white-space: nowrap;
   font-variant-numeric: tabular-nums;
 }
-.trigger[data-mode="range"] {
+.trigger.trigger[data-mode="range"] {
   width: var(--ui-date-picker-range-trigger-width);
 }
 .icon {
