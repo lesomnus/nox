@@ -1,0 +1,20 @@
+.root {
+  position: relative;
+}
+.host {
+  height: 100%;
+  min-height: 0;
+}
+.status {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  margin: 0;
+  padding: calc(3 * var(--ui-space));
+  background: var(--ui-shade-20);
+  color: var(--ui-muted);
+  font: 11px/1.6 var(--ui-font-mono);
+  pointer-events: none;
+}

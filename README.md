@@ -445,6 +445,25 @@ import { SourceEditor } from "@lesomnus/nox/editor";
 
 The editor accepts plain settings and theme values; it does not know about settings.json, font downloads or application storage. It loads Monaco lazily and ships editor/JSON worker assets. An existing host MonacoEnvironment is respected. The host gives the editor a bounded layout area. The explicit `nox-source` condition uses source files for Vite hot reload; the default uses compiled ES modules and TypeScript declarations.
 
+`SourceDiff` uses the same optional entry, lazy loader, themes and settings for a
+read-only comparison. Inline mode emphasizes changed word ranges and strikes
+through removed text; `sideBySide` enables separate before/after columns. Text
+wraps by default, and the first changed phrase is revealed after computation.
+The component owns and disposes both text models and its editor subscriptions.
+
+```tsx
+import { SourceDiff } from "@lesomnus/nox/editor";
+
+<SourceDiff
+  original={before}
+  modified={after}
+  path="notes.md"
+  ariaLabel="Revision changes"
+  theme={theme}
+  settings={editorSettings}
+/>;
+```
+
 A failed module fetch is retried once through a separate bundled entry, avoiding
 the browser's cached failed URL without reloading the host page. Persistent fetch
 failures and editor evaluation errors are reported in the editor surface.
