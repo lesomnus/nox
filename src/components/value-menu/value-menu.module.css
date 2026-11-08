@@ -113,14 +113,14 @@
   :global(.button-content) {
   height: var(--value-content-height);
   justify-content: flex-start;
-  transform-origin: left center;
+  transform-origin: center;
 }
 :is(.value_menu, .setting_menu)
   :global(.setting-current)
   :global(.button-content) {
   height: var(--value-content-height);
   justify-content: flex-start;
-  transform-origin: left center;
+  transform-origin: center;
 }
 :is(.value_menu, .setting_menu) :global(.setting-trigger) :global(.meta-value) {
   display: flex;
@@ -228,7 +228,7 @@
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
-  transform-origin: left center;
+  transform-origin: center;
 }
 :is(.value_menu, .setting_menu) :global(.setting-trigger)[data-muted="true"] {
   color: var(--ui-muted);
