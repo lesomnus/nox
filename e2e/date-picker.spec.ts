@@ -10,6 +10,48 @@ const trigger = (page: Page) => page.getByRole("button", { name: /^Date:/ });
 const calendar = (page: Page) =>
   page.getByRole("dialog", { name: "Calendar for Date" });
 
+test("custom date format changes the trigger while preserving calendar labels and form values", async ({
+  page,
+}) => {
+  await open(page);
+  await expect(trigger(page)).toHaveText("Oct 24, 2026");
+  await open(page, "iso-date");
+  await expect(trigger(page)).toHaveAccessibleName("Date: 2026-10-24");
+  await expect(trigger(page)).toHaveText("2026-10-24");
+  await trigger(page).click();
+  const day = calendar(page).locator(
+    '[data-sliding-page][data-active] [data-date="2026-10-28"]',
+  );
+  await expect(day).toHaveAttribute("aria-label", /October/);
+  await day.click();
+  await expect(trigger(page)).toHaveText("2026-10-28");
+  await expect(page.locator('input[name="date"]')).toHaveValue("2026-10-28");
+});
+
+test("custom range format covers pending and complete endpoints without changing submitted dates", async ({
+  page,
+}) => {
+  await page.clock.setFixedTime(new Date("2026-10-24T12:00:00Z"));
+  await page.goto(
+    "/iframe.html?id=components-datepicker--iso-date&viewMode=story&args=mode:range",
+  );
+  await trigger(page).click();
+  await calendar(page)
+    .locator('[data-sliding-page][data-active] [data-date="2026-10-24"]')
+    .click();
+  await expect(trigger(page)).toHaveText("2026-10-24 – …");
+  await calendar(page)
+    .locator('[data-sliding-page][data-active] [data-date="2026-10-27"]')
+    .click();
+  await expect(trigger(page)).toHaveText("2026-10-24 – 2026-10-27");
+  await expect(page.locator('input[name="date.start"]')).toHaveValue(
+    "2026-10-24",
+  );
+  await expect(page.locator('input[name="date.end"]')).toHaveValue(
+    "2026-10-27",
+  );
+});
+
 test("the four-digit year boundaries keep all week rows and do not wrap into invalid years", async ({
   page,
 }) => {

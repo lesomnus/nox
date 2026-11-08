@@ -49,6 +49,8 @@ export type DatePickerProps = Omit<
   isDateDisabled?: (value: string) => boolean;
   getDateInfo?: (date: string) => DatePickerDateInfo | null | undefined;
   locale?: string;
+  /** Formats an ISO date for the trigger; calendar labels and submitted values stay unchanged. */
+  formatDate?: (value: string) => string;
   weekStartsOn?: 0 | 1 | 2 | 3 | 4 | 5 | 6;
   placeholder?: string;
   clearable?: boolean;
@@ -74,6 +76,7 @@ export function DatePicker(options: DatePickerProps) {
     isDateDisabled,
     getDateInfo,
     locale = "en-US",
+    formatDate: customFormatDate,
     weekStartsOn = 0,
     placeholder,
     clearable = true,
@@ -125,7 +128,9 @@ export function DatePicker(options: DatePickerProps) {
     }),
     [locale],
   );
-  const formatDate = (date: string) => formatters.date.format(readDate(date));
+  const formatDate =
+    customFormatDate ??
+    ((date: string) => formatters.date.format(readDate(date)));
   const filled = hasSelection(selected);
   const display = !filled
     ? (placeholder ?? t("Choose date"))
