@@ -59,6 +59,7 @@ export type ValueOptionGroup = {
 export function ValueMenu({
   label,
   display,
+  renderLabel,
   value,
   options: items = [],
   groups,
@@ -83,6 +84,8 @@ export function ValueMenu({
   header?: ReactNode;
   footer?: ReactNode;
   display?: string;
+  /** Custom visual label for the trigger and options; string labels remain accessible and searchable. */
+  renderLabel?: (option: ValueOption) => ReactNode;
   value: string;
   options?: ValueOption[];
   /** Titled/untitled sections; when supplied, these replace options. */
@@ -437,7 +440,12 @@ export function ValueMenu({
         title={disabled ? disabledReason : text}
         onClick={() => (open ? close() : openMenu())}
       >
-        <ValueLabel option={currentOption} query="" className="meta-value" />
+        <ValueLabel
+          option={currentOption}
+          query=""
+          className="meta-value"
+          renderLabel={renderLabel}
+        />
       </Row>
       {open && (
         <MenuSurface
@@ -514,6 +522,7 @@ export function ValueMenu({
                   option={currentOption}
                   query=""
                   className="meta-value"
+                  renderLabel={renderLabel}
                 />
               </Row>
             ) : null}
@@ -567,6 +576,10 @@ export function ValueMenu({
                             role="option"
                             tabIndex={-1}
                             aria-selected={choice.value === value}
+                            aria-label={renderLabel ? choice.label : undefined}
+                            aria-description={
+                              renderLabel ? choice.description : undefined
+                            }
                             disabled={
                               choice.disabled ||
                               (action.pending &&
@@ -593,6 +606,7 @@ export function ValueMenu({
                             <ValueLabel
                               option={choice}
                               query={searchable && queryEdited ? query : ""}
+                              renderLabel={renderLabel}
                             />
                           </Row>
                         </Fragment>
@@ -642,11 +656,19 @@ function ValueLabel({
   option,
   query,
   className = "setting-match-label",
+  renderLabel,
 }: {
   option: ValueOption;
   query: string;
   className?: string;
+  renderLabel?: (option: ValueOption) => ReactNode;
 }) {
+  if (renderLabel)
+    return (
+      <span className={`${styles.label} ${className}`}>
+        {renderLabel(option)}
+      </span>
+    );
   const source = optionSearchText(option);
   const ranges = matchValueQuery(source, query) ?? [];
   // Reveal hidden search metadata only when it contributed to matching. Visible
