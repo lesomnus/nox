@@ -25,6 +25,42 @@
   --value-padding-block: var(--ui-control-inset);
   --value-padding-inline: var(--ui-control-inline-inset);
 }
+:is(.value_menu, .setting_menu)[data-variant="section"] {
+  --value-padding-block: var(--ui-section-padding);
+  --value-padding-inline: var(--ui-section-padding);
+  --value-background: var(--ui-section-background);
+  --value-content-height: 32px;
+  --value-row-height: calc(32px + 2 * var(--ui-section-padding));
+}
+.sectionItem.sectionItem {
+  --button-background: var(--ui-section-background);
+  border-radius: var(--ui-section-radius);
+  padding: var(--value-padding-block) var(--value-padding-inline);
+  font: inherit;
+}
+.sectionItem > :global(.button-content) {
+  gap: calc(2 * var(--ui-space));
+}
+.sectionItem:focus-visible {
+  outline-offset: -2px;
+}
+.sectionTrailing {
+  display: inline-flex;
+  flex: none;
+  margin-left: auto;
+  padding-left: calc(2 * var(--ui-space));
+}
+.setting_menu[data-variant="section"] :global([role="group"]) {
+  display: grid;
+  gap: var(--ui-section-group-gap);
+}
+.setting_menu[data-variant="section"]
+  :global([role="option"][aria-selected="true"]) {
+  --button-background: var(--ui-menu-selected-background);
+}
+.value_menu[data-variant="section"] :global(.setting-trigger) {
+  border-radius: var(--ui-section-radius);
+}
 .setting_menu[data-variant="compact"] {
   --value-padding-block: var(--ui-control-inset);
   --value-padding-inline: var(--ui-control-inline-inset);

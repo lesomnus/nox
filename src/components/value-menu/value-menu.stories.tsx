@@ -84,6 +84,32 @@ export const SearchableDescriptions: Story = {
   ...Descriptions,
   args: { ...Descriptions.args, searchable: true },
 };
+
+export const SectionCards: Story = {
+  ...Descriptions,
+  args: {
+    ...Descriptions.args,
+    variant: "section",
+    options: Descriptions.args!.options!.map((option, index) => ({
+      ...option,
+      trailing: (
+        <span
+          style={{ color: "var(--ui-muted)", font: "11px var(--ui-font-mono)" }}
+        >
+          {index ? "Updated today" : "Choose a workspace"}
+        </span>
+      ),
+    })),
+  },
+  parameters: {
+    docs: {
+      description: {
+        story:
+          "The trigger, current row and each selectable option are Section buttons, using the same padding, background and corners as standalone sections. Keyboard navigation, item alignment and scrolling retain ValueMenu behavior.",
+      },
+    },
+  },
+};
 export const HideSelected: Story = { args: { hideSelected: true } };
 export const Searchable: Story = { args: { searchable: true } };
 export const SearchableHideSelected: Story = {

@@ -23,6 +23,12 @@ content; `label` supplies the accessible selector name. `prefixClassName` styles
 the leading slot. The old `IconValueMenu` name and `icon`/`iconClassName` props
 remain as a deprecated compatibility wrapper over this same implementation.
 
+`ValueMenu variant="section"` makes the trigger and value rows actual `Section`
+buttons, using the section background, padding and radii with small gaps between
+options. It supports the same icon, description and trailing slots, keyboard
+navigation, alignment, scroll and async action behavior as the other variants.
+Use it when the selected value should occupy a standalone resource surface.
+
 Button-backed popup surfaces follow the trigger's corner radii, adding their
 padding and border insets so the curves are concentric. A 10px Form trigger with
 2px menu padding and a 1px border therefore uses a 13px outer radius. The glass

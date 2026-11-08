@@ -23,7 +23,9 @@ import {
   MenuGroupLabel,
   MenuIcon,
   MenuItem,
+  type MenuItemProps,
 } from "../menu-surface/menu-item";
+import { Section } from "../section-layout/section-layout";
 import { MenuScrollArea } from "../menu-surface/menu-scroll-area";
 import { useMenuAction } from "../menu-surface/use-menu-action";
 import { useUI } from "../../providers/ui-provider";
@@ -87,7 +89,7 @@ export function ValueMenu({
   groups?: ValueOptionGroup[];
   muted?: boolean;
   minMenuWidth?: number;
-  variant?: "default" | "compact";
+  variant?: "default" | "compact" | "section";
   disabled?: boolean;
   /** Whether the selected value differs from the caller's saved value. */
   dirty?: boolean;
@@ -107,6 +109,7 @@ export function ValueMenu({
 }) {
   const { t } = useUI();
   const offset = Number.isFinite(scrollbarOffset) ? scrollbarOffset : undefined;
+  const Row = variant === "section" ? SectionMenuItem : MenuItem;
   const hasHeader = hasMenuRegion(header);
   const hasFooter = hasMenuRegion(footer);
   const hasRegions = hasHeader || hasFooter;
@@ -419,7 +422,7 @@ export function ValueMenu({
           close();
       }}
     >
-      <MenuItem
+      <Row
         type="button"
         className="setting-trigger"
         icon={selected?.icon}
@@ -435,7 +438,7 @@ export function ValueMenu({
         onClick={() => (open ? close() : openMenu())}
       >
         <ValueLabel option={currentOption} query="" className="meta-value" />
-      </MenuItem>
+      </Row>
       {open && (
         <MenuSurface
           anchor={trigger()}
@@ -496,7 +499,7 @@ export function ValueMenu({
                 />
               </div>
             ) : !alignItem ? (
-              <MenuItem
+              <Row
                 type="button"
                 className="setting-current"
                 icon={selected?.icon}
@@ -512,7 +515,7 @@ export function ValueMenu({
                   query=""
                   className="meta-value"
                 />
-              </MenuItem>
+              </Row>
             ) : null}
             <div
               className={`${styles.choices} ${alignItem ? "" : dialogStyles.entrance}`}
@@ -558,7 +561,7 @@ export function ValueMenu({
                           {choice.separatorBefore && itemIndex > 0 && (
                             <MenuDivider className="setting-divider" />
                           )}
-                          <MenuItem
+                          <Row
                             data-option-value={choice.value}
                             type="button"
                             role="option"
@@ -591,7 +594,7 @@ export function ValueMenu({
                               option={choice}
                               query={searchable && queryEdited ? query : ""}
                             />
-                          </MenuItem>
+                          </Row>
                         </Fragment>
                       ))}
                     </div>
@@ -608,6 +611,28 @@ export function ValueMenu({
 }
 
 export type ValueMenuProps = Parameters<typeof ValueMenu>[0];
+
+function SectionMenuItem({
+  icon,
+  trailing,
+  children,
+  className = "",
+  ...props
+}: MenuItemProps) {
+  return (
+    <Section
+      as="button"
+      {...props}
+      className={`${styles.sectionItem} ${className}`}
+    >
+      <MenuIcon icon={icon} />
+      {children}
+      {trailing != null && typeof trailing !== "boolean" && (
+        <span className={styles.sectionTrailing}>{trailing}</span>
+      )}
+    </Section>
+  );
+}
 
 function optionSearchText(option: ValueOption) {
   return `${option.label}${option.description ? ` ${option.description}` : ""} ${option.searchText ?? ""}`;
