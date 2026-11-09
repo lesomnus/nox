@@ -40,6 +40,7 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {};
+export const ISODate: Story = { args: { formatDate: (value) => value } };
 export const Empty: Story = { args: { defaultValue: null } };
 export const AwaitSelection: Story = {
   args: { awaitAction: true },

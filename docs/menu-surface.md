@@ -23,31 +23,54 @@ content; `label` supplies the accessible selector name. `prefixClassName` styles
 the leading slot. The old `IconValueMenu` name and `icon`/`iconClassName` props
 remain as a deprecated compatibility wrapper over this same implementation.
 
+`ValueMenu variant="section"` makes the trigger and value rows actual `Section`
+buttons, using the section background, padding and radii with small gaps between
+options. It supports the same icon, description and trailing slots, keyboard
+navigation, alignment, scroll and async action behavior as the other variants.
+Use it when the selected value should occupy a standalone resource surface.
+
 Button-backed popup surfaces follow the trigger's corner radii, adding their
-padding and border insets so the curves are concentric. A 10px Form trigger with
-2px menu padding and a 1px border therefore uses a 13px outer radius. The glass
-backdrop uses the same radius, and resizing the trigger updates the surface.
+padding and border insets so the curves are concentric. The complete default
+frame inset is rounded to physical screen pixels, including display scaling and
+CSS zoom, so its top and side gaps render consistently. ActionMenu also snaps
+its resting position to that grid; ValueMenu retains precise trigger-text
+alignment. Changing display scale while a menu is open updates the frame.
+Theme tokens remain the source of truth for nominal spacing. The glass backdrop
+uses the same radius, and resizing the trigger updates the surface.
 All MenuItem rows, including unselected, hovered, checked and focused rows,
-use the outer radius minus the frame inset (10px in this example). The scrolling
+use the outer radius minus the actual frame inset. The scrolling
 viewport and fades use the same inner curve at exposed ends; ends beside a fixed
 header/footer or current-value/search row stay flat. External scrollbars remain
 outside this clip. An explicit `MenuSurface` style.borderRadius remains an
 override, and its inner radii shrink with the actual padding/border, clamped at
-zero. Standalone MenuItem retains its 6px fallback.
+zero. Standalone MenuItem retains its fallback button radius.
 
 ## Shared surface and supported features
+
+For navigation entries, compose `MenuItemAnchor` with native link props (or a
+router link adapter). It shares MenuItem's appearance, icon/trailing slots and
+press feedback while retaining hrefs, modified clicks and open-in-new-tab.
+Use `MenuItemLabel` inside either row for ActionMenu's text placement and
+ellipsis. The owning menu supplies roles, keyboard navigation and dismissal;
+these row primitives do not create a popup or header themselves.
 
 All three use `MenuSurface` for the portal, themed foreground, translucent
 background, backdrop blur, padding and frame. The surface copies the trigger's
 typography instead of inheriting the host document's font. It owns its foreground
 color, so a host page cannot make dark menus unreadable. Shade and dropdown
 tokens are the source of truth for appearance. `--ui-menu-selected-background`
-controls the resting fill of checked actions and aligned selected options. It
+controls the resting fill of checked actions and selected ValueMenu options in
+every variant, including the default current-row layout and search results. It
 uses shade32 (#202020) in dark mode, retaining the previous light selection fill;
 hover fills remain unchanged. ValueMenu triggers and aligned selected options
 apply their hover fill immediately so replacing one with the other on opening or
 closing does not flash a resting color. This also covers reselecting the current
 value; ordinary hover-out transitions remain.
+
+Unselected ValueMenu options have transparent resting backgrounds in every
+variant. The section variant retains the Section surface on its trigger and
+current-value overlay, while its list choices use the same selection and hover
+fills as ordinary options.
 
 ValueMenu includes the selected choice in its list by default and marks it with
 `aria-selected`. Set `hideSelected` to omit it, including from search results.
@@ -55,6 +78,12 @@ The aligned current-value/search row remains visible independently of that flag;
 it is outside the listbox, so the choice appears only once among accessible
 options. Reselecting the same value closes the popup without calling `choose`.
 PrefixValueMenu and its IconValueMenu compatibility wrapper forward the flag.
+
+Searchable ValueMenus open with an empty, focused input. The current display
+label appears as muted placeholder text; it is not inserted into or selected in
+the search field. Choices remain unfiltered until typing, and each reopening
+starts a fresh search. Escape or Enter without typing leaves the selection
+unchanged. After editing the query, Enter chooses the first enabled match.
 
 Value options can include `description` for a smaller second line, such as a
 resource alias, and `icon` for a leading logo. Descriptions use muted 10px

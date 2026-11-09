@@ -12,7 +12,11 @@ import {
   type CSSProperties,
 } from "react";
 import { Button } from "../button/button";
-import { MenuSurface } from "../menu-surface/menu-surface";
+import {
+  MenuSurface,
+  menuPixelSize,
+  snapMenuPosition,
+} from "../menu-surface/menu-surface";
 import {
   MenuFrame,
   menuFixedHeight,
@@ -26,6 +30,7 @@ import {
   MenuDivider,
   MenuGroupLabel,
   MenuItem,
+  MenuItemLabel,
 } from "../menu-surface/menu-item";
 
 export type MenuMotionDirection =
@@ -164,7 +169,7 @@ export function ActionMenu({
       const frame = popup.querySelector<HTMLElement>("[data-menu-frame]");
       if (frame) frame.dataset.enterFrom = `from-${from}`;
     };
-    const position = () => {
+    const place = () => {
       const button = trigger.current!.querySelector("button")!;
       const bounds = button.getBoundingClientRect();
       const gap =
@@ -183,14 +188,23 @@ export function ActionMenu({
       // Resolve the CSS width afresh so a constrained menu grows back on resize.
       popup.style.width = "";
       const columns = menuColumnMultiple(popup);
+      const pixel = menuPixelSize(popup);
       const preferredWidth =
         Math.ceil(
-          (popup.getBoundingClientRect().width - horizontalChrome) / columns,
-        ) * columns;
+          (popup.getBoundingClientRect().width - horizontalChrome) /
+            columns /
+            pixel,
+        ) *
+        columns *
+        pixel;
       const availableWidth =
         Math.floor(
-          (window.innerWidth - inset - rightInset - horizontalChrome) / columns,
-        ) * columns;
+          (window.innerWidth - inset - rightInset - horizontalChrome) /
+            columns /
+            pixel,
+        ) *
+        columns *
+        pixel;
       popup.style.width = `${Math.max(0, Math.min(preferredWidth, availableWidth)) + horizontalChrome}px`;
       const chrome =
         parseFloat(style.paddingTop) +
@@ -247,6 +261,10 @@ export function ActionMenu({
       // Bound both edges after measuring the popup's actual width.
       const right = Math.max(rightInset, window.innerWidth - bounds.right);
       popup.style.right = `${Math.min(right, Math.max(rightInset, window.innerWidth - popup.offsetWidth - inset))}px`;
+    };
+    const position = () => {
+      place();
+      snapMenuPosition(popup);
     };
     position();
     if (offset !== undefined) {
@@ -552,7 +570,7 @@ export function ActionMenu({
                           );
                         }}
                       >
-                        <span className={styles.label}>{item.label}</span>
+                        <MenuItemLabel>{item.label}</MenuItemLabel>
                       </MenuItem>
                     ))}
                   </div>

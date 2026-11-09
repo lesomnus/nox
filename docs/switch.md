@@ -1,5 +1,10 @@
 # Switch transitions
 
+The default switch is 40×22px. Set `variant="compact"` for a 28×16px rail that
+fits alongside 14px body text. Its 12px handle has 2px clearance from the rail;
+pointer, keyboard, disabled and pending behavior is shared with the default size.
+See **Components/Switch/Compact** and **Sizes** to compare them.
+
 Keep `checked` at the confirmed value and set `pending` while applying its
 opposite. The handle rests in the middle and repeat activation is blocked.
 Update `checked` on success, then clear `pending`. Clear only `pending` on
@@ -10,6 +15,8 @@ burst every **2000ms**, slower than the effect's native 617ms duration. Its cent
 is fixed **8px outside** the departure edge: `[-8, 11]` when turning on and
 `[48, 11]` when turning off in the 40×22px rail. The center stays outside rather
 than migrating into the slot. Click position does not change the center.
+The compact rail uses `[-8, 8]` / `[36, 8]` and centers the pending handle in its
+shorter travel range.
 
 The rail clips the effect, and the opaque handle stays above it. Ink is white
 at 0.2 alpha when turning on and black at 0.5 alpha when turning off. Flutter's white

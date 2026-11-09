@@ -44,17 +44,6 @@
   font-size: 11px;
   line-height: 16px;
 }
-.label {
-  /* Center the glyphs optically against the icon, beyond the line box. */
-  position: relative;
-  top: -1px;
-  flex: 1;
-  min-width: 0;
-  line-height: var(--ui-menu-item-line-height);
-  overflow: hidden;
-  white-space: nowrap;
-  text-overflow: ellipsis;
-}
 .action_menu_popup[data-placement="right"] {
   transform-origin: top left;
 }
@@ -83,7 +72,9 @@
   justify-content: center;
   gap: var(--ui-control-inset);
 }
-.action_menu_popup [data-action-menu-layout="row"] .label {
+.action_menu_popup
+  [data-action-menu-layout="row"]
+  :global([data-menu-item-label]) {
   top: 0;
   flex: none;
   width: 100%;

@@ -81,6 +81,10 @@ for (const name of Object.keys(palettes) as (keyof typeof palettes)[])
         "editorCursor.foreground": light ? "#202020" : "#ededed",
         "editorWidget.background": light ? "#eeeeee" : "#222222",
         "editorWidget.border": light ? "#c9c9c9" : "#363636",
+        "diffEditor.insertedLineBackground": light ? "#2f82500d" : "#70b58414",
+        "diffEditor.removedLineBackground": light ? "#9c37370d" : "#db707014",
+        "diffEditor.insertedTextBackground": light ? "#2f825050" : "#70b58466",
+        "diffEditor.removedTextBackground": light ? "#9c373750" : "#db707066",
         focusBorder: light ? "#8c8c8c" : "#737373",
       },
     });

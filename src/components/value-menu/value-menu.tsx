@@ -23,7 +23,9 @@ import {
   MenuGroupLabel,
   MenuIcon,
   MenuItem,
+  type MenuItemProps,
 } from "../menu-surface/menu-item";
+import { Section } from "../section-layout/section-layout";
 import { MenuScrollArea } from "../menu-surface/menu-scroll-area";
 import { useMenuAction } from "../menu-surface/use-menu-action";
 import { useUI } from "../../providers/ui-provider";
@@ -57,6 +59,7 @@ export type ValueOptionGroup = {
 export function ValueMenu({
   label,
   display,
+  renderLabel,
   value,
   options: items = [],
   groups,
@@ -81,13 +84,15 @@ export function ValueMenu({
   header?: ReactNode;
   footer?: ReactNode;
   display?: string;
+  /** Custom visual label for the trigger and options; string labels remain accessible and searchable. */
+  renderLabel?: (option: ValueOption) => ReactNode;
   value: string;
   options?: ValueOption[];
   /** Titled/untitled sections; when supplied, these replace options. */
   groups?: ValueOptionGroup[];
   muted?: boolean;
   minMenuWidth?: number;
-  variant?: "default" | "compact";
+  variant?: "default" | "compact" | "section";
   disabled?: boolean;
   /** Whether the selected value differs from the caller's saved value. */
   dirty?: boolean;
@@ -95,6 +100,7 @@ export function ValueMenu({
   choose: (value: string) => unknown;
   /** Await choose before closing; rejection keeps feedback on the chosen option. */
   awaitAction?: boolean;
+  /** Open a focused, empty search field with the current display value as its placeholder. */
   searchable?: boolean;
   /** Exclude the selected value from choices; the aligned current/search row stays. */
   hideSelected?: boolean;
@@ -107,6 +113,7 @@ export function ValueMenu({
 }) {
   const { t } = useUI();
   const offset = Number.isFinite(scrollbarOffset) ? scrollbarOffset : undefined;
+  const Row = variant === "section" ? SectionMenuItem : MenuItem;
   const hasHeader = hasMenuRegion(header);
   const hasFooter = hasMenuRegion(footer);
   const hasRegions = hasHeader || hasFooter;
@@ -150,7 +157,7 @@ export function ValueMenu({
   const trigger = () =>
     root.current?.querySelector<HTMLButtonElement>(".setting-trigger");
   function openMenu() {
-    setQuery(text);
+    setQuery("");
     setQueryEdited(false);
     setOpen(true);
   }
@@ -279,7 +286,6 @@ export function ValueMenu({
     if (!open) return;
     if (searchable) {
       search.current?.focus({ preventScroll: true });
-      search.current?.select();
     } else {
       const selected = menu.current?.querySelector<HTMLButtonElement>(
         '[role=option][aria-selected="true"]',
@@ -419,7 +425,7 @@ export function ValueMenu({
           close();
       }}
     >
-      <MenuItem
+      <Row
         type="button"
         className="setting-trigger"
         icon={selected?.icon}
@@ -434,8 +440,13 @@ export function ValueMenu({
         title={disabled ? disabledReason : text}
         onClick={() => (open ? close() : openMenu())}
       >
-        <ValueLabel option={currentOption} query="" className="meta-value" />
-      </MenuItem>
+        <ValueLabel
+          option={currentOption}
+          query=""
+          className="meta-value"
+          renderLabel={renderLabel}
+        />
+      </Row>
       {open && (
         <MenuSurface
           anchor={trigger()}
@@ -488,6 +499,7 @@ export function ValueMenu({
                   aria-autocomplete="list"
                   aria-controls={`${id}-results`}
                   value={query}
+                  placeholder={text}
                   readOnly={action.pending}
                   onChange={(e) => {
                     setQuery(e.target.value);
@@ -496,7 +508,7 @@ export function ValueMenu({
                 />
               </div>
             ) : !alignItem ? (
-              <MenuItem
+              <Row
                 type="button"
                 className="setting-current"
                 icon={selected?.icon}
@@ -511,8 +523,9 @@ export function ValueMenu({
                   option={currentOption}
                   query=""
                   className="meta-value"
+                  renderLabel={renderLabel}
                 />
-              </MenuItem>
+              </Row>
             ) : null}
             <div
               className={`${styles.choices} ${alignItem ? "" : dialogStyles.entrance}`}
@@ -558,12 +571,16 @@ export function ValueMenu({
                           {choice.separatorBefore && itemIndex > 0 && (
                             <MenuDivider className="setting-divider" />
                           )}
-                          <MenuItem
+                          <Row
                             data-option-value={choice.value}
                             type="button"
                             role="option"
                             tabIndex={-1}
                             aria-selected={choice.value === value}
+                            aria-label={renderLabel ? choice.label : undefined}
+                            aria-description={
+                              renderLabel ? choice.description : undefined
+                            }
                             disabled={
                               choice.disabled ||
                               (action.pending &&
@@ -590,8 +607,9 @@ export function ValueMenu({
                             <ValueLabel
                               option={choice}
                               query={searchable && queryEdited ? query : ""}
+                              renderLabel={renderLabel}
                             />
-                          </MenuItem>
+                          </Row>
                         </Fragment>
                       ))}
                     </div>
@@ -609,6 +627,28 @@ export function ValueMenu({
 
 export type ValueMenuProps = Parameters<typeof ValueMenu>[0];
 
+function SectionMenuItem({
+  icon,
+  trailing,
+  children,
+  className = "",
+  ...props
+}: MenuItemProps) {
+  return (
+    <Section
+      as="button"
+      {...props}
+      className={`${styles.sectionItem} ${className}`}
+    >
+      <MenuIcon icon={icon} />
+      {children}
+      {trailing != null && typeof trailing !== "boolean" && (
+        <span className={styles.sectionTrailing}>{trailing}</span>
+      )}
+    </Section>
+  );
+}
+
 function optionSearchText(option: ValueOption) {
   return `${option.label}${option.description ? ` ${option.description}` : ""} ${option.searchText ?? ""}`;
 }
@@ -617,11 +657,19 @@ function ValueLabel({
   option,
   query,
   className = "setting-match-label",
+  renderLabel,
 }: {
   option: ValueOption;
   query: string;
   className?: string;
+  renderLabel?: (option: ValueOption) => ReactNode;
 }) {
+  if (renderLabel)
+    return (
+      <span className={`${styles.label} ${className}`}>
+        {renderLabel(option)}
+      </span>
+    );
   const source = optionSearchText(option);
   const ranges = matchValueQuery(source, query) ?? [];
   // Reveal hidden search metadata only when it contributed to matching. Visible

@@ -8,6 +8,18 @@
   position: fixed;
   z-index: 1100;
   padding: var(--ui-control-inset);
+  /* Snap the complete frame inset, including its border, to screen pixels. */
+  padding: max(
+    0px,
+    calc(
+      round(
+          nearest,
+          calc(var(--ui-control-inset) + var(--menu-frame-border-width, 1px)),
+          var(--menu-pixel-size, 1px)
+        ) -
+        var(--menu-frame-border-width, 1px)
+    )
+  );
   color: var(--ui-shade-237);
   background: var(--ui-dropdown-background);
   -webkit-backdrop-filter: blur(var(--ui-dropdown-blur));
@@ -27,7 +39,7 @@
 .surface[data-scrollbar-offset]::before {
   content: "";
   position: absolute;
-  inset: -1px;
+  inset: calc(-1 * var(--menu-frame-border-width, 1px));
   z-index: -1;
   pointer-events: none;
   background: var(--ui-dropdown-background);

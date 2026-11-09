@@ -55,6 +55,8 @@ test("search Enter selects the first enabled match and keeps disabled-only resul
   const trigger = page.getByRole("combobox", { name: "Effort", exact: true });
   await trigger.click();
   const search = page.getByRole("combobox", { name: "Search Effort" });
+  await expect(search).toHaveValue("");
+  await search.fill("balanced");
   await search.fill("");
   await search.press("Enter");
   await expect(trigger).toHaveText("Balanced");

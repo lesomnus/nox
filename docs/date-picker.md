@@ -4,6 +4,13 @@ DatePicker selects Gregorian calendar dates without an app provider, router,
 backend or date-library dependency. Values are civil `YYYY-MM-DD` strings;
 DateTime remains the component for displaying timestamps.
 
+`formatDate` customizes selected dates in the trigger and its accessible name.
+It receives an ISO `YYYY-MM-DD` string; `formatDate={(value) => value}` displays
+that exact format. The callback also formats both endpoints in range mode.
+Calendar labels still use `locale`, multiple mode retains its selection count,
+and form values remain ISO dates. Omit it to keep the localized date display.
+See **Components/DatePicker/ISODate**.
+
 ## Selection modes
 
 | mode               | value / defaultValue / onChange                    | Empty value |
