@@ -26,3 +26,7 @@ export const Sliding: Story = {
 export const Flipping: Story = {
   args: { startedAt: Date.now() - 58_000, motion: "flip" },
 };
+
+export const SeparatorsOnly: Story = {
+  args: { durationMs: 102_000, dimLeadingZeros: false, label: "Job duration" },
+};

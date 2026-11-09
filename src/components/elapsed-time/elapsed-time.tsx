@@ -9,12 +9,14 @@ export type ElapsedTimeProps = TextMotionOptions & {
   startedAt?: number;
   durationMs?: number;
   label: string;
+  dimLeadingZeros?: boolean;
 };
 
 export function ElapsedTime({
   startedAt,
   durationMs,
   label,
+  dimLeadingZeros = true,
   motion = "none",
   direction,
   duration,
@@ -71,7 +73,7 @@ export function ElapsedTime({
         flipEasing={flipEasing}
         flipCharacters={flipCharacters}
         characterClassName={(character, index) =>
-          index < split
+          dimLeadingZeros && index < split
             ? "elapsed-time-leading"
             : character === ":"
               ? styles.separator
