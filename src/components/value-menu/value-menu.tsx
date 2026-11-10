@@ -81,6 +81,7 @@ export function ValueMenu({
   scrollbarOffset,
   scrollbarSide,
   columns = 1,
+  menuClassName = "",
 }: {
   label: string;
   /** Always visible above/below the value rows, regardless of opening direction. */
@@ -117,6 +118,8 @@ export function ValueMenu({
   scrollbarOffset?: number;
   /** Option grid columns. Multiple columns stack icons above centered labels; alignment uses the current/search row. */
   columns?: number;
+  /** Additional class for the portaled menu surface. */
+  menuClassName?: string;
 }) {
   const { t } = useUI();
   const offset = Number.isFinite(scrollbarOffset) ? scrollbarOffset : undefined;
@@ -505,7 +508,7 @@ export function ValueMenu({
           data-searchable={searchable}
           data-scrollbar-offset={offset}
           data-align-item-with-trigger={alignItem || undefined}
-          className={`${styles.setting_menu} ${dialogStyles.entrance} setting-menu ${!alignItem && up ? "opens-up" : ""}`}
+          className={`${styles.setting_menu} ${dialogStyles.entrance} setting-menu ${!alignItem && up ? "opens-up" : ""} ${menuClassName}`}
           data-enter-effect={itemAligned ? "anchored" : "fade"}
           onPointerDownCapture={(event) => {
             // Non-interactive rows must not blur the focused option/search field.
