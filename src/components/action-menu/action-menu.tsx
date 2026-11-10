@@ -52,6 +52,7 @@ export type ActionMenuMotion =
 
 export type ActionMenuItem = {
   label: string;
+  className?: string;
   icon?: ReactNode;
   shortcut?: string | readonly string[];
   checked?: boolean;
@@ -518,6 +519,7 @@ export function ActionMenu({
                     {group.items.map((item, itemIndex) => (
                       <MenuItem
                         key={item.label}
+                        className={item.className}
                         type="button"
                         role={
                           item.checked === undefined
