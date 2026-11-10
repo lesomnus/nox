@@ -87,3 +87,53 @@ test("search retains the current icon without shifting text or affecting matchin
   await search.press("Enter");
   await expect(trigger).toHaveText("High");
 });
+
+test("icon grids share selection and search while moving spatially around disabled choices", async ({
+  page,
+}) => {
+  await page.goto(
+    "/iframe.html?id=components-valuemenu--icon-grid&viewMode=story",
+  );
+  const trigger = page.getByRole("combobox", { name: "Symbol", exact: true });
+  await expect(trigger.locator("svg")).toHaveCount(0);
+  await trigger.click();
+  const search = page.getByRole("combobox", { name: "Search Symbol" });
+  await expect(search).toBeFocused();
+  await expect(search.locator("..").locator("svg")).toHaveCount(0);
+  const list = page.getByRole("listbox", { name: "Symbol choices" });
+  await expect(list.getByRole("option")).toHaveCount(8);
+  const circle = list.getByRole("option", { name: "Circle", exact: true });
+  const square = list.getByRole("option", { name: "Square", exact: true });
+  await search.press("ArrowDown");
+  await expect(circle).toBeFocused();
+  await page.keyboard.press("ArrowRight");
+  await expect(square).toBeFocused();
+  await page.keyboard.press("ArrowRight");
+  await expect(
+    list.getByRole("option", { name: "Diamond", exact: true }),
+  ).toBeFocused();
+  await page.keyboard.press("ArrowDown");
+  await expect(
+    list.getByRole("option", { name: "Ring", exact: true }),
+  ).toBeFocused();
+  await page.keyboard.press("Home");
+  await expect(circle).toBeFocused();
+  const bounds = await circle.evaluate((node) => {
+    const icon = node.querySelector("svg")!.getBoundingClientRect();
+    const label = node
+      .querySelector(".setting-match-label")!
+      .getBoundingClientRect();
+    return {
+      below: label.top >= icon.bottom,
+      centered:
+        Math.abs(label.left + label.width / 2 - icon.left - icon.width / 2) <
+        0.1,
+    };
+  });
+  expect(bounds).toEqual({ below: true, centered: true });
+  await search.fill("hex");
+  await expect(list.getByRole("option")).toHaveCount(1);
+  await list.getByRole("option", { name: "Hexagon", exact: true }).click();
+  await expect(list).toHaveCount(0);
+  await expect(trigger).toHaveText("Hexagon");
+});
