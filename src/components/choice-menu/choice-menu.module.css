@@ -1,0 +1,81 @@
+.trigger.trigger[data-variant="toolbar"] {
+  align-self: stretch;
+  width: auto;
+  min-width: 0;
+  height: auto;
+  padding-inline: calc(2 * var(--ui-space));
+  white-space: nowrap;
+  color: var(--ui-muted);
+}
+.trigger[data-menu-open],
+.trigger[data-filtered] {
+  --button-background: var(--ui-button-hover-background);
+  color: var(--ui-text-value);
+}
+.menu {
+  --choice-indicator-size: var(--ui-checkbox-size);
+  --choice-content-height: max(
+    var(--ui-menu-item-line-height),
+    var(--choice-indicator-size),
+    var(--ui-icon-size-small)
+  );
+}
+.radioMenu {
+  --choice-indicator-size: var(--ui-radio-size, var(--ui-checkbox-size));
+}
+.menu.menu {
+  width: var(--ui-choice-menu-width, calc(48 * var(--ui-space)));
+}
+.menu.menu :global(:is([role="menuitemcheckbox"], [role="menuitemradio"])) {
+  padding-left: calc(
+    var(--menu-item-padding-block, var(--ui-menu-item-padding-block)) +
+      max(
+        0px,
+        (var(--choice-content-height) - var(--choice-indicator-size)) / 2
+      )
+  );
+}
+.menu.menu
+  :global(:is([role="menuitemcheckbox"], [role="menuitemradio"]))
+  > :global(.button-content) {
+  min-height: var(--choice-content-height);
+  gap: calc(2 * var(--ui-space));
+  transform: none;
+}
+.itemContent {
+  display: flex;
+  align-items: center;
+  flex: 1;
+  min-width: 0;
+  gap: var(--ui-space);
+  transform: scale(1);
+  transition: transform 120ms ease-out;
+}
+.menu.menu
+  :global(
+    :is([role="menuitemcheckbox"], [role="menuitemradio"]):not(:disabled):active
+  )
+  .itemContent {
+  transform: scale(var(--press-scale, 0.95));
+  transition-duration: 60ms;
+}
+@media (prefers-reduced-motion: reduce) {
+  .menu.menu .itemContent {
+    transition: none;
+  }
+}
+.optionIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  width: var(--ui-icon-size-small);
+  height: var(--ui-icon-size-small);
+  line-height: 0;
+}
+.optionIcon > * {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 0;
+}

@@ -14,7 +14,22 @@ export function Radio({ className = "", ref, ...props }: RadioProps) {
   return (
     <span className={`${styles.control} ${className}`}>
       <input {...props} ref={ref} className={styles.input} type="radio" />
-      <span className={styles.circle} aria-hidden="true" />
+      <RadioIndicator />
     </span>
+  );
+}
+
+export type RadioIndicatorProps = { checked?: boolean; className?: string };
+/** Decorative state for menuitemradio; native forms should use Radio. */
+export function RadioIndicator({
+  checked = false,
+  className = "",
+}: RadioIndicatorProps) {
+  return (
+    <span
+      className={`${styles.circle} ${styles.indicator} ${className}`}
+      data-checked={checked || undefined}
+      aria-hidden="true"
+    />
   );
 }

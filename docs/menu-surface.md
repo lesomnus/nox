@@ -10,6 +10,9 @@ The component pages keep their basic API controls and specific behavior:
   and selected-only/empty groups.
 - **Components/PrefixValueMenu**: the leading-content wrapper's basic API, with
   icon and text examples.
+- **Components/CheckboxMenu** and **Components/RadioMenu**: matching multi- and
+  single-selection examples with a draft applied when the menu closes. See
+  [choice menus](choice-menus.md) for their lifecycle and keyboard controls.
 
 Shared feature examples belong under Menus rather than being repeated on one
 component page. Value-only controls in a comparison affect only ValueMenu; the
@@ -54,7 +57,7 @@ Use `MenuItemLabel` inside either row for ActionMenu's text placement and
 ellipsis. The owning menu supplies roles, keyboard navigation and dismissal;
 these row primitives do not create a popup or header themselves.
 
-All three use `MenuSurface` for the portal, themed foreground, translucent
+All menu variants use `MenuSurface` for the portal, themed foreground, translucent
 background, backdrop blur, padding and frame. The surface copies the trigger's
 typography instead of inheriting the host document's font. It owns its foreground
 color, so a host page cannot make dark menus unreadable. Shade and dropdown
