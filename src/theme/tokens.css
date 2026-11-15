@@ -237,6 +237,7 @@
   --ui-menu-selected-background: var(--ui-shade-32);
   --ui-action-menu-width: 198px;
   --ui-menu-item-line-height: 20px;
+  --ui-menu-item-gap: calc(2 * var(--ui-space));
   --ui-menu-shortcut-character-width: 8px;
   --ui-menu-item-padding-block: 6px;
   --ui-menu-item-padding-inline: 10px;

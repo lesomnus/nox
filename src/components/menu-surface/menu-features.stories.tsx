@@ -239,9 +239,16 @@ export const SearchableDisabledOptions: Story = {
   args: { ...DisabledOptions.args, searchable: true },
 };
 
-function ExampleIcon({ path }: { path: string }) {
-  return (
+function ExampleIcon({
+  path,
+  wrapped = false,
+}: {
+  path: string;
+  wrapped?: boolean;
+}) {
+  const icon = (
     <svg
+      style={wrapped ? { width: "100%", height: "100%" } : undefined}
       viewBox="0 0 24 24"
       fill="none"
       stroke="currentColor"
@@ -251,6 +258,15 @@ function ExampleIcon({ path }: { path: string }) {
     >
       <path d={path} />
     </svg>
+  );
+  return wrapped ? (
+    <span
+      style={{ width: "var(--ui-icon-size)", height: "var(--ui-icon-size)" }}
+    >
+      {icon}
+    </span>
+  ) : (
+    icon
   );
 }
 
@@ -263,7 +279,10 @@ const iconGroups: ValueOptionGroup[] = [
         value: "low",
         label: "Low",
         icon: (
-          <ExampleIcon path="M20 4C9 3 3 8 5 15c2 7 14 5 15-11ZM4 21l10-10" />
+          <ExampleIcon
+            wrapped
+            path="M20 4C9 3 3 8 5 15c2 7 14 5 15-11ZM4 21l10-10"
+          />
         ),
       },
       {
@@ -317,7 +336,7 @@ export const WithIcons: Story = {
     docs: {
       description: {
         story:
-          "Both groups and options accept an optional icon (ReactNode) before their text. Option icons also appear beside the current value. Icons are decorative and do not affect accessible names or text search; disabled options retain their icon with the shared disabled styling.",
+          "Both groups and options accept an optional icon (ReactNode) before their text. Low uses a wrapped icon and the remaining choices use direct SVGs; both fit the same icon slot and retain visible label spacing. Press an option to scale only its text while the icon stays fixed. Option icons also appear beside the current value. Icons are decorative and do not affect accessible names or text search; disabled options retain their icon with the shared disabled styling.",
       },
     },
   },

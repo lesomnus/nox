@@ -57,6 +57,14 @@ Use `MenuItemLabel` inside either row for ActionMenu's text placement and
 ellipsis. The owning menu supplies roles, keyboard navigation and dismissal;
 these row primitives do not create a popup or header themselves.
 
+`MenuItem` and `MenuItemAnchor` keep their leading icon and trailing controls
+stationary during a press. Only their label content scales, with Button's
+bounded press distance measured against that content. Use the `icon` and
+`trailing` slots for those fixed elements; `MenuIcon` also constrains wrapped
+icons to the shared small icon size. `--ui-menu-item-gap` controls the row's
+spacing. Explicit `pressTarget` consumers, such as choice menus, retain their
+own press layout instead of receiving the default label motion.
+
 All menu variants use `MenuSurface` for the portal, themed foreground, translucent
 background, backdrop blur, padding and frame. The surface copies the trigger's
 typography instead of inheriting the host document's font. It owns its foreground

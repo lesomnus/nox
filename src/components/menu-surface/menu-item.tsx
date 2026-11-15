@@ -7,6 +7,9 @@ import {
 } from "../button/button";
 import styles from "./menu-item.module.css";
 
+const labelPressTarget =
+  ":scope > :not([data-menu-item-icon]):not([data-menu-item-trailing])";
+
 export type MenuItemProps = ButtonProps & {
   icon?: ReactNode;
   trailing?: ReactNode;
@@ -21,13 +24,15 @@ export const MenuItemAnchor = forwardRef<
   HTMLAnchorElement,
   MenuItemAnchorProps
 >(function MenuItemAnchor(
-  { icon, trailing, children, className = "", ...props },
+  { icon, trailing, children, className = "", pressTarget, ...props },
   ref,
 ) {
   return (
     <ButtonAnchor
       {...props}
       ref={ref}
+      pressTarget={pressTarget ?? labelPressTarget}
+      data-menu-label-press={pressTarget === undefined || undefined}
       className={`${styles.item} ${className}`}
     >
       <MenuItemContent icon={icon} trailing={trailing}>
@@ -43,10 +48,16 @@ export function MenuItem({
   trailing,
   children,
   className = "",
+  pressTarget,
   ...props
 }: MenuItemProps) {
   return (
-    <Button {...props} className={`${styles.item} ${className}`}>
+    <Button
+      {...props}
+      className={`${styles.item} ${className}`}
+      pressTarget={pressTarget ?? labelPressTarget}
+      data-menu-label-press={pressTarget === undefined || undefined}
+    >
       <MenuItemContent icon={icon} trailing={trailing}>
         {children}
       </MenuItemContent>
@@ -62,9 +73,15 @@ function MenuItemContent({
   return (
     <>
       <MenuIcon icon={icon} />
-      {children}
+      {typeof children === "string" || typeof children === "number" ? (
+        <MenuItemLabel>{children}</MenuItemLabel>
+      ) : (
+        children
+      )}
       {trailing != null && typeof trailing !== "boolean" && (
-        <span className={styles.trailing}>{trailing}</span>
+        <span className={styles.trailing} data-menu-item-trailing>
+          {trailing}
+        </span>
       )}
     </>
   );
@@ -85,7 +102,7 @@ export function MenuItemLabel({
 
 export function MenuIcon({ icon }: { icon?: ReactNode }) {
   return icon ? (
-    <span className={styles.icon} aria-hidden="true">
+    <span className={styles.icon} data-menu-item-icon aria-hidden="true">
       {icon}
     </span>
   ) : null;
