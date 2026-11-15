@@ -12,7 +12,7 @@ export function SettingField({
 }: {
   title: string;
   settingId: string;
-  summary: string;
+  summary?: string;
   children: ReactNode;
   details?: ReactNode;
   /** Expand the control past metadata edges by its text padding. Numbers use pixels. */
@@ -42,7 +42,7 @@ export function SettingField({
       <code className="setting-id" id={identifier}>
         {settingId}
       </code>
-      <p className="setting-summary">{summary}</p>
+      {summary && <p className="setting-summary">{summary}</p>}
       <div className="setting-control">{children}</div>
       {details && <div className="setting-details">{details}</div>}
     </div>
