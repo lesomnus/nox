@@ -10,6 +10,7 @@ export function FloatingCard({
   headerCenter,
   revealFrom,
   close,
+  closeDisabled = false,
   closeLabel,
   bodyTabIndex,
   footer,
@@ -25,6 +26,8 @@ export function FloatingCard({
   /** Reveal content over a separate glass layer that stays blurred throughout. */
   revealFrom?: MenuMotionDirection;
   close?: () => void;
+  /** Keep the close control in place while dismissal is temporarily unavailable. */
+  closeDisabled?: boolean;
   closeLabel?: string;
   bodyTabIndex?: number;
   footer?: ReactNode;
@@ -46,6 +49,7 @@ export function FloatingCard({
               className="card-close"
               type="button"
               aria-label={closeLabel}
+              disabled={closeDisabled}
               onClick={close}
             >
               ×
