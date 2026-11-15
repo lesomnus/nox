@@ -239,7 +239,8 @@ export function ActionMenu({
         entranceFrom("left");
         constrainHeight(window.innerHeight - 2 * inset);
         popup.style.left = `${Math.max(inset, Math.min(bounds.right + gap, window.innerWidth - popup.offsetWidth - rightInset))}px`;
-        popup.style.top = `${Math.max(inset, Math.min(bounds.bottom - popup.offsetHeight, window.innerHeight - popup.offsetHeight - inset))}px`;
+        const height = popup.getBoundingClientRect().height;
+        popup.style.top = `${Math.max(inset, Math.min(bounds.bottom - height, window.innerHeight - height))}px`;
         return;
       }
       const above = Math.max(0, bounds.top - gap - inset);

@@ -52,6 +52,22 @@ for (const [label, origin] of [
     expect(motion.first).toEqual(motion.last);
     await page.keyboard.press("Escape");
     await expect(menu).toHaveCount(0);
+    if (label === "Beside") {
+      await trigger.evaluate((node) =>
+        Object.assign(node.closest<HTMLElement>(".action-menu")!.style, {
+          top: "auto",
+          bottom: "4px",
+        }),
+      );
+      await trigger.click();
+      const button = (await trigger.boundingBox())!;
+      const popup = (await menu.boundingBox())!;
+      const pixel = await page.evaluate(() => 1 / devicePixelRatio);
+      expect(
+        Math.abs(popup.y + popup.height - button.y - button.height),
+      ).toBeLessThanOrEqual(pixel);
+      expect(popup.y).toBeGreaterThanOrEqual(0);
+    }
   });
 }
 
