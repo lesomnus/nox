@@ -22,6 +22,7 @@
 }
 .setting_row :global(.setting-control) {
   min-width: 0;
+  margin-inline: calc(-1 * var(--setting-control-inset, 0px));
 }
 .setting_row strong {
   font-size: 12px;
