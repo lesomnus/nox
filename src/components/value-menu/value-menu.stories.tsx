@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { useArgs } from "storybook/preview-api";
 import { useState } from "react";
-import { ValueMenu } from "@lesomnus/nox";
+import { Button, ValueMenu } from "@lesomnus/nox";
 
 const meta = {
   title: "Components/ValueMenu",
@@ -38,6 +38,50 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {};
+export const LoadingDescriptions: Story = {
+  render: function LoadingDescriptions() {
+    const [loaded, setLoaded] = useState(false);
+    const [value, setValue] = useState("");
+    return (
+      <div style={{ display: "grid", gap: "var(--ui-space)", width: 280 }}>
+        <ValueMenu
+          label="Account"
+          value={value}
+          choose={setValue}
+          reserveDescriptionSpace
+          alignItemWithTrigger
+          options={[
+            { value: "", label: "Choose an account" },
+            ...(loaded
+              ? [{ value: "work", label: "Work account", description: "work" }]
+              : []),
+          ]}
+        />
+        <Button
+          onClick={async () => {
+            if (loaded) {
+              setLoaded(false);
+              setValue("");
+              return;
+            }
+            await new Promise((resolve) => setTimeout(resolve, 600));
+            setLoaded(true);
+          }}
+        >
+          {loaded ? "Reset options" : "Load options"}
+        </Button>
+      </div>
+    );
+  },
+  parameters: {
+    docs: {
+      description: {
+        story:
+          "Reserve description space before options load. Loading options and selecting a value with an alias keep the trigger's height stable; aligned menus use the same reserved frame.",
+      },
+    },
+  },
+};
 export const IconGrid: Story = {
   args: {
     label: "Symbol",

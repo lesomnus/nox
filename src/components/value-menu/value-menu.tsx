@@ -76,6 +76,7 @@ export function ValueMenu({
   choose,
   searchable = false,
   hideSelected = false,
+  reserveDescriptionSpace = false,
   alignItemWithTrigger = false,
   awaitAction = false,
   scrollbarOffset,
@@ -110,6 +111,8 @@ export function ValueMenu({
   searchable?: boolean;
   /** Exclude the selected value from choices; the aligned current/search row stays. */
   hideSelected?: boolean;
+  /** Reserve label-and-description row height before asynchronous options arrive. */
+  reserveDescriptionSpace?: boolean;
   /** Align the selected option itself; search/hidden/missing selections use the current-row layout. */
   alignItemWithTrigger?: boolean;
   /** Vertical scrollbar placement, forwarded to ScrollArea. */
@@ -147,9 +150,11 @@ export function ValueMenu({
   const optionColumns =
     Number.isSafeInteger(columns) && columns > 1 ? columns : 1;
   const currentOption = { ...selected, value, label: text };
-  const multiline = sections.some((section) =>
-    section.items.some((item) => !!item.description),
-  );
+  const multiline =
+    reserveDescriptionSpace ||
+    sections.some((section) =>
+      section.items.some((item) => !!item.description),
+    );
   const alignItem =
     optionColumns === 1 &&
     alignItemWithTrigger &&
