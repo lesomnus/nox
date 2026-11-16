@@ -175,11 +175,11 @@
   top: calc(
     -1 * (var(--slider-control-size) / 2 + var(--slider-label-gap, 0px))
   );
-  width: 6px;
-  height: 6px;
+  width: 2px;
+  height: 2px;
   translate: -50% -50%;
   border-radius: 50%;
-  background: var(--ui-shade-136);
+  background: #000;
   pointer-events: none;
 }
 .ticks[data-marks][data-orientation="vertical"] > .tick::before {
@@ -187,10 +187,6 @@
   left: calc(
     -1 * (var(--slider-control-size) / 2 + var(--slider-label-gap, 0px))
   );
-}
-.ticks[data-marks]
-  > .tick:has(> button[aria-pressed="true"], > input[data-selected])::before {
-  background: var(--ui-shade-237);
 }
 .tickButton {
   display: grid;
