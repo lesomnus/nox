@@ -91,7 +91,9 @@
 /* Position against resting content geometry, not the click's press-scale
    transition. A residual icon/text offset otherwise survives reopening. */
 .value_menu.value_menu
-  :global(.setting-trigger[aria-expanded="true"] .button-content) {
+  :global(
+    .setting-trigger[aria-expanded="true"] :is(.button-content, .meta-value)
+  ) {
   transform: none;
   transition: none;
 }
@@ -267,7 +269,7 @@
 .setting_menu :global(.setting-search-row) {
   display: flex;
   align-items: center;
-  gap: var(--ui-space);
+  gap: var(--ui-menu-item-gap);
   height: var(--value-row-height);
   border-radius: var(--menu-inner-radius, 6px);
   padding: var(--value-padding-block) var(--value-padding-inline);

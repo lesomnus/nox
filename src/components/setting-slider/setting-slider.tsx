@@ -36,6 +36,7 @@ export function SettingSlider({
   const [customValue, setCustomValue] = useState(
     outsidePresets ? value : undefined,
   );
+  const customValueRef = useRef(customValue);
   const [selection, setSelection] = useState({ value, custom: outsidePresets });
   const custom = selection.value === value ? selection.custom : outsidePresets;
   const hasCustom =
@@ -46,15 +47,17 @@ export function SettingSlider({
     setSelection((current) =>
       current.value === value ? current : { value, custom: outsidePresets },
     );
-    if (outsidePresets) {
+    if (outsidePresets && !editing.current) {
+      customValueRef.current = value;
       setCustomValue(value);
-      if (!editing.current) setDraft(String(value));
+      setDraft(String(value));
     }
   }, [value, outsidePresets]);
   function chooseCustom(
-    next = customValue ?? value ?? inherited,
+    next = customValueRef.current ?? value ?? inherited,
     updateDraft = true,
   ) {
+    customValueRef.current = next;
     setCustomValue(next);
     setSelection({ value: next, custom: true });
     if (updateDraft) setDraft(String(next));
@@ -126,7 +129,8 @@ export function SettingSlider({
               data-selected={custom || undefined}
               onFocus={() => {
                 editing.current = true;
-                if (customValue !== undefined) chooseCustom(customValue);
+                if (customValueRef.current !== undefined)
+                  chooseCustom(customValueRef.current);
               }}
               onChange={(event) => {
                 setDraft(event.currentTarget.value);
@@ -138,7 +142,11 @@ export function SettingSlider({
               }}
               onBlur={() => {
                 editing.current = false;
-                setDraft(customValue === undefined ? "" : String(customValue));
+                setDraft(
+                  customValueRef.current === undefined
+                    ? ""
+                    : String(customValueRef.current),
+                );
               }}
               onKeyDown={(event) => {
                 if (event.key === "Enter" || event.key === "Escape") {
