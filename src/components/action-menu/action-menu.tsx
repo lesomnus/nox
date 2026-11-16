@@ -52,6 +52,7 @@ export type ActionMenuMotion =
 
 export type ActionMenuItem = {
   label: string;
+  className?: string;
   icon?: ReactNode;
   shortcut?: string | readonly string[];
   checked?: boolean;
@@ -238,7 +239,8 @@ export function ActionMenu({
         entranceFrom("left");
         constrainHeight(window.innerHeight - 2 * inset);
         popup.style.left = `${Math.max(inset, Math.min(bounds.right + gap, window.innerWidth - popup.offsetWidth - rightInset))}px`;
-        popup.style.top = `${Math.max(inset, Math.min(bounds.bottom - popup.offsetHeight, window.innerHeight - popup.offsetHeight - inset))}px`;
+        const height = popup.getBoundingClientRect().height;
+        popup.style.top = `${Math.max(inset, Math.min(bounds.bottom - height, window.innerHeight - height))}px`;
         return;
       }
       const above = Math.max(0, bounds.top - gap - inset);
@@ -518,6 +520,7 @@ export function ActionMenu({
                     {group.items.map((item, itemIndex) => (
                       <MenuItem
                         key={item.label}
+                        className={item.className}
                         type="button"
                         role={
                           item.checked === undefined

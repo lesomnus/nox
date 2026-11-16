@@ -26,6 +26,8 @@ export * from "./components/dialog-trigger/dialog-trigger";
 export * from "./components/confirm-button/confirm-button";
 export * from "./components/action-menu/action-menu";
 export * from "./components/menu-surface/menu-surface";
+export * from "./components/menu-surface/anchored-menu";
+export * from "./components/choice-menu/choice-menu";
 export * from "./components/menu-surface/menu-item";
 export * from "./components/menu-surface/menu-scroll-area";
 export * from "./components/aurora-glow/aurora-glow";

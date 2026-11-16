@@ -80,6 +80,11 @@ try {
       return <div><button onClick={() => void save.run("Workspace")} disabled={save.pending}>Save</button>{save.error && <ActionError {...feedback} pending={save.pending} onRetry={() => void save.run("Workspace")} />}</div>;
     }
     void AsyncSave;
+    import { CheckboxMenu, RadioMenu, AnchoredMenu, type CheckboxMenuProps, type RadioMenuProps } from "@lesomnus/nox";
+    const checkboxMenu: CheckboxMenuProps = {label:"Levels",allLabel:"All levels",options:[{value:"info",label:"Information"}],value:["info"],choose:values=>{void values.includes("info");}};
+    const radioMenu: RadioMenuProps = {label:"Order",options:[{value:"newest",label:"Newest"}],value:"newest",choose:value=>{void value.toUpperCase();}};
+    function ChoiceMenus() { return <><CheckboxMenu {...checkboxMenu} /><RadioMenu {...radioMenu} /></>; }
+    void ChoiceMenus; void AnchoredMenu;
     import { ImageViewer, ImageViewerViewport, ImageViewerControls, type ImageViewerProps, PathValue, type PathValueProps, ActivityDots, LiquidGauge, Tabs, type TabsProps, FindBar, FindBarControls, FindBarIcon, FindBarInput, FindBarCounter, FindBarOptions, FindBarClose, FindBarResults, FindBarResult, ActivityHeatmap, ListDetailPages, RelativeTime } from "@lesomnus/nox";
     const imageViewer: ImageViewerProps = {alt:"Preview",src:"/image.svg",children:null};
     const pathValue: PathValueProps = {value:"/workspace/report.md",label:"Copy path"};

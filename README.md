@@ -269,6 +269,10 @@ actions, placement and keyboard behavior belong to each menu. The top-level
 controls and component-specific cases. See [menu overlays](docs/menu-surface.md)
 for the capability table.
 
+`CheckboxMenu` and `RadioMenu` share a draft-on-close lifecycle, fixed state
+indicators, content-only press feedback and the exported `AnchoredMenu` overlay.
+See [choice menus](docs/choice-menus.md) for controlled usage and keyboard behavior.
+
 `Checkbox`, `Radio`, `CopyButton`, `FileChip`, `IdentifierValue`, `DateTime`, `FieldLabel`,
 `DescriptionList` and `NavigationPanel` provide native selection, clipboard
 feedback, stable identifier previews, local timestamps and compact record views.

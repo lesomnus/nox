@@ -204,6 +204,7 @@
   --ui-section-group-gap: var(--ui-space);
   --ui-section-padding: calc(3 * var(--ui-space));
   --ui-section-content-gap: var(--ui-space);
+  --ui-setting-description-font-size: 11px;
   --ui-section-background: var(--ui-shade-24);
   --ui-section-radius: 10px;
   --ui-section-inner-radius: var(--ui-control-inset);
@@ -237,6 +238,7 @@
   --ui-menu-selected-background: var(--ui-shade-32);
   --ui-action-menu-width: 198px;
   --ui-menu-item-line-height: 20px;
+  --ui-menu-item-gap: calc(2 * var(--ui-space));
   --ui-menu-shortcut-character-width: 8px;
   --ui-menu-item-padding-block: 6px;
   --ui-menu-item-padding-inline: 10px;
@@ -285,6 +287,7 @@
   --ui-dialog-blur: var(--ui-dropdown-blur);
   --ui-dialog-radius: calc(3 * var(--ui-space));
   --ui-dialog-padding: calc(3 * var(--ui-space));
+  --ui-dialog-header-min-height: calc(12 * var(--ui-space));
   --ui-dialog-body-background: var(--ui-shade-28);
   --ui-dialog-input-background: color-mix(
     in srgb,

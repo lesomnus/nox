@@ -1,4 +1,50 @@
-import { expect, test } from "@playwright/test";
+import { expect, test, type Locator, type Page } from "@playwright/test";
+
+async function expectLabelOnlyPress(page: Page, row: Locator) {
+  await row.evaluate(async (node) => {
+    const animations: Animation[] = [];
+    for (
+      let parent: Element | null = node;
+      parent;
+      parent = parent.parentElement
+    )
+      animations.push(...parent.getAnimations());
+    await Promise.all(
+      animations
+        .filter(
+          (animation) => animation.effect?.getTiming().iterations !== Infinity,
+        )
+        .map((animation) => animation.finished.catch(() => {})),
+    );
+  });
+  const icon = row.locator("[data-menu-item-icon]");
+  const label = row
+    .locator(
+      ".button-content > :not([data-menu-item-icon]):not([data-menu-item-trailing])",
+    )
+    .first();
+  await expect(label).toHaveCSS("transform", "none");
+  const iconBefore = (await icon.boundingBox())!;
+  const labelBefore = (await label.boundingBox())!;
+  const gap = await row.evaluate((node) =>
+    parseFloat(
+      getComputedStyle(node.querySelector(".button-content")!).columnGap,
+    ),
+  );
+  expect(labelBefore.x - iconBefore.x - iconBefore.width).toBeCloseTo(gap, 1);
+  await row.hover();
+  await page.mouse.down();
+  try {
+    await expect
+      .poll(async () => (await label.boundingBox())!.width)
+      .toBeLessThan(labelBefore.width);
+    expect(await icon.boundingBox()).toEqual(iconBefore);
+    await expect(row.locator(".button-content")).toHaveCSS("transform", "none");
+  } finally {
+    await page.mouse.move(0, 0);
+    await page.mouse.up();
+  }
+}
 
 for (const story of ["with-icons", "searchable-icons"]) {
   for (const size of [undefined, 22]) {
@@ -41,6 +87,7 @@ for (const story of ["with-icons", "searchable-icons"]) {
         exact: true,
       });
       const actionHeight = (await actionRow.boundingBox())!.height;
+      await expectLabelOnlyPress(page, actionRow);
       const actionGap = await actionRow
         .locator(".button-content")
         .evaluate((node) => getComputedStyle(node).gap);
@@ -69,6 +116,7 @@ for (const story of ["with-icons", "searchable-icons"]) {
         name: "Low",
         exact: true,
       });
+      await expectLabelOnlyPress(page, valueRow);
       expect(
         await choices
           .locator("[data-menu-group-label]")

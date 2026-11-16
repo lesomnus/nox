@@ -91,7 +91,9 @@
 /* Position against resting content geometry, not the click's press-scale
    transition. A residual icon/text offset otherwise survives reopening. */
 .value_menu.value_menu
-  :global(.setting-trigger[aria-expanded="true"] .button-content) {
+  :global(
+    .setting-trigger[aria-expanded="true"] :is(.button-content, .meta-value)
+  ) {
   transform: none;
   transition: none;
 }
@@ -267,7 +269,7 @@
 .setting_menu :global(.setting-search-row) {
   display: flex;
   align-items: center;
-  gap: var(--ui-space);
+  gap: var(--ui-menu-item-gap);
   height: var(--value-row-height);
   border-radius: var(--menu-inner-radius, 6px);
   padding: var(--value-padding-block) var(--value-padding-inline);
@@ -338,6 +340,39 @@
   color: var(--ui-muted);
   font-size: min(1em, 12px);
   line-height: 20px;
+}
+.setting_menu .optionGrid {
+  --ui-icon-size-small: var(--ui-icon-size);
+  display: grid;
+  grid-template-columns: repeat(var(--value-option-columns), minmax(0, 1fr));
+  gap: var(--ui-control-inset);
+}
+.setting_menu .optionGrid > :global([data-menu-group-label]),
+.setting_menu .optionGrid > :global([role="separator"]) {
+  grid-column: 1 / -1;
+}
+.setting_menu .optionGrid :global([role="option"]) {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  min-height: calc(2 * var(--ui-menu-item-line-height) + 2 * var(--ui-space));
+  text-align: center;
+}
+.setting_menu .optionGrid :global([role="option"] > .button-content) {
+  width: 100%;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--ui-control-inset);
+}
+.optionGrid .label {
+  flex: none;
+  width: 100%;
+  text-align: center;
+}
+.optionGrid .primary {
+  font-size: min(1em, 10px);
+  line-height: 12px;
 }
 
 .setting_menu:global(.opens-up) :global([data-menu-body]) {

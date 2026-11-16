@@ -11,6 +11,7 @@ import {
   useState,
   type KeyboardEvent,
   type ReactNode,
+  type CSSProperties,
 } from "react";
 import { MenuSurface } from "../menu-surface/menu-surface";
 import {
@@ -60,6 +61,7 @@ export function ValueMenu({
   label,
   display,
   renderLabel,
+  valueIcon: customValueIcon,
   value,
   options: items = [],
   groups,
@@ -74,10 +76,13 @@ export function ValueMenu({
   choose,
   searchable = false,
   hideSelected = false,
+  reserveDescriptionSpace = false,
   alignItemWithTrigger = false,
   awaitAction = false,
   scrollbarOffset,
   scrollbarSide,
+  columns = 1,
+  menuClassName = "",
 }: {
   label: string;
   /** Always visible above/below the value rows, regardless of opening direction. */
@@ -86,6 +91,8 @@ export function ValueMenu({
   display?: string;
   /** Custom visual label for the trigger and options; string labels remain accessible and searchable. */
   renderLabel?: (option: ValueOption) => ReactNode;
+  /** Override the selected value's icon in the trigger/current/search row; null hides it. */
+  valueIcon?: ReactNode;
   value: string;
   options?: ValueOption[];
   /** Titled/untitled sections; when supplied, these replace options. */
@@ -104,12 +111,18 @@ export function ValueMenu({
   searchable?: boolean;
   /** Exclude the selected value from choices; the aligned current/search row stays. */
   hideSelected?: boolean;
+  /** Reserve label-and-description row height before asynchronous options arrive. */
+  reserveDescriptionSpace?: boolean;
   /** Align the selected option itself; search/hidden/missing selections use the current-row layout. */
   alignItemWithTrigger?: boolean;
   /** Vertical scrollbar placement, forwarded to ScrollArea. */
   scrollbarSide?: "left" | "right";
   /** Handle-center offset in pixels: positive inside, negative outside. */
   scrollbarOffset?: number;
+  /** Option grid columns. Multiple columns stack icons above centered labels; alignment uses the current/search row. */
+  columns?: number;
+  /** Additional class for the portaled menu surface. */
+  menuClassName?: string;
 }) {
   const { t } = useUI();
   const offset = Number.isFinite(scrollbarOffset) ? scrollbarOffset : undefined;
@@ -132,12 +145,22 @@ export function ValueMenu({
     .flatMap((section) => section.items)
     .find((item) => item.value === value);
   const text = display ?? selected?.label ?? value;
+  const valueIcon =
+    customValueIcon === undefined ? selected?.icon : customValueIcon;
+  const optionColumns =
+    Number.isSafeInteger(columns) && columns > 1 ? columns : 1;
   const currentOption = { ...selected, value, label: text };
-  const multiline = sections.some((section) =>
-    section.items.some((item) => !!item.description),
-  );
+  const multiline =
+    reserveDescriptionSpace ||
+    sections.some((section) =>
+      section.items.some((item) => !!item.description),
+    );
   const alignItem =
-    alignItemWithTrigger && !searchable && !hideSelected && !!selected;
+    optionColumns === 1 &&
+    alignItemWithTrigger &&
+    !searchable &&
+    !hideSelected &&
+    !!selected;
   const itemAnchor = alignItem ? value : undefined;
   const isMuted = muted || selected?.muted;
   const visibleSections = sections
@@ -281,6 +304,7 @@ export function ValueMenu({
     hideSelected,
     alignItem,
     itemAnchor,
+    optionColumns,
   ]);
   useLayoutEffect(() => {
     if (!open) return;
@@ -363,7 +387,16 @@ export function ValueMenu({
       }
       if (!["ArrowDown", "ArrowUp"].includes(e.key)) return;
     }
-    if (!["ArrowDown", "ArrowUp", "Home", "End"].includes(e.key)) return;
+    if (
+      ![
+        "ArrowDown",
+        "ArrowUp",
+        "Home",
+        "End",
+        ...(optionColumns > 1 ? ["ArrowLeft", "ArrowRight"] : []),
+      ].includes(e.key)
+    )
+      return;
     e.preventDefault();
     if (!open) {
       openMenu();
@@ -376,6 +409,29 @@ export function ValueMenu({
     const visual = buttons.filter((button) => !button.disabled);
     if (visual.length === 0) return;
     const index = visual.indexOf(document.activeElement as HTMLButtonElement);
+    if (optionColumns > 1 && index >= 0 && e.key.startsWith("Arrow")) {
+      const bounds = visual[index].getBoundingClientRect();
+      const horizontal = e.key === "ArrowLeft" || e.key === "ArrowRight";
+      const sign = e.key === "ArrowLeft" || e.key === "ArrowUp" ? -1 : 1;
+      const candidates = visual
+        .flatMap((button) => {
+          const other = button.getBoundingClientRect();
+          const dx =
+            other.left + other.width / 2 - bounds.left - bounds.width / 2;
+          const dy =
+            other.top + other.height / 2 - bounds.top - bounds.height / 2;
+          const along = horizontal ? dx : dy;
+          const across = horizontal ? dy : dx;
+          return along * sign > 1 &&
+            (!horizontal || Math.abs(across) < bounds.height / 2)
+            ? [{ button, distance: Math.abs(along) * 1000 + Math.abs(across) }]
+            : [];
+        })
+        .sort((a, b) => a.distance - b.distance);
+      candidates[0]?.button.focus({ preventScroll: true });
+      candidates[0]?.button.scrollIntoView({ block: "nearest" });
+      return;
+    }
     if (alignItem && index < 0 && ["ArrowDown", "ArrowUp"].includes(e.key)) {
       const anchor = buttons.findIndex(
         (button) => button.getAttribute("aria-selected") === "true",
@@ -428,7 +484,7 @@ export function ValueMenu({
       <Row
         type="button"
         className="setting-trigger"
-        icon={selected?.icon}
+        icon={valueIcon}
         trailing={selected?.trailing}
         data-muted={!!isMuted}
         role="combobox"
@@ -457,7 +513,7 @@ export function ValueMenu({
           data-searchable={searchable}
           data-scrollbar-offset={offset}
           data-align-item-with-trigger={alignItem || undefined}
-          className={`${styles.setting_menu} ${dialogStyles.entrance} setting-menu ${!alignItem && up ? "opens-up" : ""}`}
+          className={`${styles.setting_menu} ${dialogStyles.entrance} setting-menu ${!alignItem && up ? "opens-up" : ""} ${menuClassName}`}
           data-enter-effect={itemAligned ? "anchored" : "fade"}
           onPointerDownCapture={(event) => {
             // Non-interactive rows must not blur the focused option/search field.
@@ -489,7 +545,7 @@ export function ValueMenu({
           <MenuFrame header={header} footer={footer}>
             {searchable ? (
               <div className="setting-current setting-search-row">
-                <MenuIcon icon={selected?.icon} />
+                <MenuIcon icon={valueIcon} />
                 <input
                   ref={search}
                   className="setting-search"
@@ -511,7 +567,7 @@ export function ValueMenu({
               <Row
                 type="button"
                 className="setting-current"
-                icon={selected?.icon}
+                icon={valueIcon}
                 trailing={selected?.trailing}
                 data-option-value={value}
                 data-muted={!!isMuted}
@@ -552,6 +608,16 @@ export function ValueMenu({
                     )}
                     <div
                       role="group"
+                      className={
+                        optionColumns > 1 ? styles.optionGrid : undefined
+                      }
+                      style={
+                        optionColumns > 1
+                          ? ({
+                              "--value-option-columns": optionColumns,
+                            } as CSSProperties)
+                          : undefined
+                      }
                       aria-labelledby={
                         section.label
                           ? `${id}-group-${section.index}`

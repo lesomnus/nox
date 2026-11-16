@@ -9,7 +9,28 @@
 }
 .item :global(.button-content) {
   justify-content: flex-start;
-  gap: var(--ui-space);
+  gap: var(--ui-menu-item-gap);
+}
+.item.item[data-menu-label-press]:not(:disabled) > :global(.button-content) {
+  transform: none;
+}
+.item[data-menu-label-press]
+  > :global(.button-content)
+  > :not([data-menu-item-icon]):not([data-menu-item-trailing]) {
+  transition: transform 120ms ease-out;
+}
+.item[data-menu-label-press]:not(:disabled):is(:active, [data-loading])
+  > :global(.button-content)
+  > :not([data-menu-item-icon]):not([data-menu-item-trailing]) {
+  transform: scale(var(--press-scale, 0.95));
+  transition-duration: 60ms;
+}
+@media (prefers-reduced-motion: reduce) {
+  .item[data-menu-label-press]
+    > :global(.button-content)
+    > :not([data-menu-item-icon]):not([data-menu-item-trailing]) {
+    transition: none;
+  }
 }
 .item.item:focus-visible {
   /* Keep the ring inside the row instead of clipping it at the scroll edges. */
@@ -38,6 +59,7 @@
   padding-left: calc(2 * var(--ui-space));
 }
 .icon {
+  --ui-icon-size: var(--ui-icon-size-small);
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -45,7 +67,10 @@
   width: var(--ui-icon-size-small);
   height: var(--ui-icon-size-small);
 }
-.icon > :is(svg, img) {
+.icon > * {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   width: 100%;
   height: 100%;
 }

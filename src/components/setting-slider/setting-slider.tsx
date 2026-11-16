@@ -1,41 +1,91 @@
+import { useEffect, useRef, useState } from "react";
 import { useUI } from "../../providers/ui-provider";
 import {
   SliderRoot,
   SliderControl,
-  SliderValue,
+  SliderTick,
   SliderTicks,
 } from "../slider/slider";
 import styles from "./setting-slider.module.css";
 
-// Position zero unsets the key; its label follows the resolved default/global.
+const isPreset = (value: number | undefined) =>
+  value === undefined || (Number.isInteger(value) && value >= 1 && value <= 8);
+
+// Position zero inherits; the final position selects the remembered custom value.
 export function SettingSlider({
   label,
   value,
   inherited,
   disabled,
+  allowCustomValue = false,
+  customMax,
   onChange,
 }: {
   label: string;
   value?: number;
   inherited: number;
   disabled?: boolean;
+  /** Allow positive integer values beyond the preset ticks. */
+  allowCustomValue?: boolean;
+  /** Optional upper bound for the custom-value field. */
+  customMax?: number;
   onChange: (value: number | undefined) => void;
 }) {
   const { t } = useUI();
+  const outsidePresets = !isPreset(value);
+  const [customValue, setCustomValue] = useState(
+    outsidePresets ? value : undefined,
+  );
+  const customValueRef = useRef(customValue);
+  const [selection, setSelection] = useState({ value, custom: outsidePresets });
+  const custom = selection.value === value ? selection.custom : outsidePresets;
+  const hasCustom =
+    allowCustomValue || outsidePresets || customValue !== undefined;
+  const editing = useRef(false);
+  const [draft, setDraft] = useState(outsidePresets ? String(value) : "");
+  useEffect(() => {
+    setSelection((current) =>
+      current.value === value ? current : { value, custom: outsidePresets },
+    );
+    if (outsidePresets && !editing.current) {
+      customValueRef.current = value;
+      setCustomValue(value);
+      setDraft(String(value));
+    }
+  }, [value, outsidePresets]);
+  function chooseCustom(
+    next = customValueRef.current ?? value ?? inherited,
+    updateDraft = true,
+  ) {
+    customValueRef.current = next;
+    setCustomValue(next);
+    setSelection({ value: next, custom: true });
+    if (updateDraft) setDraft(String(next));
+    if (value !== next) onChange(next);
+  }
+  function choose(position: number) {
+    if (position === 9) chooseCustom();
+    else {
+      const next = position || undefined;
+      setSelection({ value: next, custom: false });
+      if (value !== next) onChange(next);
+    }
+  }
   return (
     <SliderRoot
       label={label}
       min={0}
-      max={8}
+      max={hasCustom ? 9 : 8}
       step={1}
-      value={value === undefined ? 0 : Math.min(value, 8)}
+      value={custom ? 9 : (value ?? 0)}
       disabled={disabled}
-      onChange={(position) => onChange(position || undefined)}
+      onChange={choose}
       className={`${styles.setting_slider} setting-slider`}
       data-muted={value === undefined}
+      data-custom={hasCustom || undefined}
     >
-      <SliderValue>{value ?? inherited}</SliderValue>
       <SliderControl
+        className={styles.control}
         aria-valuetext={
           value === undefined
             ? t("Inherited: {value}", { value: inherited })
@@ -43,9 +93,16 @@ export function SettingSlider({
         }
       />
       <SliderTicks
+        highlight
+        selectable
+        marks
         className={`${styles.ticks} slider-ticks`}
         values={[
-          { value: 0, label: "↺", title: t("Reset to inherited value") },
+          {
+            value: 0,
+            label: "↺",
+            title: `${t("Reset to inherited value")} · ${t("Inherited: {value}", { value: inherited })}`,
+          },
           1,
           2,
           3,
@@ -55,7 +112,53 @@ export function SettingSlider({
           7,
           8,
         ]}
-      />
+      >
+        {hasCustom && (
+          <SliderTick value={9} selectable={false}>
+            <input
+              className={styles.custom}
+              type="number"
+              inputMode="numeric"
+              min={1}
+              max={customMax}
+              step={1}
+              aria-label={t("{label} custom value", { label })}
+              value={draft}
+              disabled={disabled}
+              readOnly={!allowCustomValue}
+              data-selected={custom || undefined}
+              onFocus={() => {
+                editing.current = true;
+                if (customValueRef.current !== undefined)
+                  chooseCustom(customValueRef.current);
+              }}
+              onChange={(event) => {
+                setDraft(event.currentTarget.value);
+                if (
+                  event.currentTarget.validity.valid &&
+                  Number.isInteger(event.currentTarget.valueAsNumber)
+                )
+                  chooseCustom(event.currentTarget.valueAsNumber, false);
+              }}
+              onBlur={() => {
+                editing.current = false;
+                setDraft(
+                  customValueRef.current === undefined
+                    ? ""
+                    : String(customValueRef.current),
+                );
+              }}
+              onKeyDown={(event) => {
+                if (event.key === "Enter" || event.key === "Escape") {
+                  event.preventDefault();
+                  if (event.key === "Escape") event.stopPropagation();
+                  event.currentTarget.blur();
+                }
+              }}
+            />
+          </SliderTick>
+        )}
+      </SliderTicks>
     </SliderRoot>
   );
 }
