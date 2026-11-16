@@ -41,6 +41,8 @@ export type UIMessage =
   | "{label} choices"
   | "Inherited: {value}"
   | "Reset to inherited value"
+  | "{label} custom value"
+  | "Custom"
   | "Terminal {number}"
   | "Terminal tabs"
   | "Close {name}"

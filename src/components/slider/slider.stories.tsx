@@ -90,3 +90,20 @@ export const Form: Story = {
     );
   },
 };
+export const MagneticSteps: Story = {
+  args: { min: 0, max: 8, step: 1, value: 4 },
+  render: function Example(args) {
+    const [value, setValue] = useState(args.value ?? 4);
+    return (
+      <SliderRoot
+        {...args}
+        value={value}
+        onChange={setValue}
+        style={{ display: "grid", gap: 4 }}
+      >
+        <SliderControl />
+        <SliderTicks highlight values={[0, 1, 2, 3, 4, 5, 6, 7, 8]} />
+      </SliderRoot>
+    );
+  },
+};

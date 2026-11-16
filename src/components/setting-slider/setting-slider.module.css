@@ -1,17 +1,49 @@
 .setting_slider {
   min-width: 0;
   display: grid;
-  grid-template-columns: 24px minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1fr);
   align-items: center;
-  gap: 0 6px;
+  gap: 0 calc(2 * var(--ui-space));
   font-size: 11px;
 }
-.setting_slider output {
-  text-align: right;
-}
-.setting_slider[data-muted="true"] output {
-  color: var(--ui-muted);
+.setting_slider[data-custom] {
+  grid-template-columns: minmax(0, 1fr) calc(12 * var(--ui-space));
 }
 .ticks {
+  grid-column: 1;
+  grid-row: 2;
+}
+.custom {
   grid-column: 2;
+  grid-row: 2;
+  width: 100%;
+  min-width: 0;
+  height: calc(6 * var(--ui-space));
+  padding: 0 var(--ui-space);
+  border: 0;
+  border-radius: var(--ui-space);
+  background: var(--ui-shade-28);
+  color: inherit;
+  font: inherit;
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+  appearance: textfield;
+}
+.custom[data-selected] {
+  background: var(--ui-shade-40);
+}
+.custom::placeholder {
+  color: var(--ui-muted);
+  font-size: 9px;
+}
+.custom::-webkit-inner-spin-button,
+.custom::-webkit-outer-spin-button {
+  appearance: none;
+}
+.custom:focus-visible {
+  outline: 1px solid var(--ui-control-focus-border);
+  outline-offset: 1px;
+}
+.custom:disabled {
+  opacity: 0.4;
 }
