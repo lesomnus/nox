@@ -1,22 +1,28 @@
 .setting_slider {
+  --setting-slider-custom-size: calc(6 * var(--ui-space));
+  --setting-slider-end-inset: calc(var(--slider-thumb-size) / 2);
   min-width: 0;
   display: grid;
   grid-template-columns: minmax(0, 1fr);
   align-items: center;
-  gap: 0 calc(2 * var(--ui-space));
+  gap: 0;
   font-size: 11px;
 }
 .setting_slider[data-custom] {
-  grid-template-columns: minmax(0, 1fr) calc(12 * var(--ui-space));
+  --setting-slider-end-inset: calc(var(--setting-slider-custom-size) / 2);
 }
-.ticks {
+.setting_slider > .control {
+  width: calc(
+    100% - var(--setting-slider-end-inset) + var(--slider-thumb-size) / 2
+  );
+}
+.setting_slider > .ticks {
   grid-column: 1;
   grid-row: 2;
+  margin-inline-end: var(--setting-slider-end-inset);
 }
 .custom {
-  grid-column: 2;
-  grid-row: 2;
-  width: 100%;
+  width: var(--setting-slider-custom-size);
   min-width: 0;
   height: calc(6 * var(--ui-space));
   padding: 0 var(--ui-space);
@@ -30,11 +36,7 @@
   appearance: textfield;
 }
 .custom[data-selected] {
-  background: var(--ui-shade-40);
-}
-.custom::placeholder {
-  color: var(--ui-muted);
-  font-size: 9px;
+  background: transparent;
 }
 .custom::-webkit-inner-spin-button,
 .custom::-webkit-outer-spin-button {

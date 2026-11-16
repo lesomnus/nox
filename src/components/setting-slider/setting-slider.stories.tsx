@@ -10,7 +10,7 @@ const meta = {
     docs: {
       description: {
         component:
-          "The selected tick has a sliding background. Drag between ticks freely; the handle is gently attracted to ticks and settles at the nearest value on release. Keyboard input keeps the configured steps. Enable allowCustomValue for the numeric field beside the tick labels; customMax can bound accepted integers. The inherited position restores the parent setting.",
+          "Click tick labels or drag the handle to select a value. Circular rail markers identify snap positions and the selected tick has a sliding background. Enable allowCustomValue for a final rail position with a numeric input; customMax can bound accepted integers. Custom values stay available when selecting presets, and entering even a preset number in the custom input keeps that final position selected. The inherited position restores the parent setting.",
       },
     },
   },

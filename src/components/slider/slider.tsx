@@ -38,10 +38,18 @@ export type SliderControlProps = Omit<
   | "form"
 > & { orientation?: "horizontal" | "vertical" };
 export type SliderValueProps = ComponentPropsWithRef<"output">;
-export type SliderTickProps = ComponentPropsWithRef<"span"> & { value: number };
+export type SliderTickProps = ComponentPropsWithRef<"span"> & {
+  value: number;
+  /** Override the enclosing ticks' selectable behavior for a custom control. */
+  selectable?: boolean;
+};
 export type SliderTicksProps = ComponentPropsWithRef<"div"> & {
-  /** Animate a background beneath the current tick. Ticks remain decorative. */
+  /** Animate a background beneath the current tick. */
   highlight?: boolean;
+  /** Render tick labels as buttons that select their values. */
+  selectable?: boolean;
+  /** Draw a circular marker on the rail above each tick. */
+  marks?: boolean;
   /** Override the highlighted value; null hides the highlight. */
   selectedValue?: number | null;
   values?: readonly (
@@ -69,6 +77,7 @@ type State = {
   change: (value: number) => void;
 };
 const Context = createContext<State | null>(null);
+const SelectableTicks = createContext(false);
 function useSlider() {
   const value = useContext(Context);
   if (!value) throw new Error("Slider parts must be inside SliderRoot.");
@@ -341,14 +350,22 @@ export function SliderTick({
   children,
   className = "",
   style,
+  selectable,
+  onClick,
   ...props
 }: SliderTickProps) {
   const state = useSlider();
+  const inheritedSelectable = useContext(SelectableTicks);
+  const interactive = selectable ?? inheritedSelectable;
   return (
     <span
       {...props}
       className={`${styles.tick} ${className}`}
       data-value={value}
+      onClick={(event) => {
+        onClick?.(event);
+        if (interactive && !event.defaultPrevented) state.change(value);
+      }}
       style={
         {
           "--slider-tick-position": `${position(value, state.min, state.max)}%`,
@@ -356,7 +373,19 @@ export function SliderTick({
         } as CSSProperties
       }
     >
-      {children ?? value}
+      {interactive ? (
+        <button
+          type="button"
+          className={styles.tickButton}
+          aria-label={props["aria-label"] ?? props.title}
+          aria-pressed={state.value === value}
+          disabled={state.disabled || state.readOnly}
+        >
+          {children ?? value}
+        </button>
+      ) : (
+        (children ?? value)
+      )}
     </span>
   );
 }
@@ -365,6 +394,8 @@ export function SliderTicks({
   children,
   orientation = "horizontal",
   highlight = false,
+  selectable = false,
+  marks = false,
   selectedValue,
   className = "",
   style,
@@ -373,36 +404,39 @@ export function SliderTicks({
   const state = useSlider();
   const selected = selectedValue === undefined ? state.value : selectedValue;
   return (
-    <div
-      aria-hidden="true"
-      {...props}
-      data-orientation={orientation}
-      data-highlight={highlight || undefined}
-      className={`${styles.ticks} ${className}`}
-      style={
-        {
-          "--slider-selected-position": `${position(selected ?? state.min, state.min, state.max)}%`,
-          ...style,
-        } as CSSProperties
-      }
-    >
-      {highlight && (
-        <span
-          className={styles.tickHighlight}
-          data-hidden={selected === null || undefined}
-        />
-      )}
-      {values?.map((entry, i) =>
-        typeof entry === "number" ? (
-          <SliderTick key={i} value={entry} />
-        ) : (
-          <SliderTick key={i} value={entry.value} title={entry.title}>
-            {entry.label}
-          </SliderTick>
-        ),
-      )}
-      {children}
-    </div>
+    <SelectableTicks value={selectable}>
+      <div
+        aria-hidden={selectable ? undefined : true}
+        {...props}
+        data-orientation={orientation}
+        data-highlight={highlight || undefined}
+        data-marks={marks || undefined}
+        className={`${styles.ticks} ${className}`}
+        style={
+          {
+            "--slider-selected-position": `${position(selected ?? state.min, state.min, state.max)}%`,
+            ...style,
+          } as CSSProperties
+        }
+      >
+        {highlight && (
+          <span
+            className={styles.tickHighlight}
+            data-hidden={selected === null || undefined}
+          />
+        )}
+        {values?.map((entry, i) =>
+          typeof entry === "number" ? (
+            <SliderTick key={i} value={entry} />
+          ) : (
+            <SliderTick key={i} value={entry.value} title={entry.title}>
+              {entry.label}
+            </SliderTick>
+          ),
+        )}
+        {children}
+      </div>
+    </SelectableTicks>
   );
 }
 /** A bare native range; compose Root/Control/Value/Ticks for custom layouts. */

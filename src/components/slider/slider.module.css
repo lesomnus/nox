@@ -3,6 +3,8 @@
   box-sizing: border-box;
 }
 .root {
+  --slider-thumb-size: 12px;
+  --slider-control-size: 20px;
   min-width: 0;
   margin: 0;
   padding: 0;
@@ -13,7 +15,6 @@
   color: inherit;
 }
 .control {
-  --slider-thumb-size: 12px;
   --slider-settle-duration: 160ms;
   --slider-fill-size: var(--slider-progress) 100%;
   --slider-fill-origin: left;
@@ -22,7 +23,7 @@
   min-width: 0;
   padding: 0;
   margin: 0;
-  height: 20px;
+  height: var(--slider-control-size);
   background: transparent;
   border: 0;
   cursor: pointer;
@@ -147,7 +148,7 @@
 .tickHighlight {
   position: absolute;
   left: var(--slider-selected-position);
-  width: var(--slider-tick-size);
+  width: var(--slider-highlight-size, var(--slider-tick-size));
   height: 100%;
   translate: -50% 0;
   border-radius: var(--ui-space);
@@ -155,6 +156,7 @@
   transition:
     left 180ms ease-out,
     bottom 180ms ease-out,
+    width 180ms ease-out,
     opacity 120ms ease-out;
 }
 .tickHighlight[data-hidden] {
@@ -165,6 +167,55 @@
   left: var(--slider-tick-position);
   translate: -50% 0;
   white-space: nowrap;
+}
+.ticks[data-marks] > .tick::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: calc(
+    -1 * (var(--slider-control-size) / 2 + var(--slider-label-gap, 0px))
+  );
+  width: 6px;
+  height: 6px;
+  translate: -50% -50%;
+  border-radius: 50%;
+  background: var(--ui-shade-136);
+  pointer-events: none;
+}
+.ticks[data-marks][data-orientation="vertical"] > .tick::before {
+  top: 50%;
+  left: calc(
+    -1 * (var(--slider-control-size) / 2 + var(--slider-label-gap, 0px))
+  );
+}
+.ticks[data-marks]
+  > .tick:has(> button[aria-pressed="true"], > input[data-selected])::before {
+  background: var(--ui-shade-237);
+}
+.tickButton {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 100%;
+  min-width: inherit;
+  padding: 0;
+  border: 0;
+  border-radius: var(--ui-space);
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+.tickButton:not(:disabled):hover {
+  background: var(--ui-button-hover-background);
+}
+.tickButton:focus-visible {
+  outline: 1px solid var(--ui-control-focus-border);
+  outline-offset: -1px;
+}
+.tickButton:disabled {
+  cursor: default;
+  opacity: 0.4;
 }
 .ticks:where([data-orientation="vertical"]) {
   width: 2em;

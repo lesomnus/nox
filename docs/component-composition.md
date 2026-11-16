@@ -40,21 +40,28 @@ Native range keyboard and form behavior are retained. Pointer dragging keeps a
 continuous visual position, with magnetic detents at steps and a smooth settle
 to the nearest step on release. The numeric value still follows the configured
 step; `step="any"` has no detents. Value children override
-the default numeric display. Ticks are decorative; supply numbers or
+the default numeric display. Ticks are decorative by default; supply numbers or
 `{value,label,title}` entries, or compose Tick children. Their positions use
 actual numeric distances, not evenly spaced array indices. For vertical ticks,
 set `orientation="vertical"` and size the ticks to the rail's usable height
 (the default 160px rail uses 148px ticks plus 6px end margins).
 Use `SliderTicks highlight` for an animated selection background. It follows
 the Root value by default; `selectedValue` overrides it and `null` hides it.
+`selectable` renders tick labels as native buttons. Individual `SliderTick`
+elements can set `selectable={false}` when their children provide a custom
+control. `marks` adds circles at the matching rail positions. Keep ticks directly
+below the control, or set `--slider-label-gap` to match an added layout gap.
 
 SettingSlider now composes these parts. Its inherited position zero, 1–8 ticks
 and display of existing out-of-range setting values remain preset policy. The
 current tick has a sliding selection background instead of a separate value
-column. `allowCustomValue` adds a positive-integer input beside the tick labels;
+column. `allowCustomValue` adds a positive-integer input at the final rail position;
 `customMax` optionally limits it. Invalid/empty drafts restore the current value
-on blur. Existing values outside the presets remain visible even when editing
-custom values is disabled.
+on blur. The custom input remembers its last valid value while selecting presets;
+selecting the final position or focusing that input restores it. The handle and
+selection background align with the custom input, including when its entered
+value happens to match a preset. Existing values outside the presets remain
+visible even when editing custom values is disabled.
 The generic Slider does not give zero any special meaning.
 
 ## DescriptionList

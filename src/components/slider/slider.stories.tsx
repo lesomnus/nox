@@ -99,10 +99,15 @@ export const MagneticSteps: Story = {
         {...args}
         value={value}
         onChange={setValue}
-        style={{ display: "grid", gap: 4 }}
+        style={{ display: "grid", gap: 0 }}
       >
         <SliderControl />
-        <SliderTicks highlight values={[0, 1, 2, 3, 4, 5, 6, 7, 8]} />
+        <SliderTicks
+          highlight
+          selectable
+          marks
+          values={[0, 1, 2, 3, 4, 5, 6, 7, 8]}
+        />
       </SliderRoot>
     );
   },

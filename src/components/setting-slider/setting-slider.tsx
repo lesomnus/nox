@@ -1,9 +1,17 @@
 import { useEffect, useRef, useState } from "react";
 import { useUI } from "../../providers/ui-provider";
-import { SliderRoot, SliderControl, SliderTicks } from "../slider/slider";
+import {
+  SliderRoot,
+  SliderControl,
+  SliderTick,
+  SliderTicks,
+} from "../slider/slider";
 import styles from "./setting-slider.module.css";
 
-// Position zero unsets the key; its label follows the resolved default/global.
+const isPreset = (value: number | undefined) =>
+  value === undefined || (Number.isInteger(value) && value >= 1 && value <= 8);
+
+// Position zero inherits; the final position selects the remembered custom value.
 export function SettingSlider({
   label,
   value,
@@ -24,43 +32,57 @@ export function SettingSlider({
   onChange: (value: number | undefined) => void;
 }) {
   const { t } = useUI();
-  const custom =
-    value !== undefined && (value > 8 || value < 1 || !Number.isInteger(value));
+  const outsidePresets = !isPreset(value);
+  const [customValue, setCustomValue] = useState(
+    outsidePresets ? value : undefined,
+  );
+  const [selection, setSelection] = useState({ value, custom: outsidePresets });
+  const custom = selection.value === value ? selection.custom : outsidePresets;
+  const hasCustom =
+    allowCustomValue || outsidePresets || customValue !== undefined;
   const editing = useRef(false);
-  const [draft, setDraft] = useState(custom ? String(value) : "");
+  const [draft, setDraft] = useState(outsidePresets ? String(value) : "");
   useEffect(() => {
-    if (!editing.current) setDraft(custom ? String(value) : "");
-  }, [value, custom]);
+    setSelection((current) =>
+      current.value === value ? current : { value, custom: outsidePresets },
+    );
+    if (outsidePresets) {
+      setCustomValue(value);
+      if (!editing.current) setDraft(String(value));
+    }
+  }, [value, outsidePresets]);
+  function chooseCustom(
+    next = customValue ?? value ?? inherited,
+    updateDraft = true,
+  ) {
+    setCustomValue(next);
+    setSelection({ value: next, custom: true });
+    if (updateDraft) setDraft(String(next));
+    if (value !== next) onChange(next);
+  }
+  function choose(position: number) {
+    if (position === 9) chooseCustom();
+    else {
+      const next = position || undefined;
+      setSelection({ value: next, custom: false });
+      if (value !== next) onChange(next);
+    }
+  }
   return (
     <SliderRoot
       label={label}
       min={0}
-      max={8}
+      max={hasCustom ? 9 : 8}
       step={1}
-      value={value === undefined ? 0 : Math.min(value, 8)}
+      value={custom ? 9 : (value ?? 0)}
       disabled={disabled}
-      onChange={(position) => onChange(position || undefined)}
+      onChange={choose}
       className={`${styles.setting_slider} setting-slider`}
       data-muted={value === undefined}
-      data-custom={allowCustomValue || custom || undefined}
+      data-custom={hasCustom || undefined}
     >
       <SliderControl
-        onPointerUp={(event) => {
-          // An arbitrary value is projected onto the last preset. Selecting
-          // that same position produces no native change event.
-          if (custom && !event.currentTarget.matches(":disabled"))
-            onChange(event.currentTarget.valueAsNumber || undefined);
-        }}
-        onKeyDown={(event) => {
-          if (
-            custom &&
-            !event.currentTarget.matches(":disabled") &&
-            ["End", "ArrowRight", "ArrowUp", "PageUp"].includes(event.key)
-          ) {
-            event.preventDefault();
-            onChange(8);
-          }
-        }}
+        className={styles.control}
         aria-valuetext={
           value === undefined
             ? t("Inherited: {value}", { value: inherited })
@@ -69,7 +91,8 @@ export function SettingSlider({
       />
       <SliderTicks
         highlight
-        selectedValue={custom ? null : (value ?? 0)}
+        selectable
+        marks
         className={`${styles.ticks} slider-ticks`}
         values={[
           {
@@ -86,49 +109,48 @@ export function SettingSlider({
           7,
           8,
         ]}
-      />
-      {(allowCustomValue || custom) && (
-        <input
-          className={styles.custom}
-          type="number"
-          inputMode="numeric"
-          min={1}
-          max={customMax}
-          step={1}
-          aria-label={t("{label} custom value", { label })}
-          placeholder={t("Custom")}
-          value={draft}
-          disabled={disabled}
-          readOnly={!allowCustomValue}
-          data-selected={custom || undefined}
-          onFocus={() => {
-            editing.current = true;
-          }}
-          onChange={(event) => {
-            setDraft(event.currentTarget.value);
-            if (
-              event.currentTarget.validity.valid &&
-              Number.isInteger(event.currentTarget.valueAsNumber)
-            )
-              onChange(event.currentTarget.valueAsNumber);
-          }}
-          onBlur={() => {
-            editing.current = false;
-            setDraft(custom ? String(value) : "");
-          }}
-          onKeyDown={(event) => {
-            if (event.key === "Enter") {
-              event.preventDefault();
-              event.currentTarget.blur();
-            }
-            if (event.key === "Escape") {
-              event.preventDefault();
-              event.stopPropagation();
-              event.currentTarget.blur();
-            }
-          }}
-        />
-      )}
+      >
+        {hasCustom && (
+          <SliderTick value={9} selectable={false}>
+            <input
+              className={styles.custom}
+              type="number"
+              inputMode="numeric"
+              min={1}
+              max={customMax}
+              step={1}
+              aria-label={t("{label} custom value", { label })}
+              value={draft}
+              disabled={disabled}
+              readOnly={!allowCustomValue}
+              data-selected={custom || undefined}
+              onFocus={() => {
+                editing.current = true;
+                if (customValue !== undefined) chooseCustom(customValue);
+              }}
+              onChange={(event) => {
+                setDraft(event.currentTarget.value);
+                if (
+                  event.currentTarget.validity.valid &&
+                  Number.isInteger(event.currentTarget.valueAsNumber)
+                )
+                  chooseCustom(event.currentTarget.valueAsNumber, false);
+              }}
+              onBlur={() => {
+                editing.current = false;
+                setDraft(customValue === undefined ? "" : String(customValue));
+              }}
+              onKeyDown={(event) => {
+                if (event.key === "Enter" || event.key === "Escape") {
+                  event.preventDefault();
+                  if (event.key === "Escape") event.stopPropagation();
+                  event.currentTarget.blur();
+                }
+              }}
+            />
+          </SliderTick>
+        )}
+      </SliderTicks>
     </SliderRoot>
   );
 }

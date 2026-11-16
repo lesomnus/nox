@@ -55,6 +55,11 @@ test("pointer dragging is continuous, magnetic near ticks, and settles to the ne
   await page.mouse.up();
   await expect(slider).toHaveValue("0");
   expect(await visibleValue()).toBe(0);
+  await page.getByRole("button", { name: "3", exact: true }).click();
+  await expect(slider).toHaveValue("3");
+  await expect(
+    page.getByRole("button", { name: "3", exact: true }),
+  ).toHaveAttribute("aria-pressed", "true");
 });
 
 test("setting ticks animate the selection box and arbitrary integer input preserves bounds", async ({
@@ -79,18 +84,49 @@ test("setting ticks animate the selection box and arbitrary integer input preser
   await input.fill("");
   await input.press("Tab");
   await expect(input).toHaveValue("16");
-  await slider.press("End");
+  await slider.press("ArrowLeft");
   await expect(slider).toHaveAttribute("aria-valuetext", "8");
-  await expect(input).toHaveValue("");
+  await expect(input).toHaveValue("16");
+  await slider.press("End");
+  await expect(slider).toHaveAttribute("aria-valuetext", "16");
+  await expect(slider).toHaveValue("9");
   await input.fill("12");
   await input.press("Enter");
   const rail = (await slider.boundingBox())!;
-  await slider.click({ position: { x: rail.width - 6, y: rail.height / 2 } });
+  const inputBounds = (await input.boundingBox())!;
+  expect(inputBounds.x + inputBounds.width / 2).toBeCloseTo(
+    rail.x + rail.width - 6,
+    1,
+  );
+  await expect(input).not.toHaveAttribute("placeholder");
+  const markers = await root
+    .locator(".slider-ticks [data-value]")
+    .evaluateAll((ticks) =>
+      ticks.map((tick) => {
+        const rect = tick.getBoundingClientRect();
+        const css = getComputedStyle(tick, "::before");
+        return {
+          y: rect.y + parseFloat(css.top),
+          width: parseFloat(css.width),
+          rounded: css.borderRadius,
+        };
+      }),
+    );
+  expect(markers).toHaveLength(10);
+  for (const marker of markers) {
+    expect(marker.y).toBeCloseTo(rail.y + rail.height / 2, 1);
+    expect(marker.width).toBeGreaterThan(0);
+    expect(marker.rounded).toBe("50%");
+  }
+  await root.getByRole("button", { name: "8", exact: true }).click();
   await expect(slider).toHaveAttribute("aria-valuetext", "8");
-  await expect(input).toHaveValue("");
+  await expect(input).toHaveValue("12");
+  await slider.click({ position: { x: rail.width - 6, y: rail.height / 2 } });
+  await expect(slider).toHaveValue("9");
+  await expect(slider).toHaveAttribute("aria-valuetext", "12");
   await slider.press("Home");
   await expect(slider).toHaveAttribute("aria-valuetext", "Inherited: 3");
-  await expect(input).toHaveValue("");
+  await expect(input).toHaveValue("12");
   await slider.press("ArrowRight");
   const highlight = root.locator(".slider-ticks > span").first();
   const target = root.locator('.slider-ticks [data-value="1"]');
@@ -121,4 +157,25 @@ test("setting ticks animate the selection box and arbitrary integer input preser
     })
     .toBeLessThan(0.2);
   expect(during).toBeLessThan((await highlight.boundingBox())!.x);
+  await input.fill("6");
+  await input.press("Enter");
+  await expect(slider).toHaveValue("9");
+  await expect(slider).toHaveAttribute("aria-valuetext", "6");
+  await root.getByRole("button", { name: "6", exact: true }).click();
+  await expect(slider).toHaveValue("6");
+  await expect(input).toHaveValue("6");
+  await input.focus();
+  await expect(slider).toHaveValue("9");
+});
+
+test("disabled preset labels cannot change the setting", async ({ page }) => {
+  await page.goto(
+    "/iframe.html?id=components-settingslider--disabled&viewMode=story",
+  );
+  const root = page.getByRole("group", { name: "Indentation size" });
+  await expect(root.getByRole("button")).toHaveCount(9);
+  for (const button of await root.getByRole("button").all()) {
+    await expect(button).toBeDisabled();
+  }
+  await expect(root.getByRole("slider")).toHaveValue("4");
 });
