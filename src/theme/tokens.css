@@ -204,6 +204,7 @@
   --ui-section-group-gap: var(--ui-space);
   --ui-section-padding: calc(3 * var(--ui-space));
   --ui-section-content-gap: var(--ui-space);
+  --ui-setting-description-font-size: 11px;
   --ui-section-background: var(--ui-shade-24);
   --ui-section-radius: 10px;
   --ui-section-inner-radius: var(--ui-control-inset);

@@ -22,13 +22,13 @@
 }
 .setting_row :global(.setting-summary) {
   margin-block: 0;
-  font-size: 11px;
+  font-size: var(--ui-setting-description-font-size);
   line-height: 1.5;
   color: var(--ui-muted);
 }
 .setting_row :global(.setting-details) {
   margin-block: 0;
-  font-size: 11px;
+  font-size: var(--ui-setting-description-font-size);
   line-height: 1.5;
   color: var(--ui-muted);
 }
