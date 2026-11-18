@@ -5,13 +5,16 @@ import styles from "./menu-scroll-area.module.css";
 export function MenuScrollArea({
   className = "",
   viewportClassName = "",
+  contentClassName = "",
   ...props
 }: ScrollAreaProps) {
   return (
     <ScrollArea
       {...props}
+      data-menu-scroll-area=""
       className={`${styles.area} ${className}`}
       viewportClassName={`${styles.viewport} ${viewportClassName}`}
+      contentClassName={`${styles.content} ${contentClassName}`}
     />
   );
 }

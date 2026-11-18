@@ -378,6 +378,11 @@
 .setting_menu:global(.opens-up) :global([data-menu-body]) {
   flex-direction: column-reverse;
 }
+/* When the current value or search field is below the choices, it meets the footer. */
+.setting_menu:global(.opens-up)
+  :global([data-menu-frame]:has(> [data-menu-body] > .setting-current)) {
+  --menu-fixed-footer-gap: var(--ui-menu-divider-gap);
+}
 
 /* A current-value/search row precedes choices (or follows them when opening up).
    Only the outside end of the viewport shares the surface's curved clip. */
