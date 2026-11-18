@@ -1,5 +1,25 @@
 import { expect, test } from "@playwright/test";
 
+async function footerSpacing(popup: import("@playwright/test").Locator) {
+  return popup.evaluate((menu) => {
+    const viewport = menu.querySelector<HTMLElement>(
+      '[data-scroll-area="viewport"]',
+    )!;
+    const last = viewport.querySelectorAll(
+      '[role="menuitem"], [role="option"]',
+    );
+    const footer = menu.querySelector('[data-menu-fixed="footer"]')!;
+    const divider = footer.getBoundingClientRect().top;
+    return {
+      viewportGap: divider - viewport.getBoundingClientRect().bottom,
+      itemGap: divider - last[last.length - 1].getBoundingClientRect().bottom,
+      expected: parseFloat(
+        getComputedStyle(menu).getPropertyValue("--ui-menu-divider-gap"),
+      ),
+    };
+  });
+}
+
 for (const kind of ["actions", "values", "search"] as const) {
   for (const height of [720, 360]) {
     test(`${kind} fixed regions stay visible through scrolling and preserve control focus at height ${height}`, async ({
@@ -41,6 +61,11 @@ for (const kind of ["actions", "values", "search"] as const) {
         .toBeGreaterThan(0);
       expect(await header.boundingBox()).toEqual(before.header);
       expect(await footer.boundingBox()).toEqual(before.footer);
+      if (kind === "actions") {
+        const { viewportGap, itemGap, expected } = await footerSpacing(popup);
+        expect(viewportGap).toBeCloseTo(0, 1);
+        expect(itemGap).toBeCloseTo(expected, 0);
+      }
       const bounds = (await popup.boundingBox())!;
       expect(bounds.y).toBeGreaterThanOrEqual(0);
       expect(bounds.y + bounds.height).toBeLessThanOrEqual(height + 1);
@@ -66,3 +91,26 @@ for (const kind of ["actions", "values", "search"] as const) {
     });
   }
 }
+
+test("a short menu keeps the same gap before its footer without scrolling", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 800, height: 720 });
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.goto(
+    "/iframe.html?id=menus-features--fixed-search-regions&viewMode=story",
+  );
+  await page
+    .getByRole("combobox", { name: "Fixed values", exact: true })
+    .click();
+  const popup = page.locator(".setting-menu");
+  await popup
+    .getByRole("combobox", { name: "Search Fixed values" })
+    .fill("Preset 40");
+  await expect(popup.getByRole("option")).toHaveCount(1);
+  await expect(popup).not.toHaveClass(/\bopens-up\b/);
+  await expect(popup.getByRole("scrollbar")).toHaveCount(0);
+  const { viewportGap, itemGap, expected } = await footerSpacing(popup);
+  expect(viewportGap).toBeCloseTo(0, 1);
+  expect(itemGap).toBeCloseTo(expected, 0);
+});
