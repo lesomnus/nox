@@ -102,6 +102,7 @@ export function ScrollArea({
   const motionRaf = useRef(0);
   const wheelScroller = useRef<WheelScroller | null>(null);
   const [near, setNear] = useState(false);
+  const [horizontalNear, setHorizontalNear] = useState(false);
   const [dragging, setDragging] = useState(false);
   const [view, setView] = useState({ top: 0, max: 0, height: 0, thumb: 0 });
   const [horizontalView, setHorizontalView] = useState({
@@ -546,6 +547,7 @@ export function ScrollArea({
       }
       data-horizontal-scrollbar={horizontalScrollbar || undefined}
       data-near={near || undefined}
+      data-horizontal-near={(horizontalOverflow && horizontalNear) || undefined}
       data-dragging={dragging || undefined}
       data-horizontal-overflow={horizontalOverflow || undefined}
       onPointerMove={(event) => {
@@ -561,10 +563,16 @@ export function ScrollArea({
             ? event.clientX < bounds.left + distance
             : event.clientX > bounds.right - distance,
         );
+        const track = horizontalRail.current?.getBoundingClientRect();
+        setHorizontalNear(
+          track !== undefined &&
+            Math.abs(event.clientY - (track.top + track.height / 2)) < distance,
+        );
         onPointerMove?.(event);
       }}
       onPointerLeave={(event) => {
         setNear(false);
+        setHorizontalNear(false);
         onPointerLeave?.(event);
       }}
     >
