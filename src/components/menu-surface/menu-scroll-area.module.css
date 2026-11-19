@@ -34,6 +34,10 @@
     var(--menu-scroll-max-height, var(--ui-menu-scroll-max-height))
   );
 }
+/* Keep the footer gap in the content, even when the viewport does not overflow. */
+.content {
+  padding-block-end: var(--menu-body-footer-gap, 0px);
+}
 .area:has([role="scrollbar"]) button {
   padding-right: max(
     var(--menu-item-padding-inline, var(--ui-menu-item-padding-inline)),

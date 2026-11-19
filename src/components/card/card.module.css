@@ -47,11 +47,12 @@
 .card.card :global(.card-footer) button {
   min-width: var(--ui-dialog-action-min-width);
 }
-.card.card :global(.card-heading:has(> .card-close)) {
+:where(dialog:modal) .card.card :global(.card-heading:has(> .card-close)) {
   min-height: var(--ui-dialog-header-min-height);
   padding: var(--ui-space);
 }
-.card.card
+:where(dialog:modal)
+  .card.card
   :global(.card-heading:has(> .card-close))
   > :is(strong, [data-dialog-title]) {
   margin-inline-start: max(
@@ -59,7 +60,7 @@
     calc(var(--ui-dialog-padding) - var(--ui-space))
   );
 }
-.card.card :global(.card-close) {
+:where(dialog:modal) .card.card :global(.card-close) {
   align-self: stretch;
   min-height: 0;
   height: auto;

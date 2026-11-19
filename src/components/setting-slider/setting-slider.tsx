@@ -38,12 +38,21 @@ export function SettingSlider({
   );
   const customValueRef = useRef(customValue);
   const [selection, setSelection] = useState({ value, custom: outsidePresets });
+  const pendingValues = useRef<(number | undefined)[]>([]);
   const custom = selection.value === value ? selection.custom : outsidePresets;
   const hasCustom =
     allowCustomValue || outsidePresets || customValue !== undefined;
   const editing = useRef(false);
   const [draft, setDraft] = useState(outsidePresets ? String(value) : "");
   useEffect(() => {
+    // A controlled parent may echo the focus change and the typed value in
+    // separate renders. Neither echo should replace the newer local selection.
+    const echoed = pendingValues.current.lastIndexOf(value);
+    if (echoed >= 0) {
+      pendingValues.current.splice(0, echoed + 1);
+      return;
+    }
+    pendingValues.current = [];
     setSelection((current) =>
       current.value === value ? current : { value, custom: outsidePresets },
     );
@@ -53,23 +62,25 @@ export function SettingSlider({
       setDraft(String(value));
     }
   }, [value, outsidePresets]);
+  function select(next: number | undefined, custom: boolean) {
+    setSelection({ value: next, custom });
+    const pending = pendingValues.current;
+    if ((pending.length ? pending.at(-1) : value) === next) return;
+    pending.push(next);
+    onChange(next);
+  }
   function chooseCustom(
     next = customValueRef.current ?? value ?? inherited,
     updateDraft = true,
   ) {
     customValueRef.current = next;
     setCustomValue(next);
-    setSelection({ value: next, custom: true });
     if (updateDraft) setDraft(String(next));
-    if (value !== next) onChange(next);
+    select(next, true);
   }
   function choose(position: number) {
     if (position === 9) chooseCustom();
-    else {
-      const next = position || undefined;
-      setSelection({ value: next, custom: false });
-      if (value !== next) onChange(next);
-    }
+    else select(position || undefined, false);
   }
   return (
     <SliderRoot
