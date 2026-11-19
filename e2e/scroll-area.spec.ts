@@ -280,6 +280,35 @@ test("both outside axes preserve the viewport height and horizontal controls tra
   await expect(vertical).toBeVisible();
 });
 
+test("the horizontal handle expands before the pointer reaches its rail", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 640, height: 480 });
+  await page.goto(
+    "/iframe.html?id=layout-scrollarea--horizontal-overflow&viewMode=story",
+  );
+  const rail = page.locator('[data-scroll-area="horizontal-rail"]');
+  const handle = rail.locator('[data-scroll-area="horizontal-handle"]');
+  await expect(handle).toBeVisible();
+  const box = (await rail.boundingBox())!;
+  const x = box.x + box.width / 2;
+  const thickness = async () => (await handle.boundingBox())!.height;
+  const resting = await thickness();
+  const expansion = await handle.evaluate((node) =>
+    Number(
+      getComputedStyle(node).getPropertyValue(
+        "--ui-scroll-area-handle-expansion",
+      ),
+    ),
+  );
+
+  await page.mouse.move(x, box.y - 12);
+  expect(await rail.evaluate((node) => node.matches(":hover"))).toBe(false);
+  await expect.poll(thickness).toBeCloseTo(resting * expansion, 1);
+  await page.mouse.move(x, box.y - 60);
+  await expect.poll(thickness).toBeCloseTo(resting, 1);
+});
+
 test("horizontal scrollbar follows content resizing and releases its reserved space", async ({
   page,
 }) => {

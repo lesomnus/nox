@@ -139,7 +139,7 @@
   opacity: 1;
 }
 .horizontalRail:hover .horizontalHandle,
-.area[data-dragging] .horizontalHandle {
+.area:is([data-horizontal-near], [data-dragging]) .horizontalHandle {
   opacity: 1;
   transform: scaleY(var(--ui-scroll-area-handle-expansion));
 }
