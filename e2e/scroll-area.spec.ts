@@ -19,6 +19,10 @@ for (const offset of [-16, 12]) {
       );
       const thumb = track.getByRole("scrollbar");
       await expect(thumb).toBeVisible();
+      const thickness = async () => {
+        const bounds = (await handle.boundingBox())!;
+        return horizontal ? bounds.height : bounds.width;
+      };
       const box = (await track.boundingBox())!;
       const grab = (await thumb.boundingBox())!;
       const length = horizontal ? box.width : box.height;
@@ -29,8 +33,17 @@ for (const offset of [-16, 12]) {
       const y = box.y + box.height * (horizontal ? 0.5 : 0.65);
       await page.mouse.move(0, 0);
       if (!horizontal) await expect(handle).toHaveCSS("opacity", "0");
+      const restingThickness = await thickness();
+      const expansion = await area.evaluate((node) =>
+        Number(
+          getComputedStyle(node).getPropertyValue(
+            "--ui-scroll-area-handle-expansion",
+          ),
+        ),
+      );
       await page.mouse.move(x, y);
       await expect(handle).toHaveCSS("opacity", "1");
+      await expect.poll(thickness).toBeCloseTo(restingThickness * expansion, 1);
       expect(
         await track.evaluate(
           (node, point) => document.elementFromPoint(point.x, point.y) === node,
@@ -80,6 +93,7 @@ for (const offset of [-16, 12]) {
       await thumb.evaluate((node) => (node as HTMLElement).blur());
       await page.mouse.move(0, 0);
       if (!horizontal) await expect(handle).toHaveCSS("opacity", "0");
+      await expect.poll(thickness).toBeCloseTo(restingThickness, 1);
       await page.mouse.move(x, y);
       await expect(handle).toHaveCSS("opacity", "1");
       await page.mouse.wheel(horizontal ? 100 : 0, horizontal ? 0 : 100);
@@ -134,16 +148,20 @@ for (const side of ["left", "right"])
       expect(
         horizontal.y + horizontal.height / 2 - root.y - root.height,
       ).toBeCloseTo(-offset, 1);
-      const gap = await area.evaluate((node) =>
-        parseFloat(
-          getComputedStyle(node).getPropertyValue("--ui-control-inset"),
-        ),
-      );
+      const { gap, expansion } = await area.evaluate((node) => {
+        const style = getComputedStyle(node);
+        return {
+          gap: parseFloat(style.getPropertyValue("--ui-control-inset")),
+          expansion: Number(
+            style.getPropertyValue("--ui-scroll-area-handle-expansion"),
+          ),
+        };
+      });
       const viewport = (await area
         .locator('[data-scroll-area="viewport"]')
         .boundingBox())!;
       expect(root.height - viewport.height).toBeCloseTo(
-        Math.max(0, horizontal.height / 2 + gap + offset),
+        Math.max(0, (horizontal.height * expansion) / 2 + gap + offset),
         1,
       );
     });
