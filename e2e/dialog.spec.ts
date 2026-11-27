@@ -6,6 +6,7 @@ const story = (name: string) =>
 test("caller-owned Card and decoration share the modal lifecycle without a duplicate frame", async ({
   page,
 }) => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
   await page.goto(story("custom-card"));
   const launch = page.getByRole("button", { name: "Open dialog", exact: true });
   await launch.click();
@@ -18,6 +19,31 @@ test("caller-owned Card and decoration share the modal lifecycle without a dupli
   await expect(dialog.locator(":scope > [data-custom-decoration]")).toHaveCount(
     1,
   );
+  const layout = await dialog.locator(".floating-card").evaluate((card) => {
+    const header = card.querySelector(".card-heading")!;
+    const close = card.querySelector(".card-close")!;
+    const outer = card.getBoundingClientRect();
+    const button = close.getBoundingClientRect();
+    const body = card.querySelector(".card-body")!.getBoundingClientRect();
+    return {
+      headerHeight: header.getBoundingClientRect().height,
+      buttonHeight: button.height,
+      buttonTop: button.top - outer.top,
+      buttonRight: outer.right - button.right,
+      buttonRadius: parseFloat(getComputedStyle(close).borderTopRightRadius),
+      cardRadius: parseFloat(getComputedStyle(card).borderTopRightRadius),
+      bodyLeft: body.left - outer.left,
+      bodyRight: outer.right - body.right,
+      bodyBottom: outer.bottom - body.bottom,
+    };
+  });
+  expect(layout.headerHeight).toBe(layout.buttonHeight);
+  expect(layout.buttonTop).toBeCloseTo(layout.buttonRight);
+  expect(layout.buttonRadius + layout.buttonRight).toBeCloseTo(
+    layout.cardRadius,
+  );
+  expect(layout.bodyBottom).toBeCloseTo(layout.bodyLeft);
+  expect(layout.bodyBottom).toBeCloseTo(layout.bodyRight);
   await dialog.getByRole("button", { name: "Close", exact: true }).click();
   await expect(page.locator("dialog")).toHaveCount(0);
   await expect(launch).toBeFocused();
