@@ -1,3 +1,16 @@
+.section.section {
+  --nox-table-section-scroll-flex: initial;
+  --nox-table-section-scroll-height: initial;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  padding: var(--ui-section-group-gap) 0 var(--ui-section-padding);
+}
+.section[data-table-section="fill"] {
+  --nox-table-section-scroll-flex: 1;
+  --nox-table-section-scroll-height: auto;
+  height: 100%;
+}
 .table {
   width: 100%;
   border-collapse: separate;
@@ -12,6 +25,9 @@
 }
 .header {
   background: var(--ui-table-background);
+}
+.section .table > .header {
+  background: var(--ui-section-background);
 }
 .table[data-sticky-header] > .header {
   position: sticky;
@@ -82,8 +98,20 @@
 .scroll {
   --ui-scroll-area-background: var(--ui-table-background);
   --ui-scroll-area-content-inset: 0px;
-  flex: none;
-  height: var(--ui-table-viewport-height, 360px);
+  flex: var(--nox-table-section-scroll-flex, none);
+  height: var(
+    --nox-table-section-scroll-height,
+    var(--ui-table-viewport-height, 360px)
+  );
+}
+.section .scroll {
+  --ui-scroll-area-background: var(--ui-section-background);
+}
+.section
+  .scroll
+  > :global([data-scroll-area="viewport"])
+  > :global([data-scroll-area="content"]) {
+  --ui-scroll-area-content-inset: 0px;
 }
 .scroll:has(.table[data-sticky-header] > .header) .topFade {
   top: var(--ui-table-header-height);

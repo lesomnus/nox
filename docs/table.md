@@ -53,6 +53,23 @@ is reserved below the viewport so it does not cover the last row. Set
 `horizontalScrollbar={false}` to hide it, or `horizontalScrollbarLabel` to
 customize its accessible name. The table can also be used without any wrapper.
 
+Use `TableSection` for an edge-to-edge table on a Section surface. In a
+height-constrained slot, `fillHeight` makes the section and its
+`TableScrollArea` fill the available height. Other children can sit above or
+below the scrolling area, and the table keeps its usual row heights when
+there are few rows. An intervening wrapper should be a flex column that
+can grow and shrink. Omit `fillHeight` for a section that follows its content.
+
+```tsx
+<TableSection fillHeight aria-label="Project sessions">
+  <TableScrollArea role="region" aria-label="Session list">
+    <Table>{/* headers and rows */}</Table>
+  </TableScrollArea>
+</TableSection>
+```
+
+See **Components/Table → Filled Section** for a fixed-height example.
+
 Optional `TableCaption` names/describes the table; `TableFooter` displays totals
 or summaries. Empty/loading states can use a `TableCell` with `colSpan` and
 caller-provided content; pass `aria-busy` to `Table` while loading. The Loading

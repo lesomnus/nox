@@ -125,6 +125,46 @@ test("narrow table scrolls horizontally inside its region", async ({
     .toBeLessThan(1);
 });
 
+test("a table section fills its slot without stretching short rows", async ({
+  page,
+}) => {
+  await page.goto(story("filled-section"));
+  const section = page.getByRole("region", { name: "Project sessions" });
+  const area = section.getByRole("region", { name: "Session list" });
+  const table = area.getByRole("table", { name: "Sessions" });
+  const viewport = area.locator('[data-scroll-area="viewport"]');
+  const header = table.getByRole("columnheader").first();
+  const footer = section.locator("footer");
+  await expect(table.locator("tbody tr")).toHaveCount(32);
+  const frame = (await area.boundingBox())!;
+  const sectionBox = (await section.boundingBox())!;
+  const headingY = (await header.boundingBox())!.y;
+  const footerY = (await footer.boundingBox())!.y;
+  expect(frame.x).toBe(sectionBox.x);
+  expect(frame.width).toBe(sectionBox.width);
+  expect(frame.y + frame.height).toBeLessThanOrEqual(footerY);
+  expect(footerY - frame.y - frame.height).toBeLessThan(frame.height);
+  const rowHeight = (await table.locator("tbody tr").first().boundingBox())!
+    .height;
+
+  const scrollbar = area.getByRole("scrollbar", { name: "Scroll sessions" });
+  await scrollbar.press("End");
+  await expect
+    .poll(() => viewport.evaluate((node) => node.scrollTop))
+    .toBeGreaterThan(0);
+  expect((await header.boundingBox())!.y).toBeCloseTo(headingY, 0);
+  expect((await footer.boundingBox())!.y).toBe(footerY);
+
+  await section.getByRole("button", { name: "Show fewer sessions" }).click();
+  await expect(table.locator("tbody tr")).toHaveCount(2);
+  await expect(scrollbar).toHaveCount(0);
+  expect(await area.boundingBox()).toEqual(frame);
+  expect((await table.locator("tbody tr").first().boundingBox())!.height).toBe(
+    rowHeight,
+  );
+  expect((await footer.boundingBox())!.y).toBe(footerY);
+});
+
 test("table loading keeps column placeholders hidden from assistive technology", async ({
   page,
 }) => {

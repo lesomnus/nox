@@ -1,6 +1,29 @@
 import type { ComponentPropsWithRef } from "react";
 import { ScrollArea, type ScrollAreaProps } from "../scroll-area/scroll-area";
+import {
+  Section,
+  type SectionSurfaceProps,
+} from "../section-layout/section-layout";
 import styles from "./table.module.css";
+
+export type TableSectionProps = SectionSurfaceProps & {
+  /** Fill a height-constrained slot and let its table viewport scroll. */
+  fillHeight?: boolean;
+};
+
+export function TableSection({
+  fillHeight = false,
+  className = "",
+  ...props
+}: TableSectionProps) {
+  return (
+    <Section
+      {...props}
+      className={`${styles.section} ${className}`}
+      data-table-section={fillHeight ? "fill" : "auto"}
+    />
+  );
+}
 
 export type TableProps = ComponentPropsWithRef<"table"> & {
   /** Keeps the entire header visible within the nearest scrolling ancestor. */

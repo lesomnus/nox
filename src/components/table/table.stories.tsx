@@ -17,6 +17,8 @@ import {
   TableCell,
   TableCaption,
   TableScrollArea,
+  TableSection,
+  type TableProps,
   useRangeSelection,
 } from "@lesomnus/nox";
 import styles from "./table.stories.module.css";
@@ -392,6 +394,40 @@ export const IndependentRanges: Story = {
   ),
 };
 
+function ScrollingTable({
+  args,
+  count = 32,
+}: {
+  args: TableProps;
+  count?: number;
+}) {
+  return (
+    <Table {...args} aria-label="Sessions" className={styles.table}>
+      <Columns />
+      <TableHeader>
+        <TableRow>
+          <Headings />
+        </TableRow>
+      </TableHeader>
+      <TableBody>
+        {Array.from({ length: count }, (_, index) => {
+          const session = sessions[index % sessions.length];
+          return (
+            <TableRow key={index}>
+              <TableCell>
+                {session.name} {index + 1}
+              </TableCell>
+              <TableCell className={styles.muted}>{session.account}</TableCell>
+              <TableCell className={styles.muted}>{session.state}</TableCell>
+              <TableCell align="right">{session.tasks}</TableCell>
+            </TableRow>
+          );
+        })}
+      </TableBody>
+    </Table>
+  );
+}
+
 export const Scrolling: Story = {
   render: (args) => (
     <TableScrollArea
@@ -400,31 +436,7 @@ export const Scrolling: Story = {
       aria-label="Session list"
       scrollbarLabel="Scroll sessions"
     >
-      <Table {...args} aria-label="Sessions" className={styles.table}>
-        <Columns />
-        <TableHeader>
-          <TableRow>
-            <Headings />
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {Array.from({ length: 32 }, (_, index) => {
-            const session = sessions[index % sessions.length];
-            return (
-              <TableRow key={index}>
-                <TableCell>
-                  {session.name} {index + 1}
-                </TableCell>
-                <TableCell className={styles.muted}>
-                  {session.account}
-                </TableCell>
-                <TableCell className={styles.muted}>{session.state}</TableCell>
-                <TableCell align="right">{session.tasks}</TableCell>
-              </TableRow>
-            );
-          })}
-        </TableBody>
-      </Table>
+      <ScrollingTable args={args} />
     </TableScrollArea>
   ),
 };
@@ -438,6 +450,32 @@ export const HorizontalOverflow: Story = {
     ),
   ],
   render: Scrolling.render,
+};
+
+export const FilledSection: Story = {
+  render: function FilledSection(args) {
+    const [showAll, setShowAll] = useState(true);
+    return (
+      <div className={styles.sectionFrame}>
+        <TableSection fillHeight aria-label="Project sessions">
+          <header className={styles.sectionControl}>Project sessions</header>
+          <TableScrollArea
+            role="region"
+            aria-label="Session list"
+            scrollbarLabel="Scroll sessions"
+            scrollbarOffset={0}
+          >
+            <ScrollingTable args={args} count={showAll ? 32 : 2} />
+          </TableScrollArea>
+          <footer className={styles.sectionControl}>
+            <Button onClick={() => setShowAll(!showAll)}>
+              {showAll ? "Show fewer sessions" : "Show all sessions"}
+            </Button>
+          </footer>
+        </TableSection>
+      </div>
+    );
+  },
 };
 
 export const Empty: Story = {

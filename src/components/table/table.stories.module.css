@@ -44,6 +44,14 @@
 .horizontal {
   max-width: 320px;
 }
+.sectionFrame {
+  width: min(620px, 85vw);
+  height: 340px;
+}
+.sectionControl {
+  flex: none;
+  padding-inline: var(--ui-section-padding);
+}
 .srOnly {
   position: absolute;
   width: 1px;
