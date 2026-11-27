@@ -1,5 +1,5 @@
 import styles from "./floating-card.module.css";
-import type { HTMLAttributes, ReactNode, Ref } from "react";
+import type { CSSProperties, HTMLAttributes, ReactNode, Ref } from "react";
 import { Button } from "../button/button";
 import { DialogReveal } from "../dialog-surface/dialog-surface";
 import type { MenuMotionDirection } from "../action-menu/action-menu";
@@ -7,6 +7,7 @@ import type { MenuMotionDirection } from "../action-menu/action-menu";
 export function FloatingCard({
   title,
   hideHeading = false,
+  headingGap,
   headerCenter,
   revealFrom,
   close,
@@ -21,6 +22,8 @@ export function FloatingCard({
 }: Omit<HTMLAttributes<HTMLElement>, "title"> & {
   title: string;
   hideHeading?: boolean;
+  /** Space between a visible heading and the body. */
+  headingGap?: CSSProperties["marginBlockStart"];
   /** Optional centered heading content, independent of title and close widths. */
   headerCenter?: ReactNode;
   /** Reveal content over a separate glass layer that stays blurred throughout. */
@@ -57,7 +60,15 @@ export function FloatingCard({
           )}
         </header>
       )}
-      <div className="card-body" tabIndex={bodyTabIndex}>
+      <div
+        className="card-body"
+        tabIndex={bodyTabIndex}
+        style={
+          hideHeading || headingGap === undefined
+            ? undefined
+            : { marginBlockStart: headingGap }
+        }
+      >
         {children}
       </div>
       {footer && <footer className="card-footer">{footer}</footer>}
