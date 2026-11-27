@@ -6,6 +6,48 @@
 .dialog * {
   box-sizing: border-box;
 }
+/* Transparent padding keeps the outside scrollbar inside the modal hit area. */
+.dialog:global(.dialog-outside-scrollbar) {
+  --dialog-scrollbar-space: calc(3 * var(--ui-space));
+  box-sizing: content-box;
+  max-width: calc(100% - 2 * var(--dialog-scrollbar-space));
+  padding-inline: var(--dialog-scrollbar-space);
+}
+.dialog:global(.dialog-outside-scrollbar) > div > :global(.floating-card) {
+  overflow: visible;
+}
+.dialog:global(.dialog-outside-scrollbar)
+  :global(.card-body:has(> [data-scroll-area="root"])) {
+  display: flex;
+  flex-direction: column;
+  overflow: visible;
+  padding: 0;
+}
+.dialog:global(.dialog-outside-scrollbar)
+  :global(.card-body > [data-scroll-area="root"]) {
+  --ui-scroll-area-background: var(--ui-dialog-body-background);
+  display: flex;
+  flex-direction: column;
+  border-radius: inherit;
+}
+.dialog:global(.dialog-outside-scrollbar)
+  :global(
+    .card-body > [data-scroll-area="root"] > [data-scroll-area="viewport"]
+  ) {
+  flex: 1;
+  min-height: 0;
+  height: auto;
+  overscroll-behavior: contain;
+}
+.dialog:global(.dialog-outside-scrollbar)
+  :global(
+    .card-body
+      > [data-scroll-area="root"]
+      > [data-scroll-area="viewport"]
+      > [data-scroll-area="content"]
+  ) {
+  padding: var(--card-body-padding, var(--card-default-body-padding));
+}
 .content {
   composes: floating_card from "../floating-card/floating-card.module.css";
   composes: card from "../card/card.module.css";

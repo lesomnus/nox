@@ -309,6 +309,37 @@ export const LongContent: Story = {
   },
 };
 
+export const OutsideScrollbar: Story = {
+  render: function OutsideScrollbar(args) {
+    const [open, setOpen] = useState(false);
+    return (
+      <>
+        <Button onClick={() => setOpen(true)}>Open dialog</Button>
+        <Dialog
+          {...args}
+          className="dialog-outside-scrollbar"
+          open={open}
+          onClose={() => setOpen(false)}
+        >
+          <DialogHeader>
+            <DialogTitle>Resources</DialogTitle>
+          </DialogHeader>
+          <DialogBody>
+            <ScrollArea scrollbarOffset={-8} scrollbarLabel="Scroll resources">
+              {Array.from({ length: 30 }, (_, index) => (
+                <p key={index}>Resource {index + 1}</p>
+              ))}
+            </ScrollArea>
+          </DialogBody>
+          <DialogFooter>
+            <Button onClick={() => setOpen(false)}>Close</Button>
+          </DialogFooter>
+        </Dialog>
+      </>
+    );
+  },
+};
+
 export const WithoutFooter: Story = {
   render: function WithoutFooter(args) {
     const [open, setOpen] = useState(false);

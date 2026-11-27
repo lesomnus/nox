@@ -68,13 +68,11 @@
 }
 .card.card :global(.card-body) {
   --ui-form-control-background: var(--ui-dialog-input-background);
+  /* Align the body text with the heading across the body's inset. */
+  --card-default-body-padding: calc(2 * var(--ui-dialog-padding))
+    max(0px, calc(var(--ui-dialog-padding) - var(--ui-control-inset)));
   margin: var(--card-heading-gap) var(--ui-control-inset) 0;
-  /* Keep the body text aligned with the heading when the surface is inset. */
-  padding: var(
-    --card-body-padding,
-    calc(2 * var(--ui-dialog-padding))
-      max(0px, calc(var(--ui-dialog-padding) - var(--ui-control-inset)))
-  );
+  padding: var(--card-body-padding, var(--card-default-body-padding));
   border-radius: max(
     0px,
     calc(

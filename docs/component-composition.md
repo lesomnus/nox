@@ -111,6 +111,13 @@ scroll viewport. Bound the Root height when using ScrollBody.
 The original NavigationPanel still takes title/actions/children/scrollAreaProps
 and composes Header/Title/Actions/ScrollBody. No default footer was added.
 
+## Dialog scrollbar outside the frame
+
+Add `className="dialog-outside-scrollbar"` to the `Dialog` and put a
+`ScrollArea` with `scrollbarOffset={-8}` directly inside its `DialogBody` or
+caller-owned `Card`. The scrollbar sits to the right of the visible frame and
+the scroll content uses the card's body padding.
+
 ## Calendar
 
 Calendar is the date-selection surface without DatePicker's trigger or popup.

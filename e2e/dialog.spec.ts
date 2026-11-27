@@ -302,6 +302,36 @@ test("long bodies keep the header and footer in the mobile viewport", async ({
   ).toBeVisible();
 });
 
+test("an outside scrollbar stays interactive without taking up body width", async ({
+  page,
+}) => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.setViewportSize({ width: 390, height: 240 });
+  await page.goto(story("outside-scrollbar"));
+  await page.getByRole("button", { name: "Open dialog", exact: true }).click();
+  const dialog = page.getByRole("dialog", { name: "Resources" });
+  const scrollbar = dialog.getByRole("scrollbar", { name: "Scroll resources" });
+  await scrollbar.hover();
+  const card = (await dialog.locator(".floating-card").boundingBox())!;
+  const handle = (await scrollbar
+    .locator('[data-scroll-area="handle"]')
+    .boundingBox())!;
+  expect(handle.x).toBeGreaterThan(card.x + card.width);
+  const viewport = dialog.locator('[data-scroll-area="viewport"]');
+  expect(
+    await viewport.evaluate(
+      (node) =>
+        Math.round(node.getBoundingClientRect().width) - node.clientWidth,
+    ),
+  ).toBe(0);
+  const max = (await scrollbar.getAttribute("aria-valuemax"))!;
+  await scrollbar.press("End");
+  await expect(scrollbar).toHaveAttribute("aria-valuenow", max);
+  await expect(
+    dialog.getByRole("button", { name: "Close", exact: true }),
+  ).toBeVisible();
+});
+
 test("nested dialogs restore focus to the correct layer", async ({ page }) => {
   await page.goto(story("nested"));
   const launch = page.getByRole("button", { name: "Open dialog", exact: true });
