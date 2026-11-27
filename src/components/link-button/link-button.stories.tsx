@@ -1,5 +1,15 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
-import { LinkButton } from "@lesomnus/nox";
+import { useState } from "react";
+import {
+  Checkbox,
+  LinkButton,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@lesomnus/nox";
 
 const meta = {
   title: "Components/LinkButton",
@@ -23,5 +33,56 @@ export const NewTab: Story = {
     target: "_blank",
     rel: "noreferrer",
     children: "Nox repository",
+  },
+};
+
+export const TableRows: Story = {
+  render: function SessionLinks() {
+    const [selected, setSelected] = useState<string[]>([]);
+    return (
+      <Table aria-label="Sessions">
+        <TableHeader>
+          <TableRow>
+            <TableHead aria-label="Select" />
+            <TableHead>Name</TableHead>
+            <TableHead>State</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {[
+            { name: "Release notes", alias: "oak", state: "Working" },
+            { name: "Review changes", alias: "seal", state: "Stopped" },
+          ].map(({ name, alias, state }) => (
+            <TableRow key={alias} selected={selected.includes(alias)}>
+              <TableCell>
+                <Checkbox
+                  aria-label={`Select ${name}`}
+                  checked={selected.includes(alias)}
+                  onChange={(event) => {
+                    const checked = event.currentTarget.checked;
+                    setSelected((current) =>
+                      checked
+                        ? [...current, alias]
+                        : current.filter((value) => value !== alias),
+                    );
+                  }}
+                />
+              </TableCell>
+              <TableCell>
+                <LinkButton
+                  variant="table"
+                  detail={alias}
+                  inactive={state === "Stopped"}
+                  href={`#${alias}`}
+                >
+                  {name}
+                </LinkButton>
+              </TableCell>
+              <TableHead scope="row">{state}</TableHead>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+    );
   },
 };

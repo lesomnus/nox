@@ -22,5 +22,18 @@ Theme tokens: `--ui-link-button-height` (32px), `--ui-link-button-border`,
 `--ui-link-button-hover-background`. Table's example overrides the height
 token to match its row size.
 
-See Storybook **Components/LinkButton** for default, no-arrow, truncated and
-new-tab examples.
+Use `variant="table"` for a filled link that spans its cell, with optional
+`leading`, a secondary line in `detail` and the trailing arrow. It shares the
+press feedback and [row-aware colors](table.md#buttons-that-follow-a-row) of
+`ButtonAnchor`. Hovering the row gives the link a small lift, a selected row
+adds emphasis, and hovering the link strengthens the highlight. Use `inactive`
+for a muted link that remains navigable. Override the geometry with
+`--ui-table-link-height` or `--ui-table-link-radius`.
+
+```tsx
+<LinkButton variant="table" href="/sessions/oak" detail="oak">
+  Release notes
+</LinkButton>
+```
+
+See Storybook **Components/LinkButton** for inline and table-row examples.

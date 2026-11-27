@@ -77,6 +77,55 @@ for (const theme of ["dark", "light"] as const) {
     }
     expect(hoverDeltas[0]).toBe(hoverDeltas[1]);
   });
+
+  test(`table LinkButton keeps distinct row and link hover feedback in ${theme}`, async ({
+    page,
+  }) => {
+    await page.goto(
+      `/iframe.html?id=components-linkbutton--table-rows&viewMode=story&globals=theme:${theme}`,
+    );
+    const table = page.getByRole("table", { name: "Sessions" });
+    const direction = theme === "dark" ? 1 : -1;
+    const bases: number[] = [];
+    for (const [state, name] of [
+      ["Working", "Release notes oak"],
+      ["Stopped", "Review changes seal"],
+    ]) {
+      const row = table.getByRole("row").filter({
+        has: page.getByRole("rowheader", { name: state, exact: true }),
+      });
+      const link = row.getByRole("link", { name, exact: true });
+      const stateCell = row.getByRole("rowheader", {
+        name: state,
+        exact: true,
+      });
+      await page.mouse.move(0, 0);
+      await settle(row);
+      const bounds = await link.boundingBox();
+      const base = (await color(link))[0]!;
+      bases.push(base);
+      await stateCell.hover();
+      await settle(row);
+      const hovered = (await color(link))[0]!;
+      expect(direction * (hovered - base)).toBeGreaterThan(0);
+      await row.getByRole("checkbox").press("Space");
+      await expect(row).toHaveAttribute("aria-selected", "true");
+      await settle(row);
+      const selected = (await color(link))[0]!;
+      expect(direction * (selected - hovered)).toBeGreaterThan(0);
+      await link.hover();
+      await settle(row);
+      expect(direction * ((await color(link))[0]! - selected)).toBeGreaterThan(
+        0,
+      );
+      expect(await link.boundingBox()).toEqual(bounds);
+    }
+    expect(direction * (bases[0]! - bases[1]!)).toBeGreaterThan(0);
+    await table
+      .getByRole("link", { name: "Review changes seal" })
+      .press("Enter");
+    await expect(page).toHaveURL(/#seal$/);
+  });
 }
 
 test("row-aware background feedback respects reduced motion", async ({

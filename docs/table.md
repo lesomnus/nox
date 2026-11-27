@@ -80,7 +80,9 @@ empty and loading examples.
 
 ## Buttons that follow a row
 
-Opt in with `rowAware` on `Button` or `ButtonAnchor` inside a `TableRow`:
+Use [`LinkButton variant="table"`](link-button.md) for a row-aware navigation
+link with an optional second line. Opt in with `rowAware` on `Button` or
+`ButtonAnchor` for other controls inside a `TableRow`:
 
 ```tsx
 <TableRow selected={selected}>
