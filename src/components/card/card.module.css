@@ -2,6 +2,7 @@
   --card-background: var(--ui-dialog-background);
   --card-backdrop-filter: blur(var(--ui-dialog-blur));
   --card-radius: var(--ui-dialog-radius);
+  --card-heading-gap: 0px;
   background: var(--card-background);
   border-radius: var(--card-radius);
   -webkit-backdrop-filter: var(--card-backdrop-filter);
@@ -67,7 +68,7 @@
 }
 .card.card :global(.card-body) {
   --ui-form-control-background: var(--ui-dialog-input-background);
-  margin: 0 var(--ui-control-inset);
+  margin: var(--card-heading-gap) var(--ui-control-inset) 0;
   /* Keep the body text aligned with the heading when the surface is inset. */
   padding: var(
     --card-body-padding,
