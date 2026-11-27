@@ -47,29 +47,27 @@
 .card.card :global(.card-footer) button {
   min-width: var(--ui-dialog-action-min-width);
 }
-:where(:global(dialog.dialog) > div) > .card.card {
-  --card-body-inset: 0px;
-  --card-modal-content-padding: calc(2 * var(--ui-space));
+:where(dialog:modal) .card.card :global(.card-heading:has(> .card-close)) {
+  min-height: var(--ui-dialog-header-min-height);
   padding: var(--ui-space);
 }
-:where(:global(dialog.dialog) > div) > .card.card :global(.card-heading) {
-  min-height: var(--ui-dialog-header-min-height);
-  padding: 0 var(--card-modal-content-padding);
+:where(dialog:modal)
+  .card.card
+  :global(.card-heading:has(> .card-close))
+  > :is(strong, [data-dialog-title]) {
+  margin-inline-start: max(
+    0px,
+    calc(var(--ui-dialog-padding) - var(--ui-space))
+  );
 }
-:where(:global(dialog.dialog) > div)
-  > .card.card
-  :global(.card-heading:has(> .card-close)) {
-  padding-inline-end: 0;
-}
-:where(:global(dialog.dialog) > div) > .card.card :global(.card-close) {
+:where(dialog:modal) .card.card :global(.card-close) {
   align-self: stretch;
   min-height: 0;
   height: auto;
-  padding-block: 0;
 }
 .card.card :global(.card-body) {
   --ui-form-control-background: var(--ui-dialog-input-background);
-  margin: 0 var(--card-body-inset, var(--ui-control-inset));
+  margin: 0 var(--ui-control-inset);
   /* Keep the body text aligned with the heading when the surface is inset. */
   padding: var(
     --card-body-padding,
@@ -85,11 +83,7 @@
   background: var(--ui-dialog-body-background);
 }
 .card.card :global(.card-body):first-child {
-  margin-block-start: var(--card-body-inset, var(--ui-control-inset));
-}
-:where(:global(dialog.dialog) > div) > .card.card :global(.card-body) {
-  padding: var(--card-body-padding, var(--card-modal-content-padding));
-  border-radius: var(--card-inner-radius);
+  margin-block-start: var(--ui-control-inset);
 }
 .card.card
   :global(.card-body)

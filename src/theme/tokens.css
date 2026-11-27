@@ -287,7 +287,7 @@
   --ui-dialog-blur: var(--ui-dropdown-blur);
   --ui-dialog-radius: calc(3 * var(--ui-space));
   --ui-dialog-padding: calc(3 * var(--ui-space));
-  --ui-dialog-header-min-height: 24px;
+  --ui-dialog-header-min-height: calc(12 * var(--ui-space));
   --ui-dialog-body-background: var(--ui-shade-28);
   --ui-dialog-input-background: color-mix(
     in srgb,

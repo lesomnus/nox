@@ -45,7 +45,7 @@
   overscroll-behavior: contain;
 }
 .body.body:last-child {
-  margin-block-end: var(--card-body-inset, var(--ui-control-inset));
+  margin-bottom: var(--ui-control-inset);
 }
 .footer.footer {
   display: flex;
